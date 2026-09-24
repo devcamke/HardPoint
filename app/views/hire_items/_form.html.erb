@@ -1,0 +1,20 @@
+<%= form_with model: hire_item, class: "card max-w-2xl" do |form| %>
+  <%= render "shared/errors", model: hire_item %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :name, "Tool", class: "label" %><%= form.text_field :name, required: true, class: "input", placeholder: "Concrete mixer" %></div>
+    <div class="field"><%= form.label :asset_tag, "Asset tag", class: "label" %><%= form.text_field :asset_tag, required: true, class: "input font-mono uppercase", placeholder: "MIX-01" %></div>
+    <div class="field"><%= form.label :serial_number, "Serial number (optional)", class: "label" %><%= form.text_field :serial_number, class: "input" %></div>
+    <div class="field"><%= form.label :branch_id, "Kept at", class: "label" %><%= form.select :branch_id, Current.account.branches.alphabetically.map { [ _1.name, _1.id ] }, {}, class: "input" %></div>
+    <div class="field"><%= form.label :daily_rate, "Per day (KES)", class: "label" %><%= form.text_field :daily_rate, required: true, inputmode: "decimal", class: "input" %></div>
+    <div class="field"><%= form.label :weekly_rate, "Per week (optional)", class: "label" %><%= form.text_field :weekly_rate, inputmode: "decimal", class: "input" %></div>
+    <div class="field"><%= form.label :deposit, "Deposit", class: "label" %><%= form.text_field :deposit, inputmode: "decimal", class: "input" %></div>
+    <% unless hire_item.on_hire? %>
+      <div class="field"><%= form.label :status, class: "label" %><%= form.select :status, (HireItem::STATUSES - %w[ on_hire ]).map { [ _1.humanize, _1 ] }, {}, class: "input" %></div>
+    <% end %>
+  </div>
+  <div class="field"><%= form.label :notes, class: "label" %><%= form.text_area :notes, rows: 2, class: "input", placeholder: "Service dates, fuel type, accessories that go with it…" %></div>
+  <div class="flex items-center gap-3">
+    <%= form.submit "Save", class: "btn-primary" %>
+    <%= link_to "Cancel", hire_items_path, class: "link" %>
+  </div>
+<% end %>

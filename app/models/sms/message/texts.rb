@@ -22,6 +22,13 @@ module Sms::Message::Texts
               "#{order.branch.name}. We'll text you when it's ready. #{order.tracking_url}"
     end
 
+    def hire_overdue(agreement)
+      compose to: agreement.customer.phone, purpose: "hire_overdue", source: agreement,
+        body: "#{agreement.account.name}: the #{agreement.hire_items.map(&:name).uniq.to_sentence.downcase} on hire #{agreement.reference} " \
+              "#{agreement.hire_items.many? ? "were" : "was"} due back #{I18n.l(agreement.due_back_at.in_time_zone(agreement.account.time_zone), format: :short)}. " \
+              "Please bring #{agreement.hire_items.many? ? "them" : "it"} back or call us to extend. Charges continue each day."
+    end
+
     def balance_reminder(customer)
       paybill = customer.account.mpesa_shortcodes.for_branch(nil)
       overdue = customer.overdue_cents

@@ -1,0 +1,4 @@
+<% content_for :title, "Add a hire tool" %>
+<p class="text-sm"><%= link_to "← Tools for hire", hire_items_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Add a hire tool</h1>
+<%= render "form", hire_item: @hire_item %>

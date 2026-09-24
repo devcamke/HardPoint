@@ -121,6 +121,8 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
           acme.product_imports.create!(csv: "sku,name,price\nSW-1,Sweep,1\n", branch: branches(:acme_main), filename: "sweep.csv")
 
           acme.account_exports.create!
+          tool = acme.hire_items.create!(branch: branches(:acme_main), name: "Mixer", asset_tag: "SWEEP-MIX", daily_rate: "1500")
+          HireAgreement.hire_out(branch: branches(:acme_main), customer: customers(:acme_contractor), items: [ tool ], due_back_at: 2.days.from_now)
           acme.api_keys.create!(name: "Victim key")
           endpoint = acme.webhook_endpoints.create!(url: "https://hooks.example.com/victim", event_types: %w[ sale.completed ])
           endpoint.deliveries.create!(account: acme, event: "ping", event_id: SecureRandom.uuid, payload: {}, status: "failed", attempts: 7)

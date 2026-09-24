@@ -39,7 +39,8 @@ class SaleLine < ApplicationRecord
   end
 
   def description
-    product_unit ? "#{product.name} (#{product_unit})" : product.name
+    name = product_unit ? "#{product.name} (#{product_unit})" : product.name
+    detail.present? ? "#{name} · #{detail}" : name
   end
 
   # Recorded when the sale completes, so margins stay true after costs change.

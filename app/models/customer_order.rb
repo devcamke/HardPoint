@@ -6,7 +6,7 @@ class CustomerOrder < ApplicationRecord
   publishes_webhooks "order", updated: -> { saved_change_to_status? }
 
   QUOTE_VALIDITY = 14.days
-  SOURCES = %w[ shop online api ].freeze
+  SOURCES = %w[ shop online api hire ].freeze
 
   belongs_to :branch
   belongs_to :customer
@@ -14,6 +14,7 @@ class CustomerOrder < ApplicationRecord
   has_many :lines, -> { order(:id) }, class_name: "CustomerOrderLine", dependent: :destroy, inverse_of: :customer_order
   has_many :deposits, -> { order(:id) }, dependent: :restrict_with_error
   has_many :sales, dependent: :restrict_with_error
+  has_one :hire_agreement, dependent: :restrict_with_error
 
   enum :status, %w[ quote ordered ready collected cancelled ].index_by(&:itself), default: :quote
 
@@ -61,8 +62,9 @@ class CustomerOrder < ApplicationRecord
     quote? && valid_until.present? && valid_until < Date.current
   end
 
+  # Hire orders are kept in step with their hire agreement, not edited by hand.
   def editable?
-    quote? || ordered?
+    (quote? || ordered?) && source != "hire"
   end
 
   # Prices on a quote hold for the customer, so they're worked out when a line is added and kept.

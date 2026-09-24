@@ -1,0 +1,2 @@
+<%# locals: (agreement:) %>
+<% if agreement.overdue? %><span class="badge bg-red-50 text-red-800">Overdue</span><% elsif agreement.out? %><span class="badge bg-safety-100 text-safety-800">Out</span><% elsif agreement.returned? %><span class="badge bg-green-50 text-green-800">Returned</span><% else %><span class="badge bg-concrete-200 text-steel-700">Cancelled</span><% end %>

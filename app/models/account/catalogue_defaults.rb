@@ -23,6 +23,13 @@ module Account::CatalogueDefaults
     units.find_by(name: "Piece") || units.alphabetically.first
   end
 
+  # The service that hire charges are sold as (not on the till's search or the online store; its lines
+  # say which tool and for how long).
+  def hire_product
+    products.find_by(sku: "HIRE") || products.create!(sku: "HIRE", name: "Tool hire", unit: default_unit, price_cents: 0,
+      track_stock: false, active: false, online: false)
+  end
+
   def default_tax_rate
     tax_rates.find_by(default: true)
   end

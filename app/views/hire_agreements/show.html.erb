@@ -1,0 +1,78 @@
+<% content_for :title, "Hire #{@hire_agreement.reference}" %>
+<% agreement = @hire_agreement %>
+<% deposit_held = @order.deposit_balance_cents %>
+
+<p class="text-sm"><%= link_to "← Tool hire", hire_agreements_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold">Hire <%= agreement.reference %> <%= render "hire_agreements/status", agreement: agreement %></h1>
+    <p class="hint mt-1"><%= link_to agreement.customer.name, agreement.customer, class: "link" %> · <%= PhoneNumber.display(agreement.customer.phone) if agreement.customer.phone.present? %>
+      <%= "· ID #{agreement.id_number}" if agreement.id_number.present? %> <%= "· #{agreement.site}" if agreement.site.present? %></p>
+    <p class="mt-1 text-sm">Out <%= l(agreement.started_at, format: :short) %> ·
+      <span class="<%= "font-semibold text-red-700" if agreement.overdue? %>">due back <%= l(agreement.due_back_at, format: :short) %></span>
+      <%= "· returned #{l(agreement.returned_at, format: :short)}" if agreement.returned_at %></p>
+    <%= tag.p("Note: #{agreement.note}", class: "mt-1 text-sm") if agreement.note.present? %>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Print agreement", hire_agreement_document_path(agreement), class: "btn-secondary", target: "_blank" %>
+    <% if agreement.out? %>
+      <%= link_to "Tools back", new_hire_agreement_return_path(agreement), class: "btn-primary" %>
+      <%= button_to "Text a reminder", hire_agreement_reminder_path(agreement), class: "btn-secondary" if agreement.overdue? && Current.account.sms_enabled? %>
+    <% end %>
+    <% if agreement.returned? && @order.collectable? %>
+      <%= button_to "Settle #{money(@order.total_cents)} at this till", customer_order_collection_path(@order), class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="card lg:col-span-2">
+    <table class="table">
+      <thead><tr><th>Tool</th><th class="text-right">Rate</th><th>Back</th><th class="text-right">Days</th><th class="text-right">Charge</th></tr></thead>
+      <tbody>
+        <% agreement.lines.includes(:hire_item).each do |line| %>
+          <tr id="<%= dom_id(line) %>">
+            <td><span class="font-medium"><%= line.hire_item.name %></span> <span class="font-mono text-xs text-steel-600"><%= line.hire_item.asset_tag %></span>
+              <% if line.condition_note || line.damage_note %><br><span class="hint"><%= [ line.condition_note, ("Damage: #{line.damage_note}" if line.damage_note) ].compact.join(" · ") %></span><% end %></td>
+            <td class="text-right text-sm tabular-nums"><%= money(line.daily_rate_cents) %>/day<%= tag.br + "#{money(line.weekly_rate_cents)}/week" if line.weekly_rate_cents %></td>
+            <td class="text-sm"><%= line.returned_at ? l(line.returned_at, format: :short) : (agreement.out? ? "Out" : "–") %></td>
+            <td class="text-right tabular-nums"><%= line.days_charged || HireLine.days_between(agreement.started_at, Time.current) %><%= "*" unless line.returned? %></td>
+            <td class="text-right tabular-nums"><%= money(line.returned? ? line.charge_cents + line.damage_cents : line.charge_until(Time.current)) %><%= "*" unless line.returned? %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <% if agreement.out? %><p class="hint mt-2">* So far, if everything came back now.</p><% end %>
+  </section>
+
+  <div class="space-y-6">
+    <section id="money" class="card">
+      <h2 class="mb-2 text-lg font-semibold">Money</h2>
+      <dl class="grid grid-cols-2 gap-y-1 text-sm">
+        <dt class="text-steel-600">Deposit asked</dt><dd class="text-right tabular-nums"><%= money(agreement.deposit_due_cents) %></dd>
+        <dt class="text-steel-600">Deposit held</dt><dd class="text-right tabular-nums <%= "font-semibold text-red-700" if agreement.out? && deposit_held < agreement.deposit_due_cents %>"><%= money(deposit_held) %></dd>
+        <dt class="text-steel-600"><%= agreement.out? ? "Estimate to due date" : "Charges" %></dt><dd class="text-right tabular-nums"><%= money(@order.total_cents) %></dd>
+      </dl>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <%= link_to "Take deposit", new_customer_order_deposit_path(@order), class: agreement.out? && deposit_held < agreement.deposit_due_cents ? "btn-primary" : "btn-secondary" if @order.takes_deposits? %>
+        <%= link_to "Order #{@order.reference}", @order, class: "btn-secondary" %>
+      </div>
+      <% if @order.collected? && deposit_held.positive? %>
+        <p class="mt-3 text-sm font-semibold text-safety-800"><%= money(deposit_held) %> of the deposit is left over.</p>
+        <%= link_to "Refund #{money(deposit_held)}", new_customer_order_deposit_path(@order, refund: 1), class: "btn-primary mt-2" %>
+      <% end %>
+    </section>
+
+    <% if agreement.out? %>
+      <section class="card">
+        <h2 class="mb-2 text-lg font-semibold">Extend</h2>
+        <%= form_with url: hire_agreement_extension_path(agreement), class: "flex flex-wrap items-end gap-2" do |form| %>
+          <div><%= form.label :due_back_at, "New due back", class: "label" %><%= form.datetime_field :due_back_at, value: (agreement.due_back_at + 1.day).strftime("%Y-%m-%dT%H:%M"), class: "input" %></div>
+          <%= form.submit "Extend", class: "btn-secondary" %>
+        <% end %>
+        <%= button_to "Cancel this hire", hire_agreement_cancellation_path(agreement), class: "mt-4 text-sm text-red-700 underline",
+              form: { data: { turbo_confirm: "Cancel #{agreement.reference}? Only if the tools never left. Refund any deposit first." } } %>
+      </section>
+    <% end %>
+  </div>
+</div>

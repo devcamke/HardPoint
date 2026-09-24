@@ -1,0 +1,4 @@
+<nav class="mb-6 flex flex-wrap items-center gap-2 text-sm" aria-label="Hire">
+  <%= link_to "Hires", hire_agreements_path, class: class_names("rounded-full px-3 py-1", "bg-navy-900 text-white" => controller_name == "hire_agreements", "bg-white" => controller_name != "hire_agreements") %>
+  <%= link_to "Tools", hire_items_path, class: class_names("rounded-full px-3 py-1", "bg-navy-900 text-white" => controller_name == "hire_items", "bg-white" => controller_name != "hire_items") %>
+</nav>

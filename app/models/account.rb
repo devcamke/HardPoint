@@ -49,6 +49,8 @@ class Account < ApplicationRecord
   has_many :sms_messages, class_name: "Sms::Message", dependent: :delete_all
   has_many :support_requests, dependent: :delete_all
   has_one :storefront, dependent: :destroy
+  has_many :hire_items, dependent: :destroy
+  has_many :hire_agreements, dependent: :destroy
   has_many :api_keys, dependent: :destroy
   has_many :webhook_endpoints, dependent: :destroy
   has_many :webhook_deliveries, dependent: :delete_all

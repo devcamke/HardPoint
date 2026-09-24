@@ -1,0 +1,44 @@
+<% content_for :title, "Hire tools" %>
+<%= render "hire_agreements/tabs" %>
+
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-bold">Tools for hire</h1>
+    <p class="mt-1 text-steel-600"><%= HireItem::STATUSES.map { |status| "#{@counts.fetch(status, 0)} #{status.humanize(capitalize: false)}" }.join(" · ") %></p>
+  </div>
+  <%= link_to "Add a tool", new_hire_item_path, class: "btn-primary" if current_membership.can_manage_catalogue? %>
+</div>
+
+<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter by status">
+  <%= link_to "All", hire_items_path, class: "rounded-full px-3 py-1 #{@status ? "bg-white" : "bg-navy-900 text-white"}" %>
+  <% HireItem::STATUSES.each do |status| %>
+    <%= link_to status.humanize, hire_items_path(status: status), class: "rounded-full px-3 py-1 #{@status == status ? "bg-navy-900 text-white" : "bg-white"}" %>
+  <% end %>
+</nav>
+
+<div class="card overflow-x-auto">
+  <% if @hire_items.any? %>
+    <table class="table">
+      <thead><tr><th>Tool</th><th>Branch</th><th class="text-right">Per day</th><th class="text-right">Per week</th><th class="text-right">Deposit</th><th>Status</th><th class="text-right">Earned (90 days)</th><th></th></tr></thead>
+      <tbody>
+        <% @hire_items.each do |item| %>
+          <tr id="<%= dom_id(item) %>">
+            <td><span class="font-medium"><%= item.name %></span> <span class="font-mono text-xs text-steel-600"><%= item.asset_tag %></span></td>
+            <td><%= item.branch.name %></td>
+            <td class="text-right tabular-nums"><%= money(item.daily_rate_cents) %></td>
+            <td class="text-right tabular-nums"><%= item.weekly_rate_cents ? money(item.weekly_rate_cents) : "–" %></td>
+            <td class="text-right tabular-nums"><%= money(item.deposit_cents) %></td>
+            <td>
+              <%= render "hire_items/status", item: item %>
+              <% if (hire = @current_hires[item.id]) %><%= link_to hire.reference, hire_agreement_path(hire), class: "link ml-1 text-xs" %><% end %>
+            </td>
+            <td class="text-right tabular-nums"><%= money(@earned.fetch(item.id, 0)) %></td>
+            <td class="text-right"><%= link_to "Edit", edit_hire_item_path(item), class: "link" if current_membership.can_manage_catalogue? %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-steel-600">No tools yet. Add each one you hire out (each mixer separately, with its own tag like MIX-01) to start.</p>
+  <% end %>
+</div>

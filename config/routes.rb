@@ -88,6 +88,18 @@ Rails.application.routes.draw do
     resource :developers, only: :show
     resource :storefront, only: %i[ edit update ]
 
+    # Tool hire (the tools first, so /hire/tools isn't taken for an agreement).
+    resources :hire_items, path: "hire/tools", except: :show
+    resources :hire_agreements, path: "hire", only: %i[ index new create show ] do
+      scope module: :hire_agreements do
+        resource :return, only: %i[ new create ]
+        resource :extension, only: :create
+        resource :cancellation, only: :create
+        resource :reminder, only: :create
+        resource :document, only: :show
+      end
+    end
+
     # The shop's public online store.
     namespace :store do
       root "products#index"

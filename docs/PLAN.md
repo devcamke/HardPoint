@@ -84,6 +84,10 @@ customers, staff, or reports.
 | Online store | Part of the app on the shop's own subdomain at `/store` (no separate site or theme builder), server-rendered, mobile first. On every plan: small shops want it most |
 | Store checkout | No customer accounts: name and mobile number, matched to an existing customer by the last nine digits. Orders go straight to "ordered" at the shop's prices of the moment, with an unguessable link to follow them. Out-of-stock items can still be ordered ("we'll confirm"), because hardware shops order in |
 | Store payments | Pay on collection, or ahead to the shop's Paybill with the order number as account number (matched by Phase 7). No prompt to the customer's phone from the store yet: that would need M-Pesa prompts tied to orders rather than sales |
+| Tool hire model | A hire agreement owns a confirmed customer order with source "hire". Deposits, refunds, collection at the till, receipts, eTIMS, M-Pesa matching and reports all come from the order, with no separate hire ledger. The order's lines can't be edited by hand; returns rewrite them. |
+| Hire charges | A day is 24 hours from going out, with an hour's grace, and at least one day. With a weekly rate, each full week costs the weekly rate and the remaining days cost the daily rate up to one more week's rate. Damage is charged per tool at return. |
+| Hire lines | Charges go on an inactive, untracked "Tool hire" service product (SKU HIRE), with the tool and days as line detail ("Tool hire · Concrete mixer MIX-01, 4 days"), so reports and tax work without a product per tool. |
+| Hire terms | Standard terms are printed on the A4 agreement with signature lines. Shop-editable terms are left for later. Tools are managed by catalogue managers, and anyone who sells can hire out, return and settle. |
 
 | Phase | Status |
 |---|---|
@@ -97,6 +101,7 @@ customers, staff, or reports.
 | 7 — Payment & tax integrations | **Done (to be proven against the live sandboxes):** M-Pesa Daraja per shop (encrypted credentials, STK push from the till with automatic completion, C2B confirmations with automatic matching to orders, accounts and typed codes, reconciliation report, token-and-IP-checked idempotent callbacks), KRA eTIMS OSCU per branch (initialisation, item registration, sales and credit notes, signed receipts with QR code, retry queue, refusals to fix), SMS via Africa's Talking (receipts, order ready, balance reminders), simulators for all three. Card terminals stay manual; accounting sync skipped. |
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
+| 13 — Tool hire | **Done:** hire tools with asset tags, rates, deposits and status; hire agreements with customer ID, site and due-back time, a printed A4 agreement, deposits through the order, extensions, overdue list and reminder texts (daily at most); returns tool by tool with condition and damage, sending tools to maintenance when needed; settling at the till with the deposit counted; hire in the cross-shop sweep. |
 | 12 — Online store | **Done:** Settings › Online store; public catalogue with categories, search, stock per collection branch and a session cart; checkout without accounts; online orders marked in Orders with staff emails, customer text and email, and an order-tracking page with Paybill instructions; closed while the shop is locked; spam limits. |
 | 11 — Public API & webhooks | **Done:** API keys in Settings › Developers, REST API v1 (shop, branches, products, stock levels, customers, sales, orders with click-and-collect ordering and cancelling) with cursor paging, sync filters, idempotency keys, rate limits and read-only enforcement; webhooks for nine events with signing, retries, auto-disable with an email, redelivery and test events, public-address-only delivery; developer docs; cross-shop sweep over the API. |
 | 10 — Hardening, performance & launch | **Done in code (the rest needs real infrastructure and shops):** cross-tenant sweep of all 136 member routes, enforced CSP, HSTS, permissions policy, log filtering, shop-friendly rate limits, Dependabot and weekly scans; k6 load test (40 cashiers, p95 scan 278 ms) with the cart's N+1 fixed; every foreign key indexed; tuned PostgreSQL config and connection budget; admin Database page; encrypted backups with a restore script, drilled locally; runbook, security brief and launch plan. **Still to do:** provision the VPS, the external penetration test, the drill on the real server, sandbox certification (M-Pesa, eTIMS), and the pilot (docs/LAUNCH.md). |
@@ -566,6 +571,20 @@ collection, without a separate website.
   Phase 7's matching already turns into a deposit; otherwise they pay when collecting.
 - Closed while the shop is read-only, suspended or closing; protected against spam (rate limits, a honeypot,
   sane quantities). On all plans.
+
+### Phase 13 — Tool hire
+**Goal:** shops that rent out concrete mixers, compactors, scaffolding and generators run hire from HardPoint
+instead of a paper book.
+- **Hire tools:** each physical tool with its asset tag, branch, daily and (optional) weekly rate, deposit, and
+  status (available, on hire, in maintenance, retired), with what it has earned.
+- **Hire agreements:** customer, their ID number, where the tools are going, tools out, due-back time; a printed A4
+  agreement with terms and signatures; the deposit taken through the order's deposit (cash to the drawer, M-Pesa,
+  card); extending the due date; overdue list and a reminder text.
+- **Returns:** tool by tool, with condition and any damage charge. Days are counted from when it went out (a day is
+  24 hours, with an hour's grace), capped at the weekly rate where there is one.
+- **Settling up** at the till like collecting an order: hire and damage charges become lines ("Tool hire ·
+  Concrete mixer MIX-01, 4 days") on the agreement's order, the deposit counts towards them, and the receipt, KRA
+  eTIMS, M-Pesa and reports work as for any sale.
 
 ### Beyond v1 (backlog)
 - Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).

@@ -254,6 +254,21 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Online store on a phone](docs/screenshots/190-store-phone-order-ready.png)
 
+## Phase 13: tool hire
+
+- **Tools for hire** (Settings › Tools for hire): each concrete mixer, compactor or scaffold set with an asset tag,
+  branch, daily and optional weekly rate, deposit and status (available, on hire, in maintenance, retired), with what
+  it has earned
+- **Hiring out** (Hire › New hire): pick or add the customer, record their ID number and site, choose the tools and
+  when they're due back, take the deposit (cash, M-Pesa or card) and print the A4 agreement with terms and signatures
+- **While out:** extend the due date, see what's overdue, and send a reminder text (at most once a day)
+- **Returns** tool by tool, with a note on condition and any damage charge; damaged tools go to maintenance. A day is
+  24 hours from going out with an hour's grace, and never more than the weekly rate per week
+- **Settling up** happens at the till, like collecting an order: the charges become lines such as "Tool hire · Plate
+  compactor CMP-01, 3 days", the deposit counts towards them and any balance left over is refunded from the order
+
+![Hire agreement on the till](docs/screenshots/206-hire-at-till.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

@@ -24,6 +24,7 @@
        [ "Units", units_path, "Piece, bag, kilogram, metre…" ],
        [ "Tax rates", tax_rates_path, "VAT and other rates" ],
        [ "Price lists", price_lists_path, "Contractor and wholesale prices" ],
+       ([ "Tools for hire", hire_items_path, "Mixers, compactors, scaffolding… hired out by the day or week" ] if current_membership.can_manage_catalogue?),
        ([ "Import products", product_imports_path, "Load or update products from a spreadsheet" ] if current_membership.can_manage_catalogue?)
      ].compact
    } %>

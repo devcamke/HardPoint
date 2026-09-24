@@ -699,7 +699,8 @@ CREATE TABLE public.customer_order_lines (
     total_cents bigint DEFAULT 0 NOT NULL,
     tax_cents bigint DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    detail character varying
 );
 
 ALTER TABLE ONLY public.customer_order_lines FORCE ROW LEVEL SECURITY;
@@ -1213,6 +1214,137 @@ CREATE SEQUENCE public.goods_receipts_id_seq
 --
 
 ALTER SEQUENCE public.goods_receipts_id_seq OWNED BY public.goods_receipts.id;
+
+
+--
+-- Name: hire_agreements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hire_agreements (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    customer_id bigint NOT NULL,
+    customer_order_id bigint NOT NULL,
+    creator_id bigint,
+    number integer NOT NULL,
+    status character varying DEFAULT 'out'::character varying NOT NULL,
+    id_number character varying,
+    site character varying,
+    note character varying,
+    started_at timestamp(6) without time zone NOT NULL,
+    due_back_at timestamp(6) without time zone NOT NULL,
+    returned_at timestamp(6) without time zone,
+    reminded_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.hire_agreements FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: hire_agreements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hire_agreements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hire_agreements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hire_agreements_id_seq OWNED BY public.hire_agreements.id;
+
+
+--
+-- Name: hire_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hire_items (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    name character varying NOT NULL,
+    asset_tag character varying NOT NULL,
+    serial_number character varying,
+    daily_rate_cents bigint NOT NULL,
+    weekly_rate_cents bigint,
+    deposit_cents bigint DEFAULT 0 NOT NULL,
+    status character varying DEFAULT 'available'::character varying NOT NULL,
+    notes text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.hire_items FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: hire_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hire_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hire_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hire_items_id_seq OWNED BY public.hire_items.id;
+
+
+--
+-- Name: hire_lines; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hire_lines (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    hire_agreement_id bigint NOT NULL,
+    hire_item_id bigint NOT NULL,
+    daily_rate_cents bigint NOT NULL,
+    weekly_rate_cents bigint,
+    returned_at timestamp(6) without time zone,
+    days_charged integer,
+    charge_cents bigint,
+    damage_cents bigint DEFAULT 0 NOT NULL,
+    damage_note character varying,
+    condition_note character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.hire_lines FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: hire_lines_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hire_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hire_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hire_lines_id_seq OWNED BY public.hire_lines.id;
 
 
 --
@@ -1801,7 +1933,8 @@ CREATE TABLE public.sale_lines (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     customer_order_line_id bigint,
-    cost_cents bigint DEFAULT 0 NOT NULL
+    cost_cents bigint DEFAULT 0 NOT NULL,
+    detail character varying
 );
 
 ALTER TABLE ONLY public.sale_lines FORCE ROW LEVEL SECURITY;
@@ -3016,6 +3149,27 @@ ALTER TABLE ONLY public.goods_receipts ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: hire_agreements id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_agreements ALTER COLUMN id SET DEFAULT nextval('public.hire_agreements_id_seq'::regclass);
+
+
+--
+-- Name: hire_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_items ALTER COLUMN id SET DEFAULT nextval('public.hire_items_id_seq'::regclass);
+
+
+--
+-- Name: hire_lines id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_lines ALTER COLUMN id SET DEFAULT nextval('public.hire_lines_id_seq'::regclass);
+
+
+--
 -- Name: kit_components id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3534,6 +3688,30 @@ ALTER TABLE ONLY public.goods_receipt_lines
 
 ALTER TABLE ONLY public.goods_receipts
     ADD CONSTRAINT goods_receipts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hire_agreements hire_agreements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_agreements
+    ADD CONSTRAINT hire_agreements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hire_items hire_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_items
+    ADD CONSTRAINT hire_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hire_lines hire_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_lines
+    ADD CONSTRAINT hire_lines_pkey PRIMARY KEY (id);
 
 
 --
@@ -4449,6 +4627,90 @@ CREATE INDEX index_goods_receipts_on_receiver_id ON public.goods_receipts USING 
 --
 
 CREATE INDEX index_goods_receipts_on_supplier_id ON public.goods_receipts USING btree (supplier_id);
+
+
+--
+-- Name: index_hire_agreements_on_account_id_and_status_and_due_back_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_agreements_on_account_id_and_status_and_due_back_at ON public.hire_agreements USING btree (account_id, status, due_back_at);
+
+
+--
+-- Name: index_hire_agreements_on_branch_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hire_agreements_on_branch_id_and_number ON public.hire_agreements USING btree (branch_id, number);
+
+
+--
+-- Name: index_hire_agreements_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_agreements_on_creator_id ON public.hire_agreements USING btree (creator_id);
+
+
+--
+-- Name: index_hire_agreements_on_customer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_agreements_on_customer_id ON public.hire_agreements USING btree (customer_id);
+
+
+--
+-- Name: index_hire_agreements_on_customer_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hire_agreements_on_customer_order_id ON public.hire_agreements USING btree (customer_order_id);
+
+
+--
+-- Name: index_hire_items_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_items_on_account_id ON public.hire_items USING btree (account_id);
+
+
+--
+-- Name: index_hire_items_on_account_id_and_asset_tag; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hire_items_on_account_id_and_asset_tag ON public.hire_items USING btree (account_id, asset_tag);
+
+
+--
+-- Name: index_hire_items_on_account_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_items_on_account_id_and_status ON public.hire_items USING btree (account_id, status);
+
+
+--
+-- Name: index_hire_items_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_items_on_branch_id ON public.hire_items USING btree (branch_id);
+
+
+--
+-- Name: index_hire_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_lines_on_account_id ON public.hire_lines USING btree (account_id);
+
+
+--
+-- Name: index_hire_lines_on_hire_agreement_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_lines_on_hire_agreement_id ON public.hire_lines USING btree (hire_agreement_id);
+
+
+--
+-- Name: index_hire_lines_on_hire_item_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hire_lines_on_hire_item_id ON public.hire_lines USING btree (hire_item_id);
 
 
 --
@@ -5460,6 +5722,14 @@ ALTER TABLE ONLY public.delivery_notes
 
 
 --
+-- Name: hire_agreements fk_rails_09007d885e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_agreements
+    ADD CONSTRAINT fk_rails_09007d885e FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: customer_order_lines fk_rails_09b5ec3af1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5628,6 +5898,14 @@ ALTER TABLE ONLY public.stock_counts
 
 
 --
+-- Name: hire_lines fk_rails_21b7238016; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_lines
+    ADD CONSTRAINT fk_rails_21b7238016 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: stock_movements fk_rails_2243dd98bb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5665,6 +5943,14 @@ ALTER TABLE ONLY public.stock_adjustments
 
 ALTER TABLE ONLY public.supplier_products
     ADD CONSTRAINT fk_rails_2d632ee52e FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: hire_lines fk_rails_2d8b5d75e6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_lines
+    ADD CONSTRAINT fk_rails_2d8b5d75e6 FOREIGN KEY (hire_item_id) REFERENCES public.hire_items(id) DEFERRABLE;
 
 
 --
@@ -5769,6 +6055,14 @@ ALTER TABLE ONLY public.customer_order_lines
 
 ALTER TABLE ONLY public.customer_payments
     ADD CONSTRAINT fk_rails_46bd4fcc4d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: hire_items fk_rails_47ffe8c6af; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_items
+    ADD CONSTRAINT fk_rails_47ffe8c6af FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -6004,6 +6298,14 @@ ALTER TABLE ONLY public.goods_receipts
 
 
 --
+-- Name: hire_agreements fk_rails_696f7cd26f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_agreements
+    ADD CONSTRAINT fk_rails_696f7cd26f FOREIGN KEY (customer_id) REFERENCES public.customers(id) DEFERRABLE;
+
+
+--
 -- Name: customer_payments fk_rails_6a2298bcd2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6065,6 +6367,14 @@ ALTER TABLE ONLY public.stock_adjustments
 
 ALTER TABLE ONLY public.mpesa_stk_requests
     ADD CONSTRAINT fk_rails_734fdbc1b4 FOREIGN KEY (sale_id) REFERENCES public.sales(id) DEFERRABLE;
+
+
+--
+-- Name: hire_items fk_rails_73934db1b5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_items
+    ADD CONSTRAINT fk_rails_73934db1b5 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
 
 
 --
@@ -6140,6 +6450,14 @@ ALTER TABLE ONLY public.sale_returns
 
 
 --
+-- Name: hire_agreements fk_rails_7efe4aed0a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_agreements
+    ADD CONSTRAINT fk_rails_7efe4aed0a FOREIGN KEY (customer_order_id) REFERENCES public.customer_orders(id) DEFERRABLE;
+
+
+--
 -- Name: payments fk_rails_81b2605d2a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6153,6 +6471,14 @@ ALTER TABLE ONLY public.payments
 
 ALTER TABLE ONLY public.categories
     ADD CONSTRAINT fk_rails_82f48f7407 FOREIGN KEY (parent_id) REFERENCES public.categories(id) DEFERRABLE;
+
+
+--
+-- Name: hire_agreements fk_rails_839021dfe4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_agreements
+    ADD CONSTRAINT fk_rails_839021dfe4 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
 
 
 --
@@ -6220,6 +6546,14 @@ ALTER TABLE ONLY public.sale_returns
 
 
 --
+-- Name: hire_agreements fk_rails_953cdee6b4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_agreements
+    ADD CONSTRAINT fk_rails_953cdee6b4 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: stock_count_lines fk_rails_95d9016807; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6249,6 +6583,14 @@ ALTER TABLE ONLY public.sessions
 
 ALTER TABLE ONLY public.accounts
     ADD CONSTRAINT fk_rails_9696de479d FOREIGN KEY (deletion_requested_by_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: hire_lines fk_rails_97872c38c6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hire_lines
+    ADD CONSTRAINT fk_rails_97872c38c6 FOREIGN KEY (hire_agreement_id) REFERENCES public.hire_agreements(id) DEFERRABLE;
 
 
 --
@@ -7067,6 +7409,27 @@ CREATE POLICY account_isolation ON public.goods_receipts USING (((current_settin
 
 
 --
+-- Name: hire_agreements account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.hire_agreements USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: hire_items account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.hire_items USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: hire_lines account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.hire_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: kit_components account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -7465,6 +7828,24 @@ ALTER TABLE public.goods_receipt_lines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.goods_receipts ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: hire_agreements; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.hire_agreements ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: hire_items; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.hire_items ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: hire_lines; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.hire_lines ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: kit_components; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -7699,6 +8080,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120800'),
 ('20260925120700'),
 ('20260925120600'),
 ('20260925120500'),

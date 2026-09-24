@@ -11,6 +11,9 @@
     <% elsif current_membership&.can_manage_receivables? %>
       <%= render "shared/nav_link", name: "Customers", path: receivables_path, also: [ "/customers" ] %>
     <% end %>
+    <% if current_membership&.can_sell? && Current.account.hire_items.exists? || current_membership&.can_manage_catalogue? && request.path.start_with?("/hire") %>
+      <%= render "shared/nav_link", name: "Hire", path: hire_agreements_path, also: [ "/hire" ] %>
+    <% end %>
     <%= render "shared/nav_link", name: "Products", path: products_path %>
     <%= render "shared/nav_link", name: "Stock", path: stock_path %>
     <% if current_membership&.can_purchase? || current_membership&.can_manage_payables? %>

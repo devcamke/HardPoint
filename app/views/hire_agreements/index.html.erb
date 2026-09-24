@@ -1,0 +1,45 @@
+<% content_for :title, "Tool hire" %>
+<%= render "hire_agreements/tabs" %>
+
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-bold">Tool hire</h1>
+    <% if @overdue_count.positive? %><p class="mt-1 font-semibold text-red-700"><%= pluralize(@overdue_count, "hire") %> overdue</p><% end %>
+  </div>
+  <%= link_to "Hire out tools", new_hire_agreement_path, class: "btn-primary" %>
+</div>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <nav class="flex flex-wrap gap-2 text-sm" aria-label="Filter">
+    <% HireAgreementsController::FILTERS.each do |filter| %>
+      <%= link_to filter.humanize, hire_agreements_path(filter: filter, query: params[:query]), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-navy-900 text-white" : "bg-white"}" %>
+    <% end %>
+  </nav>
+  <%= form_with url: hire_agreements_path, method: :get, class: "flex gap-2" do |form| %>
+    <%= form.hidden_field :filter, value: @filter %>
+    <%= form.search_field :query, value: params[:query], placeholder: "Customer name or phone", class: "input", aria: { label: "Search hires" } %>
+  <% end %>
+</div>
+
+<div class="card overflow-x-auto">
+  <% if @hire_agreements.any? %>
+    <table class="table">
+      <thead><tr><th>Hire</th><th>Customer</th><th>Tools</th><th>Out</th><th>Due back</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @hire_agreements.each do |agreement| %>
+          <tr id="<%= dom_id(agreement) %>">
+            <td><%= link_to agreement.reference, agreement, class: "link font-mono" %></td>
+            <td><%= agreement.customer.name %></td>
+            <td class="text-sm"><%= agreement.lines.map { _1.hire_item.label }.to_sentence %></td>
+            <td class="whitespace-nowrap"><%= l(agreement.started_at, format: :short) %></td>
+            <td class="whitespace-nowrap <%= "font-semibold text-red-700" if agreement.overdue? %>"><%= l(agreement.due_back_at, format: :short) %></td>
+            <td><%= render "hire_agreements/status", agreement: agreement %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <%= render "shared/pagination" %>
+  <% else %>
+    <p class="text-steel-600">No hires here.</p>
+  <% end %>
+</div>

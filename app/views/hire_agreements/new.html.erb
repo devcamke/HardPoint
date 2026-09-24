@@ -1,0 +1,43 @@
+<% content_for :title, "Hire out tools" %>
+<p class="text-sm"><%= link_to "← Tool hire", hire_agreements_path, class: "link" %></p>
+<h1 class="mt-2 mb-1 text-3xl font-bold">Hire out tools</h1>
+<p class="mb-6 text-steel-600">From <%= @branch.name %>
+  <% if Current.account.branches.many? %>· <% Current.account.branches.alphabetically.excluding(@branch).each do |branch| %><%= link_to "from #{branch.name}", new_hire_agreement_path(branch_id: branch.id), class: "link" %> <% end %><% end %></p>
+
+<%= form_with model: @hire_agreement, url: hire_agreements_path, class: "grid gap-6 lg:grid-cols-5" do |form| %>
+  <%= form.hidden_field :branch_id, value: @branch.id %>
+  <div class="card lg:col-span-3">
+    <%= render "shared/errors", model: @hire_agreement %>
+    <h2 class="mb-3 text-lg font-semibold">Tools</h2>
+    <% if @available.any? %>
+      <div class="grid gap-2 sm:grid-cols-2">
+        <% @available.each do |item| %>
+          <label class="flex cursor-pointer items-start gap-2 rounded-md border border-concrete-200 p-3 has-[:checked]:border-safety-500 has-[:checked]:bg-safety-50">
+            <%= check_box_tag "hire_item_ids[]", item.id, Array(params[:hire_item_ids]).include?(item.id.to_s), id: "hire_item_#{item.id}", class: "mt-1" %>
+            <span><span class="font-semibold"><%= item.name %></span> <span class="font-mono text-xs text-steel-600"><%= item.asset_tag %></span><br>
+              <span class="text-sm text-steel-600"><%= money(item.daily_rate_cents) %>/day<%= " · #{money(item.weekly_rate_cents)}/week" if item.weekly_rate_cents %> · deposit <%= money(item.deposit_cents) %></span></span>
+          </label>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-steel-600">No tools are available at <%= @branch.name %>. <%= link_to "See all tools", hire_items_path, class: "link" %></p>
+    <% end %>
+  </div>
+
+  <div class="card lg:col-span-2">
+    <h2 class="mb-3 text-lg font-semibold">Hirer</h2>
+    <div class="field">
+      <%= form.label :customer_id, "Existing customer", class: "label" %>
+      <%= form.select :customer_id, Current.account.customers.order(:name).map { [ [ _1.name, _1.phone ].compact.join(" · "), _1.id ] }, { include_blank: "New customer…", selected: params.dig(:hire_agreement, :customer_id) }, class: "input" %>
+    </div>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <div class="field"><%= form.label :customer_name, "or new: name", class: "label" %><%= form.text_field :customer_name, value: params.dig(:hire_agreement, :customer_name), class: "input" %></div>
+      <div class="field"><%= form.label :customer_phone, "phone", class: "label" %><%= form.telephone_field :customer_phone, value: params.dig(:hire_agreement, :customer_phone), class: "input" %></div>
+    </div>
+    <div class="field"><%= form.label :id_number, "ID or passport number", class: "label" %><%= form.text_field :id_number, class: "input" %></div>
+    <div class="field"><%= form.label :site, "Where it's going", class: "label" %><%= form.text_field :site, class: "input", placeholder: "Plot 12, Kitengela" %></div>
+    <div class="field"><%= form.label :due_back_at, "Due back", class: "label" %><%= form.datetime_field :due_back_at, required: true, class: "input" %></div>
+    <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "Comes with 2 extension cables" %></div>
+    <%= form.submit "Hire out", class: "btn-primary w-full" %>
+  </div>
+<% end %>
