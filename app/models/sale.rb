@@ -23,6 +23,8 @@ class Sale < ApplicationRecord
 
   validates_same_account :branch, :register, :shift, :customer, :customer_order
 
+  after_update_commit -> { account.refresh_dashboard_later }, if: -> { saved_change_to_status? && (completed? || voided?) }
+
   scope :chronologically, -> { order(Arel.sql("COALESCE(sales.completed_at, sales.created_at) DESC"), id: :desc) }
   scope :finished, -> { where(status: %w[ completed voided ]) }
 

@@ -7,7 +7,7 @@ Built the vanilla Rails way: Rails 8.1, PostgreSQL 18, Hotwire, Tailwind CSS 4, 
 Minitest with fixtures, deployed with Kamal. See [docs/PLAN.md](docs/PLAN.md) for the full plan and
 [docs/BRAND.md](docs/BRAND.md) for the brand colours.
 
-![Dashboard](docs/screenshots/03-dashboard-owner.png)
+![Owner dashboard](docs/screenshots/90-owner-dashboard.png)
 
 ## What's in it so far (Phase 1)
 
@@ -98,6 +98,30 @@ was under 30).
 
 ![Customer account](docs/screenshots/77-customer-account.png)
 
+## Phase 6: reports and the owner's dashboard
+
+- **Live owner dashboard:** today's takings (against the same day last week), sales and average sale, gross margin,
+  cash in the drawers, takings by hour and over the last 7 days, best sellers, each branch, money owed both ways,
+  low stock, orders ready and deliveries due. It refreshes by itself as sales happen (Turbo morphing over Solid Cable)
+- **Reports** for any period (today, this week, last month… or chosen dates) and branch, on screen, as **CSV** (opens in
+  Excel) or **PDF** on the shop's letterhead:
+  - **Sales and margin** by day, month, branch, cashier, category or product
+  - **Profit and loss** (sales less returns, cost of sales, stock losses, till payouts)
+  - **Tax (VAT)**: output tax by rate, input tax from supplier invoices, VAT payable
+  - **Payments by method**, refunds, deposits and payments on account
+  - **Discounts, voids and returns** per cashier, every void, the biggest discounts and who approved them
+  - **Stock valuation** at cost and selling price, **dead stock**, and **shifts** with their over/short
+  - Plus the existing stock movement history, who owes us and what we owe
+- **Margins stay true:** each sale line records what it cost when it was sold
+- **Daily summary email** each morning with yesterday's figures, for owners, managers and accountants (each can turn
+  it off under My profile)
+- Reports and the dashboard are for owners, managers and accountants only
+
+A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a second, and the dashboard renders in about
+0.2 seconds, so reports run on request rather than in background jobs.
+
+![Sales report](docs/screenshots/92-sales-by-day.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -139,7 +163,8 @@ PIN is `1234`, and the owner's approval PIN (for big discounts, voids and return
 
 The demo shop comes with about 30 hardware products, stock at both branches, a transfer in transit and a stock take
 in progress, suppliers with orders and invoices, and trade customers with account sales (one overdue), a quote, an
-order ready to collect with a deposit, and deliveries. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.
+order ready to collect with a deposit, and deliveries, and a month of trading at both branches for the dashboard and
+reports. The daily summary email is previewable at <http://demo.localhost:3000/rails/mailers/reports_mailer/daily_summary>. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.
 
 The platform admin is at <http://admin.localhost:3000> (`admin@hardpoint.test` / `hardpoint-demo`). For two-factor,
 add the development-only key `HARDPOINTDEVADMINTOTPSECRETKEYAB` to an authenticator app, or print a code with

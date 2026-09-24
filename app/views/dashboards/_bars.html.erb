@@ -1,0 +1,12 @@
+<%# Bars for amounts in cents: [ [ label, cents ], … ] %>
+<% top = bars.map(&:last).max.to_i %>
+<div class="flex h-40 items-end gap-1" role="img" aria-label="<%= title %>">
+  <% bars.each do |label, cents| %>
+    <div class="group relative flex h-full flex-1 flex-col justify-end" title="<%= label %>: <%= money(cents) %>">
+      <div class="rounded-t <%= cents.positive? ? "bg-safety-500 group-hover:bg-safety-600" : "bg-concrete-200" %>" style="height: <%= top.positive? ? [ (cents * 100.0 / top).round(1), 1 ].max : 1 %>%"></div>
+    </div>
+  <% end %>
+</div>
+<div class="mt-1 flex gap-1 text-center text-[10px] text-steel-600">
+  <% bars.each do |label, _| %><span class="flex-1 truncate"><%= label %></span><% end %>
+</div>

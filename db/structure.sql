@@ -839,7 +839,8 @@ CREATE TABLE public.memberships (
     updated_at timestamp(6) without time zone NOT NULL,
     pin_digest character varying,
     failed_pin_attempts integer DEFAULT 0 NOT NULL,
-    approval_pin_digest character varying
+    approval_pin_digest character varying,
+    daily_summary boolean DEFAULT true NOT NULL
 );
 
 ALTER TABLE ONLY public.memberships FORCE ROW LEVEL SECURITY;
@@ -1235,7 +1236,8 @@ CREATE TABLE public.sale_lines (
     serial_number character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    customer_order_line_id bigint
+    customer_order_line_id bigint,
+    cost_cents bigint DEFAULT 0 NOT NULL
 );
 
 ALTER TABLE ONLY public.sale_lines FORCE ROW LEVEL SECURITY;
@@ -3405,6 +3407,13 @@ CREATE INDEX index_sale_return_lines_on_sale_return_id ON public.sale_return_lin
 
 
 --
+-- Name: index_sale_returns_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sale_returns_on_account_id_and_created_at ON public.sale_returns USING btree (account_id, created_at);
+
+
+--
 -- Name: index_sale_returns_on_approver_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3528,6 +3537,13 @@ CREATE INDEX index_sessions_on_account_id ON public.sessions USING btree (accoun
 --
 
 CREATE INDEX index_sessions_on_user_id ON public.sessions USING btree (user_id);
+
+
+--
+-- Name: index_shifts_on_account_id_and_closed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shifts_on_account_id_and_closed_at ON public.shifts USING btree (account_id, closed_at);
 
 
 --
@@ -3724,6 +3740,13 @@ CREATE INDEX index_stock_transfers_on_sender_id ON public.stock_transfers USING 
 --
 
 CREATE INDEX index_stock_transfers_on_to_branch_id ON public.stock_transfers USING btree (to_branch_id);
+
+
+--
+-- Name: index_supplier_invoices_on_account_id_and_invoice_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_invoices_on_account_id_and_invoice_date ON public.supplier_invoices USING btree (account_id, invoice_date);
 
 
 --
@@ -5617,6 +5640,7 @@ ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120100'),
 ('20260925120000'),
 ('20260925110000'),
 ('20260925100000'),

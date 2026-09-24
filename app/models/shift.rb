@@ -25,6 +25,8 @@ class Shift < ApplicationRecord
   before_validation(on: :create) { self.branch ||= register&.branch; self.opened_at ||= Time.current }
   after_create { track_event "opened", opening_float: opening_float_cents }
 
+  after_commit -> { account.refresh_dashboard_later }, if: -> { saved_change_to_status? || previously_new_record? }
+
   scope :chronologically, -> { order(opened_at: :desc, id: :desc) }
 
   def name

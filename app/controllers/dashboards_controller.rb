@@ -1,5 +1,10 @@
 class DashboardsController < ApplicationController
   def show
+    if current_membership&.can_view_reports?
+      @branch = Current.account.branches.find_by(id: params[:branch_id])
+      @dashboard = Dashboard.new(Current.account, branch: @branch)
+    end
+
     @branches = Current.account.branches.alphabetically
     @memberships = Current.account.memberships.includes(:user)
     @registers_count = Current.account.registers.active.count

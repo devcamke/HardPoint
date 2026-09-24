@@ -1,0 +1,11 @@
+<% currency = @account.currency %><% change = @dashboard.change_on_last_week_percent %>
+<%= @account.name %> on <%= @date.strftime("%A %-d %B %Y") %>
+
+Takings: <%= money(@totals[:takings], currency: currency) %><%= " (#{change.positive? ? "+" : ""}#{change}% on the same day last week)" if change %>
+Sales: <%= @totals[:receipts] %>, average <%= money(@dashboard.average_sale_cents, currency: currency) %>
+Gross margin: <%= money(@totals[:margin], currency: currency) %><%= " (#{@totals[:margin_percent].round(1)}%)" if @totals[:margin_percent] %>
+
+Best sellers:
+<% @dashboard.top_products.each do |top| %>- <%= top[:product].record.name %>: <%= quantity(top[:quantity]) %>, <%= money(top[:takings], currency: currency) %>
+<% end %>
+Dashboard: <%= root_url(subdomain: @account.subdomain) %>

@@ -18,3 +18,8 @@ production:
   low_stock_digest:
     class: LowStockDigestJob
     schedule: every day at 4am
+
+  # Yesterday's figures to owners, managers and accountants, after the low-stock digest.
+  daily_summary:
+    class: DailySummaryJob
+    schedule: every day at 4:15am

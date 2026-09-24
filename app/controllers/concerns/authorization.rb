@@ -46,6 +46,10 @@ module Authorization
       head :forbidden unless current_membership&.can_sell?
     end
 
+    def ensure_can_view_reports
+      head :forbidden unless current_membership&.can_view_reports?
+    end
+
     def ensure_can_manage_receivables
       head :forbidden unless current_membership&.can_manage_receivables?
     end

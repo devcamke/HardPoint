@@ -38,6 +38,12 @@ customers, staff, or reports.
 | Stock for orders | Not reserved; orders are visible in "Open orders" and "Ready to collect". Reservation waits until shops ask |
 | Deliveries | One delivery note per trip from a completed sale: pending → dispatched (driver, vehicle) → delivered (received by, optional photo of the signed note) |
 | Loyalty points | Skipped (optional in the plan) |
+| Cost of sales | Each sale line records its cost (weighted average at the time, ex tax; kits cost their parts) when the sale completes, so margins don't move when costs change later. Lines sold before this were back-filled at the cost of the day |
+| Tax in margins | Costs are ex VAT (as a VAT-registered shop records them; input VAT is on supplier invoices) and margins are on sales ex VAT, including the product page's margin |
+| Reports | Plain SQL aggregates over the shop's own rows, run on request: a year of a busy shop (60k sales, 180k lines) takes under a second, so no background jobs or summary tables yet. Queries filter by a subquery of the period's sales, because the row-level security policy's `OR` misleads the planner on plain joins |
+| Report exports | CSV and PDF (landscape when wide). XLSX still waits until shops ask (CSV opens in Excel) |
+| Live dashboard | Turbo 8 page refresh with morphing, broadcast (debounced) when a sale completes or is voided, a return is made, or a shift opens or closes. A custom channel only streams a shop's dashboard to its own owners, managers and accountants, on top of Turbo's signed stream names |
+| Daily summary | Yesterday's figures at 04:15 UTC (07:15 in Nairobi), to owners, managers and accountants who haven't turned it off; nothing is sent after a day without sales |
 
 | Phase | Status |
 |---|---|
@@ -47,7 +53,8 @@ customers, staff, or reports.
 | 3 — POS checkout | **Done:** till selection per device, shifts with float/drops/payouts/X and blind-count Z reports, scanner-first cart with packs, decimals, serials and price lists, line and sale discounts with manager approval PIN, split tender (cash, M-Pesa code, card, on account), gap-free receipt numbers per branch, stock deducted on completion, park/recall, voids and returns with approval, 80 mm receipts and email receipts, sales history, minimal customers. 10-line split-payment sale ≈ 2.6 s. |
 | 4 — Purchasing & suppliers | **Done:** suppliers and supplier products (cost, lead time, minimum order, preferred), purchase orders with PDF by email, partial/full receiving with landed costs and weighted-average costing, reorder suggestions with one-click orders, supplier invoices, FIFO payments and ageing. |
 | 5 — Customers, credit, quotes & invoices | **Done:** customer addresses and payment terms; quotes and orders with PDF/email, validity dates, deposits (and refunds) and collection at the till; account sales as invoices with A4 tax invoice PDFs; payments on account (FIFO), statements (PDF/email), ageing and a "Who owes us" report; delivery notes with dispatch and proof of delivery; credit-limit override by approval PIN; deposits and account payments on the X/Z report. Loyalty skipped. |
-| 6–10 | Not started |
+| 6 — Reporting & dashboards | **Done:** live owner dashboard (Solid Cable), eight reports (sales and margin by day/month/branch/cashier/category/product, profit and loss, VAT, payments by method, discounts/voids/returns, stock valuation, dead stock, shifts) plus the existing movement history and ageing reports, period and branch filters, CSV and PDF export, cost recorded on each sale line, daily summary email with opt-out. Measured at a year of 180k sale lines: under 1 s per report. |
+| 7–10 | Not started |
 
 ---
 

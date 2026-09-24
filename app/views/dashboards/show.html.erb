@@ -1,7 +1,11 @@
 <% content_for :title, "Dashboard" %>
 
-<h1 class="text-3xl font-bold">Welcome, <%= Current.user.name %></h1>
-<p class="mt-1 text-steel-600"><%= Current.account.name %> · <%= Time.zone.now.to_fs(:long) %></p>
+<% if @dashboard %>
+  <%= render "dashboards/owner", dashboard: @dashboard %>
+<% else %>
+  <h1 class="text-3xl font-bold">Welcome, <%= Current.user.name %></h1>
+  <p class="mt-1 text-steel-600"><%= Current.account.name %> · <%= Time.zone.now.to_fs(:long) %></p>
+<% end %>
 
 <% if (current_membership.owner? || current_membership.manager?) && !Current.user.two_factor_enabled? %>
   <div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-safety-200 bg-safety-50 px-4 py-3">
@@ -11,7 +15,7 @@
 <% end %>
 
 <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-  <% if current_membership.can_sell? %>
+  <% if current_membership.can_sell? && !@dashboard %>
     <%= link_to sales_path, class: "card block hover:border-safety-300" do %>
       <p class="text-sm text-steel-600">Sales today</p>
       <p class="mt-1 text-3xl font-bold tabular-nums"><%= money(@sales_today_cents) %></p>

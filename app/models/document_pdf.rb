@@ -8,7 +8,7 @@ class DocumentPdf
   CONCRETE = "F5F4F1"
   RULE = "E7E5E0"
   FONTS = Rails.root.join("vendor/fonts")
-  # The A4 page less its margins (595 − 2 × 40).
+  # The A4 page less its margins (595 − 2 × 40), upright.
   WIDTH = 515
 
   attr_reader :account, :branch
@@ -19,7 +19,7 @@ class DocumentPdf
   end
 
   def render
-    Prawn::Document.new(page_size: "A4", margin: 40, info: { Title: "#{title} #{reference}", Creator: "HardPoint" }) do |pdf|
+    Prawn::Document.new(page_size: "A4", page_layout: page_layout, margin: 40, info: { Title: "#{title} #{reference}", Creator: "HardPoint" }) do |pdf|
       @pdf = pdf
       # DejaVu Sans covers the characters product names use (½, ×, é…); Prawn's built-in fonts don't.
       pdf.font_families.update("DejaVu" => { normal: FONTS.join("DejaVuSans.ttf").to_s, bold: FONTS.join("DejaVuSans-Bold.ttf").to_s })
@@ -40,16 +40,24 @@ class DocumentPdf
       []
     end
 
+    def page_layout
+      :portrait
+    end
+
     # Columns from this index on are numbers, aligned right.
     def numeric_from
       2
+    end
+
+    def alignment(index)
+      index >= numeric_from ? :right : :left
     end
 
     def letterhead
       pdf.fill_color NAVY
       pdf.text account.name, size: 18, style: :bold
       pdf.fill_color GREY
-      pdf.text [ branch.name, branch.address, branch.phone ].compact_blank.join(" · "), size: 9
+      pdf.text [ branch&.name, branch&.address, branch&.phone ].compact_blank.join(" · ").presence || "All branches", size: 9
       pdf.move_up 34
       pdf.fill_color ORANGE
       pdf.text title.upcase, size: 16, style: :bold, align: :right
@@ -94,17 +102,17 @@ class DocumentPdf
       top = pdf.cursor
       if fill
         pdf.fill_color fill
-        pdf.fill_rectangle [ 0, top ], WIDTH, height
+        pdf.fill_rectangle [ 0, top ], pdf.bounds.width, height
       end
       pdf.fill_color NAVY
       x = 0
       cells.zip(columns).each_with_index do |(cell, (_, width)), index|
         pdf.text_box cell.to_s, at: [ x + 4, top - 4 ], width: width - 8, height: height, size: 9,
-          style: (bold ? :bold : :normal), align: (index >= numeric_from ? :right : :left)
+          style: (bold ? :bold : :normal), align: alignment(index)
         x += width
       end
       pdf.stroke_color RULE
-      pdf.stroke_horizontal_line 0, WIDTH, at: top - height
+      pdf.stroke_horizontal_line 0, pdf.bounds.width, at: top - height
       pdf.move_down height
     end
 

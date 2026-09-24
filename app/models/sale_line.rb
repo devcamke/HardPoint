@@ -42,7 +42,9 @@ class SaleLine < ApplicationRecord
     product_unit ? "#{product.name} (#{product_unit})" : product.name
   end
 
+  # Recorded when the sale completes, so margins stay true after costs change.
   def deduct_stock
+    update_columns cost_cents: current_cost_cents
     stock_items.each do |item, amount|
       item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier)
     end
@@ -57,6 +59,15 @@ class SaleLine < ApplicationRecord
 
   def stock_on_hand
     product.stock_at(sale.branch) / (product_unit&.quantity || 1)
+  end
+
+  # What the line costs the shop at today's weighted-average cost, ex tax. Kits cost their parts.
+  def current_cost_cents
+    if product.kit?
+      product.kit_components.includes(:component).sum { |part| part.component.cost_cents * part.quantity * base_quantity }.round
+    else
+      (product.cost_cents * base_quantity).round
+    end
   end
 
   private

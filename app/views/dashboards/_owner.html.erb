@@ -1,0 +1,129 @@
+<% content_for :head do %>
+  <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
+<% end %>
+<%= turbo_stream_from Current.account, :dashboard, channel: DashboardChannel %>
+<% totals = dashboard.totals %>
+<% change = dashboard.change_on_last_week_percent %>
+<% drawers = dashboard.cash_in_drawers %>
+
+<div class="flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold">Today<%= " at #{dashboard.branch.name}" if dashboard.branch %></h1>
+    <p class="mt-1 text-steel-600"><%= Time.zone.now.strftime("%A %-d %B %Y") %> ·
+      <span class="inline-flex items-center gap-1"><span class="size-2 rounded-full bg-green-600"></span>updates as sales happen</span></p>
+  </div>
+  <%= form_with url: root_path, method: :get, data: { controller: "auto-submit" } do |form| %>
+    <%= form.collection_select :branch_id, @branches, :id, :name, { selected: dashboard.branch&.id, include_blank: "All branches" }, class: "input",
+          "aria-label": "Branch", data: { action: "change->auto-submit#submit" } %>
+  <% end %>
+</div>
+
+<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <%= link_to report_path("sales", preset: "today", branch_id: dashboard.branch&.id), class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Takings</p>
+    <p class="mt-1 whitespace-nowrap text-2xl font-bold tabular-nums xl:text-3xl"><%= money(totals[:takings]) %></p>
+    <p class="mt-2 text-sm <%= change.nil? ? "text-steel-600" : (change.negative? ? "text-red-700" : "text-green-700") %>">
+      <%= change.nil? ? "Nothing on the same day last week" : "#{change.positive? ? "▲ +" : (change.negative? ? "▼ " : "")}#{change}% on last #{Time.zone.today.strftime("%A")}" %></p>
+  <% end %>
+  <div class="card">
+    <p class="text-sm text-steel-600">Sales</p>
+    <p class="mt-1 whitespace-nowrap text-2xl font-bold tabular-nums xl:text-3xl"><%= number_with_delimiter(totals[:receipts]) %></p>
+    <p class="mt-2 text-sm text-steel-600">average <%= money(dashboard.average_sale_cents) %></p>
+  </div>
+  <%= link_to report_path("profit_and_loss", preset: "today", branch_id: dashboard.branch&.id), class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Gross margin</p>
+    <p class="mt-1 whitespace-nowrap text-2xl font-bold tabular-nums xl:text-3xl"><%= money(totals[:margin]) %></p>
+    <p class="mt-2 text-sm text-steel-600"><%= totals[:margin_percent] ? "#{number_with_precision(totals[:margin_percent], precision: 1)}% of sales ex tax" : "No sales yet" %></p>
+  <% end %>
+  <%= link_to shifts_path, class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Cash in the drawers</p>
+    <p class="mt-1 whitespace-nowrap text-2xl font-bold tabular-nums xl:text-3xl"><%= money(drawers.sum { _1[:expected_cents] }) %></p>
+    <p class="mt-2 text-sm text-steel-600"><%= drawers.any? ? "#{pluralize(drawers.size, "till")} open" : "No tills open" %></p>
+  <% end %>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <section class="card lg:col-span-2">
+    <h2 class="mb-4 font-semibold">Takings by hour</h2>
+    <% hours = dashboard.takings_by_hour %>
+    <% if hours.any? %>
+      <%= render "dashboards/bars", title: "Takings by hour", bars: hours.map { |hour, cents| [ format("%02d:00", hour), cents ] } %>
+    <% else %>
+      <p class="hint py-12 text-center">No sales yet today.</p>
+    <% end %>
+  </section>
+
+  <section class="card">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="font-semibold">Best sellers today</h2>
+      <%= link_to "All", report_path("sales", preset: "today", by: "product", branch_id: dashboard.branch&.id), class: "link text-sm" %>
+    </div>
+    <% if (top = dashboard.top_products).any? %>
+      <ol class="space-y-2 text-sm">
+        <% top.each do |item| %>
+          <li class="flex items-baseline justify-between gap-3">
+            <span class="truncate"><%= link_to item[:product].record.name, item[:product].record, class: "hover:text-safety-700" %></span>
+            <span class="whitespace-nowrap tabular-nums"><%= money(item[:takings]) %></span>
+          </li>
+        <% end %>
+      </ol>
+    <% else %>
+      <p class="hint">Nothing sold yet today.</p>
+    <% end %>
+  </section>
+
+  <section class="card lg:col-span-2">
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="font-semibold">Last 7 days</h2>
+      <%= link_to "Sales report", report_path("sales", preset: "last_30_days", branch_id: dashboard.branch&.id), class: "link text-sm" %>
+    </div>
+    <%= render "dashboards/bars", title: "Takings over the last 7 days", bars: dashboard.last_seven_days.map { |day, cents| [ day.strftime("%a %-d"), cents ] } %>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-3 font-semibold"><%= dashboard.branch ? "Tills open" : "By branch today" %></h2>
+    <% if dashboard.branch %>
+      <% drawers.each do |drawer| %>
+        <p class="flex justify-between text-sm"><%= link_to drawer[:shift].register.name, drawer[:shift], class: "hover:text-safety-700" %><span class="tabular-nums"><%= money(drawer[:expected_cents]) %></span></p>
+      <% end %>
+      <%= tag.p "No tills open.", class: "hint" if drawers.empty? %>
+    <% else %>
+      <% @branches.each do |branch| %>
+        <p class="flex justify-between py-1 text-sm"><%= link_to branch.name, root_path(branch_id: branch.id), class: "hover:text-safety-700" %>
+          <span class="tabular-nums"><%= money(dashboard.takings_by_branch.to_h.fetch(branch.name, 0)) %></span></p>
+      <% end %>
+    <% end %>
+  </section>
+</div>
+
+<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+  <% owed = dashboard.owed_to_us %>
+  <%= link_to receivables_path, class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Customers owe us</p>
+    <p class="mt-1 whitespace-nowrap text-xl font-bold tabular-nums"><%= money(owed[:total]) %></p>
+    <p class="mt-1 text-sm <%= owed[:overdue].positive? ? "font-semibold text-red-700" : "text-steel-600" %>"><%= owed[:overdue].positive? ? "#{money(owed[:overdue])} overdue" : "Nothing overdue" %></p>
+  <% end %>
+  <% owing = dashboard.owed_by_us %>
+  <%= link_to payables_path, class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">We owe suppliers</p>
+    <p class="mt-1 whitespace-nowrap text-xl font-bold tabular-nums"><%= money(owing[:total]) %></p>
+    <p class="mt-1 text-sm <%= owing[:overdue].positive? ? "font-semibold text-red-700" : "text-steel-600" %>"><%= owing[:overdue].positive? ? "#{money(owing[:overdue])} overdue" : "Nothing overdue" %></p>
+  <% end %>
+  <%= link_to reorder_list_path(branch_id: dashboard.branch&.id), class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Low stock</p>
+    <p class="mt-1 text-2xl font-bold <%= "text-safety-700" if (low = dashboard.low_stock_count).positive? %>"><%= low %></p>
+    <p class="mt-1 text-sm text-steel-600"><%= dashboard.branch ? "products to reorder" : "to reorder across branches" %></p>
+  <% end %>
+  <%= link_to customer_orders_path(status: "ready"), class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Orders ready</p>
+    <p class="mt-1 text-2xl font-bold"><%= dashboard.orders_ready_count %></p>
+    <p class="mt-1 text-sm text-steel-600">waiting for collection</p>
+  <% end %>
+  <%= link_to delivery_notes_path, class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Deliveries</p>
+    <p class="mt-1 text-2xl font-bold"><%= dashboard.deliveries_outstanding_count %></p>
+    <p class="mt-1 text-sm text-steel-600">to deliver</p>
+  <% end %>
+</div>
+
+<h2 class="mt-10 text-lg font-semibold">Around the shop</h2>

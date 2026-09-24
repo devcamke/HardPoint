@@ -1,0 +1,57 @@
+<% currency = @account.currency %>
+<% change = @dashboard.change_on_last_week_percent %>
+<p style="margin-top:0;">Good morning. Here's how <strong><%= @account.name %></strong> did on <%= @date.strftime("%A %-d %B %Y") %>.</p>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="border-collapse:collapse; font-size:14px;">
+  <tr>
+    <td style="background:#F5F4F1;"><div style="color:#5B6573;">Takings</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= money(@totals[:takings], currency: currency) %></div>
+      <% if change %><div style="color:<%= change.negative? ? "#B91C1C" : "#15803D" %>;"><%= change.positive? ? "+" : "" %><%= change %>% on the same day last week</div><% end %></td>
+    <td style="background:#F5F4F1;"><div style="color:#5B6573;">Sales</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= @totals[:receipts] %></div>
+      <div style="color:#5B6573;">average <%= money(@dashboard.average_sale_cents, currency: currency) %></div></td>
+    <td style="background:#F5F4F1;"><div style="color:#5B6573;">Gross margin</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= money(@totals[:margin], currency: currency) %></div>
+      <div style="color:#5B6573;"><%= @totals[:margin_percent] ? "#{@totals[:margin_percent].round(1)}% of sales ex tax" : "" %></div></td>
+  </tr>
+</table>
+
+<% if (branches = @dashboard.takings_by_branch).size > 1 %>
+  <h3 style="margin:20px 0 8px; font-size:16px;">By branch</h3>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
+    <% branches.each do |name, takings| %>
+      <tr style="border-top:1px solid #E7E5E0;"><td><%= name %></td><td style="text-align:right;"><%= money(takings, currency: currency) %></td></tr>
+    <% end %>
+  </table>
+<% end %>
+
+<h3 style="margin:20px 0 8px; font-size:16px;">Best sellers</h3>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
+  <% @dashboard.top_products.each do |top| %>
+    <tr style="border-top:1px solid #E7E5E0;"><td><%= top[:product].record.name %></td><td style="text-align:right;"><%= quantity(top[:quantity]) %></td>
+      <td style="text-align:right;"><%= money(top[:takings], currency: currency) %></td></tr>
+  <% end %>
+</table>
+
+<h3 style="margin:20px 0 8px; font-size:16px;">How it was paid</h3>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
+  <% Report::Payments::TENDER_LABELS.values.each_with_index do |label, index| %>
+    <% next if @payments[index + 1].zero? %>
+    <tr style="border-top:1px solid #E7E5E0;"><td><%= label %></td><td style="text-align:right;"><%= money(@payments[index + 1], currency: currency) %></td></tr>
+  <% end %>
+  <% if @payments.last.nonzero? %><tr style="border-top:1px solid #E7E5E0;"><td>Refunds</td><td style="text-align:right;"><%= money(@payments.last, currency: currency) %></td></tr><% end %>
+</table>
+
+<% if @shifts.any? || @voids.positive? %>
+  <h3 style="margin:20px 0 8px; font-size:16px;">Tills</h3>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
+    <% @shifts.each do |shift, opened_by, *, variance| %>
+      <tr style="border-top:1px solid #E7E5E0;"><td><%= shift.to_s %> (<%= opened_by %>)</td>
+        <td style="text-align:right;<%= " color:#B91C1C;" if variance.to_i.negative? %>"><%= variance.to_i.zero? ? "Balanced" : "#{variance.negative? ? "Short" : "Over"} #{money(variance.abs, currency: currency)}" %></td></tr>
+    <% end %>
+    <% if @voids.positive? %><tr style="border-top:1px solid #E7E5E0;"><td>Voided sales</td><td style="text-align:right;"><%= @voids %></td></tr><% end %>
+  </table>
+<% end %>
+
+<p style="margin-top:24px;">
+  <%= link_to "Open the dashboard", root_url(subdomain: @account.subdomain), style: "color:#C2410C; font-weight:600;" %> ·
+  <%= link_to "Sales report", report_url("sales", subdomain: @account.subdomain, from: @date, to: @date), style: "color:#C2410C; font-weight:600;" %>
+</p>
+<p style="color:#5B6573; font-size:12px;">Don't want this email? Turn it off under My profile.</p>

@@ -15,9 +15,11 @@ module Product::Pricing
     tax_rate || account.tax_rates.find_by(default: true)
   end
 
+  # Costs are kept ex tax, so the margin is on the price ex tax.
   def margin_percent
     return if price_cents.to_i.zero?
 
-    ((price_cents - cost_cents) * 100.0 / price_cents).round(1)
+    price_ex_tax = price_cents * 100 / (100 + (effective_tax_rate&.rate || 0))
+    ((price_ex_tax - cost_cents) * 100.0 / price_ex_tax).round(1)
   end
 end

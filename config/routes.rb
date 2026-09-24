@@ -30,6 +30,7 @@ Rails.application.routes.draw do
       resource :recovery_codes, only: :show
       resource :approval_pin, only: %i[ edit update ]
       resource :pin, only: %i[ edit update destroy ]
+      resource :daily_summary, only: :update
     end
     resources :passwords, param: :token
     resource :account, only: %i[ edit update ]
@@ -127,6 +128,9 @@ Rails.application.routes.draw do
       end
     end
     resource :receivables, only: :show
+
+    # Reports
+    resources :reports, only: %i[ index show ], param: :key
     resources :delivery_notes, path: "deliveries", only: %i[ index show new create ] do
       scope module: :delivery_notes do
         resource :dispatch, only: :create

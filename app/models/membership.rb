@@ -79,6 +79,11 @@ class Membership < ApplicationRecord
     owner? || manager? || accountant?
   end
 
+  # Sales, margins, tax and the owner's dashboard.
+  def can_view_reports?
+    owner? || manager? || accountant?
+  end
+
   # Who owes the shop: statements, ageing, and payments taken away from a till.
   def can_manage_receivables?
     owner? || manager? || accountant?

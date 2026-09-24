@@ -26,7 +26,9 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     account.memberships.create!(role: :cashier, user_attributes: { name: "Carol Cashier", email_address: "cashier@demo.test" }).set_pin("1234")
     account.memberships.create!(role: :stock_clerk, user_attributes: { name: "Juma Stock", email_address: "stock@demo.test" }).set_pin("5678")
 
-    # A small hardware catalogue: name, SKU, category, brand, unit, price, cost, reorder level, stock at Moi Avenue, stock at the yard
+    # A small hardware catalogue: name, SKU, category, brand, unit, price, cost, reorder level, stock at Moi Avenue, stock at the yard.
+    # Prices include VAT; costs are listed as invoiced (with VAT) and stored without it, as a VAT-registered shop records them.
+    ex_vat = ->(amount) { (amount / 1.16).round(2) }
     unit = ->(name) { account.units.find_by!(name: name) }
     catalogue = [
       [ "Portland cement 50kg", "CEM-BAM-50", "Building materials", "Bamburi", "Bag", 850, 740, 40, 180, 420 ],
@@ -63,7 +65,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
 
     main, yard = account.branches.alphabetically.to_a.values_at(1, 0)
     catalogue.each do |name, sku, category, brand, unit_name, price, cost, reorder, main_stock, yard_stock|
-      product = account.products.create!(name: name, sku: sku, unit: unit.(unit_name), price: price, cost: cost, reorder_level: reorder,
+      product = account.products.create!(name: name, sku: sku, unit: unit.(unit_name), price: price, cost: ex_vat.(cost), reorder_level: reorder,
         category: account.categories.find_or_create_by!(name: category), brand: brand && account.brands.find_or_create_by!(name: brand),
         tax_rate: account.default_tax_rate, serialized: category == "Power tools")
       account.stock_adjustments.create!(branch: main, product: product, quantity: main_stock, reason: "opening") if main_stock.positive?
@@ -105,7 +107,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     }.to_h do |name, details|
       supplier = account.suppliers.create!(name: name, **details.except(:products))
       details[:products].each do |sku, (cost, lead_time, minimum)|
-        supplier.supplier_products.create!(account: account, product: products[sku], cost: cost, lead_time_days: lead_time, min_order_quantity: minimum, preferred: true)
+        supplier.supplier_products.create!(account: account, product: products[sku], cost: ex_vat.(cost), lead_time_days: lead_time, min_order_quantity: minimum, preferred: true)
       end
       [ name, supplier ]
     end
@@ -119,7 +121,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     cement_order.mark_sent
     delivery = account.goods_receipts.create!(supplier: cement_order.supplier, branch: main, purchase_order: cement_order,
       supplier_reference: "DN-88213", extra_costs: 2500,
-      lines_attributes: [ { purchase_order_line: cement_order.lines.first, quantity: 100, unit_cost: 690 } ])
+      lines_attributes: [ { purchase_order_line: cement_order.lines.first, quantity: 100, unit_cost: ex_vat.(690) } ])
 
     account.supplier_invoices.create!(supplier: suppliers["Bamburi Cement Distributors"], goods_receipt: delivery, number: "BCD-40551",
       invoice_date: 40.days.ago.to_date, total: 71_500, tax: 9_862.07)
@@ -157,11 +159,65 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     order.take_deposit(amount_cents: 15_000_00, tender: "mobile_money", reference: "SJK4H7T2QP")
     order.mark_ready
 
+    # A month of trading at both branches, so the dashboard and reports have something to show: counter sales through
+    # the day, a few discounts, a void and a return, and each day's shift closed with its cash count.
+    random = Random.new(2026)
+    cashier = account.users.find_by!(email_address: "cashier@demo.test")
+    counter_skus = %w[ CEM-BAM-50 NAIL-4 NAIL-ROOF PPR-20 PVC-2 SCR-815 PNT-BR3 ELC-LED9 ELC-SW1 TL-TAPE5 SEC-PL50 TL-HAM16 PLB-TAP12 PNT-CRN-B4 ]
+    yard_skus = %w[ CEM-BAM-50 CEM-SAV-50 STL-Y12 STL-Y10 STL-BW25 ROOF-G30-3M ROOF-RIDGE NAIL-ROOF STL-BRC142 ]
+    Time.use_zone(account.time_zone) do
+    { front_counter => [ counter_skus, 6..11 ], account.registers.find_by!(name: "Yard gate") => [ yard_skus, 2..5 ] }.each do |register, (skus, per_day)|
+      29.downto(0) do |days_ago|
+        day = days_ago.days.ago.to_date
+        next if day.sunday?
+
+        opens = day.in_time_zone.change(hour: 8)
+        shift = account.shifts.create!(register: register, opening_float: 5000, opened_at: opens, opened_by: days_ago.even? ? cashier : owner)
+        count = random.rand(per_day)
+        count = [ count, Time.current.hour - 8 ].min if days_ago.zero?
+        count.times do |index|
+          Current.user = shift.opened_by
+          sale = shift.current_sale
+          random.rand(1..3).times do
+            sku = skus.sample(random: random)
+            quantity = %w[ CEM-BAM-50 CEM-SAV-50 STL-Y12 STL-Y10 ].include?(sku) ? random.rand(2..25) : random.rand(1..6)
+            sale.add(products[sku], quantity: quantity)
+          end
+          # A small discount within the cashier's limit most days, and now and then a bigger one a manager approved.
+          sale.update!(discount_cents: (sale.subtotal_cents * 0.03).round) && sale.recalculate if index == 3
+          sale.update!(discount_cents: (sale.subtotal_cents * 0.08).round, discount_approver: owner, approved_discount_percent: 8) && sale.recalculate if index == 1 && days_ago % 5 == 0
+          tender = %w[ cash cash cash mobile_money mobile_money card ].sample(random: random)
+          sale.pay(tender: tender, reference: (tender == "cash" ? nil : "SK#{random.rand(10**8)}"))
+          sold_at = opens + ((index + 0.5) * 9.0 / count).hours + random.rand(0..20).minutes
+          sold_at = [ sold_at, Time.current - (count - index).minutes ].min if days_ago.zero?
+          sale.update_columns(completed_at: sold_at, created_at: sold_at)
+          StockMovement.where(source: sale).update_all(created_at: sold_at)
+        end
+        next if days_ago.zero?
+
+        if days_ago == 9 && register == front_counter && (voided = shift.sales.completed.last)
+          voided.void(reason: "Rang up twice", by: owner)
+          voided.update_columns(voided_at: voided.completed_at + 5.minutes)
+          StockMovement.where(source: voided).update_all(created_at: voided.completed_at + 5.minutes)
+        end
+        if days_ago == 6 && register == front_counter && (returned = shift.sales.completed.first)
+          sale_return = account.sale_returns.create!(sale: returned, shift: shift, refund_method: "cash", approver: owner, reason: "Wrong size",
+            lines_attributes: [ { sale_line: returned.lines.first, quantity: 1, restock: true } ])
+          sale_return.update_columns(created_at: opens + 9.hours)
+          StockMovement.where(source: sale_return).update_all(created_at: opens + 9.hours)
+        end
+        shift.close(counted_cash_cents: shift.expected_cash_cents_now + [ 0, 0, 0, -5000, 2000, -20000 ].sample(random: random), by: shift.opened_by)
+        shift.update_columns(closed_at: opens + 10.hours)
+      end
+    end
+    end
+    Current.user = owner
+
     products["CEM-BAM-50"].move_stock(branch: main, quantity: -3, reason: "damaged", note: "Bags split in the rain")
     account.stock_transfers.create!(from_branch: yard, to_branch: main, note: "Tuesday lorry",
       lines_attributes: [ { product_code: "CEM-BAM-50", quantity: 60 }, { product_code: "STL-Y10", quantity: 40 } ])
     account.stock_counts.create!(branch: main, category: account.categories.find_by!(name: "Hand tools")).tap do |count|
-      count.lines.joins(:product).where(products: { sku: %w[ TL-HAM16 TL-TAPE5 ] }).each { |line| line.update!(counted_quantity: line.expected_quantity - 1) }
+      count.lines.joins(:product).where(products: { sku: %w[ TL-HAM16 TL-TAPE5 ] }).each { |line| line.update!(counted_quantity: [ line.expected_quantity - 1, 0 ].max) }
     end
   ensure
     Current.reset

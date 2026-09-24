@@ -1,0 +1,27 @@
+<% content_for :title, "Reports" %>
+
+<h1 class="mb-2 text-3xl font-bold">Reports</h1>
+<p class="hint mb-6">For any period and branch, on screen or as CSV (opens in Excel) and PDF. A daily summary is emailed each morning to owners, managers and accountants who want it (see My profile).</p>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <% @reports.each do |group, reports| %>
+    <section class="card">
+      <h2 class="mb-3 text-lg font-semibold"><%= group %></h2>
+      <ul class="divide-y divide-concrete-100">
+        <% reports.each do |report| %>
+          <li class="py-3">
+            <%= link_to report.title, report_path(report.key), class: "link font-semibold" %>
+            <p class="hint"><%= report.description %></p>
+          </li>
+        <% end %>
+        <% if group == "Stock" %>
+          <li class="py-3"><%= link_to "Stock movement history", stock_movements_path, class: "link font-semibold" %><p class="hint">Every change to stock, filterable by product, branch and reason</p></li>
+          <li class="py-3"><%= link_to "Stock levels and reconciliation", stock_path, class: "link font-semibold" %><p class="hint">Value per branch and a check that levels match the ledger</p></li>
+        <% else %>
+          <li class="py-3"><%= link_to "Who owes us", receivables_path, class: "link font-semibold" %><p class="hint">Customer balances by how late they are</p></li>
+          <li class="py-3"><%= link_to "What we owe", payables_path, class: "link font-semibold" %><p class="hint">Supplier balances by how late they are</p></li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+</div>

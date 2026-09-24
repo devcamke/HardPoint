@@ -25,7 +25,7 @@ class Sessions::SwitchesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to new_session_switch_path
     get root_path
-    assert_select "h1", "Welcome, Amina Owner"
+    assert_select "nav a[href=\"/my/profile\"]", /Amina Owner/
   end
 
   test "PINs lock after too many wrong tries" do
@@ -37,7 +37,7 @@ class Sessions::SwitchesControllerTest < ActionDispatch::IntegrationTest
 
     assert_match "locked", flash[:alert]
     get root_path
-    assert_select "h1", "Welcome, Amina Owner"
+    assert_select "nav a[href=\"/my/profile\"]", /Amina Owner/
   end
 
   test "can't switch into an owner or someone from another shop" do

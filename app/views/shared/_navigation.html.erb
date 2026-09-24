@@ -17,6 +17,9 @@
       <%= render "shared/nav_link", name: "Purchasing", path: current_membership.can_purchase? ? purchase_orders_path : suppliers_path,
             also: [ "/suppliers", "/goods_receipts", "/reorder_suggestions", "/supplier_invoices", "/payables", "/purchase_orders" ] %>
     <% end %>
+    <% if current_membership&.can_view_reports? %>
+      <%= render "shared/nav_link", name: "Reports", path: reports_path %>
+    <% end %>
     <% if current_membership&.can_manage_staff? %>
       <%= render "shared/nav_link", name: "Staff", path: memberships_path %>
       <%= render "shared/nav_link", name: "Activity", path: events_path %>

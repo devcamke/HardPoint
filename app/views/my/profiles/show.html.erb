@@ -32,6 +32,16 @@
     </section>
   <% end %>
 
+  <% if @membership.can_view_reports? %>
+    <section class="card">
+      <h2 class="text-lg font-semibold">Daily summary email</h2>
+      <p class="hint mt-2">Yesterday's takings, margin, best sellers, payments and till counts, each morning at about 7:15.</p>
+      <p class="mt-2"><%= @membership.daily_summary? ? tag.span("On", class: "badge bg-green-50 text-green-800") : tag.span("Off", class: "badge bg-concrete-200 text-steel-600") %></p>
+      <%= button_to (@membership.daily_summary? ? "Stop sending it" : "Send it to me"), my_daily_summary_path, method: :patch,
+            params: { daily_summary: !@membership.daily_summary? }, class: "btn-secondary mt-4" %>
+    </section>
+  <% end %>
+
   <% if @membership.pin_role? %>
     <section class="card">
       <h2 class="text-lg font-semibold">Till PIN</h2>

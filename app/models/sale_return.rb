@@ -28,6 +28,8 @@ class SaleReturn < ApplicationRecord
   before_create :number_and_total
   after_create :restock_and_record
 
+  after_create_commit -> { account.refresh_dashboard_later }
+
   scope :chronologically, -> { order(created_at: :desc, id: :desc) }
 
   def return_number
