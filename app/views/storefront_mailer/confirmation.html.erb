@@ -1,0 +1,6 @@
+<p>Hello <%= @order.customer.name %>,</p>
+<p>Thank you for your order <strong><%= @order.reference %></strong>. We'll get it ready for you to collect at
+  <strong><%= @order.branch.name %></strong><%= ", #{@order.branch.address}" if @order.branch.address.present? %>, and let you know when it's ready.</p>
+<%= render "lines", order: @order %>
+<p style="margin-top:24px;"><%= link_to "Follow your order", @order.tracking_url, style: "display:inline-block; background:#F76707; color:#102A43; padding:10px 16px; border-radius:6px; font-weight:700; text-decoration:none;" %></p>
+<p>Pay when you collect, or ahead by M-Pesa as shown on your order's page. Please bring the order number.</p>

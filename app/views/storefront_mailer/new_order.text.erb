@@ -1,0 +1,10 @@
+<%= @order.customer.name %> (<%= PhoneNumber.display(@order.customer.phone) %>) ordered online for collection at <%= @order.branch.name %>.
+<%= "Note: #{@order.note}" if @order.note.present? %>
+
+<% @order.lines.includes(:product).each do |line| %>
+<%= quantity(line.quantity, line.unit) %> x <%= line.description %>  <%= money(line.total_cents) %>
+<% end %>
+Total <%= money(@order.total_cents) %>
+
+Open it: <%= customer_order_url(@order, subdomain: @account.subdomain) %>
+Mark it ready when it's packed and the customer gets a text.

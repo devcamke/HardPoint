@@ -71,7 +71,7 @@ class ProductsController < ApplicationController
 
     def product_params
       permitted = %i[ name sku description category_id brand_id unit_id tax_rate_id price reorder_level
-                      track_stock serialized kit active image ]
+                      track_stock serialized kit active online image ]
       permitted << :cost if current_membership.can_see_costs?
       params.expect(product: permitted)
     end

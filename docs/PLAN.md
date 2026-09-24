@@ -81,6 +81,9 @@ customers, staff, or reports.
 | API keys | Owner-made, per app, read or read-and-write (no finer scopes until asked for); SHA-256 digests only, `hp_` prefix; costs aren't exposed and credit limits and price lists can't be set through the API |
 | API and plans | Business and Enterprise only, like more branches: it's what larger shops with web shops and bookkeepers need |
 | Webhooks | Delivered by background jobs with a per-minute retry sweep; HMAC-SHA256 over "timestamp.body" (Stripe's well-known scheme, so receivers can reuse code); DNS resolved once and the connection pinned to a checked public address, no redirects; deliveries kept 30 days, idempotency keys a day |
+| Online store | Part of the app on the shop's own subdomain at `/store` (no separate site or theme builder), server-rendered, mobile first. On every plan: small shops want it most |
+| Store checkout | No customer accounts: name and mobile number, matched to an existing customer by the last nine digits. Orders go straight to "ordered" at the shop's prices of the moment, with an unguessable link to follow them. Out-of-stock items can still be ordered ("we'll confirm"), because hardware shops order in |
+| Store payments | Pay on collection, or ahead to the shop's Paybill with the order number as account number (matched by Phase 7). No prompt to the customer's phone from the store yet: that would need M-Pesa prompts tied to orders rather than sales |
 
 | Phase | Status |
 |---|---|
@@ -94,6 +97,7 @@ customers, staff, or reports.
 | 7 — Payment & tax integrations | **Done (to be proven against the live sandboxes):** M-Pesa Daraja per shop (encrypted credentials, STK push from the till with automatic completion, C2B confirmations with automatic matching to orders, accounts and typed codes, reconciliation report, token-and-IP-checked idempotent callbacks), KRA eTIMS OSCU per branch (initialisation, item registration, sales and credit notes, signed receipts with QR code, retry queue, refusals to fix), SMS via Africa's Talking (receipts, order ready, balance reminders), simulators for all three. Card terminals stay manual; accounting sync skipped. |
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
+| 12 — Online store | **Done:** Settings › Online store; public catalogue with categories, search, stock per collection branch and a session cart; checkout without accounts; online orders marked in Orders with staff emails, customer text and email, and an order-tracking page with Paybill instructions; closed while the shop is locked; spam limits. |
 | 11 — Public API & webhooks | **Done:** API keys in Settings › Developers, REST API v1 (shop, branches, products, stock levels, customers, sales, orders with click-and-collect ordering and cancelling) with cursor paging, sync filters, idempotency keys, rate limits and read-only enforcement; webhooks for nine events with signing, retries, auto-disable with an email, redelivery and test events, public-address-only delivery; developer docs; cross-shop sweep over the API. |
 | 10 — Hardening, performance & launch | **Done in code (the rest needs real infrastructure and shops):** cross-tenant sweep of all 136 member routes, enforced CSP, HSTS, permissions policy, log filtering, shop-friendly rate limits, Dependabot and weekly scans; k6 load test (40 cashiers, p95 scan 278 ms) with the cart's N+1 fixed; every foreign key indexed; tuned PostgreSQL config and connection budget; admin Database page; encrypted backups with a restore script, drilled locally; runbook, security brief and launch plan. **Still to do:** provision the VPS, the external penetration test, the drill on the real server, sandbox certification (M-Pesa, eTIMS), and the pilot (docs/LAUNCH.md). |
 
@@ -548,6 +552,20 @@ over a documented REST API and be told about changes by webhooks.
   retried with back-off for a day, switched off after repeated failures with an email to the owner,
   recent deliveries with redelivery, a test event. Only HTTPS to public addresses.
 - **Developer docs** on the public site.
+
+### Phase 12 — Online store with click-and-collect
+**Goal:** every shop can put its catalogue online at `yourshop.hardpoint.app/store` and take orders for
+collection, without a separate website.
+- **Settings › Online store:** switch it on, a headline and introduction, collection branches, a note on
+  collection times, a contact number, and whether to show stock levels. Products can be left out of the store.
+- **Public store** (mobile first): categories, search, product pages with image, price and whether it's in stock
+  at each collection branch; a cart; checkout with name, phone and collection branch (no account needed).
+- **Orders** arrive as confirmed orders marked "Online" in Orders, with an email to owners and managers; the
+  customer gets a confirmation page (and a text, where SMS is on) with a link to follow the order, and a text
+  when it's ready. Paying ahead by M-Pesa uses the shop's Paybill with the order number as the account, which
+  Phase 7's matching already turns into a deposit; otherwise they pay when collecting.
+- Closed while the shop is read-only, suspended or closing; protected against spam (rate limits, a honeypot,
+  sane quantities). On all plans.
 
 ### Beyond v1 (backlog)
 - Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).

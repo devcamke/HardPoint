@@ -1,0 +1,31 @@
+<% content_for :title, "Your cart" %>
+<h1 class="mb-4 text-2xl font-bold">Your cart</h1>
+
+<% if cart.empty? %>
+  <p class="text-steel-600">Nothing here yet. <%= link_to "Browse the store", store_products_path, class: "link" %>.</p>
+<% else %>
+  <div class="card divide-y divide-concrete-200 p-0">
+    <% cart.lines.each do |line| %>
+      <div id="<%= dom_id(line.product, :cart) %>" class="flex flex-wrap items-center gap-3 p-4">
+        <div class="min-w-0 flex-1">
+          <p class="font-semibold"><%= link_to line.product.name, store_product_path(line.product), class: "hover:text-safety-700" %></p>
+          <p class="text-sm text-steel-600"><%= money(line.product.price_cents) %> per <%= line.product.unit.name.downcase %></p>
+        </div>
+        <%= form_with url: store_cart_item_path(line.product), method: :patch, class: "flex items-center gap-2" do |form| %>
+          <%= form.number_field :quantity, value: line.quantity.to_s("F"), min: 0.001, step: "any", class: "input w-24", aria: { label: "Quantity of #{line.product.name}" } %>
+          <%= form.submit "Update", class: "btn-secondary" %>
+        <% end %>
+        <p class="w-28 text-right font-semibold tabular-nums"><%= money(line.total_cents) %></p>
+        <%= button_to "Remove", store_cart_item_path(line.product), method: :delete, class: "text-sm text-steel-600 underline" %>
+      </div>
+    <% end %>
+    <div class="flex items-center justify-between p-4">
+      <p class="text-lg font-bold">Total <span class="text-sm font-normal text-steel-600">(VAT included)</span></p>
+      <p class="text-2xl font-extrabold tabular-nums"><%= money(cart.total_cents) %></p>
+    </div>
+  </div>
+  <div class="mt-4 flex flex-wrap justify-between gap-3">
+    <%= link_to "Keep shopping", store_products_path, class: "btn-secondary" %>
+    <%= link_to "Checkout", new_store_checkout_path, class: "btn-primary px-6" if storefront.taking_orders? %>
+  </div>
+<% end %>

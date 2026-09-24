@@ -28,7 +28,7 @@
             <td><%= order.customer.name %></td>
             <td><%= l(order.created_at.to_date, format: :long) %></td>
             <td><%= l(order.quote? ? order.valid_until : order.needed_by, format: :long) if (order.quote? ? order.valid_until : order.needed_by) %></td>
-            <td><%= render "customer_orders/status", order: order %></td>
+            <td><%= render "customer_orders/status", order: order %> <%= render "customer_orders/source", order: order %></td>
             <td class="text-right tabular-nums"><% deposit = order.deposit_balance_cents %><%= money(deposit) if deposit.positive? %></td>
             <td class="text-right tabular-nums"><%= money(order.total_cents) %></td>
           </tr>

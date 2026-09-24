@@ -236,6 +236,24 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Webhook deliveries](docs/screenshots/175-webhook-endpoint-deliveries.png)
 
+## Phase 12: online store with click-and-collect
+
+- **Every shop can sell online** at `yourshop.hardpoint.app/store`, switched on in **Settings › Online store** with a
+  headline, introduction, collection note, contact number and the branches customers can collect from. Every
+  active product with a price is in the store unless it's ticked off on the product
+- **For customers** (built for phones): categories, search, product pages with the price and stock at each
+  collection branch (numbers, or just in stock / low / out, as the shop prefers), a cart, and checkout with a name,
+  mobile number and branch; no account to make
+- **The order** arrives as a confirmed order marked **Online** in Orders; owners and managers get an email, the
+  customer a confirmation page, a text (where SMS is on) and an email if they gave one, all linking to a page that
+  follows the order from received to ready to collected. Marking it ready texts them as before
+- **Paying ahead:** the order page shows the shop's Paybill with the order number as the account number; the M-Pesa
+  matching from Phase 7 turns the payment into a deposit on the order. Otherwise they pay at the till on collection
+- Returning customers are recognised by their phone number; spam is held back by rate limits, a hidden field bots
+  fill in, and limits on cart size; nothing can be ordered while the shop is read-only
+
+![Online store on a phone](docs/screenshots/190-store-phone-order-ready.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

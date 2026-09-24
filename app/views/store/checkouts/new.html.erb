@@ -1,0 +1,51 @@
+<% content_for :title, "Checkout" %>
+<h1 class="mb-4 text-2xl font-bold">Collect your order</h1>
+
+<div class="grid gap-6 lg:grid-cols-5">
+  <%= form_with model: @checkout, scope: :checkout, url: store_checkout_path, class: "card lg:col-span-3" do |form| %>
+    <%= render "shared/errors", model: @checkout %>
+    <div class="field">
+      <%= form.label :name, "Your name", class: "label" %>
+      <%= form.text_field :name, required: true, autocomplete: "name", class: "input" %>
+    </div>
+    <div class="field">
+      <%= form.label :phone, "Mobile number", class: "label" %>
+      <%= form.telephone_field :phone, required: true, autocomplete: "tel", placeholder: "0722 000 111", class: "input" %>
+      <p class="hint mt-1">We'll text you when it's ready.</p>
+    </div>
+    <div class="field">
+      <%= form.label :email, "Email (optional)", class: "label" %>
+      <%= form.email_field :email, autocomplete: "email", class: "input" %>
+    </div>
+    <fieldset class="field">
+      <legend class="label">Collect from</legend>
+      <% storefront.collection_branches.each do |branch| %>
+        <label class="flex items-start gap-2 py-1">
+          <%= form.radio_button :branch_id, branch.id, class: "mt-1" %>
+          <span><span class="font-semibold"><%= branch.name %></span><%= tag.br + tag.span(branch.address, class: "hint") if branch.address.present? %></span>
+        </label>
+      <% end %>
+    </fieldset>
+    <div class="field">
+      <%= form.label :note, "Anything we should know? (optional)", class: "label" %>
+      <%= form.text_area :note, rows: 2, maxlength: 500, class: "input", placeholder: "e.g. I'll collect on Saturday morning" %>
+    </div>
+    <div class="hidden" aria-hidden="true">
+      <%= form.label :website %><%= form.text_field :website, tabindex: -1, autocomplete: "off" %>
+    </div>
+    <% if storefront.collection_note.present? %><p class="hint mb-4"><%= storefront.collection_note %></p><% end %>
+    <%= form.submit "Place order · #{money(cart.total_cents)}", class: "btn-primary w-full py-3 text-base" %>
+    <p class="hint mt-3 text-center">Pay when you collect, or ahead by M-Pesa.</p>
+  <% end %>
+
+  <aside class="card lg:col-span-2">
+    <h2 class="mb-3 font-semibold">Your order</h2>
+    <ul class="space-y-2 text-sm">
+      <% cart.lines.each do |line| %>
+        <li class="flex justify-between gap-3"><span><%= quantity(line.quantity, line.product.unit) %> × <%= line.product.name %></span><span class="tabular-nums"><%= money(line.total_cents) %></span></li>
+      <% end %>
+    </ul>
+    <p class="mt-3 flex justify-between border-t border-concrete-200 pt-3 font-bold"><span>Total</span><span class="tabular-nums"><%= money(cart.total_cents) %></span></p>
+    <p class="mt-3 text-sm"><%= link_to "Change", store_cart_path, class: "link" %></p>
+  </aside>
+</div>

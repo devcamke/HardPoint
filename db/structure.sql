@@ -744,7 +744,9 @@ CREATE TABLE public.customer_orders (
     ordered_at timestamp(6) without time zone,
     collected_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    source character varying DEFAULT 'shop'::character varying NOT NULL,
+    tracking_token character varying
 );
 
 ALTER TABLE ONLY public.customer_orders FORCE ROW LEVEL SECURITY;
@@ -1634,7 +1636,8 @@ CREATE TABLE public.products (
     active boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    quick_pick boolean DEFAULT false NOT NULL
+    quick_pick boolean DEFAULT false NOT NULL,
+    online boolean DEFAULT true NOT NULL
 );
 
 ALTER TABLE ONLY public.products FORCE ROW LEVEL SECURITY;
@@ -2361,6 +2364,46 @@ CREATE SEQUENCE public.stock_transfers_id_seq
 --
 
 ALTER SEQUENCE public.stock_transfers_id_seq OWNED BY public.stock_transfers.id;
+
+
+--
+-- Name: storefronts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.storefronts (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    enabled boolean DEFAULT false NOT NULL,
+    headline character varying,
+    intro text,
+    collection_note text,
+    contact_phone character varying,
+    show_stock_levels boolean DEFAULT true NOT NULL,
+    collection_branch_ids jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.storefronts FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: storefronts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.storefronts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: storefronts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.storefronts_id_seq OWNED BY public.storefronts.id;
 
 
 --
@@ -3169,6 +3212,13 @@ ALTER TABLE ONLY public.stock_transfers ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: storefronts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.storefronts ALTER COLUMN id SET DEFAULT nextval('public.storefronts_id_seq'::regclass);
+
+
+--
 -- Name: supplier_invoices id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3719,6 +3769,14 @@ ALTER TABLE ONLY public.stock_transfers
 
 
 --
+-- Name: storefronts storefronts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.storefronts
+    ADD CONSTRAINT storefronts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: supplier_invoices supplier_invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4079,6 +4137,13 @@ CREATE INDEX index_customer_order_lines_on_product_unit_id ON public.customer_or
 
 
 --
+-- Name: index_customer_orders_on_account_id_and_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_orders_on_account_id_and_source ON public.customer_orders USING btree (account_id, source);
+
+
+--
 -- Name: index_customer_orders_on_account_id_and_status; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4104,6 +4169,13 @@ CREATE INDEX index_customer_orders_on_creator_id ON public.customer_orders USING
 --
 
 CREATE INDEX index_customer_orders_on_customer_id ON public.customer_orders USING btree (customer_id);
+
+
+--
+-- Name: index_customer_orders_on_tracking_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_customer_orders_on_tracking_token ON public.customer_orders USING btree (tracking_token);
 
 
 --
@@ -5161,6 +5233,13 @@ CREATE INDEX index_stock_transfers_on_sender_id ON public.stock_transfers USING 
 --
 
 CREATE INDEX index_stock_transfers_on_to_branch_id ON public.stock_transfers USING btree (to_branch_id);
+
+
+--
+-- Name: index_storefronts_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_storefronts_on_account_id ON public.storefronts USING btree (account_id);
 
 
 --
@@ -6597,6 +6676,14 @@ ALTER TABLE ONLY public.stock_transfer_lines
 
 
 --
+-- Name: storefronts fk_rails_e2b5bf63ed; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.storefronts
+    ADD CONSTRAINT fk_rails_e2b5bf63ed FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: mpesa_stk_requests fk_rails_e4f337bfe9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7176,6 +7263,13 @@ CREATE POLICY account_isolation ON public.stock_transfers USING (((current_setti
 
 
 --
+-- Name: storefronts account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.storefronts USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: supplier_invoices account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -7539,6 +7633,12 @@ ALTER TABLE public.stock_transfer_lines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stock_transfers ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: storefronts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.storefronts ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: supplier_invoices; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -7599,6 +7699,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120700'),
 ('20260925120600'),
 ('20260925120500'),
 ('20260925120400'),

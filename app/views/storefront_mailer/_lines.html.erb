@@ -1,0 +1,8 @@
+<table style="width:100%; border-collapse:collapse; font-size:14px;">
+  <% order.lines.includes(:product).each do |line| %>
+    <tr><td style="padding:4px 0;"><%= quantity(line.quantity, line.unit) %> × <%= line.description %></td>
+      <td style="padding:4px 0; text-align:right; white-space:nowrap;"><%= money(line.total_cents) %></td></tr>
+  <% end %>
+  <tr><td style="padding:8px 0; font-weight:700; border-top:1px solid #D6D3CC;">Total</td>
+    <td style="padding:8px 0; font-weight:700; text-align:right; border-top:1px solid #D6D3CC;"><%= money(order.total_cents) %></td></tr>
+</table>

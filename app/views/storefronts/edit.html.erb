@@ -1,0 +1,53 @@
+<% content_for :title, "Online store" %>
+<%= render "settings/back" %>
+
+<div class="mt-2 mb-6">
+  <h1 class="text-3xl font-bold">Online store</h1>
+  <p class="mt-1 text-steel-600">Your catalogue online, with click-and-collect orders.
+    <% if @storefront.enabled? %><%= link_to "Open the store ↗", store_root_path, class: "link", target: "_blank", rel: "noopener" %><% end %></p>
+</div>
+
+<%= form_with model: @storefront, url: storefront_path, method: :patch, class: "card max-w-2xl" do |form| %>
+  <%= render "shared/errors", model: @storefront %>
+  <label class="field flex items-start gap-3">
+    <%= form.check_box :enabled, class: "mt-1" %>
+    <span><span class="font-semibold">Online store is on</span><br>
+      <span class="hint">Anyone can browse at <span class="font-mono"><%= store_root_url %></span> and order for collection.</span></span>
+  </label>
+
+  <fieldset class="field">
+    <legend class="label">Customers can collect from</legend>
+    <%= hidden_field_tag "storefront[collection_branch_ids][]", "" %>
+    <% Current.account.branches.alphabetically.each do |branch| %>
+      <label class="flex items-center gap-2 py-1">
+        <%= check_box_tag "storefront[collection_branch_ids][]", branch.id, @storefront.collection_branch_ids.include?(branch.id), id: "collect_#{branch.id}" %>
+        <%= branch.name %> <span class="hint"><%= branch.address %></span>
+      </label>
+    <% end %>
+  </fieldset>
+
+  <div class="field">
+    <%= form.label :headline, class: "label" %>
+    <%= form.text_field :headline, maxlength: 100, class: "input", placeholder: "Order online, collect in 2 hours" %>
+  </div>
+  <div class="field">
+    <%= form.label :intro, "Introduction", class: "label" %>
+    <%= form.text_area :intro, rows: 3, maxlength: 2000, class: "input", placeholder: "Everything for your build: cement, steel, plumbing, paint and tools." %>
+  </div>
+  <div class="field">
+    <%= form.label :collection_note, "About collection", class: "label" %>
+    <%= form.text_area :collection_note, rows: 2, maxlength: 500, class: "input", placeholder: "Orders before 3pm are ready the same day. Open Monday to Saturday, 8am to 6pm." %>
+  </div>
+  <div class="field">
+    <%= form.label :contact_phone, "Phone or WhatsApp for customers", class: "label" %>
+    <%= form.telephone_field :contact_phone, maxlength: 30, class: "input", placeholder: "0722 000 111" %>
+  </div>
+  <label class="field flex items-start gap-3">
+    <%= form.check_box :show_stock_levels, class: "mt-1" %>
+    <span><span class="font-semibold">Show how many are in stock</span><br>
+      <span class="hint">Otherwise customers see only "In stock", "Low stock" or "Out of stock".</span></span>
+  </label>
+  <p class="hint mb-4">Every active product with a price is in the store, unless you untick "Show in the online store" on the product.
+    Customers pay when they collect, or ahead to your M-Pesa Paybill with the order number as the account number.</p>
+  <%= form.submit "Save", class: "btn-primary" %>
+<% end %>

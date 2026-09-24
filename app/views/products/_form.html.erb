@@ -60,6 +60,7 @@
   <div class="space-y-6">
     <div class="card space-y-3">
       <% [ [ :active, "Active", "Inactive products are hidden from the till" ],
+           [ :online, "Show in the online store", "Untick to keep it off your online store" ],
            [ :track_stock, "Track stock", "Untick for services such as cutting or delivery" ],
            [ :kit, "Kit", "Sold as one item, made of other products" ],
            [ :serialized, "Serial numbers", "Record a serial number for each one sold (power tools, generators)" ] ].each do |attribute, label, hint| %>

@@ -1,0 +1,10 @@
+<%# locals: (product:, branch:) %>
+<% status, quantity = storefront.availability(product, branch) %>
+<% amount = quantity && "#{number_with_delimiter(quantity.to_d.to_s("F").delete_suffix(".0"))} #{product.unit.name.downcase.pluralize(quantity == 1 ? 1 : 2)}" %>
+<% label, tone = case status
+   when :available then [ "Available", "text-green-700" ]
+   when :in_stock then [ storefront.show_stock_levels? ? "#{amount} in stock" : "In stock", "text-green-700" ]
+   when :low then [ storefront.show_stock_levels? ? "Only #{amount} left" : "Low stock", "text-safety-700" ]
+   else [ "Out of stock; order and we'll confirm", "text-steel-600" ]
+   end %>
+<span class="<%= tone %>"><%= label %></span>

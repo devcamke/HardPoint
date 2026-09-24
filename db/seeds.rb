@@ -238,6 +238,12 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     first_invoice.payments.create!(provider: "mpesa", amount_cents: first_invoice.amount_cents, reference: "ws_CO_SEED01", phone: "254722000111", user: owner)
       .succeed(receipt: "SKA4F9T2QX")
 
+    # The online store, collecting from both branches.
+    account.create_storefront!(enabled: true, headline: "Order online, collect in 2 hours",
+      intro: "Cement, steel, roofing, plumbing, paint and tools for your build, at the same prices as in our shops.",
+      collection_note: "Orders placed before 3pm are ready the same day. Open Monday to Saturday, 8am to 6pm.",
+      contact_phone: "0700 000 001", collection_branch_ids: [ main.id, yard.id ])
+
     # A question for HardPoint support from the till.
     account.support_requests.create!(user: User.find_by!(email_address: "cashier@demo.test"), subject: "Receipt cuts off the last letters",
       body: "On the Yard gate till the right edge of the receipt is cut off. The printer is a 58 mm one.", page: "/pos")

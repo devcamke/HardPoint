@@ -1,0 +1,36 @@
+<% content_for :title, @product.name %>
+<p class="mb-4 text-sm"><%= link_to "← #{@product.category&.name || "All products"}", store_products_path(category_id: @product.category_id), class: "link" %></p>
+
+<div class="grid gap-8 md:grid-cols-2">
+  <div class="aspect-square overflow-hidden rounded-xl border border-concrete-200 bg-concrete-100">
+    <% if @product.image.attached? %>
+      <%= image_tag @product.image, alt: @product.name, class: "size-full object-cover" %>
+    <% else %>
+      <span class="flex size-full items-center justify-center text-8xl font-extrabold text-concrete-300" aria-hidden="true"><%= @product.name.first %></span>
+    <% end %>
+  </div>
+
+  <div>
+    <h1 class="text-3xl font-bold"><%= @product.name %></h1>
+    <p class="mt-1 text-sm text-steel-600"><%= [ @product.brand&.name, "SKU #{@product.sku}" ].compact.join(" · ") %></p>
+    <p class="mt-4 text-3xl font-extrabold tabular-nums"><%= money(@product.price_cents) %> <span class="text-base font-normal text-steel-600">per <%= @product.unit.name.downcase %>, VAT included</span></p>
+    <% if @product.description.present? %><p class="mt-4 whitespace-pre-line text-steel-700"><%= @product.description %></p><% end %>
+
+    <ul id="availability" class="mt-5 space-y-1 text-sm">
+      <% storefront.collection_branches.each do |branch| %>
+        <li><span class="font-semibold"><%= branch.name %>:</span> <%= render "store/availability", product: @product, branch: branch %></li>
+      <% end %>
+    </ul>
+
+    <% if storefront.taking_orders? %>
+      <%= form_with url: store_cart_items_path, class: "mt-6 flex flex-wrap items-end gap-3" do |form| %>
+        <%= form.hidden_field :product_id, value: @product.id %>
+        <div>
+          <%= form.label :quantity, "Quantity (#{@product.unit.name.downcase.pluralize})", class: "label" %>
+          <%= form.number_field :quantity, value: 1, min: @product.unit.fractional? ? 0.1 : 1, step: @product.unit.fractional? ? "any" : 1, class: "input w-32", required: true %>
+        </div>
+        <%= form.submit "Add to cart", class: "btn-primary px-6 py-2.5" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

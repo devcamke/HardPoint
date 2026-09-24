@@ -1,0 +1,11 @@
+Hello <%= @order.customer.name %>,
+
+Thank you for your order <%= @order.reference %>. We'll get it ready for you to collect at <%= @order.branch.name %><%= ", #{@order.branch.address}" if @order.branch.address.present? %>, and let you know when it's ready.
+
+<% @order.lines.includes(:product).each do |line| %>
+<%= quantity(line.quantity, line.unit) %> x <%= line.description %>  <%= money(line.total_cents) %>
+<% end %>
+Total <%= money(@order.total_cents) %>
+
+Follow your order: <%= @order.tracking_url %>
+Pay when you collect, or ahead by M-Pesa as shown on your order's page. Please bring the order number.

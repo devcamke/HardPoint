@@ -1,0 +1,47 @@
+<% content_for :title, "Order #{@order.reference}" %>
+<% steps = [ [ "ordered", "Order received" ], [ "ready", "Ready to collect" ], [ "collected", "Collected" ] ] %>
+<% reached = %w[ ordered ready collected ].index(@order.status) %>
+
+<div class="mx-auto max-w-3xl">
+  <% if @order.cancelled? %>
+    <h1 class="text-2xl font-bold">Order <%= @order.reference %> was cancelled</h1>
+    <p class="mt-2 text-steel-600">Please call us if you have any questions.</p>
+  <% else %>
+    <p class="text-sm font-semibold text-green-700"><%= @order.ordered? ? "Thank you, #{@order.customer.name.split.first}!" : "Hello #{@order.customer.name.split.first}" %></p>
+    <h1 class="mt-1 text-3xl font-bold">Order <%= @order.reference %></h1>
+    <p class="mt-1 text-steel-600">To collect at <strong><%= @order.branch.name %></strong><%= ", #{@order.branch.address}" if @order.branch.address.present? %>. Please bring the order number.</p>
+
+    <ol id="order_progress" class="mt-6 grid grid-cols-3 gap-2 text-center text-sm">
+      <% steps.each_with_index do |(status, label), index| %>
+        <li class="rounded-lg px-2 py-3 <%= reached && index <= reached ? "bg-green-600 text-white" : "bg-concrete-200 text-steel-600" %>"><%= label %></li>
+      <% end %>
+    </ol>
+    <% if @order.ordered? %><p class="hint mt-2">We're getting it ready, and we'll text you at <%= PhoneNumber.display(@order.customer.phone) %> when it is.</p><% end %>
+  <% end %>
+
+  <section class="card mt-6">
+    <ul class="divide-y divide-concrete-200 text-sm">
+      <% @order.lines.each do |line| %>
+        <li class="flex justify-between gap-3 py-2"><span><%= quantity(line.quantity, line.unit) %> × <%= line.description %></span><span class="tabular-nums"><%= money(line.total_cents) %></span></li>
+      <% end %>
+    </ul>
+    <p class="mt-2 flex justify-between border-t border-concrete-200 pt-3 text-lg font-bold"><span>Total</span><span class="tabular-nums"><%= money(@order.total_cents) %></span></p>
+    <% if @order.deposits_paid_cents.positive? %>
+      <p class="flex justify-between text-sm text-green-700"><span>Paid</span><span class="tabular-nums"><%= money(@order.deposits_paid_cents) %></span></p>
+      <p class="flex justify-between font-semibold"><span>To pay when you collect</span><span class="tabular-nums"><%= money(@order.balance_to_pay_cents) %></span></p>
+    <% end %>
+  </section>
+
+  <% if @paybill && !@paybill.buy_goods? && @order.balance_to_pay_cents.positive? && !@order.cancelled? && !@order.collected? %>
+    <section id="pay_ahead" class="card mt-4 border-green-200 bg-green-50">
+      <h2 class="font-semibold">Pay ahead by M-Pesa (optional)</h2>
+      <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
+        <li>Lipa na M-Pesa › Pay Bill</li>
+        <li>Business number <strong class="font-mono"><%= @paybill.party_b %></strong></li>
+        <li>Account number <strong class="font-mono"><%= @order.reference %></strong></li>
+        <li>Amount <strong><%= money(@order.balance_to_pay_cents) %></strong></li>
+      </ol>
+      <p class="hint mt-2">It's added to your order as soon as M-Pesa confirms it. Or pay when you collect.</p>
+    </section>
+  <% end %>
+</div>

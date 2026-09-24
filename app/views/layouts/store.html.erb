@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= [ content_for(:title), Current.account.name ].compact.join(" · ") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="<%= storefront.headline.presence || "Hardware and building supplies from #{Current.account.name}, ready to collect." %>">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="flex min-h-screen flex-col bg-concrete-50 text-navy-900">
+    <header class="sticky top-0 z-10 border-b border-concrete-200 bg-white">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
+        <%= link_to Current.account.name, store_root_path, class: "text-lg font-extrabold tracking-tight" %>
+        <%= form_with url: store_products_path, method: :get, class: "order-last flex w-full gap-2 sm:order-none sm:ml-4 sm:w-auto sm:flex-1" do |form| %>
+          <%= form.search_field :q, value: params[:q], placeholder: "Search cement, pipes, paint…", class: "input flex-1", aria: { label: "Search the store" } %>
+        <% end %>
+        <%= link_to store_cart_path, class: "ml-auto btn-secondary sm:ml-0", id: "cart_link" do %>
+          Cart <span class="badge <%= "bg-safety-500 text-navy-900" unless cart.empty? %>"><%= cart.count %></span>
+        <% end %>
+      </div>
+    </header>
+
+    <% unless storefront.taking_orders? %>
+      <div class="bg-navy-700 px-4 py-2 text-center text-sm text-white">We're not taking orders online right now. Please call or visit us.</div>
+    <% end %>
+
+    <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <%= render "shared/flash" %>
+      <%= yield %>
+    </main>
+
+    <footer class="border-t border-concrete-200 bg-white">
+      <div class="mx-auto grid max-w-6xl gap-6 px-4 py-8 text-sm sm:grid-cols-3">
+        <div>
+          <p class="font-semibold"><%= Current.account.name %></p>
+          <% if storefront.contact_phone.present? %><p class="mt-1">Call or WhatsApp <%= link_to storefront.contact_phone, "tel:#{storefront.contact_phone.delete(" ")}", class: "link" %></p><% end %>
+        </div>
+        <div>
+          <p class="font-semibold">Collect from</p>
+          <ul class="mt-1 space-y-1 text-steel-600">
+            <% storefront.collection_branches.each do |branch| %><li><%= branch.name %><%= ", #{branch.address}" if branch.address.present? %></li><% end %>
+          </ul>
+        </div>
+        <p class="text-steel-600 sm:text-right">Prices include VAT. Online store by <%= link_to "HardPoint", marketing_root_url(subdomain: false), class: "link" %></p>
+      </div>
+    </footer>
+  </body>
+</html>

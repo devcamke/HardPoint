@@ -5,9 +5,10 @@
 <p class="text-sm"><%= link_to "← Orders & quotes", customer_orders_path, class: "link" %></p>
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold"><%= order.kind %> <%= order.reference %> <%= render "customer_orders/status", order: order %></h1>
+    <h1 class="text-3xl font-bold"><%= order.kind %> <%= order.reference %> <%= render "customer_orders/status", order: order %> <%= render "customer_orders/source", order: order %></h1>
     <p class="hint mt-1"><%= link_to order.customer.name, order.customer, class: "link" %> · <%= order.branch.name %>
-      · created <%= l(order.created_at, format: :short) %> by <%= order.creator&.name %>
+      · created <%= l(order.created_at, format: :short) %> <%= order.creator ? "by #{order.creator.name}" : { "online" => "in the online store", "api" => "through the API" }[order.source] %>
+      <%= "· #{PhoneNumber.display(order.customer.phone)}" if order.source == "online" && order.customer.phone.present? %>
       <%= "· valid until #{l(order.valid_until, format: :long)}" if order.quote? && order.valid_until %>
       <%= "· needed by #{l(order.needed_by, format: :long)}" if order.needed_by %></p>
     <%= tag.p("Note: #{order.note}", class: "mt-1 text-sm") if order.note.present? %>

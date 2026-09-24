@@ -14,7 +14,7 @@ class Api::V1::OrdersController < Api::V1::BaseController
 
   def create
     idempotently do
-      @order = Current.account.customer_orders.new(branch: branch, customer: customer, status: :ordered, ordered_at: Time.current,
+      @order = Current.account.customer_orders.new(branch: branch, customer: customer, status: :ordered, ordered_at: Time.current, source: "api",
         needed_by: order_params[:needed_by], note: order_params[:note], lines_attributes: lines_attributes)
       @order.save ? render(:show, status: :created) : render_invalid(@order)
     end

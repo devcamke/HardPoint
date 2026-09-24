@@ -1,0 +1,30 @@
+<% content_for :title, @category&.name || (@query.present? ? "Search" : "Online store") %>
+
+<% if @query.blank? && @category.nil? && current_page == 1 %>
+  <section class="mb-6 rounded-xl bg-navy-900 px-6 py-8 text-white">
+    <h1 class="text-2xl font-extrabold sm:text-3xl"><%= storefront.headline.presence || "Order online, collect in store" %></h1>
+    <% if storefront.intro.present? %><p class="mt-2 max-w-2xl whitespace-pre-line text-navy-200"><%= storefront.intro %></p><% end %>
+    <% if storefront.collection_note.present? %><p class="mt-3 text-sm text-safety-300"><%= storefront.collection_note %></p><% end %>
+  </section>
+<% else %>
+  <h1 class="mb-4 text-2xl font-bold"><%= @query.present? ? "Results for “#{@query}”" : @category.name %></h1>
+<% end %>
+
+<nav class="mb-5 flex gap-2 overflow-x-auto pb-1 text-sm" aria-label="Categories">
+  <%= link_to "Everything", store_products_path, class: "shrink-0 rounded-full px-3 py-1 #{@category ? "bg-white border border-concrete-200" : "bg-navy-900 text-white"}" %>
+  <% @categories.each do |category| %>
+    <%= link_to category.name, store_products_path(category_id: category.id), class: "shrink-0 rounded-full px-3 py-1 #{@category == category ? "bg-navy-900 text-white" : "bg-white border border-concrete-200"}" %>
+  <% end %>
+</nav>
+
+<% if @products.any? %>
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <% @products.each do |product| %><%= render "store/product_card", product: product %><% end %>
+  </div>
+  <div class="mt-6 flex justify-between text-sm">
+    <%= link_to "← Previous", url_for(request.query_parameters.merge(page: @previous_page)), class: "link" if @previous_page %>
+    <%= link_to "More →", url_for(request.query_parameters.merge(page: @next_page)), class: "link ml-auto" if @next_page %>
+  </div>
+<% else %>
+  <p class="text-steel-600">Nothing found<%= " for “#{@query}”" if @query.present? %>. Call us: we probably have it.</p>
+<% end %>

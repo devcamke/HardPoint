@@ -86,6 +86,17 @@ Rails.application.routes.draw do
     resources :support_requests, only: %i[ new create ]
     resource :account_data, only: :show
     resource :developers, only: :show
+    resource :storefront, only: %i[ edit update ]
+
+    # The shop's public online store.
+    namespace :store do
+      root "products#index"
+      resources :products, only: %i[ index show ]
+      resource :cart, only: :show
+      resources :cart_items, only: %i[ create update destroy ], param: :product_id
+      resource :checkout, only: %i[ new create ]
+      resources :orders, only: :show, param: :token
+    end
     resources :api_keys, only: %i[ new create destroy ]
     resources :webhook_endpoints, except: :index do
       scope module: :webhook_endpoints do

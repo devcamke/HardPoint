@@ -16,6 +16,12 @@ module Sms::Message::Texts
               "#{"To pay: #{Money.format(order.balance_to_pay_cents)}. " if order.balance_to_pay_cents.positive?}Please bring the order number."
     end
 
+    def order_received(order)
+      compose to: order.customer.phone, purpose: "order_received", source: order,
+        body: "#{order.account.name}: we have your order #{order.reference} (#{Money.format(order.total_cents)}) for collection at " \
+              "#{order.branch.name}. We'll text you when it's ready. #{order.tracking_url}"
+    end
+
     def balance_reminder(customer)
       paybill = customer.account.mpesa_shortcodes.for_branch(nil)
       overdue = customer.overdue_cents

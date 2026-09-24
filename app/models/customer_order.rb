@@ -6,6 +6,7 @@ class CustomerOrder < ApplicationRecord
   publishes_webhooks "order", updated: -> { saved_change_to_status? }
 
   QUOTE_VALIDITY = 14.days
+  SOURCES = %w[ shop online api ].freeze
 
   belongs_to :branch
   belongs_to :customer
@@ -17,10 +18,12 @@ class CustomerOrder < ApplicationRecord
   enum :status, %w[ quote ordered ready collected cancelled ].index_by(&:itself), default: :quote
 
   money_attribute :total, :tax
+  has_secure_token :tracking_token
 
   accepts_nested_attributes_for :lines, allow_destroy: true,
     reject_if: ->(attributes) { attributes["id"].blank? && attributes["product_code"].blank? && attributes["quantity"].blank? }
 
+  validates :source, inclusion: { in: SOURCES }
   validates_same_account :branch, :customer
   validate { errors.add :base, "Add at least one product" if lines.reject(&:marked_for_destruction?).empty? }
   validate(on: :update) { errors.add :base, "A #{status_was} order can't be changed" if lines.any?(&:changed_for_autosave?) && !status_was.in?(%w[ quote ordered ]) }
@@ -32,6 +35,7 @@ class CustomerOrder < ApplicationRecord
 
   scope :chronologically, -> { order(created_at: :desc, id: :desc) }
   scope :open, -> { where(status: %w[ ordered ready ]) }
+  scope :online, -> { where(source: "online") }
 
   def reference
     "#{branch.code}-O#{number.to_s.rjust(5, "0")}"
@@ -42,6 +46,11 @@ class CustomerOrder < ApplicationRecord
   def self.find_by_reference(reference)
     code, number = reference.to_s.strip.upcase.split("-O", 2)
     joins(:branch).find_by(branches: { code: code }, number: number.to_i) if number.to_i.positive?
+  end
+
+  # The page an online customer follows their order on.
+  def tracking_url
+    Rails.application.routes.url_helpers.store_order_url(tracking_token, **Rails.configuration.action_mailer.default_url_options, subdomain: account.subdomain)
   end
 
   def kind
