@@ -13,11 +13,13 @@ customers, staff, or reports.
 | CSS | **Tailwind CSS 4** via `tailwindcss-rails` 4.x |
 | Tenant isolation | **Keep Postgres row-level security** alongside `Current.account` scoping (§2) |
 | Style | Vanilla Rails: built-ins first, rich models, CRUD controllers, Minitest + fixtures (§1) |
+| Brand | "Ironworks": Steel Navy `#102A43`, Safety Orange `#F76707`, Concrete `#F5F4F1` (docs/BRAND.md) |
+| Till PINs | Only for cashiers and stock clerks, and only on a till that's already signed in, so a PIN can never stand in for an owner's password + 2FA |
 
 | Phase | Status |
 |---|---|
 | 0 — Foundations | App generated; CI (with non-superuser DB role), Kamal config (Postgres 18 accessory, Cloudflare origin cert, SES SMTP) in the repo. **Server provisioning, Cloudflare, SES verification and backups still to do on real infrastructure.** |
-| 1 — Tenancy & auth | **Done:** signup, subdomains, sign-in per shop, password reset, staff invitations and roles, branches, shop settings, RLS with isolation tests. **Remaining:** TOTP 2FA, cashier PIN quick-switch, registers, platform super-admin, audit `Event` model. |
+| 1 — Tenancy & auth | **Done:** signup, subdomains, sign-in per shop, password reset, staff invitations and roles, branches, tills (registers), shop settings, TOTP 2FA with recovery codes (optionally required for owners/managers), cashier PIN quick-switch, audit `Event` log, platform super-admin with time-boxed audited impersonation, "Ironworks" branding (docs/BRAND.md), RLS with isolation tests. |
 | 2–10 | Not started |
 
 ---
