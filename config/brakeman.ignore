@@ -1,0 +1,39 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "72dea0111e6bc99c2b85d2b3f20780abd9d930199015555e6c44769743814165",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "app/views/etims_submissions/show.html.erb",
+      "line": 23,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(\"Check with KRA\", Current.account.etims_submissions.find(params[:id]).verification_url, :target => \"_blank\", :rel => \"noopener\", :class => \"link mt-3 inline-block text-sm\")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "EtimsSubmissionsController",
+          "method": "show",
+          "line": 14,
+          "file": "app/controllers/etims_submissions_controller.rb",
+          "rendered": {
+            "name": "etims_submissions/show",
+            "file": "app/views/etims_submissions/show.html.erb"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "etims_submissions/show"
+      },
+      "user_input": "Current.account.etims_submissions.find(params[:id]).verification_url",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": "verification_url always starts with a fixed https KRA address (Etims::Device::VERIFY_URLS) and the KRA signature is stripped to alphanumerics, so it cannot carry a javascript: or other scheme."
+    }
+  ],
+  "brakeman_version": "8.0.6"
+}

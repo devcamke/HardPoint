@@ -40,6 +40,12 @@ class Account < ApplicationRecord
   has_many :customer_payments, dependent: :destroy
   has_many :deposits, dependent: :destroy
   has_many :delivery_notes, dependent: :destroy
+  has_many :mpesa_shortcodes, class_name: "Mpesa::Shortcode", dependent: :destroy
+  has_many :mpesa_stk_requests, class_name: "Mpesa::StkRequest", dependent: :destroy
+  has_many :mpesa_transactions, class_name: "Mpesa::Transaction", dependent: :destroy
+  has_many :etims_devices, class_name: "Etims::Device", dependent: :destroy
+  has_many :etims_submissions, class_name: "Etims::Submission", dependent: :destroy
+  has_many :sms_messages, class_name: "Sms::Message", dependent: :delete_all
 
   normalizes :subdomain, with: ->(subdomain) { subdomain.strip.downcase }
 

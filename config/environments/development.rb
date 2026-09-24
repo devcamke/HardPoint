@@ -39,6 +39,7 @@ Rails.application.configure do
 
   # Set localhost to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  config.x.webhook_url_options = { host: "localhost", port: 3000, protocol: "http" }
 
   # Shops live on subdomains: visit http://acme.localhost:3000 (browsers resolve *.localhost).
   config.action_dispatch.tld_length = 0

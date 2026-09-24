@@ -4,7 +4,9 @@ class CustomerOrders::ReadinessesController < ApplicationController
 
   def create
     if @customer_order.mark_ready
-      redirect_to @customer_order, notice: "Marked ready to collect.", status: :see_other
+      text = Sms::Message.order_ready(@customer_order) if params[:notify] == "1"
+      notice = text&.persisted? ? "Marked ready, and #{@customer_order.customer.name} has been sent a text." : "Marked ready to collect."
+      redirect_to @customer_order, notice: notice, alert: text&.errors&.full_messages&.to_sentence.presence, status: :see_other
     else
       redirect_to @customer_order, alert: "Only a confirmed order can be marked ready.", status: :see_other
     end

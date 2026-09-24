@@ -41,7 +41,8 @@ CREATE TABLE public.accounts (
     updated_at timestamp(6) without time zone NOT NULL,
     require_two_factor_for_managers boolean DEFAULT false NOT NULL,
     max_cashier_discount_percent numeric(5,2) DEFAULT 5.0 NOT NULL,
-    receipt_footer text
+    receipt_footer text,
+    sms_enabled boolean DEFAULT false NOT NULL
 );
 
 
@@ -362,7 +363,8 @@ CREATE TABLE public.categories (
     parent_id bigint,
     name character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    etims_class_code character varying
 );
 
 ALTER TABLE ONLY public.categories FORCE ROW LEVEL SECURITY;
@@ -676,6 +678,133 @@ ALTER SEQUENCE public.document_sequences_id_seq OWNED BY public.document_sequenc
 
 
 --
+-- Name: etims_devices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.etims_devices (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    environment character varying DEFAULT 'sandbox'::character varying NOT NULL,
+    tin character varying NOT NULL,
+    bhf_id character varying DEFAULT '00'::character varying NOT NULL,
+    serial_number character varying NOT NULL,
+    cmc_key text,
+    sdc_id character varying,
+    mrc_no character varying,
+    default_item_class_code character varying DEFAULT '5020230500'::character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    initialized_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.etims_devices FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: etims_devices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.etims_devices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: etims_devices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.etims_devices_id_seq OWNED BY public.etims_devices.id;
+
+
+--
+-- Name: etims_item_registrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.etims_item_registrations (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    device_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.etims_item_registrations FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: etims_item_registrations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.etims_item_registrations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: etims_item_registrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.etims_item_registrations_id_seq OWNED BY public.etims_item_registrations.id;
+
+
+--
+-- Name: etims_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.etims_submissions (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    device_id bigint NOT NULL,
+    document_type character varying NOT NULL,
+    document_id bigint NOT NULL,
+    kind character varying NOT NULL,
+    invoice_number integer NOT NULL,
+    original_invoice_number integer,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    attempts integer DEFAULT 0 NOT NULL,
+    last_error character varying,
+    last_attempted_at timestamp(6) without time zone,
+    receipt_number integer,
+    total_receipt_number integer,
+    internal_data character varying,
+    receipt_signature character varying,
+    sdc_date_time character varying,
+    sent_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.etims_submissions FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: etims_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.etims_submissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: etims_submissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.etims_submissions_id_seq OWNED BY public.etims_submissions.id;
+
+
+--
 -- Name: events; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -863,6 +992,141 @@ CREATE SEQUENCE public.memberships_id_seq
 --
 
 ALTER SEQUENCE public.memberships_id_seq OWNED BY public.memberships.id;
+
+
+--
+-- Name: mpesa_shortcodes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mpesa_shortcodes (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint,
+    name character varying NOT NULL,
+    environment character varying DEFAULT 'sandbox'::character varying NOT NULL,
+    transaction_type character varying DEFAULT 'paybill'::character varying NOT NULL,
+    shortcode character varying NOT NULL,
+    till_number character varying,
+    consumer_key text,
+    consumer_secret text,
+    passkey text,
+    callback_token character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    c2b_registered_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.mpesa_shortcodes FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: mpesa_shortcodes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mpesa_shortcodes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mpesa_shortcodes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mpesa_shortcodes_id_seq OWNED BY public.mpesa_shortcodes.id;
+
+
+--
+-- Name: mpesa_stk_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mpesa_stk_requests (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    shortcode_id bigint NOT NULL,
+    sale_id bigint NOT NULL,
+    payment_id bigint,
+    requested_by_id bigint,
+    phone character varying NOT NULL,
+    amount_cents bigint NOT NULL,
+    merchant_request_id character varying,
+    checkout_request_id character varying,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    result_code character varying,
+    result_description character varying,
+    receipt_number character varying,
+    resolved_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.mpesa_stk_requests FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: mpesa_stk_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mpesa_stk_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mpesa_stk_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mpesa_stk_requests_id_seq OWNED BY public.mpesa_stk_requests.id;
+
+
+--
+-- Name: mpesa_transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mpesa_transactions (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    shortcode_id bigint NOT NULL,
+    source character varying NOT NULL,
+    trans_id character varying NOT NULL,
+    amount_cents bigint NOT NULL,
+    phone character varying,
+    payer_name character varying,
+    bill_reference character varying,
+    transacted_at timestamp(6) without time zone NOT NULL,
+    matched_type character varying,
+    matched_id bigint,
+    matched_at timestamp(6) without time zone,
+    payload jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.mpesa_transactions FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: mpesa_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mpesa_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mpesa_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mpesa_transactions_id_seq OWNED BY public.mpesa_transactions.id;
 
 
 --
@@ -1487,6 +1751,49 @@ ALTER SEQUENCE public.shifts_id_seq OWNED BY public.shifts.id;
 
 
 --
+-- Name: sms_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sms_messages (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    source_type character varying,
+    source_id bigint,
+    sender_id bigint,
+    recipient character varying NOT NULL,
+    body text NOT NULL,
+    purpose character varying NOT NULL,
+    status character varying DEFAULT 'queued'::character varying NOT NULL,
+    provider_message_id character varying,
+    cost character varying,
+    error character varying,
+    sent_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.sms_messages FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: sms_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sms_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sms_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sms_messages_id_seq OWNED BY public.sms_messages.id;
+
+
+--
 -- Name: stock_adjustments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1931,7 +2238,8 @@ CREATE TABLE public.tax_rates (
     rate numeric(5,2) NOT NULL,
     "default" boolean DEFAULT false NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    etims_code character varying
 );
 
 ALTER TABLE ONLY public.tax_rates FORCE ROW LEVEL SECURITY;
@@ -1967,7 +2275,8 @@ CREATE TABLE public.units (
     abbreviation character varying NOT NULL,
     fractional boolean DEFAULT false NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    etims_code character varying
 );
 
 ALTER TABLE ONLY public.units FORCE ROW LEVEL SECURITY;
@@ -2150,6 +2459,27 @@ ALTER TABLE ONLY public.document_sequences ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: etims_devices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_devices ALTER COLUMN id SET DEFAULT nextval('public.etims_devices_id_seq'::regclass);
+
+
+--
+-- Name: etims_item_registrations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_item_registrations ALTER COLUMN id SET DEFAULT nextval('public.etims_item_registrations_id_seq'::regclass);
+
+
+--
+-- Name: etims_submissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_submissions ALTER COLUMN id SET DEFAULT nextval('public.etims_submissions_id_seq'::regclass);
+
+
+--
 -- Name: events id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2182,6 +2512,27 @@ ALTER TABLE ONLY public.kit_components ALTER COLUMN id SET DEFAULT nextval('publ
 --
 
 ALTER TABLE ONLY public.memberships ALTER COLUMN id SET DEFAULT nextval('public.memberships_id_seq'::regclass);
+
+
+--
+-- Name: mpesa_shortcodes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_shortcodes ALTER COLUMN id SET DEFAULT nextval('public.mpesa_shortcodes_id_seq'::regclass);
+
+
+--
+-- Name: mpesa_stk_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests ALTER COLUMN id SET DEFAULT nextval('public.mpesa_stk_requests_id_seq'::regclass);
+
+
+--
+-- Name: mpesa_transactions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_transactions ALTER COLUMN id SET DEFAULT nextval('public.mpesa_transactions_id_seq'::regclass);
 
 
 --
@@ -2287,6 +2638,13 @@ ALTER TABLE ONLY public.sessions ALTER COLUMN id SET DEFAULT nextval('public.ses
 --
 
 ALTER TABLE ONLY public.shifts ALTER COLUMN id SET DEFAULT nextval('public.shifts_id_seq'::regclass);
+
+
+--
+-- Name: sms_messages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sms_messages ALTER COLUMN id SET DEFAULT nextval('public.sms_messages_id_seq'::regclass);
 
 
 --
@@ -2532,6 +2890,30 @@ ALTER TABLE ONLY public.document_sequences
 
 
 --
+-- Name: etims_devices etims_devices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_devices
+    ADD CONSTRAINT etims_devices_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: etims_item_registrations etims_item_registrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_item_registrations
+    ADD CONSTRAINT etims_item_registrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: etims_submissions etims_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_submissions
+    ADD CONSTRAINT etims_submissions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2569,6 +2951,30 @@ ALTER TABLE ONLY public.kit_components
 
 ALTER TABLE ONLY public.memberships
     ADD CONSTRAINT memberships_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mpesa_shortcodes mpesa_shortcodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_shortcodes
+    ADD CONSTRAINT mpesa_shortcodes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mpesa_stk_requests mpesa_stk_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT mpesa_stk_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mpesa_transactions mpesa_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_transactions
+    ADD CONSTRAINT mpesa_transactions_pkey PRIMARY KEY (id);
 
 
 --
@@ -2700,6 +3106,14 @@ ALTER TABLE ONLY public.shifts
 
 
 --
+-- Name: sms_messages sms_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sms_messages
+    ADD CONSTRAINT sms_messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: stock_adjustments stock_adjustments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2809,6 +3223,13 @@ ALTER TABLE ONLY public.units
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_on_document_type_document_id_kind_94f3085d1e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_on_document_type_document_id_kind_94f3085d1e ON public.etims_submissions USING btree (document_type, document_id, kind);
 
 
 --
@@ -3092,6 +3513,55 @@ CREATE UNIQUE INDEX index_document_sequences_on_branch_id_and_kind ON public.doc
 
 
 --
+-- Name: index_etims_devices_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_etims_devices_on_branch_id ON public.etims_devices USING btree (branch_id);
+
+
+--
+-- Name: index_etims_item_registrations_on_device_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_item_registrations_on_device_id ON public.etims_item_registrations USING btree (device_id);
+
+
+--
+-- Name: index_etims_item_registrations_on_device_id_and_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_etims_item_registrations_on_device_id_and_product_id ON public.etims_item_registrations USING btree (device_id, product_id);
+
+
+--
+-- Name: index_etims_item_registrations_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_item_registrations_on_product_id ON public.etims_item_registrations USING btree (product_id);
+
+
+--
+-- Name: index_etims_submissions_on_account_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_submissions_on_account_id_and_status ON public.etims_submissions USING btree (account_id, status);
+
+
+--
+-- Name: index_etims_submissions_on_device_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_submissions_on_device_id ON public.etims_submissions USING btree (device_id);
+
+
+--
+-- Name: index_etims_submissions_on_device_id_and_invoice_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_etims_submissions_on_device_id_and_invoice_number ON public.etims_submissions USING btree (device_id, invoice_number);
+
+
+--
 -- Name: index_events_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3194,6 +3664,90 @@ CREATE UNIQUE INDEX index_memberships_on_account_id_and_user_id ON public.member
 --
 
 CREATE INDEX index_memberships_on_user_id ON public.memberships USING btree (user_id);
+
+
+--
+-- Name: index_mpesa_shortcodes_on_account_id_and_shortcode; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mpesa_shortcodes_on_account_id_and_shortcode ON public.mpesa_shortcodes USING btree (account_id, shortcode);
+
+
+--
+-- Name: index_mpesa_shortcodes_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_shortcodes_on_branch_id ON public.mpesa_shortcodes USING btree (branch_id);
+
+
+--
+-- Name: index_mpesa_shortcodes_on_callback_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mpesa_shortcodes_on_callback_token ON public.mpesa_shortcodes USING btree (callback_token);
+
+
+--
+-- Name: index_mpesa_stk_requests_on_checkout_request_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mpesa_stk_requests_on_checkout_request_id ON public.mpesa_stk_requests USING btree (checkout_request_id);
+
+
+--
+-- Name: index_mpesa_stk_requests_on_payment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_stk_requests_on_payment_id ON public.mpesa_stk_requests USING btree (payment_id);
+
+
+--
+-- Name: index_mpesa_stk_requests_on_requested_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_stk_requests_on_requested_by_id ON public.mpesa_stk_requests USING btree (requested_by_id);
+
+
+--
+-- Name: index_mpesa_stk_requests_on_sale_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_stk_requests_on_sale_id ON public.mpesa_stk_requests USING btree (sale_id);
+
+
+--
+-- Name: index_mpesa_stk_requests_on_shortcode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_stk_requests_on_shortcode_id ON public.mpesa_stk_requests USING btree (shortcode_id);
+
+
+--
+-- Name: index_mpesa_transactions_on_account_id_and_trans_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mpesa_transactions_on_account_id_and_trans_id ON public.mpesa_transactions USING btree (account_id, trans_id);
+
+
+--
+-- Name: index_mpesa_transactions_on_account_id_and_transacted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_transactions_on_account_id_and_transacted_at ON public.mpesa_transactions USING btree (account_id, transacted_at);
+
+
+--
+-- Name: index_mpesa_transactions_on_matched; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_transactions_on_matched ON public.mpesa_transactions USING btree (matched_type, matched_id);
+
+
+--
+-- Name: index_mpesa_transactions_on_shortcode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_transactions_on_shortcode_id ON public.mpesa_transactions USING btree (shortcode_id);
 
 
 --
@@ -3582,6 +4136,27 @@ CREATE UNIQUE INDEX index_shifts_one_open_per_register ON public.shifts USING bt
 
 
 --
+-- Name: index_sms_messages_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sms_messages_on_account_id_and_created_at ON public.sms_messages USING btree (account_id, created_at);
+
+
+--
+-- Name: index_sms_messages_on_sender_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sms_messages_on_sender_id ON public.sms_messages USING btree (sender_id);
+
+
+--
+-- Name: index_sms_messages_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sms_messages_on_source ON public.sms_messages USING btree (source_type, source_id);
+
+
+--
 -- Name: index_stock_adjustments_on_branch_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3889,6 +4464,14 @@ ALTER TABLE ONLY public.customer_order_lines
 
 
 --
+-- Name: mpesa_shortcodes fk_rails_0afac4c3ad; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_shortcodes
+    ADD CONSTRAINT fk_rails_0afac4c3ad FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: stock_transfer_lines fk_rails_100e940960; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3945,11 +4528,27 @@ ALTER TABLE ONLY public.events
 
 
 --
+-- Name: etims_item_registrations fk_rails_1817605044; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_item_registrations
+    ADD CONSTRAINT fk_rails_1817605044 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
 -- Name: supplier_payments fk_rails_1846f352d5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.supplier_payments
     ADD CONSTRAINT fk_rails_1846f352d5 FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
+-- Name: etims_devices fk_rails_184c56433c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_devices
+    ADD CONSTRAINT fk_rails_184c56433c FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
 
 
 --
@@ -3974,6 +4573,14 @@ ALTER TABLE ONLY public.supplier_invoices
 
 ALTER TABLE ONLY public.stock_counts
     ADD CONSTRAINT fk_rails_1cf6040ee2 FOREIGN KEY (approver_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: mpesa_stk_requests fk_rails_1d2e5d8b9d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT fk_rails_1d2e5d8b9d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -4129,6 +4736,14 @@ ALTER TABLE ONLY public.admin_sessions
 
 
 --
+-- Name: sms_messages fk_rails_487dcbac01; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sms_messages
+    ADD CONSTRAINT fk_rails_487dcbac01 FOREIGN KEY (sender_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: sale_returns fk_rails_49a99170eb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4158,6 +4773,22 @@ ALTER TABLE ONLY public.kit_components
 
 ALTER TABLE ONLY public.stock_transfers
     ADD CONSTRAINT fk_rails_4d5a54adc6 FOREIGN KEY (sender_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: mpesa_stk_requests fk_rails_4d9dd4a507; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT fk_rails_4d9dd4a507 FOREIGN KEY (payment_id) REFERENCES public.payments(id) DEFERRABLE;
+
+
+--
+-- Name: etims_devices fk_rails_4dcecea8a0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_devices
+    ADD CONSTRAINT fk_rails_4dcecea8a0 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -4217,6 +4848,14 @@ ALTER TABLE ONLY public.delivery_notes
 
 
 --
+-- Name: etims_submissions fk_rails_5aa9444ca6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_submissions
+    ADD CONSTRAINT fk_rails_5aa9444ca6 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: registers fk_rails_5af33f0b45; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4254,6 +4893,14 @@ ALTER TABLE ONLY public.delivery_notes
 
 ALTER TABLE ONLY public.sale_returns
     ADD CONSTRAINT fk_rails_5d56732d50 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: etims_item_registrations fk_rails_5f20ac645c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_item_registrations
+    ADD CONSTRAINT fk_rails_5f20ac645c FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -4313,6 +4960,14 @@ ALTER TABLE ONLY public.kit_components
 
 
 --
+-- Name: mpesa_transactions fk_rails_6fff61037d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_transactions
+    ADD CONSTRAINT fk_rails_6fff61037d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: sale_returns fk_rails_71880e17ea; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4326,6 +4981,14 @@ ALTER TABLE ONLY public.sale_returns
 
 ALTER TABLE ONLY public.stock_adjustments
     ADD CONSTRAINT fk_rails_725b9e1daf FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: mpesa_stk_requests fk_rails_734fdbc1b4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT fk_rails_734fdbc1b4 FOREIGN KEY (sale_id) REFERENCES public.sales(id) DEFERRABLE;
 
 
 --
@@ -4609,6 +5272,14 @@ ALTER TABLE ONLY public.document_sequences
 
 
 --
+-- Name: mpesa_stk_requests fk_rails_aa751da206; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT fk_rails_aa751da206 FOREIGN KEY (shortcode_id) REFERENCES public.mpesa_shortcodes(id) DEFERRABLE;
+
+
+--
 -- Name: sales fk_rails_ab14f0c7ff; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4681,11 +5352,27 @@ ALTER TABLE ONLY public.goods_receipts
 
 
 --
+-- Name: sms_messages fk_rails_bd9e782380; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sms_messages
+    ADD CONSTRAINT fk_rails_bd9e782380 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: customer_orders fk_rails_bdb6d95444; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.customer_orders
     ADD CONSTRAINT fk_rails_bdb6d95444 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: etims_item_registrations fk_rails_bf0a6f8617; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_item_registrations
+    ADD CONSTRAINT fk_rails_bf0a6f8617 FOREIGN KEY (device_id) REFERENCES public.etims_devices(id) DEFERRABLE;
 
 
 --
@@ -4801,6 +5488,22 @@ ALTER TABLE ONLY public.goods_receipt_lines
 
 
 --
+-- Name: mpesa_transactions fk_rails_dcc3194566; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_transactions
+    ADD CONSTRAINT fk_rails_dcc3194566 FOREIGN KEY (shortcode_id) REFERENCES public.mpesa_shortcodes(id) DEFERRABLE;
+
+
+--
+-- Name: mpesa_shortcodes fk_rails_de0d651629; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_shortcodes
+    ADD CONSTRAINT fk_rails_de0d651629 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
 -- Name: sales fk_rails_de939a1f04; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4825,6 +5528,14 @@ ALTER TABLE ONLY public.goods_receipts
 
 
 --
+-- Name: etims_submissions fk_rails_e079f26906; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_submissions
+    ADD CONSTRAINT fk_rails_e079f26906 FOREIGN KEY (device_id) REFERENCES public.etims_devices(id) DEFERRABLE;
+
+
+--
 -- Name: sales fk_rails_e2379d3017; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4846,6 +5557,14 @@ ALTER TABLE ONLY public.brands
 
 ALTER TABLE ONLY public.stock_transfer_lines
     ADD CONSTRAINT fk_rails_e25d7fc485 FOREIGN KEY (stock_transfer_id) REFERENCES public.stock_transfers(id) DEFERRABLE;
+
+
+--
+-- Name: mpesa_stk_requests fk_rails_e4f337bfe9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT fk_rails_e4f337bfe9 FOREIGN KEY (requested_by_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -5133,6 +5852,27 @@ CREATE POLICY account_isolation ON public.document_sequences USING (((current_se
 
 
 --
+-- Name: etims_devices account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.etims_devices USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: etims_item_registrations account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.etims_item_registrations USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: etims_submissions account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.etims_submissions USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: events account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -5165,6 +5905,27 @@ CREATE POLICY account_isolation ON public.kit_components USING (((current_settin
 --
 
 CREATE POLICY account_isolation ON public.memberships USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: mpesa_shortcodes account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.mpesa_shortcodes USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: mpesa_stk_requests account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.mpesa_stk_requests USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: mpesa_transactions account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.mpesa_transactions USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -5270,6 +6031,13 @@ CREATE POLICY account_isolation ON public.sessions USING (((current_setting('app
 --
 
 CREATE POLICY account_isolation ON public.shifts USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: sms_messages account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.sms_messages USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -5436,6 +6204,24 @@ ALTER TABLE public.deposits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.document_sequences ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: etims_devices; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.etims_devices ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: etims_item_registrations; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.etims_item_registrations ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: etims_submissions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.etims_submissions ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: events; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -5464,6 +6250,24 @@ ALTER TABLE public.kit_components ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.memberships ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: mpesa_shortcodes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mpesa_shortcodes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: mpesa_stk_requests; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mpesa_stk_requests ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: mpesa_transactions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mpesa_transactions ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: payments; Type: ROW SECURITY; Schema: public; Owner: -
@@ -5556,6 +6360,12 @@ ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.shifts ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: sms_messages; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sms_messages ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: stock_adjustments; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -5640,6 +6450,7 @@ ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120200'),
 ('20260925120100'),
 ('20260925120000'),
 ('20260925110000'),

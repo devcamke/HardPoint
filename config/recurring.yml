@@ -23,3 +23,8 @@ production:
   daily_summary:
     class: DailySummaryJob
     schedule: every day at 4:15am
+
+  # Sales still waiting to reach KRA eTIMS.
+  etims_retry:
+    class: Etims::RetryJob
+    schedule: every 5 minutes

@@ -26,5 +26,15 @@ module Hardpoint
 
     # Row-level security policies can't be expressed in schema.rb.
     config.active_record.schema_format = :sql
+
+    # Where Safaricom and KRA reach this app, for callback URLs.
+    config.x.webhook_url_options = { host: ENV.fetch("APP_HOST", "localhost"), protocol: ENV["APP_HOST"] ? "https" : "http" }
+
+    # Addresses M-Pesa callbacks may come from; empty accepts any (development and tests). Production
+    # sets Safaricom's published addresses; override with MPESA_CALLBACK_IPS (comma-separated).
+    config.x.mpesa_callback_ips = []
+
+    # Texts go to Africa's Talking only in production; elsewhere they're kept in Sms::Outbox.
+    config.x.sms_outbox = !Rails.env.production?
   end
 end

@@ -6,6 +6,7 @@ class TaxRate < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :account_id }
   validates :rate, numericality: { greater_than_or_equal_to: 0, less_than: 100 }
+  validates :etims_code, inclusion: { in: Etims::TAX_TYPES.keys }, allow_blank: true
 
   after_save :clear_other_defaults, if: -> { saved_change_to_default? && default? }
 

@@ -1,0 +1,4 @@
+<% content_for :title, "Edit #{@shortcode.name}" %>
+<p class="text-sm"><%= link_to "← M-Pesa", mpesa_shortcodes_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold"><%= @shortcode.name %></h1>
+<%= render "form", shortcode: @shortcode %>

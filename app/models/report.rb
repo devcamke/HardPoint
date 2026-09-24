@@ -23,7 +23,7 @@ class Report
   # Periods up to this long list every day, even quiet ones.
   FILL_DAYS = 62
 
-  KEYS = %w[ sales profit_and_loss tax payments discounts_and_voids stock_valuation dead_stock shifts ].freeze
+  KEYS = %w[ sales profit_and_loss tax payments mobile_money discounts_and_voids stock_valuation dead_stock shifts ].freeze
 
   class_attribute :title, :description, :group, :uses_period, default: true
 

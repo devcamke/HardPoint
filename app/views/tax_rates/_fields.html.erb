@@ -10,3 +10,7 @@
   <%= form.check_box :default, class: "size-4 accent-safety-500" %>
   <%= form.label :default, "Default for new products", class: "text-sm font-medium text-navy-800" %>
 </div>
+<div class="field">
+  <%= form.label :etims_code, "KRA eTIMS tax type", class: "label" %>
+  <%= form.select :etims_code, Etims::TAX_TYPES.map { |code, name| [ "#{code}: #{name}", code ] }, { include_blank: "Usual for the rate (16% B, 8% E, 0% C)" }, class: "input" %>
+</div>

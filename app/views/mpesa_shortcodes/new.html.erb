@@ -1,0 +1,4 @@
+<% content_for :title, "Add Paybill or Till" %>
+<p class="text-sm"><%= link_to "← M-Pesa", mpesa_shortcodes_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Add a Paybill or Till</h1>
+<%= render "form", shortcode: @shortcode %>

@@ -28,6 +28,20 @@
     <div class="row"><span><%= payment.label %><%= " #{payment.reference}" if payment.reference %></span><span><%= money(payment.cash? ? payment.tendered_cents : payment.amount_cents) %></span></div>
   <% end %>
   <% if @sale.change_cents.positive? %><div class="row bold"><span>Change</span><span><%= money(@sale.change_cents) %></span></div><% end %>
+  <% if (submission = @sale.etims_submission) %>
+    <hr>
+    <% if submission.sent? %>
+      <p class="center bold">KRA eTIMS</p>
+      <div class="row"><span>SCU ID</span><span><%= submission.device.sdc_id %></span></div>
+      <div class="row"><span>CU invoice no.</span><span><%= submission.device.sdc_id %>/<%= submission.receipt_number %></span></div>
+      <div class="row"><span>Date</span><span><%= submission.signed_at ? l(submission.signed_at, format: :short) : submission.sdc_date_time %></span></div>
+      <div class="muted">Internal data: <%= submission.internal_data.to_s.scan(/.{1,4}/).join("-") %></div>
+      <div class="muted">Receipt signature: <%= submission.receipt_signature.to_s.scan(/.{1,4}/).join("-") %></div>
+      <p class="center"><%= qr_code_svg submission.verification_url, width: 120, height: 120, role: "img", "aria-label": "KRA eTIMS QR code" %></p>
+    <% else %>
+      <p class="center">Tax invoice being sent to KRA. Ask for a reprint for the signed copy.</p>
+    <% end %>
+  <% end %>
   <hr>
   <p class="center"><%= Current.account.receipt_footer.presence || "Thank you for shopping with us" %></p>
   <p class="center"><%= barcode_svg(@sale.receipt_number) if @sale.receipt_number %></p>

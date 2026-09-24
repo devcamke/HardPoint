@@ -6,3 +6,8 @@
   <%= form.label :parent_id, "Inside category (optional)", class: "label" %>
   <%= form.collection_select :parent_id, Current.account.categories.alphabetically.excluding(form.object), :id, :name, { include_blank: "None" }, class: "input" %>
 </div>
+<div class="field">
+  <%= form.label :etims_class_code, "KRA eTIMS item class (optional)", class: "label" %>
+  <%= form.text_field :etims_class_code, inputmode: "numeric", placeholder: "e.g. 3010160000", class: "input font-mono" %>
+  <p class="hint mt-1">KRA's classification code for products in this category; otherwise the control unit's default is used.</p>
+</div>

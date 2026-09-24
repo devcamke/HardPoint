@@ -12,6 +12,9 @@
       <%= link_to "New quote", new_customer_order_path(customer_id: @customer.id), class: "btn-secondary" %>
     <% end %>
     <%= link_to "Statement", customer_statement_path(@customer), class: "btn-secondary" if current_membership.can_manage_receivables? %>
+    <% if current_membership.can_manage_receivables? && Current.account.sms_enabled? && @customer.phone.present? && @customer.balance_cents.positive? %>
+      <%= button_to "Text a reminder", customer_balance_reminder_path(@customer), class: "btn-secondary" %>
+    <% end %>
     <%= link_to "Record payment", new_customer_payment_path(@customer), class: "btn-primary" if @customer.balance_cents.positive? %>
   </div>
 </div>

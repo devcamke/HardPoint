@@ -1,0 +1,28 @@
+<%# M-Pesa at the till: send a prompt to the customer's phone, or use a payment that already arrived on the Paybill. %>
+<div class="mt-3 hidden space-y-3 border-t border-concrete-200 pt-3" data-payment-target="mpesaFields">
+  <%= form_with url: pos_mpesa_requests_path, class: "flex items-end gap-2" do |form| %>
+    <div class="flex-1">
+      <%= form.label :phone, "Send a prompt to pay #{money(((due + 99) / 100) * 100)} on #{shortcode.label}", class: "label" %>
+      <%= form.telephone_field :phone, value: PhoneNumber.display(sale.customer&.phone), placeholder: "0722 000 111", required: true,
+            autocomplete: "off", inputmode: "tel", class: "input" %>
+    </div>
+    <%= form.submit "Send prompt", class: "btn-secondary py-2.5" %>
+  <% end %>
+
+  <% received = sale.account.mpesa_transactions.unmatched.recent.limit(5) %>
+  <% if received.any? %>
+    <div>
+      <p class="label">Received on M-Pesa, not used yet</p>
+      <ul class="divide-y divide-concrete-200 rounded-md border border-concrete-200 bg-white text-sm">
+        <% received.each do |transaction| %>
+          <li class="flex items-center justify-between gap-2 px-2 py-1.5">
+            <span class="min-w-0"><span class="font-mono"><%= transaction.trans_id %></span>
+              <span class="block truncate text-xs text-steel-600"><%= l(transaction.transacted_at, format: "%H:%M") %> · <%= transaction.payer %><%= " · ref #{transaction.bill_reference}" if transaction.bill_reference %></span></span>
+            <span class="flex items-center gap-2 whitespace-nowrap tabular-nums"><%= money(transaction.amount_cents) %>
+              <%= button_to "Use", pos_mpesa_matches_path, params: { transaction_id: transaction.id }, class: "btn-secondary px-2 py-1 text-xs" %></span>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>

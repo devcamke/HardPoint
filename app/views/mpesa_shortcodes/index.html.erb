@@ -1,0 +1,37 @@
+<% content_for :title, "M-Pesa" %>
+<%= render "settings/back" %>
+
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold">M-Pesa</h1>
+    <p class="hint mt-1 max-w-2xl">Connect your Paybill or Till through Safaricom's Daraja API. Cashiers can then send a prompt to a customer's phone,
+      and payments customers make straight to your number show up at the till and on the M-Pesa reconciliation report.</p>
+  </div>
+  <%= link_to "Add Paybill or Till", new_mpesa_shortcode_path, class: "btn-primary" %>
+</div>
+
+<% if @shortcodes.any? %>
+  <div class="space-y-4">
+    <% @shortcodes.each do |shortcode| %>
+      <section class="card flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-semibold"><%= shortcode.name %> · <%= shortcode.label %>
+            <span class="badge <%= shortcode.environment == "production" ? "bg-green-50 text-green-800" : "bg-safety-100 text-safety-800" %>"><%= shortcode.environment.humanize %></span>
+            <%= tag.span("Off", class: "badge bg-concrete-200 text-steel-600") unless shortcode.active? %></h2>
+          <p class="hint mt-1"><%= shortcode.branch ? "For #{shortcode.branch.name}" : "For every branch without its own" %> ·
+            <%= shortcode.c2b_registered_at ? "Receiving payments made straight to it since #{l(shortcode.c2b_registered_at.to_date, format: :long)}" : "Not yet receiving payments made straight to it" %></p>
+          <p class="hint mt-1">Daraja callback: <span class="font-mono text-xs"><%= shortcode.callback_url(:stk).sub(shortcode.callback_token, "…") %></span></p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <%= button_to "Test connection", mpesa_shortcode_connection_test_path(shortcode), class: "btn-secondary" %>
+          <%= button_to (shortcode.c2b_registered_at ? "Register again" : "Receive payments"), mpesa_shortcode_c2b_registration_path(shortcode), class: "btn-secondary" %>
+          <%= link_to "Edit", edit_mpesa_shortcode_path(shortcode), class: "btn-secondary" %>
+        </div>
+      </section>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card"><p class="hint">No Paybill or Till connected yet. Cashiers can still take M-Pesa by typing the transaction code.</p></div>
+<% end %>
+
+<%= link_to "M-Pesa reconciliation report", report_path("mobile_money"), class: "link mt-6 inline-block" %>

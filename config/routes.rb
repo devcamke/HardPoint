@@ -1,4 +1,11 @@
 Rails.application.routes.draw do
+  # Callbacks from Safaricom, on any host. The shop is found by the secret token in the path.
+  scope "webhooks/mpesa/:token", controller: "webhooks/mpesa", as: :mpesa_webhook do
+    post "stk", action: :stk, as: :stk
+    post "c2b/confirmation", action: :confirmation, as: :confirmation
+    post "c2b/validation", action: :validation, as: :validation
+  end
+
   # The bare domain (hardpoint.app) hosts signup; each shop lives on its own subdomain (acme.hardpoint.app).
   constraints ->(request) { request.subdomain.blank? } do
     resource :signup, only: %i[ new create ]
@@ -89,6 +96,8 @@ Rails.application.routes.draw do
       resource :parking, only: :create
       resources :parked_sales, only: :index
       resource :discard, only: :create
+      resources :mpesa_requests, only: %i[ create show destroy ]
+      resources :mpesa_matches, only: :create
     end
 
     resources :shifts, only: %i[ index show new create ] do
@@ -105,6 +114,7 @@ Rails.application.routes.draw do
         resource :void, only: %i[ new create ]
         resources :returns, only: %i[ new create ]
         resource :invoice, only: :show
+        resource :receipt_text, only: :create
       end
     end
     resources :returns, only: %i[ index show ], controller: :sale_returns
@@ -115,6 +125,7 @@ Rails.application.routes.draw do
         resources :payments, only: %i[ new create ]
         resource :statement, only: :show
         resource :statement_email, only: :create
+        resource :balance_reminder, only: :create
       end
     end
     resources :customer_orders, path: "orders", except: :destroy do
@@ -128,6 +139,27 @@ Rails.application.routes.draw do
       end
     end
     resource :receivables, only: :show
+
+    # Integrations
+    resources :mpesa_shortcodes, path: "mpesa", except: %i[ show destroy ] do
+      scope module: :mpesa_shortcodes do
+        resource :connection_test, only: :create
+        resource :c2b_registration, only: :create
+      end
+    end
+
+    resources :etims_devices, path: "etims", except: %i[ show destroy ] do
+      scope module: :etims_devices do
+        resource :initialization, only: :create
+      end
+    end
+    resources :etims_submissions, path: "etims/submissions", only: %i[ index show ] do
+      scope module: :etims_submissions do
+        resource :retry, only: :create
+      end
+    end
+    resource :etims_retries, path: "etims/retries", only: :create
+    resources :sms_messages, path: "texts", only: :index
 
     # Reports
     resources :reports, only: %i[ index show ], param: :key

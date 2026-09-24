@@ -1,0 +1,42 @@
+<% content_for :title, "KRA eTIMS" %>
+<%= render "settings/back" %>
+
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold">KRA eTIMS</h1>
+    <p class="hint mt-1 max-w-2xl">Each branch's online control unit (OSCU) sends every sale, void and return to KRA. Receipts then carry KRA's
+      signature and a QR code customers can check. If KRA can't be reached, sales keep going and are sent when it's back.</p>
+  </div>
+  <%= link_to "Submissions", etims_submissions_path, class: "btn-secondary" %>
+</div>
+
+<% if @counts["failed"].to_i.positive? %>
+  <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+    <%= pluralize(@counts["failed"], "submission") %> refused by KRA. <%= link_to "See why", etims_submissions_path(status: "failed"), class: "font-semibold underline" %>
+  </div>
+<% end %>
+
+<div class="space-y-4">
+  <% @devices.each do |device| %>
+    <section class="card flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-semibold"><%= device.branch.name %>
+          <span class="badge <%= device.environment == "production" ? "bg-green-50 text-green-800" : "bg-safety-100 text-safety-800" %>"><%= device.environment.humanize %></span>
+          <%= device.initialized? ? tag.span("Set up", class: "badge bg-green-50 text-green-800") : tag.span("Not set up", class: "badge bg-concrete-200 text-steel-600") %>
+          <%= tag.span("Off", class: "badge bg-concrete-200 text-steel-600") unless device.active? %></h2>
+        <p class="hint mt-1">PIN <%= device.tin %> · branch <%= device.bhf_id %> · serial <%= device.serial_number %>
+          <%= "· control unit #{device.sdc_id}" if device.sdc_id %></p>
+      </div>
+      <div class="flex gap-2">
+        <%= button_to (device.initialized? ? "Set up again" : "Set up with KRA"), etims_device_initialization_path(device), class: device.initialized? ? "btn-secondary" : "btn-primary" %>
+        <%= link_to "Edit", edit_etims_device_path(device), class: "btn-secondary" %>
+      </div>
+    </section>
+  <% end %>
+  <% @branches_without.each do |branch| %>
+    <section class="card flex items-center justify-between gap-4">
+      <p><span class="font-semibold"><%= branch.name %></span> <span class="hint">· no control unit, so its sales aren't sent to KRA</span></p>
+      <%= link_to "Add control unit", new_etims_device_path(branch_id: branch.id), class: "btn-secondary" %>
+    </section>
+  <% end %>
+</div>

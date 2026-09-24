@@ -1,0 +1,24 @@
+<%= form_with model: shortcode, url: (shortcode.new_record? ? mpesa_shortcodes_path : mpesa_shortcode_path(shortcode)), class: "card max-w-2xl" do |form| %>
+  <%= render "shared/errors", model: shortcode %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :name, class: "label" %><%= form.text_field :name, required: true, placeholder: "Main Paybill", class: "input" %></div>
+    <div class="field"><%= form.label :branch_id, "Used at", class: "label" %>
+      <%= form.collection_select :branch_id, Current.account.branches.alphabetically, :id, :name, { include_blank: "Every branch without its own" }, class: "input" %></div>
+    <div class="field"><%= form.label :transaction_type, "Type", class: "label" %>
+      <%= form.select :transaction_type, [ [ "Paybill", "paybill" ], [ "Till number (Buy Goods)", "buy_goods" ] ], {}, class: "input" %></div>
+    <div class="field"><%= form.label :environment, class: "label" %>
+      <%= form.select :environment, Mpesa::Shortcode::ENVIRONMENTS.select { _1 != "simulator" || Mpesa::Shortcode.simulator_allowed? }.map { [ _1 == "simulator" ? "Simulator (no real money)" : _1.humanize, _1 ] }, {}, class: "input" %></div>
+    <div class="field"><%= form.label :shortcode, "Paybill or store number", class: "label" %><%= form.text_field :shortcode, required: true, inputmode: "numeric", class: "input font-mono" %></div>
+    <div class="field"><%= form.label :till_number, "Till number (Buy Goods only)", class: "label" %><%= form.text_field :till_number, inputmode: "numeric", class: "input font-mono" %></div>
+  </div>
+
+  <h2 class="mt-2 mb-1 font-semibold">Daraja API credentials</h2>
+  <p class="hint mb-4">From your app on developer.safaricom.co.ke. They're stored encrypted and never shown again<%= "; leave blank to keep the saved ones" if shortcode.persisted? %>.</p>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :consumer_key, class: "label" %><%= form.password_field :consumer_key, value: nil, autocomplete: "off", class: "input font-mono" %></div>
+    <div class="field"><%= form.label :consumer_secret, class: "label" %><%= form.password_field :consumer_secret, value: nil, autocomplete: "off", class: "input font-mono" %></div>
+    <div class="field sm:col-span-2"><%= form.label :passkey, "Lipa na M-Pesa passkey", class: "label" %><%= form.password_field :passkey, value: nil, autocomplete: "off", class: "input font-mono" %></div>
+  </div>
+  <label class="mb-4 flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-safety-500" %> In use</label>
+  <%= form.submit shortcode.new_record? ? "Add" : "Save", class: "btn-primary" %>
+<% end %>

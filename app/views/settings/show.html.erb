@@ -8,6 +8,11 @@
        [ "Branches", branches_path, "Your locations" ],
        [ "Tills", registers_path, "Points of sale in each branch" ]
      ].compact,
+     "Payments and tax" => ([
+       [ "M-Pesa", mpesa_shortcodes_path, "Paybill or Till: prompts to pay from the till, payments received" ],
+       [ "KRA eTIMS", etims_devices_path, "Send sales to KRA and print signed receipts" ],
+       [ "SMS", edit_account_path(anchor: "sms"), "Text receipts, order updates and balance reminders" ]
+     ] if current_membership.can_manage_account?),
      "Catalogue" => [
        [ "Categories", categories_path, "Group products, e.g. Plumbing › Pipes" ],
        [ "Brands", brands_path, "Makers and suppliers' brands" ],
@@ -18,7 +23,7 @@
      ].compact
    } %>
 
-<% sections.each do |heading, links| %>
+<% sections.compact_blank.each do |heading, links| %>
   <h2 class="mt-8 mb-3 text-sm font-semibold uppercase tracking-wide text-steel-600"><%= heading %></h2>
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <% links.each do |name, path, description| %>

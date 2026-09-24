@@ -1,0 +1,7 @@
+<div class="mb-3 rounded-lg border-2 border-safety-500 bg-safety-50 p-3" data-controller="mpesa-poll"
+     data-mpesa-poll-url-value="<%= pos_mpesa_request_path(stk_request, format: :json) %>">
+  <p class="flex items-center gap-2 font-semibold"><span class="size-3 animate-pulse rounded-full bg-safety-500"></span>
+    Waiting for <%= PhoneNumber.display(stk_request.phone) %> to enter their M-Pesa PIN</p>
+  <p class="mt-1 text-sm"><%= money(stk_request.whole_shillings * 100) %> on <%= stk_request.shortcode.label %>. The sale completes by itself once they've paid.</p>
+  <%= button_to "Stop waiting", pos_mpesa_request_path(stk_request), method: :delete, class: "link mt-2 text-sm" %>
+</div>

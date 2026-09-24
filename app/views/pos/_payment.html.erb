@@ -13,6 +13,10 @@
     <p class="mb-2 flex justify-between font-semibold"><span>Still due</span><span class="tabular-nums"><%= money(due) %></span></p>
   <% end %>
 
+  <% if (waiting = sale.stk_requests.pending.last) %>
+    <%= render "pos/mpesa_waiting", stk_request: waiting %>
+  <% end %>
+
   <%= form_with url: pos_payments_path, data: { action: "turbo:submit-end->payment#reset" } do |form| %>
     <% tenders = [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], [ "card", "Card" ], [ "on_account", "Account" ] ]
        deposit = sale.deposit_available_cents
@@ -61,5 +65,9 @@
     <p class="mt-1 h-5 text-sm font-semibold text-green-800" data-payment-target="change"></p>
 
     <%= form.submit "Take payment", class: "btn-primary mt-1 w-full py-3 text-lg" %>
+  <% end %>
+
+  <% if (shortcode = Mpesa::Shortcode.for_branch(sale.branch)) && !waiting %>
+    <%= render "pos/mpesa", sale: sale, shortcode: shortcode, due: due %>
   <% end %>
 </div>

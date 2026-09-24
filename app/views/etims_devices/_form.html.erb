@@ -1,0 +1,18 @@
+<%= form_with model: device, url: (device.new_record? ? etims_devices_path : etims_device_path(device)), class: "card max-w-2xl" do |form| %>
+  <%= render "shared/errors", model: device %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :branch_id, "Branch", class: "label" %>
+      <%= form.collection_select :branch_id, Current.account.branches.alphabetically, :id, :name, {}, disabled: device.persisted?, class: "input" %></div>
+    <div class="field"><%= form.label :environment, class: "label" %>
+      <%= form.select :environment, Etims::Device::ENVIRONMENTS.select { _1 != "simulator" || Mpesa::Shortcode.simulator_allowed? }.map { [ _1 == "simulator" ? "Simulator (nothing goes to KRA)" : _1.humanize, _1 ] }, {}, class: "input" %></div>
+    <div class="field"><%= form.label :tin, "KRA PIN", class: "label" %><%= form.text_field :tin, required: true, placeholder: "P051234567X", class: "input font-mono uppercase" %></div>
+    <div class="field"><%= form.label :bhf_id, "KRA branch ID", class: "label" %><%= form.text_field :bhf_id, required: true, maxlength: 2, class: "input font-mono" %>
+      <p class="hint mt-1">00 for the head office; KRA gives other branches their own.</p></div>
+    <div class="field"><%= form.label :serial_number, "Device serial number", class: "label" %><%= form.text_field :serial_number, required: true, class: "input font-mono" %>
+      <p class="hint mt-1">As registered for this branch on the eTIMS portal.</p></div>
+    <div class="field"><%= form.label :default_item_class_code, "Default item class", class: "label" %><%= form.text_field :default_item_class_code, required: true, class: "input font-mono" %>
+      <p class="hint mt-1">KRA's code for products whose category doesn't set one.</p></div>
+  </div>
+  <label class="mb-4 flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-safety-500" %> Send this branch's sales to KRA</label>
+  <%= form.submit device.new_record? ? "Add" : "Save", class: "btn-primary" %>
+<% end %>

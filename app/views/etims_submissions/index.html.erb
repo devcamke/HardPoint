@@ -1,0 +1,36 @@
+<% content_for :title, "eTIMS submissions" %>
+<p class="text-sm"><%= link_to "← KRA eTIMS", etims_devices_path, class: "link" %></p>
+<div class="mt-2 mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Sent to KRA</h1>
+  <% if @counts["failed"].to_i.positive? %><%= button_to "Retry #{pluralize(@counts["failed"], "refused one")}", etims_retries_path, class: "btn-primary" %><% end %>
+</div>
+
+<div class="mb-4 flex flex-wrap gap-1 text-sm">
+  <% [ [ "all", "All" ], [ "pending", "Waiting (#{@counts["pending"].to_i})" ], [ "failed", "Refused (#{@counts["failed"].to_i})" ], [ "sent", "Signed" ] ].each do |value, label| %>
+    <%= link_to label, etims_submissions_path(status: value), class: class_names("rounded-full px-3 py-1", "bg-navy-900 text-white" => @status == value, "bg-white text-steel-600 hover:text-navy-900" => @status != value) %>
+  <% end %>
+</div>
+
+<div class="card">
+  <% if @submissions.any? %>
+    <table class="table">
+      <thead><tr><th>Invoice</th><th>Document</th><th>Branch</th><th>When</th><th>Status</th><th>Attempts</th><th>KRA says</th></tr></thead>
+      <tbody>
+        <% @submissions.each do |submission| %>
+          <tr>
+            <td><%= link_to submission.invoice_number, submission, class: "link font-mono" %></td>
+            <td><%= submission.document_label %></td>
+            <td><%= submission.device.branch.name %></td>
+            <td><%= l(submission.created_at, format: :short) %></td>
+            <td><%= render "etims_submissions/status", submission: submission %></td>
+            <td class="tabular-nums"><%= submission.attempts %></td>
+            <td class="max-w-80 truncate text-sm <%= "text-red-700" if submission.failed? %>"><%= submission.sent? ? "Receipt #{submission.receipt_number}" : submission.last_error %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Nothing here.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

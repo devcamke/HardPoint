@@ -11,5 +11,11 @@
       <%= form.email_field :email, value: sale.customer&.email, placeholder: "Email receipt to…", class: "input w-52 py-1.5", "aria-label": "Email receipt to" %>
       <%= form.submit "Send", class: "btn-secondary" %>
     <% end %>
+    <% if Current.account.sms_enabled? %>
+      <%= form_with url: sale_receipt_text_path(sale), class: "flex gap-2" do |form| %>
+        <%= form.telephone_field :phone, value: PhoneNumber.display(sale.customer&.phone), placeholder: "Text receipt to…", class: "input w-40 py-1.5", "aria-label": "Text receipt to" %>
+        <%= form.submit "Text", class: "btn-secondary" %>
+      <% end %>
+    <% end %>
   </div>
 </div>

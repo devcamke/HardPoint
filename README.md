@@ -122,6 +122,29 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Sales report](docs/screenshots/92-sales-by-day.png)
 
+## Phase 7: M-Pesa, KRA eTIMS and SMS
+
+- **M-Pesa (Daraja)** for each shop's own Paybill or Till, with its API credentials stored encrypted:
+  - **Prompt to pay from the till** (STK push): the cashier enters the customer's number, the customer enters their
+    PIN, and the sale completes by itself. Late callbacks are chased with a status check
+  - **Payments made straight to the Paybill/Till** (C2B) arrive automatically. An order number as the account makes a
+    deposit on that order; a customer's phone number pays their account; anything else waits at the till under
+    "Received on M-Pesa" to be used on a sale. A code typed at the till claims the matching payment
+  - **M-Pesa reconciliation report:** money received but not used, and codes typed at a till that Safaricom never confirmed
+  - **Callbacks** find the shop from a secret token in the URL (never the payload), accept only Safaricom's addresses in
+    production, are safe to receive twice, and always answer Safaricom the way it expects
+- **KRA eTIMS (OSCU)**, one control unit per branch: set up with KRA, items registered once per branch, every sale
+  sent and signed, voids and returns sent as credit notes against the original, and **signed receipts with KRA's QR
+  code**. When KRA can't be reached, the till keeps selling and sending is retried with growing gaps; refusals show why
+  and can be sent again. The owner's dashboard warns about refused submissions
+- **SMS through Africa's Talking:** text a receipt (from the till or the sale), "your order is ready", and balance
+  reminders with the Paybill to pay to. Shops turn it on in their settings; each shop can send at most 500 a day
+- **Card terminals** stay as typed references for now
+- Every integration has a **simulator** (demo shops and development) that answers like the real service, so the whole
+  flow can be tried without real money or KRA
+
+![M-Pesa at the till](docs/screenshots/103-till-mpesa-waiting.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -164,7 +187,8 @@ PIN is `1234`, and the owner's approval PIN (for big discounts, voids and return
 The demo shop comes with about 30 hardware products, stock at both branches, a transfer in transit and a stock take
 in progress, suppliers with orders and invoices, and trade customers with account sales (one overdue), a quote, an
 order ready to collect with a deposit, and deliveries, and a month of trading at both branches for the dashboard and
-reports. The daily summary email is previewable at <http://demo.localhost:3000/rails/mailers/reports_mailer/daily_summary>. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.
+reports, plus an M-Pesa Paybill, a KRA eTIMS control unit at Moi Avenue and SMS, all on simulators (try "M-Pesa" at the
+till: a number ending 0000 declines). The daily summary email is previewable at <http://demo.localhost:3000/rails/mailers/reports_mailer/daily_summary>. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.
 
 The platform admin is at <http://admin.localhost:3000> (`admin@hardpoint.test` / `hardpoint-demo`). For two-factor,
 add the development-only key `HARDPOINTDEVADMINTOTPSECRETKEYAB` to an authenticator app, or print a code with
@@ -193,6 +217,16 @@ Kamal deploys to a single Contabo VPS (see `config/deploy.yml`):
 - PostgreSQL 18 runs as a Kamal accessory. `config/postgres/create_app_role.sh` creates the non-superuser `hardpoint` role on first boot.
 - kamal-proxy serves `hardpoint.app` and `*.hardpoint.app` with a Cloudflare Origin CA certificate (Cloudflare SSL mode: Full (strict)).
 - Email goes through AWS SES's SMTP interface. Add `ses: { smtp_username:, smtp_password:, region: }` with `bin/rails credentials:edit`.
+- **M-Pesa:** each shop adds its Daraja app's consumer key, secret and passkey under Settings › M-Pesa, then presses
+  "Receive payments" to register the callback URLs. Callbacks go to `https://APP_HOST/webhooks/mpesa/<token>/…`, so
+  the bare domain must reach the app. Production accepts callbacks only from Safaricom's published addresses (set
+  `MPESA_CALLBACK_IPS` to override). Cloudflare's ranges are trusted proxies, so the visitor's real address is checked.
+- **KRA eTIMS:** register each branch's OSCU device on the eTIMS portal, then add its PIN, branch ID and serial under
+  Settings › KRA eTIMS and press "Set up with KRA". Test against KRA's sandbox (and get the integration certified)
+  before switching a device to production.
+- **SMS:** add `africas_talking: { username:, api_key:, sender_id: }` with `bin/rails credentials:edit` (username
+  `sandbox` for their sandbox). Development and tests keep texts in `Sms::Outbox` and the log instead of sending them.
+- Simulators are refused in production unless `ALLOW_INTEGRATION_SIMULATORS` is set (e.g. for a public demo).
 - Two-factor secrets are encrypted with Active Record Encryption. Run `bin/rails db:encryption:init` and add the
   printed `active_record_encryption` keys with `bin/rails credentials:edit`. Development and test use fixed,
   non-secret keys.

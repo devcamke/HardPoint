@@ -8,6 +8,7 @@ class Category < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :account_id }
   validates_same_account :parent
+  validates :etims_class_code, format: { with: /\A\d{8,10}\z/, message: "must be KRA's 8–10 digit code" }, allow_blank: true
   validate { errors.add :parent, "can't be the category itself" if parent_id.present? && parent_id == id }
 
   scope :alphabetically, -> { order(:name) }

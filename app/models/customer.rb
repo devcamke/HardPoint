@@ -28,6 +28,12 @@ class Customer < ApplicationRecord
     where("customers.name ILIKE :like OR customers.phone LIKE :phone", like: "%#{sanitize_sql_like(query)}%", phone: phone_match)
   end
 
+  # Customers pay their account to the Paybill with their phone number as the account number.
+  def self.find_by_account_number(reference)
+    digits = reference.to_s.gsub(/\D/, "").last(9)
+    where("customers.phone LIKE ?", "%#{digits}").first if digits.length == 9
+  end
+
   def available_credit_cents
     [ credit_limit_cents - balance_cents, 0 ].max
   end

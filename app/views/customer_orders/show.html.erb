@@ -16,7 +16,10 @@
     <%= link_to "PDF", customer_order_path(order, format: :pdf), target: "_blank", class: "btn-secondary" %>
     <%= link_to "Edit", edit_customer_order_path(order), class: "btn-secondary" if order.editable? %>
     <%= button_to "Confirm order", customer_order_confirmation_path(order), class: "btn-secondary" if order.quote? %>
-    <%= button_to "Mark ready to collect", customer_order_readiness_path(order), class: "btn-secondary" if order.ordered? %>
+    <% if order.ordered? %>
+      <%= button_to "Mark ready to collect", customer_order_readiness_path(order), class: "btn-secondary" %>
+      <%= button_to "Mark ready and text #{order.customer.name.split.first}", customer_order_readiness_path(order), params: { notify: "1" }, class: "btn-secondary" if Current.account.sms_enabled? && order.customer.phone.present? %>
+    <% end %>
     <% if order.collectable? %>
       <% if current_till %>
         <%= button_to "Collect at #{current_till.name}", customer_order_collection_path(order), class: "btn-primary" %>

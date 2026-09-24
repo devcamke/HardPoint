@@ -213,6 +213,24 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     end
     Current.user = owner
 
+    # The month's deliveries: anything sold below zero is restocked to where it started.
+    opening = catalogue.to_h { |_, sku, *, main_stock, yard_stock| [ sku, { main.id => main_stock, yard.id => yard_stock } ] }
+    account.stock_levels.where("quantity < 0").includes(:product).each do |level|
+      level.product.move_stock(branch: level.branch, quantity: opening.dig(level.product.sku, level.branch_id).to_d - level.quantity,
+        reason: "received", note: "Weekly delivery")
+    end
+
+    # Integrations, all on simulators: an M-Pesa Paybill with payments that arrived on it (one for the order, one
+    # paying Mwangi's account, one to use at the till), KRA eTIMS at Moi Avenue, and SMS.
+    paybill = account.mpesa_shortcodes.create!(name: "Main Paybill", shortcode: "174379", environment: "simulator", c2b_registered_at: Time.current)
+    { "SJQ82KD91L" => [ "2500.00", "", "PETER KAMAU", 25 ], "SJR11PL02X" => [ "5000.00", order.reference, "JAMES OTIENO", 70 ],
+      "SJS55AB07Q" => [ "12000.00", "0722000111", "JOHN MWANGI", 95 ] }.each do |trans_id, (amount, reference, name, minutes_ago)|
+      paybill.receive_c2b_confirmation("TransID" => trans_id, "TransAmount" => amount, "BillRefNumber" => reference, "FirstName" => name,
+        "MSISDN" => "2547#{random.rand(10**8).to_s.rjust(8, "0")}", "TransTime" => minutes_ago.minutes.ago.in_time_zone("Nairobi").strftime("%Y%m%d%H%M%S"))
+    end
+    account.etims_devices.create!(branch: main, environment: "simulator", tin: "P051234567X", serial_number: "HPDEMO-MOI-01").initialize_with_kra
+    account.update!(sms_enabled: true)
+
     products["CEM-BAM-50"].move_stock(branch: main, quantity: -3, reason: "damaged", note: "Bags split in the rain")
     account.stock_transfers.create!(from_branch: yard, to_branch: main, note: "Tuesday lorry",
       lines_attributes: [ { product_code: "CEM-BAM-50", quantity: 60 }, { product_code: "STL-Y10", quantity: 40 } ])

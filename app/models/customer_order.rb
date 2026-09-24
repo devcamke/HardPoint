@@ -37,6 +37,12 @@ class CustomerOrder < ApplicationRecord
   end
   alias_method :name, :reference
 
+  # "MAI-O00012", as printed on quotes and orders.
+  def self.find_by_reference(reference)
+    code, number = reference.to_s.strip.upcase.split("-O", 2)
+    joins(:branch).find_by(branches: { code: code }, number: number.to_i) if number.to_i.positive?
+  end
+
   def kind
     quote? ? "Quote" : "Order"
   end

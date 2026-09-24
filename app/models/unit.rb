@@ -9,6 +9,7 @@ class Unit < ApplicationRecord
 
   validates :name, :abbreviation, presence: true
   validates :name, uniqueness: { scope: :account_id }
+  normalizes :etims_code, with: ->(code) { code.strip.upcase.presence }
 
   scope :alphabetically, -> { order(:name) }
 

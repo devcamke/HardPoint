@@ -39,6 +39,15 @@
       </div>
     </div>
 
+    <div id="sms" class="field flex items-start gap-2">
+      <%= form.check_box :sms_enabled, class: "mt-1 size-4 accent-safety-500" %>
+      <div>
+        <%= form.label :sms_enabled, "Send texts to customers (SMS)", class: "text-sm font-medium text-navy-800" %>
+        <p class="hint">Receipts by text, "your order is ready" and balance reminders, sent through Africa's Talking.
+          <%= "#{pluralize(@account.sms_messages.where(created_at: Time.current.all_month).count, "text")} this month · " if @account.sms_enabled? %><%= link_to "Texts sent", sms_messages_path, class: "link" %></p>
+      </div>
+    </div>
+
     <p class="mb-4 text-sm text-steel-600">Web address: <%= request.host %> (contact support to change it)</p>
 
     <%= form.submit "Save settings", class: "btn-primary" %>

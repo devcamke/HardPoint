@@ -13,3 +13,8 @@
     <p class="hint">Leave unticked for things counted in whole numbers.</p>
   </div>
 </div>
+<div class="field">
+  <%= form.label :etims_code, "KRA eTIMS quantity unit (optional)", class: "label" %>
+  <%= form.text_field :etims_code, placeholder: "U", maxlength: 3, class: "input w-24 font-mono uppercase" %>
+  <p class="hint mt-1">KRA's unit code, e.g. U (pieces), KG, M, L, BG (bag). Blank means U.</p>
+</div>
