@@ -1,0 +1,4 @@
+<div class="field">
+  <%= form.label :role, class: "label" %>
+  <%= form.select :role, Membership.roles.keys.map { |role| [ role.humanize, role ] }, {}, class: "input" %>
+</div>

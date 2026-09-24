@@ -1,0 +1,22 @@
+<% content_for :title, "Edit #{@membership.user.name}" %>
+
+<h1 class="mb-6 text-3xl font-bold"><%= @membership.user.name %></h1>
+
+<div class="card max-w-xl">
+  <%= form_with model: @membership do |form| %>
+    <%= render "shared/errors", model: @membership %>
+    <p class="mb-4 text-sm text-stone-600"><%= @membership.user.email_address %></p>
+
+    <%= render "role_field", form: form %>
+
+    <div class="flex gap-3">
+      <%= form.submit "Save", class: "btn-primary" %>
+      <%= link_to "Cancel", memberships_path, class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<% unless @membership.user == Current.user %>
+  <%= button_to "Remove from shop", membership_path(@membership), method: :delete, class: "btn-danger mt-6",
+        form: { data: { turbo_confirm: "Remove #{@membership.user.name}'s access?" } } %>
+<% end %>

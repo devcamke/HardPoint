@@ -1,0 +1,23 @@
+<%= form_with model: branch do |form| %>
+  <%= render "shared/errors", model: branch %>
+
+  <div class="field">
+    <%= form.label :name, class: "label" %>
+    <%= form.text_field :name, required: true, autofocus: true, class: "input" %>
+  </div>
+
+  <div class="field">
+    <%= form.label :address, class: "label" %>
+    <%= form.text_field :address, class: "input" %>
+  </div>
+
+  <div class="field">
+    <%= form.label :phone, class: "label" %>
+    <%= form.telephone_field :phone, class: "input" %>
+  </div>
+
+  <div class="flex gap-3">
+    <%= form.submit class: "btn-primary" %>
+    <%= link_to "Cancel", branches_path, class: "btn-secondary" %>
+  </div>
+<% end %>

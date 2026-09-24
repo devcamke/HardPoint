@@ -1,0 +1,30 @@
+<% content_for :title, "Branches" %>
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Branches</h1>
+  <% if current_membership.can_manage_branches? %>
+    <%= link_to "Add branch", new_branch_path, class: "btn-primary" %>
+  <% end %>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr><th>Name</th><th>Address</th><th>Phone</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @branches.each do |branch| %>
+        <tr id="<%= dom_id(branch) %>">
+          <td class="font-medium"><%= branch.name %></td>
+          <td><%= branch.address %></td>
+          <td><%= branch.phone %></td>
+          <td class="text-right">
+            <% if current_membership.can_manage_branches? %>
+              <%= link_to "Edit", edit_branch_path(branch), class: "text-amber-700 underline" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

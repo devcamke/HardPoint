@@ -1,0 +1,10 @@
+<% content_for :title, "Edit #{@branch.name}" %>
+
+<h1 class="mb-6 text-3xl font-bold">Edit <%= @branch.name %></h1>
+
+<div class="card max-w-xl">
+  <%= render "form", branch: @branch %>
+</div>
+
+<%= button_to "Remove branch", branch_path(@branch), method: :delete, class: "btn-danger mt-6",
+      form: { data: { turbo_confirm: "Remove #{@branch.name}?" } } %>

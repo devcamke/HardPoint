@@ -1,0 +1,16 @@
+<% content_for :title, "Forgot your password?" %>
+
+<div class="mx-auto max-w-md">
+  <h1 class="text-3xl font-bold">Forgot your password?</h1>
+
+  <div class="card mt-6">
+    <%= form_with url: passwords_path do |form| %>
+      <div class="field">
+        <%= form.label :email_address, class: "label" %>
+        <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", value: params[:email_address], class: "input" %>
+      </div>
+
+      <%= form.submit "Email reset instructions", class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>

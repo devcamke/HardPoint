@@ -37,7 +37,14 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.default_url_options = { host: "localhost" }
+
+  # Tests address shops as acme.localhost, like development.
+  config.action_dispatch.tld_length = 0
+
+  # Verifying fixture foreign keys needs a superuser, and superusers skip row-level security.
+  # Our foreign keys are deferrable and checked when the fixture transaction commits instead.
+  config.active_record.verify_foreign_keys_for_fixtures = false
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr

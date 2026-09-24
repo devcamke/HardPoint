@@ -1,0 +1,7 @@
+acme:
+  name: Acme Hardware
+  subdomain: acme
+
+bolt:
+  name: Bolt & Nut Supplies
+  subdomain: bolt

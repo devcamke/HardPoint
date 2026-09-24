@@ -1,0 +1,31 @@
+<% content_for :title, "Add staff member" %>
+
+<h1 class="mb-6 text-3xl font-bold">Add staff member</h1>
+
+<div class="card max-w-xl">
+  <%= form_with model: @membership do |form| %>
+    <%= render "shared/errors", model: @membership %>
+    <%= render "shared/errors", model: @membership.user if @membership.user&.new_record? %>
+
+    <%= form.fields_for :user, @membership.user || User.new do |user_form| %>
+      <div class="field">
+        <%= user_form.label :name, class: "label" %>
+        <%= user_form.text_field :name, required: true, autofocus: true, class: "input" %>
+      </div>
+
+      <div class="field">
+        <%= user_form.label :email_address, class: "label" %>
+        <%= user_form.email_field :email_address, required: true, class: "input" %>
+      </div>
+    <% end %>
+
+    <%= render "role_field", form: form %>
+
+    <p class="mb-4 text-sm text-stone-500">We'll email them a link to choose a password and sign in.</p>
+
+    <div class="flex gap-3">
+      <%= form.submit "Add staff member", class: "btn-primary" %>
+      <%= link_to "Cancel", memberships_path, class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,24 @@
+<% content_for :title, "Staff" %>
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Staff</h1>
+  <%= link_to "Add staff member", new_membership_path, class: "btn-primary" %>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @memberships.each do |membership| %>
+        <tr id="<%= dom_id(membership) %>">
+          <td class="font-medium"><%= membership.user.name %></td>
+          <td><%= membership.user.email_address %></td>
+          <td><%= membership.role.humanize %></td>
+          <td class="text-right"><%= link_to "Edit", edit_membership_path(membership), class: "text-amber-700 underline" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

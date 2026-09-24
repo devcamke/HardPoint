@@ -1,0 +1,12 @@
+acme_main:
+  account: acme
+  name: Main branch
+  address: 1 Moi Avenue
+
+acme_yard:
+  account: acme
+  name: Timber yard
+
+bolt_main:
+  account: bolt
+  name: Main branch

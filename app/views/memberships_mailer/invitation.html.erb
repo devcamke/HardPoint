@@ -1,0 +1,11 @@
+<p>Hi <%= @user.name %>,</p>
+
+<p>You've been added to <strong><%= @account.name %></strong> on HardPoint as <%= @membership.role.humanize.downcase %>.</p>
+
+<p>
+  <%= link_to "Choose your password", edit_password_url(@user.password_reset_token, subdomain: @account.subdomain) %>
+  (the link expires in <%= distance_of_time_in_words(0, @user.password_reset_token_expires_in) %>), then sign in at
+  <%= link_to new_session_url(subdomain: @account.subdomain), new_session_url(subdomain: @account.subdomain) %>.
+</p>
+
+<p>If you already use HardPoint with another shop, sign in with your existing password instead.</p>

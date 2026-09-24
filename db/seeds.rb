@@ -1,9 +1,11 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# Development data: a demo shop at http://demo.localhost:3000 (sign in as owner@demo.test / "hardpoint-demo").
+if Rails.env.development? && !Account.exists?(subdomain: "demo")
+  Signup.new(shop_name: "Demo Hardware", subdomain: "demo", owner_name: "Demo Owner",
+    email_address: "owner@demo.test", password: "hardpoint-demo").save!
+
+  account = Account.find_by!(subdomain: "demo")
+  Current.set(account: account) do
+    account.branches.create!(name: "Timber yard", address: "Industrial Area")
+    account.memberships.create!(role: :cashier, user_attributes: { name: "Carol Cashier", email_address: "cashier@demo.test" })
+  end
+end

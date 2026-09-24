@@ -1,0 +1,28 @@
+<% content_for :title, "Shop settings" %>
+
+<h1 class="mb-6 text-3xl font-bold">Shop settings</h1>
+
+<div class="card max-w-xl">
+  <%= form_with model: @account, url: account_path do |form| %>
+    <%= render "shared/errors", model: @account %>
+
+    <div class="field">
+      <%= form.label :name, "Business name", class: "label" %>
+      <%= form.text_field :name, required: true, class: "input" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :time_zone, class: "label" %>
+      <%= form.time_zone_select :time_zone, nil, {}, class: "input" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :currency, "Currency (ISO code)", class: "label" %>
+      <%= form.text_field :currency, required: true, maxlength: 3, class: "input uppercase" %>
+    </div>
+
+    <p class="mb-4 text-sm text-stone-500">Web address: <%= request.host %> (contact support to change it)</p>
+
+    <%= form.submit "Save settings", class: "btn-primary" %>
+  <% end %>
+</div>

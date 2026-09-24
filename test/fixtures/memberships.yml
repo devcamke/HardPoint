@@ -1,0 +1,14 @@
+amina_acme:
+  account: acme
+  user: amina
+  role: owner
+
+carl_acme:
+  account: acme
+  user: carl
+  role: cashier
+
+bob_bolt:
+  account: bolt
+  user: bob
+  role: owner

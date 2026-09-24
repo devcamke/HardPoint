@@ -4,6 +4,22 @@ A phased build plan for a SaaS point-of-sale and inventory system for hardware s
 Each shop (tenant) is fully isolated: no shop can see another shop's products, sales,
 customers, staff, or reports.
 
+## Decisions & progress
+
+| Decision | Choice |
+|---|---|
+| Ruby / Rails | **Ruby 4.0.7**, **Rails 8.1.3** (latest stable) |
+| Database | **PostgreSQL 18** (latest stable; 19 is still in beta) |
+| CSS | **Tailwind CSS 4** via `tailwindcss-rails` 4.x |
+| Tenant isolation | **Keep Postgres row-level security** alongside `Current.account` scoping (§2) |
+| Style | Vanilla Rails: built-ins first, rich models, CRUD controllers, Minitest + fixtures (§1) |
+
+| Phase | Status |
+|---|---|
+| 0 — Foundations | App generated; CI (with non-superuser DB role), Kamal config (Postgres 18 accessory, Cloudflare origin cert, SES SMTP) in the repo. **Server provisioning, Cloudflare, SES verification and backups still to do on real infrastructure.** |
+| 1 — Tenancy & auth | **Done:** signup, subdomains, sign-in per shop, password reset, staff invitations and roles, branches, shop settings, RLS with isolation tests. **Remaining:** TOTP 2FA, cashier PIN quick-switch, registers, platform super-admin, audit `Event` model. |
+| 2–10 | Not started |
+
 ---
 
 ## 1. Philosophy & technology stack
@@ -36,8 +52,8 @@ Build it the way Rails itself (and 37signals' apps such as Basecamp, HEY, Fizzy)
 ### Stack
 | Layer | Choice (Rails default unless noted) | Notes |
 |---|---|---|
-| Framework | **Ruby on Rails 8.x** on Ruby 3.4 | |
-| Database | **PostgreSQL 17** | Your pick; RLS provides a DB-level safety net |
+| Framework | **Ruby on Rails 8.1** on Ruby 4.0 | |
+| Database | **PostgreSQL 18** | Your pick; RLS provides a DB-level safety net |
 | CSS | **Tailwind CSS v4** via `tailwindcss-rails` | Your pick; the official `--css=tailwind` option, no Node |
 | Frontend | **Hotwire**: Turbo + Stimulus | POS screen, live updates |
 | JS / assets | **Importmap** + **Propshaft** | No bundler, no Node |
@@ -119,25 +135,34 @@ is one account.
    ```
    Every tenant model `belongs_to :account, default: -> { Current.account }`.
    Child records (sale lines, payments) inherit the account from their parent.
-   Jobs receive records (Global ID), so they already know their account and set
-   `Current.account` in an `around_perform`.
+   Jobs serialize the account that was current when they were enqueued and restore it
+   before loading their arguments (`config/initializers/active_job_account.rb`).
    No `default_scope`: explicit association scoping is the Rails way and is easy to review.
-3. **Database layer (safety net)**: Postgres Row-Level Security on every tenant table:
+3. **Database layer (decided: kept)**: Postgres Row-Level Security on every tenant table,
+   added in the migration with `enable_row_level_security :products`, which creates:
    ```sql
    ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE products FORCE ROW LEVEL SECURITY;
+   ALTER TABLE products FORCE ROW LEVEL SECURITY;   -- applies to the table owner too
    CREATE POLICY account_isolation ON products
-     USING (account_id = current_setting('app.current_account_id')::bigint)
-     WITH CHECK (account_id = current_setting('app.current_account_id')::bigint);
+     USING (current_setting('app.bypass_rls', true) = 'on'
+            OR account_id = NULLIF(current_setting('app.current_account_id', true), '')::bigint)
+     WITH CHECK (<same>);
    ```
-   Written in normal migrations with `execute`; switch to
-   `config.active_record.schema_format = :sql` (`db/structure.sql`) so policies are dumped.
-   The app sets `app.current_account_id` for each request/job (an `around_action` wrapping
-   the request in a transaction with `SET LOCAL`, or a session-level `SET` reset at the end).
-   Rails connects as a **non-superuser role without `BYPASSRLS`**, so a forgotten scope or raw
-   SQL still can't read another shop's rows. Migrations run as a separate owner role.
-   *If you'd rather keep it 100% plain Rails, layers 1–2 alone are how Basecamp/HEY do it;
-   RLS is extra insurance, recommended for a POS holding financial data.*
+   - `Current.account=` sets `app.current_account_id` on the request's connection, and
+     `Current` resetting clears it. Pool checkout also clears it, so a connection never
+     carries one shop's setting into another request.
+   - **Fail closed:** with no account set, no tenant rows are visible or writable.
+   - `Account.without_isolation { }` sets `app.bypass_rls` for work that legitimately spans
+     shops: fixtures, seeds, platform admin, and signing a user out of every shop.
+   - `config.active_record.schema_format = :sql` (`db/structure.sql`) so policies are dumped.
+   - Rails connects as the **non-superuser `hardpoint` role without `BYPASSRLS`** in every
+     environment, including development, test and CI. That role owns the tables, and
+     `FORCE ROW LEVEL SECURITY` makes the policies apply to it.
+   - Because a regular role can't disable FK triggers, foreign keys are
+     `DEFERRABLE INITIALLY IMMEDIATE` (`add_foreign_key ..., deferrable: :immediate`), and the
+     test helper defers them while loading fixtures.
+   - `test/models/account/isolation_test.rb` fails if a table with `account_id` lacks the policy,
+     if a foreign key isn't deferrable, or if the database role could bypass RLS.
 
 ### Other isolation rules
 - Every unique index includes `account_id` (e.g. `UNIQUE (account_id, sku)`), so two shops
@@ -455,7 +480,7 @@ under 30 seconds; shift closes with correct variance.
              │ Contabo VPS (Ubuntu 24.04, ufw: CF IPs only) │
              │  kamal-proxy ─► Rails web (Puma + Thruster)  │
              │                 Rails jobs (Solid Queue)     │
-             │  PostgreSQL 17 (RLS, app role w/o BYPASSRLS) │
+             │  PostgreSQL 18 (RLS, app role w/o BYPASSRLS) │
              └───────┬──────────────────────┬──────────────┘
                      │                      │
         ┌────────────▼─────────┐   ┌────────▼──────────────────┐

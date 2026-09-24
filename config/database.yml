@@ -18,6 +18,11 @@ default: &default
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # Row-level security only applies to roles that are neither superusers nor BYPASSRLS,
+  # so development and test connect as a regular role (see bin/setup and docs/PLAN.md §2).
+  host: <%= ENV.fetch("DATABASE_HOST") { "localhost" } %>
+  username: <%= ENV.fetch("DATABASE_USERNAME") { "hardpoint" } %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD") { "hardpoint" } %>
 
 
 development:

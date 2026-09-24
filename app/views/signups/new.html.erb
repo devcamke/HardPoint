@@ -1,0 +1,41 @@
+<% content_for :title, "Open your shop" %>
+
+<h1 class="text-3xl font-bold">Open your shop</h1>
+<p class="mt-2 mb-8 text-stone-600">Point of sale and stock control for hardware stores. Your shop's data is private to your shop.</p>
+
+<div class="card">
+  <%# Turbo can't follow the redirect to the new shop's subdomain (another origin), so submit normally. %>
+  <%= form_with model: @signup, url: signup_path, data: { turbo: false } do |form| %>
+    <%= render "shared/errors", model: @signup %>
+
+    <div class="field">
+      <%= form.label :shop_name, "Business name", class: "label" %>
+      <%= form.text_field :shop_name, required: true, autofocus: true, class: "input" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :subdomain, "Web address", class: "label" %>
+      <div class="flex items-center gap-2">
+        <%= form.text_field :subdomain, required: true, pattern: "[a-z0-9][a-z0-9-]*", class: "input", placeholder: "acme" %>
+        <span class="text-stone-500">.<%= request.host %></span>
+      </div>
+    </div>
+
+    <div class="field">
+      <%= form.label :owner_name, "Your name", class: "label" %>
+      <%= form.text_field :owner_name, required: true, autocomplete: "name", class: "input" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :email_address, class: "label" %>
+      <%= form.email_field :email_address, required: true, autocomplete: "username", class: "input" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :password, class: "label" %>
+      <%= form.password_field :password, required: true, minlength: 10, maxlength: 72, autocomplete: "new-password", class: "input" %>
+    </div>
+
+    <%= form.submit "Create my shop", class: "btn-primary w-full" %>
+  <% end %>
+</div>
