@@ -65,6 +65,22 @@ was under 30).
 
 ![Till](docs/screenshots/43-till-cart.png)
 
+## Phase 4: purchasing
+
+- **Suppliers** with contacts, payment terms, and the products they supply (their code, price, lead time, minimum
+  order, preferred supplier)
+- **Purchase orders**: draft → sent (emailed to the supplier with a PDF attached, or marked sent for phoned-in orders)
+  → partially/fully received, numbered per branch (e.g. MOI-PO00012)
+- **Receiving goods (GRNs)** against an order or without one: stock goes into the branch, transport and duty are
+  spread over the lines by value, and each product's cost becomes the **weighted average** of old and new stock
+- **Reorder suggestions** per branch from reorder levels, last 30 days' sales, supplier lead time, stock on order and
+  minimum order sizes, grouped by supplier with a **one-click draft order**
+- **Supplier invoices and payments** (payments settle the oldest invoices first), each supplier's balance, and a
+  **What we owe** ageing report (not yet due, 1–30, 31–60, 61–90, over 90 days)
+- Accountants get the money side (invoices, payments, ageing) without ordering; stock clerks order and receive
+
+![Reorder suggestions](docs/screenshots/62-reorder-suggestions.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

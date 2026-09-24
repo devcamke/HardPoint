@@ -25,6 +25,10 @@ customers, staff, or reports.
 | Negative stock | Sales aren't blocked when the system shows no stock (deliveries are often booked late); the till warns and the Stock page flags branches below zero |
 | Voids vs returns | A sale can be voided only while its shift is open; after that it's a return against the receipt |
 | Cash drawer | Opened by the receipt printer's driver on print, so no local agent is needed yet (QZ Tray in Phase 8 for silent printing) |
+| Costing | Weighted-average cost, updated on each delivery from its landed cost (goods plus a value-weighted share of transport and duty); FIFO costing stays in the backlog |
+| Receiving | Goods beyond what was ordered go on a separate receipt, so each order stays a true record of what was agreed |
+| Supplier payments | Settle the oldest invoices first (FIFO), which is how suppliers read their statements and what the ageing report shows |
+| PDFs | Prawn 2.5 with vendored DejaVu Sans (for characters like ½ and ×); `prawn-table` is unmaintained, so tables are laid out directly |
 | Customers | A minimal record arrives in Phase 3 (price list, credit limit, balance); statements, ageing and payments on account come in Phase 5 |
 
 | Phase | Status |
@@ -33,7 +37,8 @@ customers, staff, or reports.
 | 1 — Tenancy & auth | **Done:** signup, subdomains, sign-in per shop, password reset, staff invitations and roles, branches, tills (registers), shop settings, TOTP 2FA with recovery codes (optionally required for owners/managers), cashier PIN quick-switch, audit `Event` log, platform super-admin with time-boxed audited impersonation, "Ironworks" branding (docs/BRAND.md), RLS with isolation tests. |
 | 2 — Catalogue & inventory | **Done:** categories, brands, units, tax rates, price lists and quantity breaks, products with barcodes, pack sizes, kits and photos, trigram search, stock ledger with reconciliation, adjustments, transfers, stock takes with approval, reorder list, daily low-stock email, CSV import (20k rows in ~12 s) and export, barcode labels. |
 | 3 — POS checkout | **Done:** till selection per device, shifts with float/drops/payouts/X and blind-count Z reports, scanner-first cart with packs, decimals, serials and price lists, line and sale discounts with manager approval PIN, split tender (cash, M-Pesa code, card, on account), gap-free receipt numbers per branch, stock deducted on completion, park/recall, voids and returns with approval, 80 mm receipts and email receipts, sales history, minimal customers. 10-line split-payment sale ≈ 2.6 s. |
-| 4–10 | Not started |
+| 4 — Purchasing & suppliers | **Done:** suppliers and supplier products (cost, lead time, minimum order, preferred), purchase orders with PDF by email, partial/full receiving with landed costs and weighted-average costing, reorder suggestions with one-click orders, supplier invoices, FIFO payments and ageing. |
+| 5–10 | Not started |
 
 ---
 
