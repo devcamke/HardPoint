@@ -15,12 +15,18 @@ customers, staff, or reports.
 | Style | Vanilla Rails: built-ins first, rich models, CRUD controllers, Minitest + fixtures (§1) |
 | Brand | "Ironworks": Steel Navy `#102A43`, Safety Orange `#F76707`, Concrete `#F5F4F1` (docs/BRAND.md) |
 | Till PINs | Only for cashiers and stock clerks, and only on a till that's already signed in, so a PIN can never stand in for an owner's password + 2FA |
+| Spreadsheets | CSV only (Ruby's `csv`), which Excel and Google Sheets open and save; no XLSX gem unless shops ask |
+| Labels | Printed from the browser (A4 sheets or 50 × 25 mm rolls) rather than generated PDFs; barcodes via `barby` |
+| Stock quantities | Kept in the product's base unit (pack sizes convert); decimals only for fractional units |
+| Reorder levels | One per product. A branch "carries" a product once it has stocked it, so branches aren't nagged about lines they never sell |
+| Stock takes | Differences are measured against the snapshot taken at the start, so selling during a count is fine |
 
 | Phase | Status |
 |---|---|
 | 0 — Foundations | App generated; CI (with non-superuser DB role), Kamal config (Postgres 18 accessory, Cloudflare origin cert, SES SMTP) in the repo. **Server provisioning, Cloudflare, SES verification and backups still to do on real infrastructure.** |
 | 1 — Tenancy & auth | **Done:** signup, subdomains, sign-in per shop, password reset, staff invitations and roles, branches, tills (registers), shop settings, TOTP 2FA with recovery codes (optionally required for owners/managers), cashier PIN quick-switch, audit `Event` log, platform super-admin with time-boxed audited impersonation, "Ironworks" branding (docs/BRAND.md), RLS with isolation tests. |
-| 2–10 | Not started |
+| 2 — Catalogue & inventory | **Done:** categories, brands, units, tax rates, price lists and quantity breaks, products with barcodes, pack sizes, kits and photos, trigram search, stock ledger with reconciliation, adjustments, transfers, stock takes with approval, reorder list, daily low-stock email, CSV import (20k rows in ~12 s) and export, barcode labels. |
+| 3–10 | Not started |
 
 ---
 

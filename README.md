@@ -20,6 +20,26 @@ Minitest with fixtures, deployed with Kamal. See [docs/PLAN.md](docs/PLAN.md) fo
 - **Platform admin** on `admin.hardpoint.app`: separate sign-in with mandatory two-factor, a list of all shops, and
   support impersonation that is time-boxed to an hour, shown in a banner and recorded in the shop's Activity
 
+## Phase 2: catalogue and stock
+
+- **Catalogue:** categories (nested), brands, units (whole or fractional, e.g. kg and metres), tax rates, and
+  products with a cost, a price and a photo
+- **Barcodes:** several per product, for pack sizes too; products without one get an in-store EAN-13
+- **Pack sizes** (a box of 200 screws with its own price), **kits** (made of other products), **price lists**
+  (contractor, wholesale) and **quantity breaks**. Customers always get the lowest price that applies.
+- **Fast search** by any words in the name or SKU, or by scanning a barcode (Postgres trigram indexes)
+- **Stock ledger:** every change is an append-only movement; cached levels per branch are updated in the same
+  transaction under a row lock, and the Stock page checks that levels still equal the sum of their movements
+- **Adjustments** with reasons (opening, damaged, stolen, expired, found…), **branch transfers**
+  (send → in transit → receive or cancel) and **stock takes** (full or by category, with scanner entry,
+  variance at cost and manager approval)
+- **Reorder list** per branch and a **daily low-stock email** to owners, managers and stock clerks
+- **CSV import** with a full check and preview before anything changes (20,000 rows in about 12 seconds), and
+  **CSV export** in the same format, so a shop can round-trip through Excel
+- **Barcode labels** for A4 label sheets or 50 × 25 mm label printers, printed from the browser
+
+![Products](docs/screenshots/21-products.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -58,6 +78,9 @@ bin/setup          # installs gems, prepares the database, seeds a demo shop, st
 Then open <http://localhost:3000> to sign up a shop, or <http://demo.localhost:3000> and sign in as
 `owner@demo.test` / `hardpoint-demo`. Browsers resolve `*.localhost` to your machine. The demo cashier's till
 PIN is `1234`.
+
+The demo shop comes with about 30 hardware products, stock at both branches, a transfer in transit and a stock take
+in progress. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.
 
 The platform admin is at <http://admin.localhost:3000> (`admin@hardpoint.test` / `hardpoint-demo`). For two-factor,
 add the development-only key `HARDPOINTDEVADMINTOTPSECRETKEYAB` to an authenticator app, or print a code with
