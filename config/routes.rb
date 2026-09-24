@@ -18,9 +18,25 @@ Rails.application.routes.draw do
     resource :shop_lookup, only: %i[ new create ]
     get "pricing", to: "pages#pricing"
     get "privacy", to: "pages#privacy"
+    get "developers", to: "pages#developers", as: :developer_docs
     get "help", to: "help#index", as: :help
     get "help/:id", to: "help#show", as: :help_article
     root "pages#home", as: :marketing_root
+  end
+
+  # The public API on api.<domain>; the API key says which shop (docs at /developers on the bare domain).
+  constraints subdomain: "api" do
+    scope module: "api/v1", path: "v1", as: "api_v1", defaults: { format: :json } do
+      resource :shop, only: :show
+      resources :branches, only: :index
+      resources :products, only: %i[ index show create update ]
+      resources :stock_levels, only: :index
+      resources :customers, only: %i[ index show create update ]
+      resources :sales, only: %i[ index show ]
+      resources :orders, only: %i[ index show create ] do
+        resource :cancellation, only: :create, module: :orders
+      end
+    end
   end
 
   # Platform administration on admin.<domain>.
@@ -44,7 +60,7 @@ Rails.application.routes.draw do
     end
   end
 
-  constraints ->(request) { request.subdomain.present? && request.subdomain != "admin" } do
+  constraints ->(request) { request.subdomain.present? && !request.subdomain.in?(%w[ admin api ]) } do
     resource :session do
       scope module: :sessions do
         resource :two_factor, only: %i[ new create ]
@@ -69,6 +85,18 @@ Rails.application.routes.draw do
     resource :settings, only: :show
     resources :support_requests, only: %i[ new create ]
     resource :account_data, only: :show
+    resource :developers, only: :show
+    resources :api_keys, only: %i[ new create destroy ]
+    resources :webhook_endpoints, except: :index do
+      scope module: :webhook_endpoints do
+        resource :test, only: :create
+        resource :secret, only: :create
+        resource :enablement, only: :create
+        resources :deliveries, only: [] do
+          resource :redelivery, only: :create
+        end
+      end
+    end
     resources :account_exports, only: %i[ create show ]
     resource :account_closure, only: %i[ create destroy ]
     resource :onboarding, only: :show do

@@ -1,0 +1,12 @@
+<% content_for :title, "API key made" %>
+<p class="text-sm"><%= link_to "← Developers", developers_path, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold">“<%= @api_key.name %>” is ready</h1>
+<p class="mb-6 text-steel-600">Copy the key now and keep it somewhere safe, like your app's settings or a password manager. <strong>It won't be shown again.</strong></p>
+
+<div id="new_api_key" class="card max-w-2xl">
+  <label for="token" class="label">API key (<%= @api_key.writable? ? "read and write" : "read only" %>)</label>
+  <input id="token" type="text" readonly value="<%= @api_key.token %>" class="input font-mono text-sm" data-controller="select-on-focus">
+  <p class="hint mt-3">Send it with every request: <code class="rounded bg-concrete-200 px-1">Authorization: Bearer <%= @api_key.token_prefix %>…</code> to
+    <code class="rounded bg-concrete-200 px-1"><%= api_v1_shop_url(subdomain: "api") %></code></p>
+  <%= link_to "Done", developers_path, class: "btn-primary mt-4" %>
+</div>

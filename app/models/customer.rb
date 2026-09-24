@@ -1,6 +1,7 @@
 class Customer < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Receivables
+  include AccountOwned, Eventable, Monetary, Receivables, PublishesWebhooks
   tracks_lifecycle
+  publishes_webhooks "customer"
 
   belongs_to :price_list, optional: true
   has_many :sales, dependent: :restrict_with_error

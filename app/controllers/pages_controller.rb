@@ -14,4 +14,8 @@ class PagesController < ApplicationController
 
   def privacy
   end
+
+  def developers
+    @api_host = "api.#{request.domain}#{request.port_string}"
+  end
 end

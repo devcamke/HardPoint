@@ -1,3 +1,5 @@
+require "net/http"
+
 # JSON over HTTPS on Net::HTTP, for the M-Pesa, eTIMS and SMS integrations. Integrations take their
 # transport as a setting, so tests and the built-in simulators stand in for the network.
 class JsonHttp

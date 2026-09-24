@@ -1,0 +1,3 @@
+<p>HardPoint stopped sending webhooks to <strong><%= @endpoint.url %></strong> for <%= @account.name %>: <%= @endpoint.disabled_reason %>.</p>
+<p>Check the receiving server, then switch it back on (and resend the failed events) in Settings › Developers.</p>
+<p style="margin-top:24px;"><%= link_to "Open Developers settings", developers_url(subdomain: @account.subdomain), style: "display:inline-block; background:#F76707; color:#102A43; padding:10px 16px; border-radius:6px; font-weight:700; text-decoration:none;" %></p>

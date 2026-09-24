@@ -8,6 +8,7 @@
        ([ "Billing", billing_path, "Your HardPoint plan, invoices and payments" ] if current_membership.can_manage_account?),
        ([ "Set up your shop", onboarding_path, "The first-day checklist" ] if current_membership.can_manage_account?),
        ([ "Your data", account_data_path, "Export everything, or close the account" ] if current_membership.owner?),
+       ([ "Developers", developers_path, "API keys and webhooks for web shops and other apps" ] if current_membership.can_manage_account?),
        [ "Branches", branches_path, "Your locations" ],
        [ "Tills", registers_path, "Points of sale in each branch" ]
      ].compact,

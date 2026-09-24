@@ -1,0 +1,65 @@
+<% content_for :title, "Webhook endpoint" %>
+<p class="text-sm"><%= link_to "← Developers", developers_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-4">
+  <div class="min-w-0">
+    <h1 class="font-mono text-xl font-bold [overflow-wrap:anywhere]"><%= @endpoint.url %></h1>
+    <p class="hint mt-1"><%= @endpoint.description %></p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= button_to "Send test event", webhook_endpoint_test_path(@endpoint), class: "btn-secondary" %>
+    <%= link_to "Edit", edit_webhook_endpoint_path(@endpoint), class: "btn-secondary" %>
+  </div>
+</div>
+
+<% unless @endpoint.enabled? %>
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm">
+    <p><strong>Switched off:</strong> <%= @endpoint.disabled_reason %>. Nothing is sent until it's switched back on.</p>
+    <%= button_to "Switch back on", webhook_endpoint_enablement_path(@endpoint), class: "btn-primary" %>
+  </div>
+<% end %>
+
+<div class="mb-6 grid gap-6 lg:grid-cols-2">
+  <section class="card">
+    <h2 class="mb-2 text-lg font-semibold">Events</h2>
+    <ul class="space-y-1 font-mono text-sm"><% @endpoint.event_types.each do |event| %><li><%= event %></li><% end %></ul>
+  </section>
+  <section id="signing_secret" class="card">
+    <h2 class="mb-1 text-lg font-semibold">Signing secret</h2>
+    <p class="hint mb-3">Check each request's <code class="rounded bg-concrete-200 px-1">HardPoint-Signature</code> header with this, as the documentation shows.</p>
+    <details>
+      <summary class="cursor-pointer text-sm font-semibold">Show secret</summary>
+      <input type="text" readonly value="<%= @endpoint.secret %>" class="input mt-2 font-mono text-sm" data-controller="select-on-focus" aria-label="Signing secret">
+    </details>
+    <%= button_to "Make a new secret", webhook_endpoint_secret_path(@endpoint), class: "btn-secondary mt-3",
+          form: { data: { turbo_confirm: "Make a new signing secret? Events signed with the old one will fail your receiver's check until you update it." } } %>
+  </section>
+</div>
+
+<section id="deliveries" class="card">
+  <h2 class="mb-3 text-lg font-semibold">Recent deliveries</h2>
+  <% if @deliveries.any? %>
+    <table class="table">
+      <thead><tr><th>Event</th><th>When</th><th>Result</th><th>Attempts</th><th></th></tr></thead>
+      <tbody>
+        <% @deliveries.each do |delivery| %>
+          <tr id="<%= dom_id(delivery) %>">
+            <td><span class="font-mono text-xs"><%= delivery.event %></span>
+              <details class="mt-1"><summary class="cursor-pointer text-xs text-steel-600">Payload</summary>
+                <pre class="mt-1 max-h-64 max-w-xl overflow-auto rounded bg-concrete-100 p-2 text-xs"><%= JSON.pretty_generate(delivery.payload) %></pre></details></td>
+            <td class="whitespace-nowrap"><%= l(delivery.created_at, format: :short) %></td>
+            <td>
+              <% if delivery.delivered? %><span class="badge bg-green-50 text-green-800">Delivered</span> <span class="hint"><%= delivery.response_status %></span>
+              <% elsif delivery.failed? %><span class="badge bg-red-50 text-red-800">Failed</span> <span class="hint"><%= delivery.last_error %></span>
+              <% else %><span class="badge bg-safety-100 text-safety-800">Retrying</span> <span class="hint"><%= delivery.last_error %><%= " · next #{time_ago_in_words(delivery.next_attempt_at)} from now" if delivery.attempts.positive? && delivery.next_attempt_at&.future? %></span>
+              <% end %>
+            </td>
+            <td class="tabular-nums"><%= delivery.attempts %></td>
+            <td class="text-right"><%= button_to "Resend", webhook_endpoint_delivery_redelivery_path(@endpoint, delivery), class: "btn-secondary" unless delivery.pending? && delivery.attempts.zero? %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-sm text-steel-600">Nothing sent yet. Send a test event to check your receiver.</p>
+  <% end %>
+</section>

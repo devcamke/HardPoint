@@ -1,0 +1,26 @@
+<%= form_with model: endpoint, class: "card max-w-2xl" do |form| %>
+  <%= render "shared/errors", model: endpoint %>
+  <div class="field">
+    <%= form.label :url, "Endpoint URL", class: "label" %>
+    <%= form.url_field :url, required: true, class: "input font-mono", placeholder: "https://example.com/hardpoint/webhooks" %>
+    <p class="hint mt-1">HTTPS on a public address. It should answer with a 2xx status within 10 seconds.</p>
+  </div>
+  <div class="field">
+    <%= form.label :description, "Note (optional)", class: "label" %>
+    <%= form.text_field :description, maxlength: 100, class: "input", placeholder: "e.g. Web shop stock sync" %>
+  </div>
+  <fieldset class="field">
+    <legend class="label">Events</legend>
+    <%= form.hidden_field :event_types, multiple: true, value: "" %>
+    <% WebhookEndpoint::EVENTS.each do |event, description| %>
+      <label class="flex items-start gap-2 py-1">
+        <%= check_box_tag "webhook_endpoint[event_types][]", event, endpoint.event_types.include?(event), id: "event_#{event.tr(".", "_")}", class: "mt-1" %>
+        <span><span class="font-mono text-sm"><%= event %></span><br><span class="hint"><%= description %></span></span>
+      </label>
+    <% end %>
+  </fieldset>
+  <div class="flex items-center gap-3">
+    <%= form.submit "Save", class: "btn-primary" %>
+    <%= link_to "Cancel", endpoint.persisted? ? endpoint : developers_path, class: "link" %>
+  </div>
+<% end %>

@@ -1,0 +1,18 @@
+<p>On the Business and Enterprise plans, other apps can work with your shop's products, stock, customers, sales and orders: a web shop
+  that shows your stock and takes click-and-collect orders, your bookkeeper's software, or a spreadsheet that updates itself.</p>
+
+<h2>Giving an app access</h2>
+<ol>
+  <li>The owner goes to <strong>Settings › Developers › New API key</strong>.</li>
+  <li>Name the key after the app, and choose <strong>read only</strong> unless it needs to change things (a web shop placing orders does).</li>
+  <li>Copy the key into the app's settings, or send it to its developer by a safe route. It's shown only once.</li>
+</ol>
+<p>Everything an app changes appears in <strong>Activity</strong> under the key's name. If a key might have leaked, or you stop using the app,
+  <strong>Revoke</strong> it and the app is cut off at once.</p>
+
+<h2>Webhooks</h2>
+<p>Webhooks tell another app the moment something happens: a sale, a price change, stock running down. Your developer gives you an address
+  for them in <strong>Settings › Developers › Add endpoint</strong>. If that app stops answering, HardPoint keeps trying for a day and then
+  switches the webhook off and emails you.</p>
+
+<p>Your developer will find everything they need in the <%= link_to "API and webhook documentation", developer_docs_path, class: "link" %>.</p>

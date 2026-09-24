@@ -38,3 +38,8 @@ production:
   account_maintenance:
     class: AccountMaintenanceJob
     schedule: every day at 1am
+
+  # Webhook deliveries waiting to be retried.
+  webhook_retry:
+    class: WebhookRetryJob
+    schedule: every minute

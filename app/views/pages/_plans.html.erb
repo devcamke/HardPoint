@@ -16,6 +16,7 @@
           </li>
         <% end %>
         <li class="flex gap-2"><span class="text-safety-600" aria-hidden="true">✓</span> M-Pesa, KRA eTIMS and offline selling</li>
+        <% if plan.api? %><li class="flex gap-2"><span class="text-safety-600" aria-hidden="true">✓</span> API and webhooks for web shops and other apps</li><% end %>
       </ul>
       <%= link_to "Start free trial", new_signup_path(plan: plan.key), class: "#{plan.key == "business" ? "btn-primary" : "btn-secondary"} mt-6 w-full" %>
     </div>

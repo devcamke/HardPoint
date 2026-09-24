@@ -13,7 +13,8 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
     "orders" => "CustomerOrder", "products/prices" => "PriceListItem", "products/components" => "KitComponent",
     "stock_counts/lines" => "StockCountLine", "deliveries" => "DeliveryNote", "returns" => "SaleReturn", "sale_returns" => "SaleReturn"
   }.freeze
-  MODEL_FOR_PARAM = { "mpesa_shortcode_id" => "Mpesa::Shortcode", "etims_device_id" => "Etims::Device", "etims_submission_id" => "Etims::Submission" }.freeze
+  MODEL_FOR_PARAM = { "mpesa_shortcode_id" => "Mpesa::Shortcode", "etims_device_id" => "Etims::Device", "etims_submission_id" => "Etims::Submission",
+    "delivery_id" => "WebhookDelivery" }.freeze
 
   setup { build_victim_records }
 
@@ -22,7 +23,7 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
       path = route.path.spec.to_s.delete_suffix("(.:format)")
       controller, action = route.defaults.values_at(:controller, :action)
       next unless controller && path.match?(/:\w*id\b/)
-      next if controller.start_with?("admin/", "webhooks/", "rails/", "active_storage/", "action_mailbox/", "turbo/")
+      next if controller.start_with?("admin/", "webhooks/", "rails/", "active_storage/", "action_mailbox/", "turbo/", "api/")
       next if NOT_RECORDS.include?("#{controller}##{action}")
       [ route.verb, path, controller, action ]
     end.uniq
@@ -63,6 +64,27 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
     assert_empty skipped, "Routes the sweep couldn't check (no record to aim at)"
   end
 
+  test "no API key can reach another shop's records" do
+    host! "api.localhost"
+    key = Account.without_isolation { Current.set(account: accounts(:bolt)) { accounts(:bolt).api_keys.create!(name: "Sweep", scope: "write") } }
+    victims = { "products" => Product, "customers" => Customer, "sales" => Sale, "orders" => CustomerOrder, "order" => CustomerOrder }
+    routes = Rails.application.routes.routes.filter_map do |route|
+      path = route.path.spec.to_s.delete_suffix("(.:format)")
+      [ route.verb, path ] if route.defaults[:controller].to_s.start_with?("api/") && path.include?(":")
+    end.uniq
+
+    checked = routes.map do |verb, spec|
+      path = spec.gsub(/:(\w+)/) do
+        model = victims.fetch(Regexp.last_match(1) == "id" ? spec.split("/")[2] : Regexp.last_match(1).delete_suffix("_id"))
+        Account.without_isolation { model.where(account_id: accounts(:acme).id).where.not(model == Sale ? { status: "open" } : {}).first!.id }
+      end
+      send verb.downcase.to_sym, path, params: {}.to_json, headers: { "Authorization" => "Bearer #{key.token}", "Content-Type" => "application/json" }
+      assert_response :not_found, "#{verb} #{path} answered #{response.status}"
+      path
+    end
+    assert_operator checked.size, :>=, 7
+  end
+
   private
     # One of everything in the victim shop, so every route has something to aim at.
     def build_victim_records
@@ -99,6 +121,9 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
           acme.product_imports.create!(csv: "sku,name,price\nSW-1,Sweep,1\n", branch: branches(:acme_main), filename: "sweep.csv")
 
           acme.account_exports.create!
+          acme.api_keys.create!(name: "Victim key")
+          endpoint = acme.webhook_endpoints.create!(url: "https://hooks.example.com/victim", event_types: %w[ sale.completed ])
+          endpoint.deliveries.create!(account: acme, event: "ping", event_id: SecureRandom.uuid, payload: {}, status: "failed", attempts: 7)
 
           invoice = acme.start_subscription_now
           invoice.payments.create!(account: acme, provider: "mpesa", amount_cents: invoice.amount_cents, reference: "ws_CO_SWEEP_BILL")

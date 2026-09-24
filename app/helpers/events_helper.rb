@@ -36,6 +36,11 @@ module EventsHelper
     in [ "Account", "closure_requested" ] then "asked to close the shop; its data will be deleted on #{Date.parse(event.particulars["deletion_on"]).to_fs(:long)}"
     in [ "Account", "closure_cancelled" ] then "cancelled closing the shop"
     in [ "Account", "export_requested" ] then "asked for an export of all the shop's data"
+    in [ "ApiKey", "created" ] then "made the API key “#{subject}” (#{event.particulars["scope"] == "write" ? "read and write" : "read only"})"
+    in [ "ApiKey", "revoked" ] then "revoked the API key “#{subject}”"
+    in [ "WebhookEndpoint", "created" ] then "added a webhook to #{event.particulars["url"]}"
+    in [ "WebhookEndpoint", "secret_rolled" ] then "made a new signing secret for the webhook to #{subject}"
+    in [ "WebhookEndpoint", "disabled" ] then "switched off the webhook to #{event.particulars["url"]} after repeated failures"
     in [ "User", "two_factor_enabled" ] then "turned on two-factor sign-in"
     in [ "User", "two_factor_disabled" ] then "turned off two-factor sign-in"
     in [ _, "created" ] then "added #{thing} #{subject}"
@@ -46,7 +51,7 @@ module EventsHelper
   end
 
   def event_actor(event)
-    event.creator&.name || "HardPoint"
+    event.creator&.name || (event.particulars["api_key"] ? "API key “#{event.particulars["api_key"]}”" : "HardPoint")
   end
 
   private

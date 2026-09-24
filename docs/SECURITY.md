@@ -22,6 +22,8 @@ test. Report vulnerabilities to security@hardpoint.app.
 | Authorisation | Roles (owner, manager, cashier, stock clerk) checked in controllers; approvals by PIN for discounts, voids, returns and credit | `app/controllers/concerns/authorization.rb` |
 | Platform staff | Separate admin subdomain and sign-in with two-factor; impersonation is time-boxed and recorded in the shop's activity; every plan change, suspension, trial extension and manual payment is recorded with the administrator's email | `app/controllers/admin` |
 | Web | Content security policy enforced (scripts only from the app, nonce for the importmap, no inline handlers, no plugins, no framing, forms only to the app, shop subdomains and Paystack); HSTS including subdomains; Permissions-Policy; CSRF protection; Rails' default headers | `config/initializers/content_security_policy.rb`, `permissions_policy.rb` |
+| Public API | Keys stored as SHA-256 digests, shown once, revocable; the key decides the shop and requests run under row-level security; read-only keys can't write; 600 requests a minute per key; no writes while a shop is locked; changes recorded in Activity under the key's name; an API sweep test aims another shop's key at every record route | `app/controllers/api/v1` |
+| Outgoing webhooks | HTTPS only; the host is resolved once and every address checked against private, loopback, link-local and carrier-grade NAT ranges before connecting to that same address (no DNS rebinding), no redirects; signed with HMAC-SHA256 and a per-endpoint secret stored encrypted | `app/models/webhook_delivery/transport.rb` |
 | Webhooks | M-Pesa: per-shortcode secret token in the URL and Safaricom's addresses only; idempotent by transaction ID. Paystack: HMAC-SHA512 signature over the raw body; idempotent. Card checkout only redirects to `https://*.paystack.com` | `app/controllers/webhooks` |
 | Secrets | M-Pesa API keys, eTIMS keys and two-factor secrets encrypted with Active Record Encryption; everything else in Rails credentials; `config/master.key` never committed | |
 | Logs | Passwords, PINs, two-factor and recovery codes, phone numbers, KRA PINs, M-Pesa payers' names and numbers, tokens and signatures are filtered from logs | `config/initializers/filter_parameter_logging.rb` |
@@ -32,7 +34,7 @@ test. Report vulnerabilities to security@hardpoint.app.
 ## Checked in CI on every push
 
 - Row-level security is on and forced for every tenant table; the app's role can't bypass it.
-- The cross-tenant route sweep (136 routes).
+- The cross-tenant route sweeps (146 app routes, and every API route with another shop's key).
 - Every foreign key is indexed (deleting a shop, exports).
 - Security headers and the content security policy; no inline event handlers.
 - Webhook signature and token checks; rate limits on sign-in.
@@ -52,15 +54,18 @@ credentials (sandbox).
 1. Reaching shop A's data from shop B: IDs in URLs and forms, Turbo Stream and JSON endpoints, file
    downloads (receipts, PDFs, exports, product images), Action Cable streams (the live dashboard),
    the offline sales API, search endpoints, and anything that takes a subdomain or host header.
-2. Moving up in a shop: a cashier doing a manager's work (discounts, voids, returns, credit, staff,
+2. The public API and webhooks: another shop's records with a valid key, writing with a read-only key, key
+   enumeration, rate limits, and aiming a webhook at internal addresses (metadata services, the database,
+   DNS rebinding).
+3. Moving up in a shop: a cashier doing a manager's work (discounts, voids, returns, credit, staff,
    settings, billing, exports, closing the shop); bypassing approval PINs; brute-forcing PINs.
-3. Authentication: session handling across subdomains, password reset, two-factor bypass, admin
+4. Authentication: session handling across subdomains, password reset, two-factor bypass, admin
    impersonation tokens, rate limits.
-4. Money: forging or replaying M-Pesa and Paystack callbacks, paying less than a sale or invoice,
+5. Money: forging or replaying M-Pesa and Paystack callbacks, paying less than a sale or invoice,
    racing two payments, tampering with offline sales (prices, totals, times).
-5. Web: XSS in anything a shop can type (product names, customer names, receipt footers, support
+6. Web: XSS in anything a shop can type (product names, customer names, receipt footers, support
    messages) including in PDFs and emails; CSP bypass; CSRF.
-6. The read-only and closing locks: changing anything while a shop is read-only, suspended or closing.
+7. The read-only and closing locks: changing anything while a shop is read-only, suspended or closing.
 
 **Reporting:** findings with steps to reproduce and severity; retest after fixes. Findings and fixes are
 kept in this file's history.

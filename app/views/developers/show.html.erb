@@ -1,0 +1,74 @@
+<% content_for :title, "Developers" %>
+<%= render "settings/back" %>
+
+<div class="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-bold">Developers</h1>
+    <p class="mt-1 text-steel-600">Connect a web shop, an accounting tool or your own scripts to <%= Current.account.name %>.
+      <%= link_to "API and webhook documentation", developer_docs_url(subdomain: false), class: "link", target: "_blank", rel: "noopener" %></p>
+  </div>
+</div>
+
+<% unless Current.account.subscription_plan.api? %>
+  <div class="mb-6 rounded-lg border border-safety-200 bg-safety-50 px-4 py-3 text-sm">
+    The API and webhooks are on the Business and Enterprise plans. <%= link_to "Change plan", billing_path, class: "link font-semibold" %>
+  </div>
+<% end %>
+
+<section id="api_keys" class="card mb-6">
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-lg font-semibold">API keys</h2>
+      <p class="hint">Each key opens this shop's data to whoever holds it. Give each app its own key, read-only where it only needs to read.</p>
+    </div>
+    <%= link_to "New API key", new_api_key_path, class: "btn-primary" %>
+  </div>
+  <% if @api_keys.any? %>
+    <table class="table">
+      <thead><tr><th>Name</th><th>Key</th><th>Access</th><th>Made by</th><th>Last used</th><th></th></tr></thead>
+      <tbody>
+        <% @api_keys.each do |key| %>
+          <tr id="<%= dom_id(key) %>">
+            <td class="font-medium"><%= key.name %></td>
+            <td class="font-mono text-xs"><%= key.token_prefix %>…</td>
+            <td><%= key.writable? ? "Read and write" : "Read only" %></td>
+            <td><%= key.creator&.name %> · <%= l(key.created_at.to_date, format: :short) %></td>
+            <td><%= key.last_used_at ? "#{time_ago_in_words(key.last_used_at)} ago" : "Never" %></td>
+            <td class="text-right"><%= button_to "Revoke", api_key_path(key), method: :delete, class: "btn-secondary",
+                  form: { data: { turbo_confirm: "Revoke “#{key.name}”? Anything using it stops working at once." } } %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-sm text-steel-600">No keys yet.</p>
+  <% end %>
+</section>
+
+<section id="webhooks" class="card">
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-lg font-semibold">Webhooks</h2>
+      <p class="hint">HardPoint calls these addresses when things happen in the shop: a sale, a price change, stock moving.</p>
+    </div>
+    <%= link_to "Add endpoint", new_webhook_endpoint_path, class: "btn-primary" %>
+  </div>
+  <% if @endpoints.any? %>
+    <table class="table">
+      <thead><tr><th>Endpoint</th><th>Events</th><th>Status</th><th>Last delivery</th></tr></thead>
+      <tbody>
+        <% @endpoints.each do |endpoint| %>
+          <% last = @last_deliveries[endpoint.id] %>
+          <tr id="<%= dom_id(endpoint) %>">
+            <td><%= link_to endpoint.url, endpoint, class: "link font-mono text-xs [overflow-wrap:anywhere]" %><br><span class="hint"><%= endpoint.description %></span></td>
+            <td><%= pluralize(endpoint.event_types.size, "event") %></td>
+            <td><% if endpoint.enabled? %><span class="badge bg-green-50 text-green-800">On</span><% else %><span class="badge bg-red-50 text-red-800">Off</span><% end %></td>
+            <td><%= last ? "#{last.event} · #{last.status} · #{time_ago_in_words(last.created_at)} ago" : "None yet" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-sm text-steel-600">No endpoints yet.</p>
+  <% end %>
+</section>

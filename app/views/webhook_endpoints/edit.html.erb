@@ -1,0 +1,5 @@
+<% content_for :title, "Edit webhook endpoint" %>
+<p class="text-sm"><%= link_to "← Endpoint", @endpoint, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Edit webhook endpoint</h1>
+<%= render "form", endpoint: @endpoint %>
+<%= button_to "Remove endpoint", @endpoint, method: :delete, class: "btn-secondary mt-4", form: { data: { turbo_confirm: "Remove this endpoint? Nothing more is sent to it." } } %>

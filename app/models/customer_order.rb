@@ -2,7 +2,8 @@
 # the order can take deposits and be marked ready when the goods are in, and the customer collects
 # it by having it rung up at a till, where the deposit counts towards the payment.
 class CustomerOrder < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Fulfilment
+  include AccountOwned, Eventable, Monetary, Fulfilment, PublishesWebhooks
+  publishes_webhooks "order", updated: -> { saved_change_to_status? }
 
   QUOTE_VALIDITY = 14.days
 

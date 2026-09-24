@@ -316,6 +316,84 @@ ALTER SEQUENCE public.announcements_id_seq OWNED BY public.announcements.id;
 
 
 --
+-- Name: api_idempotency_keys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.api_idempotency_keys (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    api_key_id bigint NOT NULL,
+    key character varying NOT NULL,
+    request_digest character varying NOT NULL,
+    response_status integer NOT NULL,
+    response_body jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.api_idempotency_keys FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: api_idempotency_keys_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.api_idempotency_keys_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: api_idempotency_keys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.api_idempotency_keys_id_seq OWNED BY public.api_idempotency_keys.id;
+
+
+--
+-- Name: api_keys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.api_keys (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    creator_id bigint,
+    name character varying NOT NULL,
+    token_digest character varying NOT NULL,
+    token_prefix character varying NOT NULL,
+    scope character varying DEFAULT 'read'::character varying NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    last_used_ip character varying,
+    revoked_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.api_keys FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: api_keys_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.api_keys_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: api_keys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.api_keys_id_seq OWNED BY public.api_keys.id;
+
+
+--
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2599,6 +2677,92 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: webhook_deliveries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.webhook_deliveries (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    endpoint_id bigint NOT NULL,
+    event character varying NOT NULL,
+    event_id uuid NOT NULL,
+    payload jsonb NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    attempts integer DEFAULT 0 NOT NULL,
+    response_status integer,
+    response_body character varying,
+    last_error character varying,
+    next_attempt_at timestamp(6) without time zone,
+    delivered_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.webhook_deliveries FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: webhook_deliveries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.webhook_deliveries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: webhook_deliveries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.webhook_deliveries_id_seq OWNED BY public.webhook_deliveries.id;
+
+
+--
+-- Name: webhook_endpoints; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.webhook_endpoints (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    creator_id bigint,
+    url character varying NOT NULL,
+    description character varying,
+    secret text NOT NULL,
+    event_types jsonb DEFAULT '[]'::jsonb NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    failure_count integer DEFAULT 0 NOT NULL,
+    disabled_at timestamp(6) without time zone,
+    disabled_reason character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.webhook_endpoints FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: webhook_endpoints_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.webhook_endpoints_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: webhook_endpoints_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.webhook_endpoints_id_seq OWNED BY public.webhook_endpoints.id;
+
+
+--
 -- Name: account_deletions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2652,6 +2816,20 @@ ALTER TABLE ONLY public.admin_sessions ALTER COLUMN id SET DEFAULT nextval('publ
 --
 
 ALTER TABLE ONLY public.announcements ALTER COLUMN id SET DEFAULT nextval('public.announcements_id_seq'::regclass);
+
+
+--
+-- Name: api_idempotency_keys id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_idempotency_keys ALTER COLUMN id SET DEFAULT nextval('public.api_idempotency_keys_id_seq'::regclass);
+
+
+--
+-- Name: api_keys id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_keys ALTER COLUMN id SET DEFAULT nextval('public.api_keys_id_seq'::regclass);
 
 
 --
@@ -3047,6 +3225,20 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Name: webhook_deliveries id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_deliveries ALTER COLUMN id SET DEFAULT nextval('public.webhook_deliveries_id_seq'::regclass);
+
+
+--
+-- Name: webhook_endpoints id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_endpoints ALTER COLUMN id SET DEFAULT nextval('public.webhook_endpoints_id_seq'::regclass);
+
+
+--
 -- Name: account_deletions account_deletions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3108,6 +3300,22 @@ ALTER TABLE ONLY public.admin_sessions
 
 ALTER TABLE ONLY public.announcements
     ADD CONSTRAINT announcements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: api_idempotency_keys api_idempotency_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_idempotency_keys
+    ADD CONSTRAINT api_idempotency_keys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: api_keys api_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_keys
+    ADD CONSTRAINT api_keys_pkey PRIMARY KEY (id);
 
 
 --
@@ -3575,6 +3783,22 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: webhook_deliveries webhook_deliveries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_deliveries
+    ADD CONSTRAINT webhook_deliveries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: webhook_endpoints webhook_endpoints_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_endpoints
+    ADD CONSTRAINT webhook_endpoints_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: idx_on_document_type_document_id_kind_94f3085d1e; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3663,6 +3887,48 @@ CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.ac
 --
 
 CREATE INDEX index_admin_sessions_on_user_id ON public.admin_sessions USING btree (user_id);
+
+
+--
+-- Name: index_api_idempotency_keys_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_idempotency_keys_on_account_id ON public.api_idempotency_keys USING btree (account_id);
+
+
+--
+-- Name: index_api_idempotency_keys_on_api_key_id_and_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_api_idempotency_keys_on_api_key_id_and_key ON public.api_idempotency_keys USING btree (api_key_id, key);
+
+
+--
+-- Name: index_api_idempotency_keys_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_idempotency_keys_on_created_at ON public.api_idempotency_keys USING btree (created_at);
+
+
+--
+-- Name: index_api_keys_on_account_id_and_revoked_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_keys_on_account_id_and_revoked_at ON public.api_keys USING btree (account_id, revoked_at);
+
+
+--
+-- Name: index_api_keys_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_keys_on_creator_id ON public.api_keys USING btree (creator_id);
+
+
+--
+-- Name: index_api_keys_on_token_digest; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_api_keys_on_token_digest ON public.api_keys USING btree (token_digest);
 
 
 --
@@ -5024,6 +5290,49 @@ CREATE UNIQUE INDEX index_users_on_email_address ON public.users USING btree (em
 
 
 --
+-- Name: index_webhook_deliveries_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_webhook_deliveries_on_account_id_and_created_at ON public.webhook_deliveries USING btree (account_id, created_at);
+
+
+--
+-- Name: index_webhook_deliveries_on_endpoint_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_webhook_deliveries_on_endpoint_id ON public.webhook_deliveries USING btree (endpoint_id);
+
+
+--
+-- Name: index_webhook_deliveries_on_status_and_next_attempt_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_webhook_deliveries_on_status_and_next_attempt_at ON public.webhook_deliveries USING btree (status, next_attempt_at);
+
+
+--
+-- Name: index_webhook_endpoints_on_account_id_and_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_webhook_endpoints_on_account_id_and_active ON public.webhook_endpoints USING btree (account_id, active);
+
+
+--
+-- Name: index_webhook_endpoints_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_webhook_endpoints_on_creator_id ON public.webhook_endpoints USING btree (creator_id);
+
+
+--
+-- Name: webhook_deliveries fk_rails_001f6484db; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_deliveries
+    ADD CONSTRAINT fk_rails_001f6484db FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: stock_count_lines fk_rails_039c3d997e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5296,6 +5605,14 @@ ALTER TABLE ONLY public.account_exports
 
 
 --
+-- Name: api_idempotency_keys fk_rails_35043a57c0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_idempotency_keys
+    ADD CONSTRAINT fk_rails_35043a57c0 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: cash_movements fk_rails_3709e4898d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5325,6 +5642,14 @@ ALTER TABLE ONLY public.registers
 
 ALTER TABLE ONLY public.stock_transfers
     ADD CONSTRAINT fk_rails_407d4ecd77 FOREIGN KEY (receiver_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: webhook_deliveries fk_rails_427d16b18d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_deliveries
+    ADD CONSTRAINT fk_rails_427d16b18d FOREIGN KEY (endpoint_id) REFERENCES public.webhook_endpoints(id) DEFERRABLE;
 
 
 --
@@ -5496,6 +5821,14 @@ ALTER TABLE ONLY public.price_list_items
 
 
 --
+-- Name: webhook_endpoints fk_rails_593b093f25; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_endpoints
+    ADD CONSTRAINT fk_rails_593b093f25 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: delivery_notes fk_rails_5a5cb24495; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5557,6 +5890,14 @@ ALTER TABLE ONLY public.sale_returns
 
 ALTER TABLE ONLY public.etims_item_registrations
     ADD CONSTRAINT fk_rails_5f20ac645c FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: webhook_endpoints fk_rails_609777a6dd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.webhook_endpoints
+    ADD CONSTRAINT fk_rails_609777a6dd FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -6120,11 +6461,27 @@ ALTER TABLE ONLY public.delivery_notes
 
 
 --
+-- Name: api_keys fk_rails_d195a66978; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_keys
+    ADD CONSTRAINT fk_rails_d195a66978 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: sale_lines fk_rails_d1a1fea6f0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sale_lines
     ADD CONSTRAINT fk_rails_d1a1fea6f0 FOREIGN KEY (customer_order_line_id) REFERENCES public.customer_order_lines(id) DEFERRABLE;
+
+
+--
+-- Name: api_idempotency_keys fk_rails_d458ad2de7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_idempotency_keys
+    ADD CONSTRAINT fk_rails_d458ad2de7 FOREIGN KEY (api_key_id) REFERENCES public.api_keys(id) DEFERRABLE;
 
 
 --
@@ -6416,6 +6773,14 @@ ALTER TABLE ONLY public.stock_adjustments
 
 
 --
+-- Name: api_keys fk_rails_f4470e16d5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_keys
+    ADD CONSTRAINT fk_rails_f4470e16d5 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: barcodes fk_rails_f6f6672052; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6458,6 +6823,20 @@ ALTER TABLE public.account_exports ENABLE ROW LEVEL SECURITY;
 --
 
 CREATE POLICY account_isolation ON public.account_exports USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: api_idempotency_keys account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.api_idempotency_keys USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: api_keys account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.api_keys USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -6846,6 +7225,32 @@ CREATE POLICY account_isolation ON public.units USING (((current_setting('app.by
 
 
 --
+-- Name: webhook_deliveries account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.webhook_deliveries USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: webhook_endpoints account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.webhook_endpoints USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: api_idempotency_keys; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.api_idempotency_keys ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: api_keys; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: barcodes; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -7176,12 +7581,25 @@ ALTER TABLE public.tax_rates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: webhook_deliveries; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.webhook_deliveries ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: webhook_endpoints; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120600'),
 ('20260925120500'),
 ('20260925120400'),
 ('20260925120300'),

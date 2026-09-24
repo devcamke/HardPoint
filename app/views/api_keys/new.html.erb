@@ -1,0 +1,19 @@
+<% content_for :title, "New API key" %>
+<p class="text-sm"><%= link_to "← Developers", developers_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">New API key</h1>
+
+<%= form_with model: @api_key, class: "card max-w-xl" do |form| %>
+  <%= render "shared/errors", model: @api_key %>
+  <div class="field">
+    <%= form.label :name, "What it's for", class: "label" %>
+    <%= form.text_field :name, required: true, autofocus: true, maxlength: 60, class: "input", placeholder: "e.g. Web shop, QuickBooks sync" %>
+  </div>
+  <fieldset class="field">
+    <legend class="label">Access</legend>
+    <label class="flex items-start gap-2 py-1"><%= form.radio_button :scope, "read", class: "mt-1" %>
+      <span><strong>Read only</strong><br><span class="hint">Products, stock, customers, sales and orders</span></span></label>
+    <label class="flex items-start gap-2 py-1"><%= form.radio_button :scope, "write", class: "mt-1" %>
+      <span><strong>Read and write</strong><br><span class="hint">Also add and change products and customers, and place orders</span></span></label>
+  </fieldset>
+  <%= form.submit "Make the key", class: "btn-primary" %>
+<% end %>

@@ -77,6 +77,10 @@ customers, staff, or reports.
 | Database health | A small admin page reading Postgres' statistics views instead of adding PgHero (one less dependency, and it sits behind the admin sign-in); `pg_stat_statements` preloaded in production |
 | Backups | Host cron with `pg_dump` in the database container, AES-256 via openssl and uploads via curl's AWS signing (no extra software); hourly database, daily files; retention by bucket lifecycle with a write-only key. RPO 1 hour, RTO 2 hours. No WAL archiving/point-in-time recovery yet: worth adding when an hour of lost sales stops being acceptable |
 | Error reporting | Not chosen yet (Honeybadger, AppSignal or Sentry); a launch checklist item |
+| API shape | REST and JSON under `/v1` on the `api` subdomain, the key deciding the shop (no shop subdomains in API URLs). Rendered by the same jbuilder partials as webhook payloads, so both always agree. Amounts in integer cents, quantities as decimal strings, times in UTC, bodies wrapped in the resource name (Rails' parameter wrapping off, so it's always explicit) |
+| API keys | Owner-made, per app, read or read-and-write (no finer scopes until asked for); SHA-256 digests only, `hp_` prefix; costs aren't exposed and credit limits and price lists can't be set through the API |
+| API and plans | Business and Enterprise only, like more branches: it's what larger shops with web shops and bookkeepers need |
+| Webhooks | Delivered by background jobs with a per-minute retry sweep; HMAC-SHA256 over "timestamp.body" (Stripe's well-known scheme, so receivers can reuse code); DNS resolved once and the connection pinned to a checked public address, no redirects; deliveries kept 30 days, idempotency keys a day |
 
 | Phase | Status |
 |---|---|
@@ -90,6 +94,7 @@ customers, staff, or reports.
 | 7 — Payment & tax integrations | **Done (to be proven against the live sandboxes):** M-Pesa Daraja per shop (encrypted credentials, STK push from the till with automatic completion, C2B confirmations with automatic matching to orders, accounts and typed codes, reconciliation report, token-and-IP-checked idempotent callbacks), KRA eTIMS OSCU per branch (initialisation, item registration, sales and credit notes, signed receipts with QR code, retry queue, refusals to fix), SMS via Africa's Talking (receipts, order ready, balance reminders), simulators for all three. Card terminals stay manual; accounting sync skipped. |
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
+| 11 — Public API & webhooks | **Done:** API keys in Settings › Developers, REST API v1 (shop, branches, products, stock levels, customers, sales, orders with click-and-collect ordering and cancelling) with cursor paging, sync filters, idempotency keys, rate limits and read-only enforcement; webhooks for nine events with signing, retries, auto-disable with an email, redelivery and test events, public-address-only delivery; developer docs; cross-shop sweep over the API. |
 | 10 — Hardening, performance & launch | **Done in code (the rest needs real infrastructure and shops):** cross-tenant sweep of all 136 member routes, enforced CSP, HSTS, permissions policy, log filtering, shop-friendly rate limits, Dependabot and weekly scans; k6 load test (40 cashiers, p95 scan 278 ms) with the cart's N+1 fixed; every foreign key indexed; tuned PostgreSQL config and connection budget; admin Database page; encrypted backups with a restore script, drilled locally; runbook, security brief and launch plan. **Still to do:** provision the VPS, the external penetration test, the drill on the real server, sandbox certification (M-Pesa, eTIMS), and the pilot (docs/LAUNCH.md). |
 
 ---
@@ -526,6 +531,23 @@ under 30 seconds; shift closes with correct variance.
 - Security headers/CSP (`config/initializers/content_security_policy.rb`), `encrypts` for secrets and PII, log scrubbing
   (`filter_parameters`), dependency update routine (Dependabot).
 - Pilot with 2–3 real hardware stores → fix → general launch.
+
+### Phase 11 — Public API & webhooks
+**Goal:** shops (and their developers, storefronts and accounting tools) can read and change their data
+over a documented REST API and be told about changes by webhooks.
+- **API keys** per shop, made by the owner in Settings › Developers: a name, read or read-and-write,
+  shown once and stored only as a digest, revocable, with last use recorded. On the Business and
+  Enterprise plans.
+- **REST API** at `https://api.hardpoint.app/v1` (JSON, bearer token): the shop and branches; products
+  (list, show, create, update) with prices, barcodes and stock; stock levels; customers (list, show,
+  create, update); sales (list, show, read-only); orders (list, show, create for click-and-collect,
+  cancel). Cursor pagination, `updated_since` filters, idempotency keys on creates, rate limits per key,
+  consistent errors. Blocked from writing while the shop is read-only.
+- **Webhooks:** endpoints per shop choosing events (sale completed/voided, product created/updated,
+  stock changed, order created/updated, customer created/updated), signed with HMAC-SHA256,
+  retried with back-off for a day, switched off after repeated failures with an email to the owner,
+  recent deliveries with redelivery, a test event. Only HTTPS to public addresses.
+- **Developer docs** on the public site.
 
 ### Beyond v1 (backlog)
 - Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).

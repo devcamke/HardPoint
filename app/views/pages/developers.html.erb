@@ -1,0 +1,136 @@
+<% content_for :title, "API and webhooks" %>
+<% content_for :description, "HardPoint's REST API and webhooks: connect a web shop, accounting software or your own tools to your hardware store's products, stock, customers, sales and orders." %>
+<% base = "#{request.protocol}#{@api_host}/v1" %>
+<% code = ->(text) { tag.pre(text.strip_heredoc.strip, class: "mt-2 overflow-x-auto rounded-lg bg-navy-950 p-4 text-xs leading-relaxed text-navy-100") } %>
+
+<section class="bg-navy-950 text-white">
+  <div class="mx-auto max-w-4xl px-4 py-12">
+    <h1 class="text-4xl font-extrabold">API and webhooks</h1>
+    <p class="mt-2 max-w-2xl text-navy-200">Connect a web shop, your accounting software or your own scripts to your shop: read and update products,
+      stock, customers, sales and orders, and hear about changes as they happen. On the Business and Enterprise plans.</p>
+  </div>
+</section>
+
+<article class="help-article mx-auto max-w-4xl space-y-4 px-4 py-12 leading-relaxed text-steel-700">
+  <h2>Getting a key</h2>
+  <p>In your shop, the owner goes to <strong>Settings › Developers › New API key</strong>, names it after the app that will use it and
+    chooses <strong>read only</strong> or <strong>read and write</strong>. The key (<code>hp_…</code>) is shown once. Revoke it there at any
+    time; every request with it is refused from then on.</p>
+
+  <h2>Making requests</h2>
+  <p>All requests go to <code><%= base %></code> over HTTPS with the key as a bearer token. The key decides the shop.</p>
+  <%= code.("
+    curl #{base}/products?limit=2 \\
+      -H \"Authorization: Bearer hp_your_key\"
+  ") %>
+  <ul>
+    <li><strong>Money</strong> is in cents (integers) in the shop's currency: <code>price_cents: 85000</code> is KES 850.00, VAT included.</li>
+    <li><strong>Quantities</strong> are decimal strings, because hardware sells by the metre and kilogram: <code>"2.5"</code>.</li>
+    <li><strong>Times</strong> are ISO 8601 in UTC.</li>
+    <li><strong>Request bodies</strong> are JSON wrapped in the resource's name: <code>{ "product": { … } }</code>.</li>
+  </ul>
+
+  <h2>Lists and paging</h2>
+  <p>Lists return <code>{ "data": [ … ], "next_cursor": 123 }</code>. Ask for the next page with <code>?after=123</code> (the <code>Link</code>
+    header has the full address) until <code>next_cursor</code> is <code>null</code>. Up to 100 per page with <code>?limit=</code>, 50 by default.
+    Most lists take <code>?updated_since=2026-09-24T08:00:00Z</code> to fetch only what changed, which is how to keep a copy in sync.</p>
+
+  <h2>Resources</h2>
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead><tr><th>Request</th><th>What it does</th></tr></thead>
+      <tbody>
+        <% [
+          [ "GET /shop", "The shop: name, currency, time zone, branches" ],
+          [ "GET /branches", "Branches (ids are used for stock and orders)" ],
+          [ "GET /products", "Products with price, tax rate, barcodes and stock per branch. Filters: sku, active, updated_since" ],
+          [ "GET /products/:id", "One product" ],
+          [ "POST /products", "Add a product (write keys): sku, name, description, price_cents, category, brand, unit, tax_rate, reorder_level, barcodes[]" ],
+          [ "PATCH /products/:id", "Change a product (write keys), for example its price or active" ],
+          [ "GET /stock_levels", "Stock on hand per product and branch. Filters: branch_id, product_id, updated_since" ],
+          [ "GET /customers", "Customers with their account balance. Filters: phone, email, updated_since" ],
+          [ "GET /customers/:id", "One customer" ],
+          [ "POST /customers, PATCH /customers/:id", "Add or change a customer (write keys): name, phone, email, tax_pin, address, notes" ],
+          [ "GET /sales, GET /sales/:id", "Completed and voided sales with lines and payments. Filters: branch_id, customer_id, updated_since" ],
+          [ "GET /orders, GET /orders/:id", "Quotes and orders. Filters: status, customer_id, updated_since" ],
+          [ "POST /orders", "Place an order for collection (write keys); it appears in the shop's open orders" ],
+          [ "POST /orders/:id/cancellation", "Cancel an order that has no deposit held (write keys)" ]
+        ].each do |request, description| %>
+          <tr><td class="font-mono text-xs whitespace-nowrap"><%= request %></td><td class="text-sm"><%= description %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Placing a click-and-collect order</h2>
+  <p>Give an existing <code>customer_id</code>, or the customer's details: they're matched by phone or email, or added. Lines name a product by
+    <code>product_id</code>, <code>sku</code> or <code>barcode</code>. Prices come from the shop, at the time of ordering.</p>
+  <%= code.(%q(
+    curl -X POST #{base}/orders \
+      -H "Authorization: Bearer hp_your_key" -H "Content-Type: application/json" \
+      -H "Idempotency-Key: cart-8a1f2c" \
+      -d '{ "order": { "branch_id": 1, "note": "Collect Saturday morning",
+            "customer": { "name": "Grace Wanjiku", "phone": "0711 222 333" },
+            "lines": [ { "sku": "CEM-BAM-50", "quantity": "10" }, { "barcode": "6161100420017", "quantity": "2" } ] } }'
+  ).gsub('#{base}', base)) %>
+  <p>Send an <code>Idempotency-Key</code> (any unique string, such as your cart's id) with every create: if the connection drops and you send it
+    again, you get the first answer back instead of a second order. Keys are kept for 24 hours.</p>
+
+  <h2>Errors and limits</h2>
+  <p>Errors return <code>{ "error": { "code": "…", "message": "…", "details": { … } } }</code> with the matching status:</p>
+  <ul>
+    <li><code>400 bad_request</code>: missing or malformed parameters</li>
+    <li><code>401 unauthorized</code>: no key, or a revoked one</li>
+    <li><code>402 shop_locked</code>: the shop is read-only (an unpaid HardPoint invoice), so nothing can be changed; reading still works</li>
+    <li><code>403 read_only_key</code> or <code>plan</code>: a read-only key tried to write, or the shop's plan doesn't include the API</li>
+    <li><code>404 not_found</code>, <code>422 invalid</code> (with each field's problems in <code>details</code>)</li>
+    <li><code>429 rate_limited</code>: more than 600 requests a minute with one key</li>
+  </ul>
+
+  <h2>Webhooks</h2>
+  <p>In <strong>Settings › Developers › Add endpoint</strong>, give an HTTPS address and choose events. HardPoint POSTs each event as JSON; its
+    <code>data</code> is the same as the API's for that record:</p>
+  <%= code.('
+    {
+      "id": "3f0c6c1e-6a0e-4a52-9f3a-2d6a7c1b9e41",
+      "type": "sale.completed",
+      "created_at": "2026-09-24T09:14:03Z",
+      "shop": "yourshop",
+      "data": { "id": 4821, "receipt_number": "MAI-004821", "total_cents": 187500, "lines": [ … ], "payments": [ … ] }
+    }
+  ') %>
+  <ul>
+    <% WebhookEndpoint::EVENTS.each do |event, description| %><li><code><%= event %></code>: <%= description.downcase_first %></li><% end %>
+  </ul>
+  <p>Answer with any 2xx status within 10 seconds (do slow work afterwards). Anything else is retried after 1 minute, 5 minutes, 30 minutes, then
+    2, 6 and 12 hours. The same event can arrive more than once, so use the <code>HardPoint-Delivery</code> header (the event's id) to ignore
+    repeats. After 25 failures in a row the endpoint is switched off and the shop's owners are emailed; switch it back on and resend events from
+    the endpoint's page.</p>
+
+  <h2>Checking the signature</h2>
+  <p>Each request has a <code>HardPoint-Signature: t=1758705243,v1=5257a8…</code> header: <code>v1</code> is the hex HMAC-SHA256 of the timestamp,
+    a full stop and the raw request body, keyed with the endpoint's signing secret. Compare in constant time and refuse old timestamps (say, over
+    5 minutes) so a captured request can't be replayed.</p>
+  <%= code.(%q(
+    # Ruby (Rails)
+    timestamp, signature = request.headers["HardPoint-Signature"].scan(/t=(\d+),v1=(\h+)/).first
+    expected = OpenSSL::HMAC.hexdigest("SHA256", ENV["HARDPOINT_WEBHOOK_SECRET"], "#{timestamp}.#{request.raw_post}")
+    valid = ActiveSupport::SecurityUtils.secure_compare(expected, signature.to_s) && Time.at(timestamp.to_i) > 5.minutes.ago
+  )) %>
+  <%= code.(%q(
+    // Node.js (Express, with express.raw({ type: "application/json" }))
+    const [, t, v1] = req.get("HardPoint-Signature").match(/t=(\d+),v1=([0-9a-f]+)/)
+    const expected = crypto.createHmac("sha256", process.env.HARDPOINT_WEBHOOK_SECRET).update(`${t}.${req.body}`).digest("hex")
+    const valid = crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v1)) && Date.now() / 1000 - Number(t) < 300
+  )) %>
+  <%= code.(%q(
+    # Python (Flask)
+    t, v1 = re.match(r"t=(\d+),v1=([0-9a-f]+)", request.headers["HardPoint-Signature"]).groups()
+    expected = hmac.new(os.environ["HARDPOINT_WEBHOOK_SECRET"].encode(), f"{t}.".encode() + request.get_data(), hashlib.sha256).hexdigest()
+    valid = hmac.compare_digest(expected, v1) and time.time() - int(t) < 300
+  )) %>
+
+  <h2>Versions</h2>
+  <p>This is version 1. Fields may be added to answers and events at any time, so ignore ones you don't know; anything that would break an
+    existing integration comes as a new version, announced in advance.</p>
+</article>

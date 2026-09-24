@@ -217,6 +217,25 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Database health](docs/screenshots/160-admin-database.png)
 
+## Phase 11: public API and webhooks
+
+- **API keys** made by the owner in **Settings › Developers**: read only or read and write, shown once and stored
+  only as a digest, revocable, last use recorded; changes made with a key show in Activity as that key. Business and
+  Enterprise plans
+- **REST API** at `https://api.hardpoint.app/v1`: the shop and branches, products (with barcodes, prices and stock per
+  branch; create and update), stock levels, customers (create and update), sales and orders, including placing a
+  **click-and-collect order** that lands in the shop's open orders. Cursor paging, `updated_since` for syncing,
+  idempotency keys, 600 requests a minute per key, clear JSON errors, UTC times, amounts in cents; no writes while the
+  shop is read-only
+- **Webhooks** for sales completed and voided, products, stock changes, orders and customers: the same JSON as the
+  API, signed with HMAC-SHA256, retried for a day with back-off, switched off (and the owner emailed) after 25
+  failures in a row, only to public HTTPS addresses. Each endpoint's page shows recent deliveries and payloads,
+  with resend, a test event and a new signing secret
+- **Developer documentation** on the public site at `/developers`, with signature checks for Ruby, Node.js and Python
+  (each one verified against real deliveries)
+
+![Webhook deliveries](docs/screenshots/175-webhook-endpoint-deliveries.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

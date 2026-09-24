@@ -42,6 +42,9 @@ module Hardpoint
 
     # How shops reach HardPoint: the support inbox (support requests are emailed here) and a WhatsApp
     # number in international format without the plus.
+    # Webhooks may only be sent to public addresses; development and tests use local receivers.
+    config.x.webhooks_allow_private_addresses = !Rails.env.production?
+
     config.x.support = {
       email: ENV.fetch("SUPPORT_EMAIL", "support@hardpoint.app"),
       whatsapp: ENV.fetch("SUPPORT_WHATSAPP", "254700000000")

@@ -19,7 +19,7 @@ module Eventable
 
   def track_event(action, creator: Current.user, **particulars)
     Event.create! account: event_account, eventable: self, action: action, creator: creator,
-      particulars: { name: event_name }.merge(particulars.compact)
+      particulars: { name: event_name, api_key: Current.api_key&.name }.merge(particulars).compact
   end
 
   private
