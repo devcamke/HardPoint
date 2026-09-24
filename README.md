@@ -40,6 +40,31 @@ Minitest with fixtures, deployed with Kamal. See [docs/PLAN.md](docs/PLAN.md) fo
 
 ![Products](docs/screenshots/21-products.png)
 
+## Phase 3: the till
+
+- **Full-screen till**, scanner first: a barcode scanner types and presses Enter to add; typing searches; quick-pick
+  buttons for fast movers and pack sizes. F2 scan · F8 park · F9 pay. Each device remembers its till.
+- **Cart:** decimal quantities for fractional units, switching between pieces and packs, serial numbers for
+  serialised items, stock warnings, and the customer's price list applied when you pick them
+- **Discounts** per line or on the whole sale (amount or %). Above the shop's limit (5% by default) an owner or
+  manager approves with an **approval PIN**, which authorises that one action and signs nobody in
+- **Split payment** by cash (with change), M-Pesa (transaction code), card, or on account (within the customer's
+  credit limit). Completing a sale assigns a **gap-free receipt number per branch** and takes the stock out
+  (kits take their parts) in one transaction
+- **Park and recall** sales, clear unwanted carts
+- **Shifts:** opening float, cash drops, payouts and pay-ins, **X report** during the shift, **blind count** at close
+  and a **Z report** with over/short
+- **Voids** during the shift and **returns** against a receipt (restock or write off; refund by cash, M-Pesa,
+  card or account credit), both needing approval and both recorded in Activity
+- **80 mm thermal receipts** printed from the browser, reprints, and emailed receipts. Set the receipt printer's
+  "open cash drawer" option to pop the drawer when a receipt prints
+- **Sales history** by day, branch or receipt number, and simple **customer** records (prices, credit limit, balance)
+
+A 10-line scanned sale with a split payment takes about 2.6 seconds end to end in a real browser (the plan's target
+was under 30).
+
+![Till](docs/screenshots/43-till-cart.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -77,7 +102,7 @@ bin/setup          # installs gems, prepares the database, seeds a demo shop, st
 
 Then open <http://localhost:3000> to sign up a shop, or <http://demo.localhost:3000> and sign in as
 `owner@demo.test` / `hardpoint-demo`. Browsers resolve `*.localhost` to your machine. The demo cashier's till
-PIN is `1234`.
+PIN is `1234`, and the owner's approval PIN (for big discounts, voids and returns at a cashier's till) is `2468`.
 
 The demo shop comes with about 30 hardware products, stock at both branches, a transfer in transit and a stock take
 in progress. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.

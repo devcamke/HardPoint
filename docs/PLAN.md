@@ -20,13 +20,20 @@ customers, staff, or reports.
 | Stock quantities | Kept in the product's base unit (pack sizes convert); decimals only for fractional units |
 | Reorder levels | One per product. A branch "carries" a product once it has stocked it, so branches aren't nagged about lines they never sell |
 | Stock takes | Differences are measured against the snapshot taken at the start, so selling during a count is fine |
+| Prices and tax | Shelf prices include tax (the norm for Kenyan retail); each line's tax is its tax-inclusive share at the product's rate |
+| Approvals | Owners and managers have a separate **approval PIN** that authorises one action at a cashier's till (big discount, void, return) without signing anyone in; a discount only needs approving again if it goes beyond what was already approved |
+| Negative stock | Sales aren't blocked when the system shows no stock (deliveries are often booked late); the till warns and the Stock page flags branches below zero |
+| Voids vs returns | A sale can be voided only while its shift is open; after that it's a return against the receipt |
+| Cash drawer | Opened by the receipt printer's driver on print, so no local agent is needed yet (QZ Tray in Phase 8 for silent printing) |
+| Customers | A minimal record arrives in Phase 3 (price list, credit limit, balance); statements, ageing and payments on account come in Phase 5 |
 
 | Phase | Status |
 |---|---|
 | 0 — Foundations | App generated; CI (with non-superuser DB role), Kamal config (Postgres 18 accessory, Cloudflare origin cert, SES SMTP) in the repo. **Server provisioning, Cloudflare, SES verification and backups still to do on real infrastructure.** |
 | 1 — Tenancy & auth | **Done:** signup, subdomains, sign-in per shop, password reset, staff invitations and roles, branches, tills (registers), shop settings, TOTP 2FA with recovery codes (optionally required for owners/managers), cashier PIN quick-switch, audit `Event` log, platform super-admin with time-boxed audited impersonation, "Ironworks" branding (docs/BRAND.md), RLS with isolation tests. |
 | 2 — Catalogue & inventory | **Done:** categories, brands, units, tax rates, price lists and quantity breaks, products with barcodes, pack sizes, kits and photos, trigram search, stock ledger with reconciliation, adjustments, transfers, stock takes with approval, reorder list, daily low-stock email, CSV import (20k rows in ~12 s) and export, barcode labels. |
-| 3–10 | Not started |
+| 3 — POS checkout | **Done:** till selection per device, shifts with float/drops/payouts/X and blind-count Z reports, scanner-first cart with packs, decimals, serials and price lists, line and sale discounts with manager approval PIN, split tender (cash, M-Pesa code, card, on account), gap-free receipt numbers per branch, stock deducted on completion, park/recall, voids and returns with approval, 80 mm receipts and email receipts, sales history, minimal customers. 10-line split-payment sale ≈ 2.6 s. |
+| 4–10 | Not started |
 
 ---
 
