@@ -1,0 +1,15 @@
+<% content_for :title, @article.title %>
+
+<article class="mx-auto max-w-3xl px-4 py-12">
+  <p class="text-sm"><%= link_to "← Help centre", help_path, class: "link" %> · <span class="text-steel-600"><%= @article.section %></span></p>
+  <h1 class="mt-3 text-4xl font-extrabold"><%= @article.title %></h1>
+  <p class="mt-2 text-lg text-steel-600"><%= @article.summary %></p>
+
+  <div class="help-article mt-8 space-y-4 leading-relaxed text-steel-700">
+    <%= render @article.partial %>
+  </div>
+
+  <div class="mt-12 border-t border-concrete-200 pt-6 text-sm text-steel-600">
+    Didn't answer your question? <%= link_to "Chat with us on WhatsApp", whatsapp_support_url("Hello HardPoint, about \"#{@article.title}\": "), class: "link", target: "_blank", rel: "noopener" %>.
+  </div>
+</article>

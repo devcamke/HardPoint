@@ -1,4 +1,5 @@
 class My::ApprovalPinsController < ApplicationController
+  allow_while_locked
   before_action :set_membership
 
   def edit

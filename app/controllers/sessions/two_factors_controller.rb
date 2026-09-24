@@ -1,5 +1,6 @@
 # Second step of signing in, for people with two-factor turned on.
 class Sessions::TwoFactorsController < ApplicationController
+  allow_while_locked
   CHALLENGE_EXPIRES_IN = 10.minutes
 
   allow_unauthenticated_access

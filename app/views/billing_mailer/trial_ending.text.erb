@@ -1,0 +1,7 @@
+Hello,
+
+The free trial of HardPoint for <%= @account.name %> ends on <%= @account.trial_ends_at.to_date.to_fs(:long) %>. After that it's <%= @account.subscription_plan.price %> a month on the <%= @account.subscription_plan.name %> plan; the first invoice comes then, due a week later.
+
+You can change plan or start paying now from the Billing page.
+
+Pay by M-Pesa or card: <%= billing_url(subdomain: @account.subdomain) %>

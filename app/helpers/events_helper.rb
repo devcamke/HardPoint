@@ -26,6 +26,16 @@ module EventsHelper
     in [ "SupplierInvoice", "recorded" ] then "recorded invoice #{subject} (#{money(event.particulars["total"])})"
     in [ "Supplier", "paid" ] then "paid #{subject} #{money(event.particulars["amount"])} by #{event.particulars["payment_method"].to_s.humanize.downcase}"
     in [ "ProductImport", "completed" ] then "imported #{event.particulars["created"]} new and #{event.particulars["updated"]} updated products"
+    in [ "Account", "plan_changed" ] then "changed the HardPoint plan from #{plan_name(event.particulars["from"])} to #{plan_name(event.particulars["to"])}#{by_platform(event)}"
+    in [ "Account", "invoice_issued" ] then "issued HardPoint invoice #{event.particulars["invoice"]} for #{money(event.particulars["amount"])}"
+    in [ "Account", "subscription_paid" ] then "paid HardPoint invoice #{event.particulars["invoice"]} by #{event.particulars["provider"] == "mpesa" ? "M-Pesa" : event.particulars["provider"]} (#{event.particulars["receipt"]})"
+    in [ "Account", "made_read_only" ] then "made the shop read-only: invoice #{event.particulars["invoice"]} is overdue"
+    in [ "Account", "trial_extended" ] then "extended the free trial by #{pluralize(event.particulars["days"], "day")}#{by_platform(event)}"
+    in [ "Account", "suspended" ] then "suspended the shop#{": #{event.particulars["reason"]}" if event.particulars["reason"]}#{by_platform(event)}"
+    in [ "Account", "restored" ] then "restored the shop#{by_platform(event)}"
+    in [ "Account", "closure_requested" ] then "asked to close the shop; its data will be deleted on #{Date.parse(event.particulars["deletion_on"]).to_fs(:long)}"
+    in [ "Account", "closure_cancelled" ] then "cancelled closing the shop"
+    in [ "Account", "export_requested" ] then "asked for an export of all the shop's data"
     in [ "User", "two_factor_enabled" ] then "turned on two-factor sign-in"
     in [ "User", "two_factor_disabled" ] then "turned off two-factor sign-in"
     in [ _, "created" ] then "added #{thing} #{subject}"
@@ -40,6 +50,16 @@ module EventsHelper
   end
 
   private
+    def plan_name(key)
+      Plan.find(key).name
+    rescue ArgumentError
+      key
+    end
+
+    def by_platform(event)
+      " (HardPoint support: #{event.particulars["administrator"]})" if event.particulars["administrator"]
+    end
+
     def variance_words(cents)
       cents = cents.to_i
       cents.zero? ? "balanced" : "#{money(cents.abs)} #{cents.negative? ? "short" : "over"}"

@@ -1,0 +1,14 @@
+<% content_for :title, "Card payment (simulated)" %>
+<div class="mx-auto max-w-md">
+  <p class="mb-4 rounded-lg bg-safety-100 px-4 py-3 text-sm text-safety-800">Simulated card checkout: no card is charged. In production this is Paystack's own page.</p>
+  <div class="card">
+    <p class="hint">Pay HardPoint</p>
+    <p class="text-3xl font-bold"><%= money(@payment.amount_cents, currency: @payment.invoice.currency) %></p>
+    <p class="hint mb-4">Invoice <%= @payment.invoice.number %></p>
+    <div class="field"><label class="label" for="card">Card number</label><input id="card" class="input font-mono" value="4084 0840 8408 4081" readonly></div>
+    <div class="flex gap-2">
+      <%= button_to "Pay", billing_card_simulator_path, params: { reference: @payment.reference }, class: "btn-primary" %>
+      <%= button_to "Decline", billing_card_simulator_path, params: { reference: @payment.reference, outcome: "decline" }, class: "btn-secondary" %>
+    </div>
+  </div>
+</div>

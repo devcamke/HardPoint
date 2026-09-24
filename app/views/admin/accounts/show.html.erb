@@ -1,8 +1,80 @@
 <% content_for :title, @account.name %>
 
 <p class="text-sm"><%= link_to "← All shops", admin_accounts_path, class: "link" %></p>
-<h1 class="mt-2 text-3xl font-bold"><%= @account.name %></h1>
-<p class="hint mt-1 mb-6 font-mono"><%= @account.subdomain %> · <%= @account.time_zone %> · <%= @account.currency %></p>
+<h1 class="mt-2 text-3xl font-bold"><%= @account.name %> <%= subscription_status_badge(@account) %></h1>
+<p class="hint mt-1 mb-6 font-mono"><%= @account.subdomain %> · <%= @account.time_zone %> · <%= @account.currency %> · <%= pluralize(number_with_delimiter(@sales_last_30_days), "sale") %> in the last 30 days</p>
+
+<% plan = @account.subscription_plan %>
+<section id="subscription" class="card mb-6">
+  <h2 class="mb-3 text-lg font-semibold">Subscription</h2>
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div>
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        <dt class="text-steel-600">Plan</dt><dd><%= plan.name %> (<%= plan.price %>/month)</dd>
+        <% if @account.trial_ends_at %><dt class="text-steel-600">Trial ends</dt><dd><%= l(@account.trial_ends_at.to_date, format: :long) %></dd><% end %>
+        <% if @account.current_period_ends_at %><dt class="text-steel-600">Paid until</dt><dd><%= l(@account.current_period_ends_at.to_date, format: :long) %></dd><% end %>
+        <% if @account.suspended_reason %><dt class="text-steel-600">Suspended for</dt><dd><%= @account.suspended_reason %></dd><% end %>
+        <% if @account.deletion_scheduled_for %><dt class="text-steel-600">Closing</dt><dd class="font-semibold text-red-700">Data deleted <%= l(@account.deletion_scheduled_for.to_date, format: :long) %></dd><% end %>
+        <dt class="text-steel-600">Setup</dt><dd><%= @account.onboarding_completed_at ? "Finished" : "#{Onboarding.new(@account).done_count} of #{Onboarding.new(@account).required_steps.size} steps" %></dd>
+      </dl>
+
+      <h3 class="mt-4 mb-2 text-sm font-semibold">Usage</h3>
+      <ul class="space-y-1 text-sm">
+        <% Plan::RESOURCES.each do |resource| %>
+          <li><%= number_with_delimiter @usage[resource] %> of <%= plan.limit(resource) ? Plan.allowance(plan.limit(resource), resource) : "unlimited #{Plan::NOUNS[resource].pluralize}" %></li>
+        <% end %>
+      </ul>
+    </div>
+
+    <div class="space-y-4">
+      <%= form_with url: admin_account_plan_path(@account), method: :patch, class: "flex flex-wrap items-end gap-2" do |form| %>
+        <div><%= form.label :plan, "Change plan", class: "label" %><%= form.select :plan, Plan.all.map { [ "#{_1.name} (#{_1.price})", _1.key ] }, { selected: @account.plan }, class: "input" %></div>
+        <%= form.submit "Change", class: "btn-secondary" %>
+      <% end %>
+
+      <% if @account.trialing? %>
+        <%= form_with url: admin_account_trial_extension_path(@account), class: "flex flex-wrap items-end gap-2" do |form| %>
+          <div><%= form.label :days, "Extend trial by", class: "label" %><%= form.select :days, [ [ "7 days", 7 ], [ "14 days", 14 ], [ "30 days", 30 ] ], {}, class: "input" %></div>
+          <%= form.submit "Extend", class: "btn-secondary" %>
+        <% end %>
+      <% end %>
+
+      <% if @account.open_invoice %>
+        <%= form_with url: admin_account_payments_path(@account), class: "flex flex-wrap items-end gap-2",
+              data: { turbo_confirm: "Mark invoice #{@account.open_invoice.number} (#{money(@account.open_invoice.amount_cents, currency: "KES")}) as paid?" } do |form| %>
+          <div><%= form.label :reference, "Record a bank payment for #{@account.open_invoice.number}", class: "label" %><%= form.text_field :reference, class: "input", placeholder: "Bank reference" %></div>
+          <%= form.submit "Record payment", class: "btn-secondary" %>
+        <% end %>
+      <% end %>
+
+      <% if @account.suspended? %>
+        <%= button_to "Restore shop", admin_account_suspension_path(@account), method: :delete, class: "btn-primary" %>
+      <% else %>
+        <%= form_with url: admin_account_suspension_path(@account), class: "flex flex-wrap items-end gap-2",
+              data: { turbo_confirm: "Suspend #{@account.name}? Its staff will be able to look but not change anything." } do |form| %>
+          <div><%= form.label :reason, "Suspend", class: "label" %><%= form.text_field :reason, class: "input", placeholder: "Reason (shown to the shop)" %></div>
+          <%= form.submit "Suspend", class: "btn bg-red-700 text-white hover:bg-red-800" %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @invoices.any? %>
+    <h3 class="mt-6 mb-2 text-sm font-semibold">Invoices</h3>
+    <table class="table">
+      <tbody>
+        <% @invoices.each do |invoice| %>
+          <tr>
+            <td class="font-mono"><%= invoice.number %></td>
+            <td><%= invoice.description %></td>
+            <td class="tabular-nums"><%= money(invoice.amount_cents, currency: invoice.currency) %></td>
+            <td><%= invoice.paid? ? "Paid #{l(invoice.paid_at.to_date, format: :short)}" : "#{invoice.overdue? ? "Overdue" : "Due"} #{l(invoice.due_on, format: :short)}" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>
 
 <div class="grid gap-6 lg:grid-cols-2">
   <section class="card">
@@ -30,6 +102,15 @@
         <li><%= branch.name %> <span class="text-steel-600"><%= branch.address %></span></li>
       <% end %>
     </ul>
+
+    <% if @support_requests.any? %>
+      <h2 class="mt-6 mb-3 text-lg font-semibold">Support requests</h2>
+      <ul class="space-y-1 text-sm">
+        <% @support_requests.each do |request| %>
+          <li><span class="font-mono"><%= request.reference %></span> <%= request.subject %> <span class="text-steel-600">· <%= request.user.name %> · <%= request.status %></span></li>
+        <% end %>
+      </ul>
+    <% end %>
 
     <h2 class="mt-6 mb-3 text-lg font-semibold">Recent activity</h2>
     <ol class="space-y-2 text-sm">

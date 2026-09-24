@@ -165,6 +165,35 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Offline till](docs/screenshots/123-offline-cart.png)
 
+## Phase 9: HardPoint as a service
+
+- **Public site** on the bare domain: home page, pricing, a privacy page in plain language (Kenya Data Protection
+  Act), a **help centre** of eleven guides with search, and "Sign in", which asks for the shop's web address
+- **Self-service signup** with a choice of plan, then a **Set up your shop** checklist on the owner's dashboard:
+  branches and tills, tax rates, products, staff, a **test receipt** to check the printer, and optionally M-Pesa and
+  eTIMS. Steps tick themselves off from what the shop has actually done
+- **Plans and limits:** Starter (KES 2,500/month: 1 branch, 2 tills, 3 staff, 2,000 products), Business (KES 6,500:
+  3, 8, 15, 20,000) and Enterprise (KES 15,000, no limits). Every new shop gets **30 days free** on its chosen plan.
+  Going past a limit (adding a branch, a till, a person, a product or an import) is refused with a pointer to Billing
+- **Billing:** at the trial's end HardPoint emails an invoice (PDF, numbered `HP-2026-000123`) due a week later,
+  payable from **Settings › Billing** by an **M-Pesa prompt** to HardPoint's own Paybill or **by card through Paystack**.
+  Reminders go out 3 days before the trial ends and 2 days before an invoice is due. Owners change plan there too:
+  bigger at once, smaller only if the shop fits
+- **Read-only mode:** a week after an unpaid invoice falls due the shop becomes read-only. Everyone can still sign in
+  and look things up, owners can pay, export and ask for help, and offline sales rung up before the lock are still
+  accepted, but nothing can be sold or changed. Paying unlocks it at once
+- **In-app help:** "Help" in the menu opens the guides, a WhatsApp chat, and a message form that emails support
+  with the shop, the person and the page they were on
+- **Your data** (owners): **export everything** as a ZIP of CSV files (one per table, secrets left out) plus product
+  images and delivery photos, emailed when ready and kept 7 days; and **close the shop**, with the password: it goes
+  read-only for owners only, and 30 days later every row is deleted, unless an owner cancels. HardPoint keeps only a
+  record of the invoices it issued, for tax
+- **Platform admin:** shops by plan and status with usage and revenue, and per shop: change plan, extend the trial,
+  record a bank payment, suspend and restore (each recorded in the shop's activity with the administrator's email);
+  announcements shown as a dismissible banner in every shop; and the support inbox
+
+![Pricing](docs/screenshots/131-pricing.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -210,6 +239,11 @@ order ready to collect with a deposit, and deliveries, and a month of trading at
 reports, plus an M-Pesa Paybill, a KRA eTIMS control unit at Moi Avenue and SMS, all on simulators (try "M-Pesa" at the
 till: a number ending 0000 declines). The daily summary email is previewable at <http://demo.localhost:3000/rails/mailers/reports_mailer/daily_summary>. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.
 
+The public site is at <http://localhost:3000>. The demo shop's first month is paid; there are two more shops for the
+admin list: `coast` (on trial, `owner@coast.test`) and `lakeside` (read-only for an unpaid invoice,
+`owner@lakeside.test`), both with the password `hardpoint-demo`. Without Paystack keys, "Pay by card" goes to a
+simulated checkout.
+
 The platform admin is at <http://admin.localhost:3000> (`admin@hardpoint.test` / `hardpoint-demo`). For two-factor,
 add the development-only key `HARDPOINTDEVADMINTOTPSECRETKEYAB` to an authenticator app, or print a code with
 `bundle exec ruby -rrotp -e 'puts ROTP::TOTP.new("HARDPOINTDEVADMINTOTPSECRETKEYAB").now'`.
@@ -252,6 +286,13 @@ Kamal deploys to a single Contabo VPS (see `config/deploy.yml`):
   "Straight to the printer" with the printer's name, and (to skip QZ Tray's "allow" prompt) add a certificate and key
   with `bin/rails credentials:edit` under `qz: { certificate:, private_key: }`. The customer display is the
   "Customer display" link, dragged to a second monitor.
+- **Billing HardPoint's own subscriptions:** add `billing: { mpesa: { environment:, shortcode:, passkey:,
+  consumer_key:, consumer_secret:, callback_token: }, paystack_secret_key: }` with `bin/rails credentials:edit`.
+  Safaricom calls back to `https://APP_HOST/webhooks/billing/mpesa/<callback_token>`; set Paystack's webhook URL to
+  `https://APP_HOST/webhooks/paystack` (signed with the secret key). `BillingJob` runs daily at 05:00 UTC, and
+  `AccountMaintenanceJob` (expired exports, shops due for deletion) at 01:00 UTC.
+- **Support:** `SUPPORT_EMAIL` receives support requests (default `support@hardpoint.app`) and `SUPPORT_WHATSAPP`
+  is the WhatsApp number, international format without the plus.
 - Simulators are refused in production unless `ALLOW_INTEGRATION_SIMULATORS` is set (e.g. for a public demo).
 - Two-factor secrets are encrypted with Active Record Encryption. Run `bin/rails db:encryption:init` and add the
   printed `active_record_encryption` keys with `bin/rails credentials:edit`. Development and test use fixed,

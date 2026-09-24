@@ -1,5 +1,6 @@
 # Where an administrator's signed impersonation link lands, on the shop's own subdomain.
 class Sessions::ImpersonationsController < ApplicationController
+  allow_while_locked
   allow_unauthenticated_access
   allow_without_two_factor
   before_action :set_impersonation

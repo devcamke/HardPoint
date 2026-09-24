@@ -3,10 +3,10 @@ class SignupsController < ApplicationController
   allow_unauthenticated_access
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_signup_path, alert: "Try again later." }
 
-  layout "public"
+  layout "marketing"
 
   def new
-    @signup = Signup.new
+    @signup = Signup.new(plan: Plan.all.map(&:key).include?(params[:plan]) ? params[:plan] : "business")
   end
 
   def create
@@ -22,6 +22,6 @@ class SignupsController < ApplicationController
 
   private
     def signup_params
-      params.expect(signup: %i[ shop_name subdomain owner_name email_address password ])
+      params.expect(signup: %i[ shop_name subdomain owner_name email_address password plan ])
     end
 end

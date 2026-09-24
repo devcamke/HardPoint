@@ -1,0 +1,68 @@
+<% content_for :title, "Your data" %>
+<%= render "settings/back" %>
+
+<h1 class="mt-2 text-3xl font-bold">Your data</h1>
+<p class="mt-1 mb-6 text-steel-600">Everything <%= Current.account.name %> keeps in HardPoint belongs to you. <%= link_to "How we handle it", privacy_url(subdomain: false), class: "link", target: "_blank", rel: "noopener" %></p>
+
+<section id="export" class="card mb-6">
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div class="max-w-2xl">
+      <h2 class="text-lg font-semibold">Export everything</h2>
+      <p class="hint mt-1">Products, stock, sales, customers, suppliers, purchases, payments, staff and the activity log, as spreadsheet (CSV) files in one ZIP, with product images and delivery photos. Passwords, PINs and API keys aren't included. Each export can be downloaded for 7 days.</p>
+    </div>
+    <%= button_to "Export all data", account_exports_path, class: "btn-primary" %>
+  </div>
+
+  <% if @exports.any? %>
+    <table class="table mt-4">
+      <tbody>
+        <% @exports.each do |export| %>
+          <tr id="<%= dom_id(export) %>">
+            <td><%= l(export.created_at, format: :short) %></td>
+            <td><%= export.requested_by.name %></td>
+            <td>
+              <% if export.downloadable? %>
+                <%= link_to "Download (#{number_to_human_size(export.file.byte_size)})", account_export_path(export), class: "link", data: { turbo: false } %>
+                <span class="hint">until <%= l(export.expires_at, format: :short) %></span>
+              <% elsif export.pending? %>
+                <span class="text-steel-600">Preparing…</span>
+              <% else %>
+                <span class="text-steel-600"><%= export.failed? ? "Didn't work; try again" : "Expired" %></span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>
+
+<section id="closure" class="card border-red-200">
+  <h2 class="text-lg font-semibold text-red-800">Close this shop</h2>
+  <% if Current.account.closing? %>
+    <p class="mt-2">
+      <strong><%= Current.account.deletion_requested_by&.name || "An owner" %></strong> asked to close <%= Current.account.name %>.
+      It's read-only and only owners can sign in. All of its data will be deleted on
+      <strong><%= l(Current.account.deletion_scheduled_for.to_date, format: :long) %></strong>.
+    </p>
+    <%= button_to "Cancel the closure and reopen the shop", account_closure_path, method: :delete, class: "btn-primary mt-4" %>
+  <% else %>
+    <p class="hint mt-1 max-w-2xl">
+      The shop becomes read-only straight away and only owners can sign in. <strong>30 days later</strong> all of its data is deleted for good:
+      products, sales, customers, stock and staff logins that no other shop uses. Until then an owner can cancel. Export your data first.
+      HardPoint keeps only the invoices it issued you, as tax law requires.
+    </p>
+    <%= form_with url: account_closure_path, class: "mt-4 grid max-w-xl gap-4 sm:grid-cols-2",
+          data: { turbo_confirm: "Close #{Current.account.name}? Its data will be deleted in 30 days." } do |form| %>
+      <div>
+        <%= form.label :confirmation, "Type #{Current.account.subdomain} to confirm", class: "label" %>
+        <%= form.text_field :confirmation, required: true, autocomplete: "off", class: "input" %>
+      </div>
+      <div>
+        <%= form.label :password, "Your password", class: "label" %>
+        <%= form.password_field :password, required: true, autocomplete: "current-password", class: "input" %>
+      </div>
+      <div><%= form.submit "Close this shop", class: "btn bg-red-700 text-white hover:bg-red-800" %></div>
+    <% end %>
+  <% end %>
+</section>

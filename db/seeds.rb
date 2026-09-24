@@ -231,6 +231,17 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     account.etims_devices.create!(branch: main, environment: "simulator", tin: "P051234567X", serial_number: "HPDEMO-MOI-01").initialize_with_kra
     account.update!(sms_enabled: true)
 
+    # HardPoint's own billing: the trial ended 12 days ago and the first month was paid by M-Pesa.
+    account.update!(trial_ends_at: 12.days.ago)
+    account.bill
+    first_invoice = account.open_invoice
+    first_invoice.payments.create!(provider: "mpesa", amount_cents: first_invoice.amount_cents, reference: "ws_CO_SEED01", phone: "254722000111", user: owner)
+      .succeed(receipt: "SKA4F9T2QX")
+
+    # A question for HardPoint support from the till.
+    account.support_requests.create!(user: User.find_by!(email_address: "cashier@demo.test"), subject: "Receipt cuts off the last letters",
+      body: "On the Yard gate till the right edge of the receipt is cut off. The printer is a 58 mm one.", page: "/pos")
+
     products["CEM-BAM-50"].move_stock(branch: main, quantity: -3, reason: "damaged", note: "Bags split in the rain")
     account.stock_transfers.create!(from_branch: yard, to_branch: main, note: "Tuesday lorry",
       lines_attributes: [ { product_code: "CEM-BAM-50", quantity: 60 }, { product_code: "STL-Y10", quantity: 40 } ])
@@ -240,6 +251,26 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
   ensure
     Current.reset
   end
+
+  # Two more shops for the platform admin's list: one on trial, one read-only for an unpaid invoice.
+  { "coast" => [ "Coast Tools & Paint", "Fatma Ali", "owner@coast.test", "starter" ],
+    "lakeside" => [ "Lakeside Hardware", "Ochieng Oduor", "owner@lakeside.test", "business" ] }.each do |subdomain, (shop, name, email, plan)|
+    Signup.new(shop_name: shop, subdomain: subdomain, owner_name: name, email_address: email, password: "hardpoint-demo").save!
+    shop_account = Account.find_by!(subdomain: subdomain)
+    Current.set(account: shop_account) do
+      Current.session = shop_account.sessions.create!(user: User.find_by!(email_address: email))
+      shop_account.update!(plan: plan)
+      next shop_account.update!(trial_ends_at: 4.days.from_now) if subdomain == "coast"
+
+      shop_account.update!(trial_ends_at: 10.days.ago)
+      shop_account.bill
+      shop_account.open_invoice.update!(due_on: 3.days.ago.to_date) # as if the week's grace ran out unpaid
+      shop_account.bill
+    end
+  end
+
+  Announcement.create!(title: "New: export all your shop's data", body: "Owners can download everything as spreadsheets from Settings → Your data.",
+    starts_at: 1.day.ago, ends_at: 2.weeks.from_now)
 
   User.create!(name: "Platform Admin", email_address: "admin@hardpoint.test", password: "hardpoint-demo", admin: true,
     two_factor_secret: DEV_ADMIN_TWO_FACTOR_SECRET, two_factor_enabled_at: Time.current)

@@ -1,7 +1,9 @@
 acme:
   name: Acme Hardware
   subdomain: acme
+  trial_ends_at: <%= 20.days.from_now.to_fs(:db) %>
 
 bolt:
   name: Bolt & Nut Supplies
   subdomain: bolt
+  trial_ends_at: <%= 20.days.from_now.to_fs(:db) %>

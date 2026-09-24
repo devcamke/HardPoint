@@ -1,0 +1,21 @@
+<% content_for :title, "Sign in" %>
+
+<section class="mx-auto max-w-md px-4 py-16">
+  <h1 class="text-3xl font-bold">Sign in to your shop</h1>
+  <p class="mt-2 mb-6 text-steel-600">Every shop has its own web address, like <span class="font-mono">yourshop.<%= request.host %></span>.</p>
+
+  <div class="card">
+    <%= form_with url: shop_lookup_path, data: { turbo: false } do |form| %>
+      <div class="field">
+        <%= form.label :subdomain, "Your shop's web address", class: "label" %>
+        <div class="flex items-center gap-2">
+          <%= form.text_field :subdomain, value: params[:subdomain], required: true, autofocus: true, autocapitalize: "none", class: "input", placeholder: "yourshop" %>
+          <span class="text-steel-600">.<%= request.host %></span>
+        </div>
+      </div>
+      <%= form.submit "Continue", class: "btn-primary w-full" %>
+    <% end %>
+  </div>
+
+  <p class="mt-6 text-sm text-steel-600">New to HardPoint? <%= link_to "Start a free 30-day trial", new_signup_path, class: "link" %>.</p>
+</section>

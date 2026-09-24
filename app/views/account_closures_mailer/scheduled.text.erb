@@ -1,0 +1,7 @@
+<%= @account.deletion_requested_by&.name || "An owner" %> asked to close <%= @account.name %> on HardPoint.
+
+The shop is now read-only and only its owners can sign in. On <%= l(@account.deletion_scheduled_for.in_time_zone(@account.time_zone).to_date, format: :long) %> all of its data will be deleted for good.
+
+Before then you can download everything, or change your mind and cancel the closure: <%= account_data_url(subdomain: @account.subdomain) %>
+
+If you didn't expect this, sign in and cancel it, then change your password.

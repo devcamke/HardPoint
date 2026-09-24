@@ -25,6 +25,10 @@ class ProductImport::Check
     problems.concat barcode_conflicts(barcodes)
 
     existing = @account.products.where(sku: skus.keys).count
+    unless @account.room_for?(:products, rows_count - existing)
+      plan = @account.subscription_plan
+      problems << { "line" => nil, "messages" => [ "This adds #{Plan.allowance(rows_count - existing, :products)}; your #{plan.name} plan allows #{Plan.allowance(plan.products, :products)} in all. Upgrade on the Billing page first." ] }
+    end
     @import.update!(status: problems.any? ? :needs_fixing : :ready, rows_count: rows_count,
       created_count: rows_count - existing, updated_count: existing, problems: problems.first(ProductImport::MAX_PROBLEMS), preview: preview)
   rescue CSV::MalformedCSVError => error

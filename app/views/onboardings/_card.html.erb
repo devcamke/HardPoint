@@ -1,0 +1,8 @@
+<%# locals: (onboarding:) %>
+<div id="onboarding_card" class="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border-2 border-safety-300 bg-white px-5 py-4">
+  <div class="min-w-0">
+    <p class="font-semibold">Set up your shop: <%= onboarding.done_count %> of <%= onboarding.required_steps.size %> done</p>
+    <p class="hint">Next: <%= onboarding.required_steps.reject(&:done?).first&.title || "you're ready to sell" %>.</p>
+  </div>
+  <%= link_to "Continue setup", onboarding_path, class: "btn-primary" %>
+</div>

@@ -1,5 +1,5 @@
 class Account < ApplicationRecord
-  include CatalogueDefaults, DailySummary, Eventable, Isolation, LiveDashboard, LowStockDigest
+  include CatalogueDefaults, DailySummary, Eventable, Isolation, LiveDashboard, LowStockDigest, Subscription, BillingCycle, Closure
   # Creation is recorded by Signup, once the new account is current.
   tracks_lifecycle only: :update
 
@@ -47,6 +47,7 @@ class Account < ApplicationRecord
   has_many :etims_devices, class_name: "Etims::Device", dependent: :destroy
   has_many :etims_submissions, class_name: "Etims::Submission", dependent: :destroy
   has_many :sms_messages, class_name: "Sms::Message", dependent: :delete_all
+  has_many :support_requests, dependent: :delete_all
 
   normalizes :subdomain, with: ->(subdomain) { subdomain.strip.downcase }
 
@@ -59,7 +60,15 @@ class Account < ApplicationRecord
   validates :currency, format: { with: /\A[A-Z]{3}\z/, message: "must be a 3-letter ISO code" }
 
   private
+    # Subscription and setup bookkeeping gets its own events (plan_changed, suspended…), not "changed shop settings".
+    SUBSCRIPTION_ATTRIBUTES = %w[ plan subscription_status trial_ends_at current_period_ends_at trial_reminder_sent_at suspended_reason
+      onboarding_completed_at taxes_confirmed_at test_receipt_printed_at deletion_scheduled_for deletion_requested_by_id ].freeze
+
     def event_account
       self
+    end
+
+    def tracked_changes
+      super.except(*SUBSCRIPTION_ATTRIBUTES)
     end
 end

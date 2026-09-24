@@ -1,0 +1,4 @@
+<p style="margin-top:0;">Hello,</p>
+<p>Thank you. We've received <%= money(@invoice.amount_cents, currency: @invoice.currency) %> for invoice <strong><%= @invoice.number %></strong>
+  (<%= @invoice.description %>)<%= " by #{@payment.provider == "mpesa" ? "M-Pesa" : "card"}, reference #{@payment.receipt}" if @payment&.receipt %>.</p>
+<p>The paid invoice is attached for your records.</p>

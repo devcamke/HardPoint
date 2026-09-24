@@ -75,13 +75,4 @@ class Admin::AccountsControllerTest < ActionDispatch::IntegrationTest
       assert_redirected_to new_session_path
     end
   end
-
-  private
-    def sign_in_as_administrator
-      host! "admin.localhost"
-      post admin_session_path, params: { email_address: users(:ada).email_address, password: "password" }
-      assert_redirected_to new_admin_two_factor_path
-      post admin_two_factor_path, params: { code: current_code(users(:ada).two_factor_secret) }
-      assert_redirected_to admin_root_path
-    end
 end

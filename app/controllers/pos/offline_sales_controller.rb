@@ -1,6 +1,7 @@
 # Sales rung up while the till was offline, sent when it's back. Each is recorded once however
 # many times it's sent; the answer says what happened to each, so the till can let them go.
 class Pos::OfflineSalesController < ApplicationController
+  allow_while_locked
   before_action :ensure_can_sell
   rate_limit to: 60, within: 1.minute, only: :create
 

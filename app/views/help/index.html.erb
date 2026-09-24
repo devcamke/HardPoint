@@ -1,0 +1,37 @@
+<% content_for :title, "Help centre" %>
+
+<section class="bg-navy-950 text-white">
+  <div class="mx-auto max-w-3xl px-4 py-12">
+    <h1 class="text-4xl font-extrabold">Help centre</h1>
+    <p class="mt-2 text-navy-200">Guides to setting up and running your shop on HardPoint.</p>
+    <%= form_with url: help_path, method: :get, class: "mt-6 flex gap-2" do |form| %>
+      <%= form.search_field :q, value: @query, placeholder: "Search the guides, e.g. printer, M-Pesa, import", class: "input flex-1 text-navy-900", aria: { label: "Search the help centre" } %>
+      <%= form.submit "Search", class: "btn-primary", name: nil %>
+    <% end %>
+  </div>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 py-12">
+  <% if @query.present? && @articles.empty? %>
+    <p class="text-steel-600">Nothing matches "<%= @query %>". <%= link_to "Ask us on WhatsApp", whatsapp_support_url("Hello HardPoint, I need help with: #{@query}"), class: "link", target: "_blank", rel: "noopener" %>.</p>
+  <% end %>
+
+  <% HelpArticle::SECTIONS.each do |section| %>
+    <% articles = @articles.select { _1.section == section } %>
+    <% next if articles.empty? %>
+    <h2 class="mt-8 mb-3 text-sm font-semibold uppercase tracking-wide text-steel-600 first:mt-0"><%= section %></h2>
+    <div class="space-y-3">
+      <% articles.each do |article| %>
+        <%= link_to help_article_path(article), class: "card block hover:border-safety-300" do %>
+          <p class="font-semibold"><%= article.title %></p>
+          <p class="mt-1 text-sm text-steel-600"><%= article.summary %></p>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="mt-12 rounded-lg border border-safety-200 bg-safety-50 p-5">
+    <p class="font-semibold">Still stuck?</p>
+    <p class="mt-1 text-sm text-steel-700">Signed in to your shop, use <strong>Help → Contact support</strong> and we'll see which page you were on. Or chat with us on <%= link_to "WhatsApp", whatsapp_support_url, class: "link", target: "_blank", rel: "noopener" %>.</p>
+  </div>
+</section>

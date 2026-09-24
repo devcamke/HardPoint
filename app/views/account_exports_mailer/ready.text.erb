@@ -1,0 +1,7 @@
+Hello <%= @export.requested_by.name %>,
+
+The export of <%= @account.name %>'s data you asked for is ready: all your records as spreadsheet (CSV) files in one ZIP file.
+
+Download it from HardPoint (you'll need to sign in): <%= account_data_url(subdomain: @account.subdomain) %>
+
+It's available until <%= l(@export.expires_at.in_time_zone(@account.time_zone), format: :long) %>, then it's deleted.

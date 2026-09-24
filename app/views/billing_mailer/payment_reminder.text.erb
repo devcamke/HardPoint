@@ -1,0 +1,5 @@
+Hello,
+
+A reminder that HardPoint invoice <%= @invoice.number %> for <%= @account.name %> (<%= money(@invoice.amount_cents, currency: @invoice.currency) %>) is due on <%= @invoice.due_on.to_fs(:long) %>. If it isn't paid by then, the shop becomes read-only: you can still see and export everything, but not sell or make changes.
+
+Pay by M-Pesa or card: <%= billing_url(subdomain: @account.subdomain) %>

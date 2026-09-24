@@ -1,0 +1,48 @@
+<% content_for :title, "Set up your shop" %>
+<% details = {
+  branches: [ "Add an address and phone number to your branch (they print on receipts), add any other branches or yards, and a till for each counter.", [ [ "Branches", branches_path ], [ "Tills", registers_path ] ] ],
+  taxes: [ "VAT at 16% is set for new products, with zero-rated and exempt rates for goods that need them. Prices you enter include VAT.", [ [ "Tax rates", tax_rates_path ] ] ],
+  products: [ "Import your price list from a spreadsheet, or add products one by one.", [ [ "Import a spreadsheet", new_product_import_path ], [ "Add a product", new_product_path ] ] ],
+  staff: [ "Invite managers, cashiers and stock clerks. Each gets their own login and a PIN for quick switching at the till.", [ [ "Invite someone", new_membership_path ] ] ],
+  receipt: [ "Print a sample receipt to check the paper width and that the text fits.", [ [ "Print a test receipt", onboarding_test_receipt_path ] ] ],
+  mpesa: [ "Take payment prompts at the till and match money paid to your Paybill or Till.", [ [ "Connect M-Pesa", mpesa_shortcodes_path ] ] ],
+  etims: [ "Send every sale to KRA with its signed QR code on the receipt.", [ [ "Connect eTIMS", etims_devices_path ] ] ]
+} %>
+
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-bold">Set up your shop</h1>
+    <p class="mt-1 text-steel-600"><%= @onboarding.done_count %> of <%= @onboarding.required_steps.size %> done. Most shops are ready in an afternoon. <%= link_to "Read the guide", help_article_url("getting-started", subdomain: false), class: "link", target: "_blank", rel: "noopener" %></p>
+  </div>
+  <% unless @onboarding.finished? %>
+    <%= button_to (@onboarding.ready? ? "All done: hide this checklist" : "Hide this checklist"), onboarding_completion_path,
+          class: @onboarding.ready? ? "btn-primary" : "btn-secondary" %>
+  <% end %>
+</div>
+
+<div class="mb-8 h-2 overflow-hidden rounded-full bg-concrete-200" role="progressbar" aria-valuemin="0" aria-valuemax="<%= @onboarding.required_steps.size %>" aria-valuenow="<%= @onboarding.done_count %>">
+  <div class="h-full bg-safety-500" style="width: <%= (100.0 * @onboarding.done_count / @onboarding.required_steps.size).round %>%"></div>
+</div>
+
+<ol class="space-y-3">
+  <% @onboarding.steps.each.with_index(1) do |step, number| %>
+    <% description, actions = details.fetch(step.key) %>
+    <li id="step_<%= step.key %>" class="card flex flex-wrap items-start gap-4 <%= "opacity-75" if step.done? %>">
+      <span class="flex size-9 shrink-0 items-center justify-center rounded-full font-bold <%= step.done? ? "bg-green-600 text-white" : "bg-concrete-200 text-navy-900" %>">
+        <%= step.done? ? "✓" : number %>
+      </span>
+      <div class="min-w-0 flex-1">
+        <p class="font-semibold"><%= step.title %> <% if step.optional? %><span class="badge ml-1">Optional</span><% end %></p>
+        <p class="text-sm text-steel-600"><%= description %></p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <% actions.each.with_index do |(label, path), index| %>
+          <%= link_to label, path, class: index.zero? && !step.done? ? "btn-primary" : "btn-secondary" %>
+        <% end %>
+        <% if step.key == :taxes && !step.done? %>
+          <%= button_to "They're right", onboarding_tax_confirmation_path, class: "btn-secondary" %>
+        <% end %>
+      </div>
+    </li>
+  <% end %>
+</ol>

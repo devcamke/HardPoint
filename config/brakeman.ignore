@@ -33,6 +33,29 @@
         79
       ],
       "note": "verification_url always starts with a fixed https KRA address (Etims::Device::VERIFY_URLS) and the KRA signature is stripped to alphanumerics, so it cannot carry a javascript: or other scheme."
+    },
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "420385fd1f60531403d1c808c8d5646e912cd1eb2b884071bd91ae11e6ef64df",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/billings/card_payments_controller.rb",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(Billing::Paystack.new.checkout_url(open_invoice.payments.create!(:account => Current.account, :provider => \"paystack\", :amount_cents => open_invoice.amount_cents, :reference => (\"HP-#{open_invoice.id}-#{SecureRandom.hex(6)}\")), :email => Current.user.email_address, :callback_url => billing_card_return_url), :allow_other_host => true, :status => :see_other)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Billings::CardPaymentsController",
+        "method": "create"
+      },
+      "user_input": "Billing::Paystack.new.checkout_url(open_invoice.payments.create!(:account => Current.account, :provider => \"paystack\", :amount_cents => open_invoice.amount_cents, :reference => (\"HP-#{open_invoice.id}-#{SecureRandom.hex(6)}\")), :email => Current.user.email_address, :callback_url => billing_card_return_url)",
+      "confidence": "Weak",
+      "cwe_id": [
+        601
+      ],
+      "note": "Paystack's checkout page: Billing::Paystack#checkout_url only returns https URLs on paystack.com."
     }
   ],
   "brakeman_version": "8.0.6"

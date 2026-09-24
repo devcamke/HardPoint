@@ -1,5 +1,6 @@
 # Shows freshly generated recovery codes exactly once, right after two-factor is turned on.
 class My::RecoveryCodesController < ApplicationController
+  allow_while_locked
   allow_without_two_factor
 
   def show

@@ -1,0 +1,24 @@
+<%# locals: (plans:) %>
+<div class="grid gap-6 md:grid-cols-3">
+  <% plans.each do |plan| %>
+    <div id="plan_<%= plan.key %>" class="card flex flex-col <%= "border-2 border-safety-400 shadow-md" if plan.key == "business" %>">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-bold"><%= plan.name %></h3>
+        <% if plan.key == "business" %><span class="badge bg-safety-100 text-safety-800">Most shops</span><% end %>
+      </div>
+      <p class="mt-1 text-sm text-steel-600"><%= plan.blurb %></p>
+      <p class="mt-4"><span class="text-4xl font-extrabold tabular-nums"><%= plan.price %></span> <span class="text-steel-600">/ month</span></p>
+      <ul class="mt-5 flex-1 space-y-2 text-sm">
+        <% Plan::RESOURCES.each do |resource| %>
+          <li class="flex gap-2">
+            <span class="text-safety-600" aria-hidden="true">✓</span>
+            <%= plan.limit(resource) ? Plan.allowance(plan.limit(resource), resource) : "Unlimited #{Plan::NOUNS[resource].pluralize}" %>
+          </li>
+        <% end %>
+        <li class="flex gap-2"><span class="text-safety-600" aria-hidden="true">✓</span> M-Pesa, KRA eTIMS and offline selling</li>
+      </ul>
+      <%= link_to "Start free trial", new_signup_path(plan: plan.key), class: "#{plan.key == "business" ? "btn-primary" : "btn-secondary"} mt-6 w-full" %>
+    </div>
+  <% end %>
+</div>
+<p class="mt-4 text-center text-sm text-steel-600">Prices in Kenya shillings, per shop, billed monthly. <%= Plan::TRIAL.inspect %> free, no card needed. Pay by M-Pesa or card.</p>

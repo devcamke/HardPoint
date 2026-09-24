@@ -27,6 +27,7 @@
     <%= render "shared/nav_link", name: "Settings", path: settings_path %>
 
     <div class="ml-auto flex items-center gap-3">
+      <%= link_to "Help", new_support_request_path, class: "hover:text-white" %>
       <%= link_to "Switch user", new_session_switch_path, class: "hover:text-white" %>
       <%= link_to my_profile_path, class: "hover:text-white" do %>
         <%= Current.user.name %> <span class="badge ml-1 bg-navy-800 text-navy-100"><%= current_membership&.role&.humanize %></span>

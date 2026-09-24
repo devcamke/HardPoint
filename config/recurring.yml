@@ -28,3 +28,13 @@ production:
   etims_retry:
     class: Etims::RetryJob
     schedule: every 5 minutes
+
+  # Trial reminders, monthly invoices, payment reminders and read-only mode for unpaid shops.
+  billing:
+    class: BillingJob
+    schedule: every day at 5am
+
+  # Exports past their week are deleted, and so are shops 30 days after an owner closed them.
+  account_maintenance:
+    class: AccountMaintenanceJob
+    schedule: every day at 1am

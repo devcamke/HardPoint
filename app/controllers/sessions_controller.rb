@@ -1,4 +1,5 @@
 class SessionsController < ApplicationController
+  allow_while_locked
   allow_unauthenticated_access only: %i[ new create ]
   allow_without_two_factor
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Try again later." }
@@ -8,7 +9,9 @@ class SessionsController < ApplicationController
 
   def create
     if user = Current.account.users.authenticate_by(params.permit(:email_address, :password))
-      if user.two_factor_enabled?
+      if Current.account.closing? && !Current.account.memberships.find_by(user: user)&.owner?
+        redirect_to new_session_path, alert: "#{Current.account.name} is closing; only its owners can sign in."
+      elsif user.two_factor_enabled?
         session[:two_factor_challenge] = { "user_id" => user.id, "account_id" => Current.account.id, "started_at" => Time.current.to_i }
         redirect_to new_session_two_factor_path
       else

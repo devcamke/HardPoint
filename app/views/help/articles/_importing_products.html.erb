@@ -1,0 +1,15 @@
+<p>Go to <strong>Products → Import</strong> and choose a CSV file. Most spreadsheet programs save one with <strong>File → Save as → CSV</strong>. The first row names the columns; only <code>sku</code> and <code>name</code> are required.</p>
+
+<ul>
+  <li><code>sku</code>: your product code. A row whose SKU already exists updates that product.</li>
+  <li><code>name</code>, <code>category</code>, <code>brand</code>, <code>unit</code> (new categories, brands and units are created for you).</li>
+  <li><code>price</code> (including VAT) and <code>cost</code>, in shillings.</li>
+  <li><code>barcode</code>, <code>tax_rate</code>, <code>reorder_level</code>, <code>active</code>.</li>
+  <li><code>stock</code>: how many are on the shelf now, at the branch you choose on the import screen.</li>
+</ul>
+
+<p>HardPoint checks the whole file before changing anything and shows the first rows as they'll be imported. If there are problems (a missing name, a price that isn't a number, a barcode already used by another product) it lists them by line so you can fix the file and try again.</p>
+
+<p>To change prices in bulk, <strong>export</strong> your products, edit the price column and import the file again. Only the columns in the file are changed.</p>
+
+<p>Your plan sets how many active products you can have. An import that would go over it is held back, with a note to upgrade on the Billing page.</p>

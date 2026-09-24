@@ -19,6 +19,9 @@
           <span class="badge bg-safety-500 text-navy-900">Platform admin</span>
         <% end %>
         <% if current_administrator %>
+          <%= link_to "Shops", admin_accounts_path, class: "hover:text-white" %>
+          <%= link_to "Support", admin_support_requests_path, class: "hover:text-white" %>
+          <%= link_to "Announcements", admin_announcements_path, class: "hover:text-white" %>
           <span class="ml-auto"><%= current_administrator.name %></span>
           <%= button_to "Sign out", admin_session_path, method: :delete, class: "cursor-pointer hover:text-white" %>
         <% end %>

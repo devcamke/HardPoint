@@ -1,5 +1,6 @@
 class Branch < ApplicationRecord
-  include Eventable
+  include Eventable, CountsTowardsPlan
+  counts_towards_plan :branches
   tracks_lifecycle
 
   belongs_to :account, default: -> { Current.account }

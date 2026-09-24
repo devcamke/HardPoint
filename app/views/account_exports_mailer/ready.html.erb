@@ -1,0 +1,4 @@
+<p>Hello <%= @export.requested_by.name %>,</p>
+<p>The export of <strong><%= @account.name %></strong>'s data you asked for is ready: all your records as spreadsheet (CSV) files in one ZIP file.</p>
+<p style="margin-top:24px;"><%= link_to "Download it from HardPoint", account_data_url(subdomain: @account.subdomain), style: "display:inline-block; background:#F76707; color:#102A43; padding:10px 16px; border-radius:6px; font-weight:700; text-decoration:none;" %></p>
+<p>You'll need to sign in. The download is available until <%= l(@export.expires_at.in_time_zone(@account.time_zone), format: :long) %>, then it's deleted.</p>

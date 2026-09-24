@@ -43,6 +43,8 @@
       </div>
     </header>
     <%= render "shared/impersonation_banner" if Current.session.impersonated? %>
+    <%= render "shared/subscription_banner" %>
+    <%= render "shared/announcements" %>
     <div hidden class="bg-safety-500 px-4 py-2 text-sm font-semibold text-navy-900" data-offline-sync-target="banner">
       <% if controller_name == "offlines" %>
         You're back online and every offline sale has been sent. <%= link_to "Go back to the till", pos_path, class: "underline" %>

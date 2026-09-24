@@ -1,0 +1,30 @@
+<% content_for :title, "Announcements" %>
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Announcements</h1>
+  <%= link_to "New announcement", new_admin_announcement_path, class: "btn-primary" %>
+</div>
+<p class="hint mb-4">Shown as a banner to everyone signed in to any shop, between the start and end times. Staff can dismiss them.</p>
+
+<div class="card">
+  <% if @announcements.any? %>
+    <table class="table">
+      <thead><tr><th>Title</th><th>Level</th><th>Showing</th><th></th></tr></thead>
+      <tbody>
+        <% @announcements.each do |announcement| %>
+          <tr id="<%= dom_id(announcement) %>">
+            <td class="font-medium"><%= announcement.title %></td>
+            <td><%= announcement.level.humanize %></td>
+            <td>
+              <%= l(announcement.starts_at, format: :short) %> to <%= announcement.ends_at ? l(announcement.ends_at, format: :short) : "until removed" %>
+              <% if announcement.current? %><span class="badge ml-1 bg-green-50 text-green-800">Live</span><% end %>
+            </td>
+            <td class="text-right"><%= link_to "Edit", edit_admin_announcement_path(announcement), class: "link" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-steel-600">No announcements yet.</p>
+  <% end %>
+</div>

@@ -1,5 +1,9 @@
 <% content_for :title, "Dashboard" %>
 
+<% if current_membership.owner? && Current.account.onboarding_completed_at.nil? %>
+  <%= render "onboardings/card", onboarding: Onboarding.new(Current.account) %>
+<% end %>
+
 <% if @dashboard %>
   <%= render "dashboards/owner", dashboard: @dashboard %>
 <% else %>

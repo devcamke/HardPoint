@@ -1,4 +1,5 @@
 class PasswordsController < ApplicationController
+  allow_while_locked
   allow_unauthenticated_access
   allow_without_two_factor
   before_action :set_user_by_token, only: %i[ edit update ]

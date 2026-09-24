@@ -1,0 +1,30 @@
+<% lines = [ [ "Cement 50 kg (sample)", "2 bag", 850_00, 1_700_00 ], [ "Wire nails 3\" (sample)", "1.5 kg", 240_00, 360_00 ], [ "PVC pipe 1/2\" (sample)", "6 m", 95_00, 570_00 ] ] %>
+<% total = lines.sum(&:last) %>
+<div class="receipt">
+  <p class="center bold big"><%= Current.account.name %></p>
+  <p class="center"><%= @branch.name %><%= tag.br + @branch.address if @branch.address.present? %><%= tag.br + "Tel #{@branch.phone}" if @branch.phone.present? %></p>
+  <hr>
+  <p class="center bold">*** TEST RECEIPT, NOT A SALE ***</p>
+  <div class="row"><span><%= l(Time.current, format: :short) %></span><span>Test</span></div>
+  <hr>
+  <% lines.each do |description, quantity, price, amount| %>
+    <div class="item">
+      <div><%= description %></div>
+      <div class="row muted"><span><%= quantity %> × <%= number_with_precision(price / 100.0, precision: 2, delimiter: ",") %></span><span><%= number_with_precision(amount / 100.0, precision: 2, delimiter: ",") %></span></div>
+    </div>
+  <% end %>
+  <hr>
+  <div class="row bold big"><span>TOTAL</span><span><%= money(total) %></span></div>
+  <div class="row muted"><span>Incl. tax</span><span><%= money((total * 16 / 116.0).round) %></span></div>
+  <hr>
+  <p class="center">If this line fits the paper, the width is right:</p>
+  <p class="center">123456789012345678901234567890123456789012</p>
+  <hr>
+  <p class="center"><%= Current.account.receipt_footer.presence || "Thank you for shopping with us" %></p>
+</div>
+
+<div class="toolbar">
+  <p>Did the receipt print clearly, with nothing cut off?</p>
+  <%= button_to "Yes, it printed properly", onboarding_test_receipt_path %>
+  <p><%= link_to "Back to setup", onboarding_path %></p>
+</div>

@@ -8,10 +8,12 @@ class Signup
   attribute :owner_name, :string
   attribute :email_address, :string
   attribute :password, :string
+  attribute :plan, :string, default: "business"
 
   attr_reader :account
 
   validates :shop_name, :subdomain, :owner_name, :email_address, :password, presence: true
+  validates :plan, inclusion: { in: Plan.all.map(&:key) }
   validates :password, length: { minimum: 10 }, allow_blank: true, unless: :existing_user
   validate :existing_user_password_matches
 
@@ -19,7 +21,7 @@ class Signup
     return false unless valid?
 
     Account.transaction do
-      @account = Account.create!(name: shop_name, subdomain: subdomain)
+      @account = Account.create!(name: shop_name, subdomain: subdomain, plan: plan)
 
       Current.set(account: @account, user: owner) do
         @account.track_event "created"

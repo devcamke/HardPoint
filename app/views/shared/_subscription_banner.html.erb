@@ -1,0 +1,25 @@
+<% account = Current.account %>
+<% owner = current_membership&.owner? %>
+<% message, tone = if account.closing?
+     [ "This shop is closing: it's read-only, and its data will be deleted on #{l(account.deletion_scheduled_for.in_time_zone(account.time_zone).to_date, format: :long)}.", :red ]
+   elsif account.suspended?
+     [ "This shop is suspended#{": #{account.suspended_reason}" if account.suspended_reason.present?}. You can look but not change anything. Contact HardPoint support.", :red ]
+   elsif account.read_only?
+     [ owner ? "The HardPoint invoice is overdue, so this shop is read-only: nothing can be sold or changed until it's paid." : "This shop is read-only until the owner pays the HardPoint invoice. You can look but not sell.", :red ]
+   elsif account.payment_due? && owner && account.open_invoice
+     [ "Your HardPoint invoice is due on #{l(account.open_invoice.due_on, format: :long)}.", :orange ]
+   elsif account.trialing? && owner && account.trial_days_left && account.trial_days_left <= 7
+     [ "Your free trial ends in #{pluralize(account.trial_days_left, "day")}.", :orange ]
+   end %>
+<% if message %>
+  <div id="subscription_banner" class="<%= tone == :red ? "bg-red-700 text-white" : "bg-safety-100 text-navy-900" %> px-4 py-2 text-sm" role="status">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
+      <span><%= message %></span>
+      <% if owner && account.closing? %>
+        <%= link_to "Export or cancel", account_data_path, class: "font-semibold underline" %>
+      <% elsif owner && !account.suspended? %>
+        <%= link_to (account.trialing? ? "Choose a plan" : "Pay now"), billing_path, class: "font-semibold underline" %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

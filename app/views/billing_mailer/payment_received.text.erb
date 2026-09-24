@@ -1,0 +1,5 @@
+Hello,
+
+Thank you. We've received <%= money(@invoice.amount_cents, currency: @invoice.currency) %> for invoice <%= @invoice.number %> (<%= @invoice.description %>)<%= " by #{@payment.provider == "mpesa" ? "M-Pesa" : "card"}, reference #{@payment.receipt}" if @payment&.receipt %>.
+
+The paid invoice is attached for your records.

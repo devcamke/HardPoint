@@ -39,5 +39,12 @@ module Hardpoint
 
     # Texts go to Africa's Talking only in production; elsewhere they're kept in Sms::Outbox.
     config.x.sms_outbox = !Rails.env.production?
+
+    # How shops reach HardPoint: the support inbox (support requests are emailed here) and a WhatsApp
+    # number in international format without the plus.
+    config.x.support = {
+      email: ENV.fetch("SUPPORT_EMAIL", "support@hardpoint.app"),
+      whatsapp: ENV.fetch("SUPPORT_WHATSAPP", "254700000000")
+    }
   end
 end

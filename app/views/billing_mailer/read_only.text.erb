@@ -1,0 +1,5 @@
+Hello,
+
+HardPoint invoice <%= @invoice.number %> (<%= money(@invoice.amount_cents, currency: @invoice.currency) %>) was due on <%= @invoice.due_on.to_fs(:long) %>, so <%= @account.name %> is now read-only. Nothing is lost: you can see and export everything. Selling and changes come back the moment it's paid.
+
+Pay by M-Pesa or card: <%= billing_url(subdomain: @account.subdomain) %>

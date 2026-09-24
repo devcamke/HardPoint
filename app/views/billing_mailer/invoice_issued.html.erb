@@ -1,0 +1,5 @@
+<p style="margin-top:0;">Hello,</p>
+<p>Here's the HardPoint invoice for <strong><%= @account.name %></strong>: <%= @invoice.description %>.</p>
+<p style="font-size:18px; font-weight:700;"><%= money(@invoice.amount_cents, currency: @invoice.currency) %> due by <%= @invoice.due_on.to_fs(:long) %></p>
+<p>The invoice is attached. Pay by M-Pesa or card from the Billing page.</p>
+<%= render "billing_mailer/pay" %>

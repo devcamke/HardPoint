@@ -1,0 +1,7 @@
+<%= @support_request.reference %> from <%= @user.name %> (<%= @user.email_address %>), <%= @account.memberships.find_by(user: @user)&.role&.humanize %> at <%= @account.name %> (<%= @account.subdomain %>)
+Plan: <%= @account.subscription_plan.name %>, <%= @account.subscription_status.humanize.downcase %>
+Page: <%= @support_request.page.presence || "not given" %>
+
+<%= @support_request.subject %>
+
+<%= @support_request.body %>

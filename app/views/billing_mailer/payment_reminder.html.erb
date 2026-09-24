@@ -1,0 +1,5 @@
+<p style="margin-top:0;">Hello,</p>
+<p>A reminder that HardPoint invoice <strong><%= @invoice.number %></strong> for <strong><%= @account.name %></strong>
+  (<%= money(@invoice.amount_cents, currency: @invoice.currency) %>) is due on <strong><%= @invoice.due_on.to_fs(:long) %></strong>.
+  If it isn't paid by then, the shop becomes read-only: you can still see and export everything, but not sell or make changes.</p>
+<%= render "billing_mailer/pay" %>

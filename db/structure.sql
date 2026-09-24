@@ -28,6 +28,78 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: account_deletions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.account_deletions (
+    id bigint NOT NULL,
+    former_account_id bigint NOT NULL,
+    name character varying NOT NULL,
+    subdomain character varying NOT NULL,
+    requested_by_email character varying,
+    billing_invoices jsonb DEFAULT '[]'::jsonb NOT NULL,
+    requested_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: account_deletions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.account_deletions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: account_deletions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.account_deletions_id_seq OWNED BY public.account_deletions.id;
+
+
+--
+-- Name: account_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.account_exports (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    requested_by_id bigint NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    expires_at timestamp(6) without time zone,
+    failure character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.account_exports FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: account_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.account_exports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: account_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.account_exports_id_seq OWNED BY public.account_exports.id;
+
+
+--
 -- Name: accounts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -42,7 +114,18 @@ CREATE TABLE public.accounts (
     require_two_factor_for_managers boolean DEFAULT false NOT NULL,
     max_cashier_discount_percent numeric(5,2) DEFAULT 5.0 NOT NULL,
     receipt_footer text,
-    sms_enabled boolean DEFAULT false NOT NULL
+    sms_enabled boolean DEFAULT false NOT NULL,
+    plan character varying DEFAULT 'business'::character varying NOT NULL,
+    subscription_status character varying DEFAULT 'trialing'::character varying NOT NULL,
+    trial_ends_at timestamp(6) without time zone,
+    current_period_ends_at timestamp(6) without time zone,
+    trial_reminder_sent_at timestamp(6) without time zone,
+    suspended_reason character varying,
+    onboarding_completed_at timestamp(6) without time zone,
+    taxes_confirmed_at timestamp(6) without time zone,
+    test_receipt_printed_at timestamp(6) without time zone,
+    deletion_scheduled_for timestamp(6) without time zone,
+    deletion_requested_by_id bigint
 );
 
 
@@ -198,6 +281,41 @@ ALTER SEQUENCE public.admin_sessions_id_seq OWNED BY public.admin_sessions.id;
 
 
 --
+-- Name: announcements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.announcements (
+    id bigint NOT NULL,
+    title character varying NOT NULL,
+    body text,
+    level character varying DEFAULT 'info'::character varying NOT NULL,
+    starts_at timestamp(6) without time zone NOT NULL,
+    ends_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: announcements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.announcements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: announcements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.announcements_id_seq OWNED BY public.announcements.id;
+
+
+--
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -243,6 +361,104 @@ CREATE SEQUENCE public.barcodes_id_seq
 --
 
 ALTER SEQUENCE public.barcodes_id_seq OWNED BY public.barcodes.id;
+
+
+--
+-- Name: billing_invoice_numbers; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.billing_invoice_numbers
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: billing_invoices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.billing_invoices (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    number character varying NOT NULL,
+    plan character varying NOT NULL,
+    period_start date NOT NULL,
+    period_end date NOT NULL,
+    amount_cents bigint NOT NULL,
+    currency character varying DEFAULT 'KES'::character varying NOT NULL,
+    status character varying DEFAULT 'open'::character varying NOT NULL,
+    due_on date NOT NULL,
+    paid_at timestamp(6) without time zone,
+    reminded_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.billing_invoices FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: billing_invoices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.billing_invoices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: billing_invoices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.billing_invoices_id_seq OWNED BY public.billing_invoices.id;
+
+
+--
+-- Name: billing_payments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.billing_payments (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    invoice_id bigint NOT NULL,
+    user_id bigint,
+    provider character varying NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    amount_cents bigint NOT NULL,
+    reference character varying NOT NULL,
+    receipt character varying,
+    phone character varying,
+    failure character varying,
+    completed_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.billing_payments FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: billing_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.billing_payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: billing_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.billing_payments_id_seq OWNED BY public.billing_payments.id;
 
 
 --
@@ -2233,6 +2449,44 @@ ALTER SEQUENCE public.suppliers_id_seq OWNED BY public.suppliers.id;
 
 
 --
+-- Name: support_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.support_requests (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    subject character varying NOT NULL,
+    body text NOT NULL,
+    page character varying,
+    status character varying DEFAULT 'open'::character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.support_requests FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: support_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.support_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: support_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.support_requests_id_seq OWNED BY public.support_requests.id;
+
+
+--
 -- Name: tax_rates; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2345,6 +2599,20 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: account_deletions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_deletions ALTER COLUMN id SET DEFAULT nextval('public.account_deletions_id_seq'::regclass);
+
+
+--
+-- Name: account_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_exports ALTER COLUMN id SET DEFAULT nextval('public.account_exports_id_seq'::regclass);
+
+
+--
 -- Name: accounts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2380,10 +2648,31 @@ ALTER TABLE ONLY public.admin_sessions ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: announcements id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.announcements ALTER COLUMN id SET DEFAULT nextval('public.announcements_id_seq'::regclass);
+
+
+--
 -- Name: barcodes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.barcodes ALTER COLUMN id SET DEFAULT nextval('public.barcodes_id_seq'::regclass);
+
+
+--
+-- Name: billing_invoices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_invoices ALTER COLUMN id SET DEFAULT nextval('public.billing_invoices_id_seq'::regclass);
+
+
+--
+-- Name: billing_payments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_payments ALTER COLUMN id SET DEFAULT nextval('public.billing_payments_id_seq'::regclass);
 
 
 --
@@ -2730,6 +3019,13 @@ ALTER TABLE ONLY public.suppliers ALTER COLUMN id SET DEFAULT nextval('public.su
 
 
 --
+-- Name: support_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.support_requests ALTER COLUMN id SET DEFAULT nextval('public.support_requests_id_seq'::regclass);
+
+
+--
 -- Name: tax_rates id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2748,6 +3044,22 @@ ALTER TABLE ONLY public.units ALTER COLUMN id SET DEFAULT nextval('public.units_
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: account_deletions account_deletions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_deletions
+    ADD CONSTRAINT account_deletions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: account_exports account_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_exports
+    ADD CONSTRAINT account_exports_pkey PRIMARY KEY (id);
 
 
 --
@@ -2791,6 +3103,14 @@ ALTER TABLE ONLY public.admin_sessions
 
 
 --
+-- Name: announcements announcements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.announcements
+    ADD CONSTRAINT announcements_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2804,6 +3124,22 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.barcodes
     ADD CONSTRAINT barcodes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: billing_invoices billing_invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_invoices
+    ADD CONSTRAINT billing_invoices_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: billing_payments billing_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_payments
+    ADD CONSTRAINT billing_payments_pkey PRIMARY KEY (id);
 
 
 --
@@ -3207,6 +3543,14 @@ ALTER TABLE ONLY public.suppliers
 
 
 --
+-- Name: support_requests support_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.support_requests
+    ADD CONSTRAINT support_requests_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: tax_rates tax_rates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3252,10 +3596,38 @@ CREATE UNIQUE INDEX idx_on_product_id_price_list_id_min_quantity_f69598ecfa ON p
 
 
 --
+-- Name: index_account_exports_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_account_exports_on_account_id_and_created_at ON public.account_exports USING btree (account_id, created_at);
+
+
+--
+-- Name: index_account_exports_on_requested_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_account_exports_on_requested_by_id ON public.account_exports USING btree (requested_by_id);
+
+
+--
+-- Name: index_accounts_on_deletion_requested_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_deletion_requested_by_id ON public.accounts USING btree (deletion_requested_by_id);
+
+
+--
 -- Name: index_accounts_on_subdomain; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_accounts_on_subdomain ON public.accounts USING btree (subdomain);
+
+
+--
+-- Name: index_accounts_on_subscription_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_subscription_status ON public.accounts USING btree (subscription_status);
 
 
 --
@@ -3312,6 +3684,41 @@ CREATE INDEX index_barcodes_on_product_id ON public.barcodes USING btree (produc
 --
 
 CREATE INDEX index_barcodes_on_product_unit_id ON public.barcodes USING btree (product_unit_id);
+
+
+--
+-- Name: index_billing_invoices_on_account_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_billing_invoices_on_account_id_and_status ON public.billing_invoices USING btree (account_id, status);
+
+
+--
+-- Name: index_billing_invoices_on_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_billing_invoices_on_number ON public.billing_invoices USING btree (number);
+
+
+--
+-- Name: index_billing_payments_on_invoice_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_billing_payments_on_invoice_id ON public.billing_payments USING btree (invoice_id);
+
+
+--
+-- Name: index_billing_payments_on_reference; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_billing_payments_on_reference ON public.billing_payments USING btree (reference);
+
+
+--
+-- Name: index_billing_payments_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_billing_payments_on_user_id ON public.billing_payments USING btree (user_id);
 
 
 --
@@ -4407,6 +4814,20 @@ CREATE INDEX index_suppliers_on_name ON public.suppliers USING gin (name public.
 
 
 --
+-- Name: index_support_requests_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_support_requests_on_account_id_and_created_at ON public.support_requests USING btree (account_id, created_at);
+
+
+--
+-- Name: index_support_requests_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_support_requests_on_user_id ON public.support_requests USING btree (user_id);
+
+
+--
 -- Name: index_tax_rates_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4433,6 +4854,14 @@ CREATE UNIQUE INDEX index_users_on_email_address ON public.users USING btree (em
 
 ALTER TABLE ONLY public.stock_count_lines
     ADD CONSTRAINT fk_rails_039c3d997e FOREIGN KEY (stock_count_id) REFERENCES public.stock_counts(id) DEFERRABLE;
+
+
+--
+-- Name: support_requests fk_rails_03ae9ca37e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.support_requests
+    ADD CONSTRAINT fk_rails_03ae9ca37e FOREIGN KEY (user_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -4484,11 +4913,27 @@ ALTER TABLE ONLY public.mpesa_shortcodes
 
 
 --
+-- Name: billing_payments fk_rails_0f049c1b1f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_payments
+    ADD CONSTRAINT fk_rails_0f049c1b1f FOREIGN KEY (user_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: stock_transfer_lines fk_rails_100e940960; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stock_transfer_lines
     ADD CONSTRAINT fk_rails_100e940960 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: billing_payments fk_rails_13e984c3e1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_payments
+    ADD CONSTRAINT fk_rails_13e984c3e1 FOREIGN KEY (invoice_id) REFERENCES public.billing_invoices(id) DEFERRABLE;
 
 
 --
@@ -4628,6 +5073,14 @@ ALTER TABLE ONLY public.stock_movements
 
 
 --
+-- Name: support_requests fk_rails_23b687fadb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.support_requests
+    ADD CONSTRAINT fk_rails_23b687fadb FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: supplier_invoices fk_rails_291f86350e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4657,6 +5110,14 @@ ALTER TABLE ONLY public.supplier_products
 
 ALTER TABLE ONLY public.goods_receipts
     ADD CONSTRAINT fk_rails_2ed6dc1c7f FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: account_exports fk_rails_2f68196f1b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_exports
+    ADD CONSTRAINT fk_rails_2f68196f1b FOREIGN KEY (requested_by_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -4841,6 +5302,14 @@ ALTER TABLE ONLY public.sessions
 
 ALTER TABLE ONLY public.stock_levels
     ADD CONSTRAINT fk_rails_5607af8fe7 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: account_exports fk_rails_562f28f6a4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_exports
+    ADD CONSTRAINT fk_rails_562f28f6a4 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -5092,6 +5561,14 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- Name: billing_payments fk_rails_8500ce0f64; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_payments
+    ADD CONSTRAINT fk_rails_8500ce0f64 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: branches fk_rails_863a15f468; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5169,6 +5646,14 @@ ALTER TABLE ONLY public.deposits
 
 ALTER TABLE ONLY public.sessions
     ADD CONSTRAINT fk_rails_96502740f9 FOREIGN KEY (impersonator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: accounts fk_rails_9696de479d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
+    ADD CONSTRAINT fk_rails_9696de479d FOREIGN KEY (deletion_requested_by_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -5377,6 +5862,14 @@ ALTER TABLE ONLY public.sms_messages
 
 ALTER TABLE ONLY public.customer_orders
     ADD CONSTRAINT fk_rails_bdb6d95444 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: billing_invoices fk_rails_be7a94c0fc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_invoices
+    ADD CONSTRAINT fk_rails_be7a94c0fc FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -5780,10 +6273,37 @@ ALTER TABLE ONLY public.stock_transfers
 
 
 --
+-- Name: account_exports; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.account_exports ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: account_exports account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.account_exports USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: barcodes account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY account_isolation ON public.barcodes USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: billing_invoices account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.billing_invoices USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: billing_payments account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.billing_payments USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -6130,6 +6650,13 @@ CREATE POLICY account_isolation ON public.suppliers USING (((current_setting('ap
 
 
 --
+-- Name: support_requests account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.support_requests USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: tax_rates account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -6148,6 +6675,18 @@ CREATE POLICY account_isolation ON public.units USING (((current_setting('app.by
 --
 
 ALTER TABLE public.barcodes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: billing_invoices; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.billing_invoices ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: billing_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.billing_payments ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: branches; Type: ROW SECURITY; Schema: public; Owner: -
@@ -6444,6 +6983,12 @@ ALTER TABLE public.supplier_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: support_requests; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.support_requests ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: tax_rates; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -6462,6 +7007,7 @@ ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120400'),
 ('20260925120300'),
 ('20260925120200'),
 ('20260925120100'),

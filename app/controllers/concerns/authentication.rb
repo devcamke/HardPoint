@@ -28,9 +28,14 @@ module Authentication
     def find_session_by_cookie
       if Current.account && cookies.signed[:session_id]
         Current.account.sessions.find_by(id: cookies.signed[:session_id]).then do |session|
-          session&.expired? ? session.destroy && nil : session
+          session&.expired? || closed_to?(session) ? session&.destroy && nil : session
         end
       end
+    end
+
+    # While a shop is closing, only its owners can use it.
+    def closed_to?(session)
+      session && Current.account.closing? && !session.membership&.owner?
     end
 
     def request_authentication

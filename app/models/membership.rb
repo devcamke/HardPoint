@@ -1,5 +1,6 @@
 class Membership < ApplicationRecord
-  include Eventable
+  include Eventable, CountsTowardsPlan
+  counts_towards_plan :users
   tracks_lifecycle only: %i[ update destroy ]
   after_create { track_event "created", role: role }
 

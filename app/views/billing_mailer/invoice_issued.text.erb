@@ -1,0 +1,7 @@
+Hello,
+
+Here's the HardPoint invoice for <%= @account.name %>: <%= @invoice.description %>.
+
+<%= money(@invoice.amount_cents, currency: @invoice.currency) %> due by <%= @invoice.due_on.to_fs(:long) %>. The invoice is attached.
+
+Pay by M-Pesa or card: <%= billing_url(subdomain: @account.subdomain) %>

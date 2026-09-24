@@ -1,0 +1,74 @@
+<% features = [
+  [ "A till that keeps up", "Scan barcodes, search 20,000 products in a blink, sell by the metre, kilo or half-bag, and hold a sale while the next customer pays." ],
+  [ "M-Pesa at the counter", "Send a payment prompt to the customer's phone, or match money paid to your Paybill or Till to the sale. Reconciliation is done for you." ],
+  [ "KRA eTIMS built in", "Every sale, void and return goes to KRA, with the signed QR code on the receipt. Sales are queued and retried if KRA is down." ],
+  [ "Keeps selling offline", "When the internet drops the till carries on, prints receipts and sends the sales when the connection returns." ],
+  [ "Stock across branches", "Stock levels per branch and yard, transfers, stock takes, reorder levels and purchase orders to your suppliers." ],
+  [ "Customers on account", "Quotes, orders with deposits, credit limits, statements, delivery notes and reminders by SMS." ],
+  [ "Reports the owner reads", "Live sales, profit, VAT, payments and dead stock, and a summary email every evening." ],
+  [ "Your staff, your rules", "Owners, managers, cashiers and stock clerks, with PINs for quick switching and approval for big discounts." ]
+] %>
+
+<section class="bg-navy-950 text-white">
+  <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-24">
+    <div>
+      <p class="font-semibold text-safety-400">For hardware stores in Kenya</p>
+      <h1 class="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">The till, the stock and the books, in one place.</h1>
+      <p class="mt-5 text-lg text-navy-200">HardPoint is point of sale and stock control built for hardware and building-supplies shops: M-Pesa, KRA eTIMS, customer accounts and many branches, and it keeps selling when the internet doesn't.</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <%= link_to "Start your free 30-day trial", new_signup_path, class: "btn-primary px-5 py-3 text-base" %>
+        <%= link_to "See pricing", pricing_path, class: "btn px-5 py-3 text-base bg-navy-800 text-white hover:bg-navy-700" %>
+      </div>
+      <p class="mt-4 text-sm text-navy-300">No card needed. Set up in an afternoon.</p>
+    </div>
+    <%= image_tag "marketing/till.png", alt: "The HardPoint till with a customer's cart", class: "w-full rounded-xl shadow-2xl ring-1 ring-white/10", width: 1280, height: 800 %>
+  </div>
+</section>
+
+<section id="features" class="mx-auto max-w-6xl px-4 py-16">
+  <h2 class="text-center text-3xl font-bold">Everything the counter needs</h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-steel-600">Built with hardware shop owners, from the bag of cement to the box of screws.</p>
+  <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <% features.each do |title, body| %>
+      <div class="card">
+        <h3 class="font-bold"><%= title %></h3>
+        <p class="mt-2 text-sm text-steel-600"><%= body %></p>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<section class="border-y border-concrete-200 bg-white">
+  <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2">
+    <%= image_tag "marketing/dashboard.png", alt: "The owner's dashboard with today's sales", class: "w-full rounded-xl shadow-lg ring-1 ring-concrete-200", width: 1280, height: 800 %>
+    <div>
+      <h2 class="text-3xl font-bold">Up and running today</h2>
+      <ol class="mt-6 space-y-5">
+        <% [ [ "Open your shop", "Pick a web address for your shop and create the owner's login." ],
+             [ "Bring in your products", "Import your price list from a spreadsheet, or add products as you go." ],
+             [ "Add your staff and tills", "Invite your team, set their roles and connect a receipt printer." ],
+             [ "Start selling", "Cash, M-Pesa, card or on account. KRA gets its copy of every sale." ] ].each.with_index(1) do |(title, body), step| %>
+          <li class="flex gap-4">
+            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-safety-500 font-bold text-navy-900"><%= step %></span>
+            <div><p class="font-semibold"><%= title %></p><p class="text-sm text-steel-600"><%= body %></p></div>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 py-16">
+  <h2 class="mb-8 text-center text-3xl font-bold">Simple monthly pricing</h2>
+  <%= render "pages/plans", plans: @plans %>
+</section>
+
+<section class="bg-safety-500">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-10">
+    <p class="text-2xl font-bold text-navy-900">Questions? Talk to a person.</p>
+    <div class="flex flex-wrap gap-3">
+      <%= link_to "WhatsApp us", whatsapp_support_url("Hello HardPoint, I'd like to know more about the POS."), class: "btn bg-navy-900 text-white hover:bg-navy-800", target: "_blank", rel: "noopener" %>
+      <%= link_to "Start free trial", new_signup_path, class: "btn bg-white text-navy-900 hover:bg-concrete-100" %>
+    </div>
+  </div>
+</section>

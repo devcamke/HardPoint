@@ -1,0 +1,27 @@
+<% content_for :title, "Pricing" %>
+<% faqs = [
+  [ "What happens after the free trial?", "We email your first invoice when the trial ends. You have a week to pay it by M-Pesa or card from the Billing page, and we remind you before it's due." ],
+  [ "What if an invoice isn't paid?", "After the week's grace the shop becomes read-only: you and your staff can still sign in, look up anything and export your data, but can't sell or change things until it's paid. Nothing is deleted." ],
+  [ "Can I change plan?", "Yes, whenever you like, from the Billing page. A bigger plan applies at once; a smaller one if what you use fits it. The new price applies from the next invoice." ],
+  [ "What counts towards the limits?", "Branches, active tills, staff logins and active products. Retired tills and archived products don't count." ],
+  [ "Can I take my data with me?", "Always. Export everything as spreadsheets (CSV) from Settings, whether or not you're paying, and close your account whenever you want." ],
+  [ "Do I need special hardware?", "No. HardPoint runs in the browser on any computer or tablet. USB barcode scanners work as they are, and receipts print on 58 mm or 80 mm thermal printers." ]
+] %>
+
+<section class="mx-auto max-w-6xl px-4 py-16">
+  <h1 class="text-center text-4xl font-extrabold">Pricing</h1>
+  <p class="mx-auto mt-3 mb-10 max-w-xl text-center text-steel-600">Every plan has every feature. Pick one for the size of your shop, and try it free for 30 days.</p>
+  <%= render "pages/plans", plans: @plans %>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 pb-16">
+  <h2 class="mb-6 text-2xl font-bold">Questions</h2>
+  <div class="space-y-3">
+    <% faqs.each do |question, answer| %>
+      <details class="card group">
+        <summary class="cursor-pointer font-semibold"><%= question %></summary>
+        <p class="mt-2 text-steel-700"><%= answer %></p>
+      </details>
+    <% end %>
+  </div>
+</section>

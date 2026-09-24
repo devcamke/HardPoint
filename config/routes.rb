@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  # Subscription payments to HardPoint itself: Safaricom's answer to a prompt (found by the
+  # platform's secret token) and Paystack's signed webhooks.
+  post "webhooks/billing/mpesa/:token", to: "webhooks/billing_mpesa#create", as: :billing_mpesa_webhook
+  post "webhooks/paystack", to: "webhooks/paystack#create", as: :paystack_webhook
+
   # Callbacks from Safaricom, on any host. The shop is found by the secret token in the path.
   scope "webhooks/mpesa/:token", controller: "webhooks/mpesa", as: :mpesa_webhook do
     post "stk", action: :stk, as: :stk
@@ -6,10 +11,16 @@ Rails.application.routes.draw do
     post "c2b/validation", action: :validation, as: :validation
   end
 
-  # The bare domain (hardpoint.app) hosts signup; each shop lives on its own subdomain (acme.hardpoint.app).
+  # The bare domain (hardpoint.app) hosts the public site, help and signup; each shop lives on its own
+  # subdomain (acme.hardpoint.app).
   constraints ->(request) { request.subdomain.blank? } do
     resource :signup, only: %i[ new create ]
-    root "signups#new", as: :signup_root
+    resource :shop_lookup, only: %i[ new create ]
+    get "pricing", to: "pages#pricing"
+    get "privacy", to: "pages#privacy"
+    get "help", to: "help#index", as: :help
+    get "help/:id", to: "help#show", as: :help_article
+    root "pages#home", as: :marketing_root
   end
 
   # Platform administration on admin.<domain>.
@@ -17,8 +28,17 @@ Rails.application.routes.draw do
     namespace :admin, path: "" do
       resource :session, only: %i[ new create destroy ]
       resource :two_factor, only: %i[ new create ]
-      resources :accounts, only: %i[ index show ]
+      resources :accounts, only: %i[ index show ] do
+        scope module: :accounts do
+          resource :plan, only: :update
+          resource :trial_extension, only: :create
+          resource :suspension, only: %i[ create destroy ]
+          resources :payments, only: :create
+        end
+      end
       resources :impersonations, only: :create
+      resources :announcements, except: :show
+      resources :support_requests, only: %i[ index update ]
       root "accounts#index"
     end
   end
@@ -46,6 +66,17 @@ Rails.application.routes.draw do
     resources :memberships, except: :show
     resources :events, only: :index
     resource :settings, only: :show
+    resources :support_requests, only: %i[ new create ]
+    resource :account_data, only: :show
+    resources :account_exports, only: %i[ create show ]
+    resource :account_closure, only: %i[ create destroy ]
+    resource :onboarding, only: :show do
+      scope module: :onboardings do
+        resource :tax_confirmation, only: :create
+        resource :test_receipt, only: %i[ show create ]
+        resource :completion, only: :create
+      end
+    end
 
     resources :categories, :brands, :units, :tax_rates, :price_lists, except: :show
 
@@ -144,6 +175,19 @@ Rails.application.routes.draw do
       end
     end
     resource :receivables, only: :show
+
+    # The shop's HardPoint subscription
+    resource :billing, only: :show do
+      scope module: :billings do
+        resource :plan, only: :update
+        resource :subscription_start, only: :create
+        resources :mpesa_payments, only: %i[ create show ]
+        resources :card_payments, only: :create
+        resource :card_return, only: :show
+        resource :card_simulator, only: %i[ show create ]
+        resources :invoices, only: :show
+      end
+    end
 
     # Integrations
     resources :mpesa_shortcodes, path: "mpesa", except: %i[ show destroy ] do

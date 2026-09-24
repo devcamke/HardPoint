@@ -1,5 +1,6 @@
 class Product < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Pricing, Stockable, Searchable, Barcoded, Purchasing
+  include AccountOwned, Eventable, Monetary, Pricing, Stockable, Searchable, Barcoded, Purchasing, CountsTowardsPlan
+  counts_towards_plan :products, counting: -> { active? }
   tracks_lifecycle
 
   belongs_to :category, optional: true

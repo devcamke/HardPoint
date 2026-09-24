@@ -15,6 +15,9 @@ gem "barby", "~> 0.7"
 gem "csv"
 # Purchase order PDFs to email to suppliers.
 gem "prawn", "~> 2.5"
+
+# A shop's full data export is a ZIP of CSVs and files; Ruby has no ZIP writer of its own.
+gem "rubyzip", "~> 3.2", require: "zip"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record

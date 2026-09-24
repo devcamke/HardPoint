@@ -2,18 +2,36 @@
 
 <h1 class="mb-6 text-3xl font-bold">Shops</h1>
 
-<div class="card">
+<div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="card"><p class="hint">Shops</p><p class="text-2xl font-bold tabular-nums"><%= @status_counts.values.sum %></p></div>
+  <div class="card"><p class="hint">Paying (monthly)</p><p class="text-2xl font-bold tabular-nums"><%= money(@monthly_revenue_cents, currency: "KES") %></p></div>
+  <div class="card"><p class="hint">Received, last 30 days</p><p class="text-2xl font-bold tabular-nums"><%= money(@paid_last_30_days_cents, currency: "KES") %></p></div>
+  <div class="card"><p class="hint">On trial · read-only</p><p class="text-2xl font-bold tabular-nums"><%= @status_counts.fetch("trialing", 0) %> · <%= @status_counts.fetch("read_only", 0) %></p></div>
+</div>
+
+<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter by status">
+  <%= link_to "All", admin_accounts_path, class: "rounded-full px-3 py-1 #{@status ? "bg-white" : "bg-navy-900 text-white"}" %>
+  <% Account::Subscription::STATUSES.each do |status| %>
+    <%= link_to "#{status.humanize} (#{@status_counts.fetch(status, 0)})", admin_accounts_path(status: status),
+          class: "rounded-full px-3 py-1 #{@status == status ? "bg-navy-900 text-white" : "bg-white"}" %>
+  <% end %>
+</nav>
+
+<div class="card overflow-x-auto">
   <table class="table">
     <thead>
-      <tr><th>Shop</th><th>Address</th><th>Staff</th><th>Branches</th><th>Opened</th></tr>
+      <tr><th>Shop</th><th>Plan</th><th>Status</th><th class="text-right">Staff</th><th class="text-right">Branches</th><th class="text-right">Products</th><th class="text-right">Sales (30 days)</th><th>Opened</th></tr>
     </thead>
     <tbody>
       <% @accounts.each do |account| %>
         <tr id="<%= dom_id(account) %>">
-          <td><%= link_to account.name, admin_account_path(account), class: "link" %></td>
-          <td class="font-mono text-xs"><%= account.subdomain %></td>
-          <td><%= @member_counts.fetch(account.id, 0) %></td>
-          <td><%= @branch_counts.fetch(account.id, 0) %></td>
+          <td><%= link_to account.name, admin_account_path(account), class: "link" %><br><span class="font-mono text-xs text-steel-600"><%= account.subdomain %></span></td>
+          <td><%= account.subscription_plan.name %></td>
+          <td><%= subscription_status_badge(account) %></td>
+          <td class="text-right tabular-nums"><%= @member_counts.fetch(account.id, 0) %></td>
+          <td class="text-right tabular-nums"><%= @branch_counts.fetch(account.id, 0) %></td>
+          <td class="text-right tabular-nums"><%= number_with_delimiter @product_counts.fetch(account.id, 0) %></td>
+          <td class="text-right tabular-nums"><%= number_with_delimiter @sales_counts.fetch(account.id, 0) %></td>
           <td><%= l(account.created_at.to_date, format: :long) %></td>
         </tr>
       <% end %>

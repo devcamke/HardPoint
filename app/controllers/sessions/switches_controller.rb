@@ -1,6 +1,7 @@
 # Quick switch at a shared till: someone else steps up to an already signed-in till,
 # picks their name and enters their PIN.
 class Sessions::SwitchesController < ApplicationController
+  allow_while_locked
   rate_limit to: 10, within: 1.minute, only: :create, with: -> { redirect_to new_session_switch_path, alert: "Too many attempts. Wait a minute." }
 
   def new

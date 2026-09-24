@@ -1,0 +1,5 @@
+<% content_for :title, "Edit announcement" %>
+<h1 class="mb-6 text-3xl font-bold">Edit announcement</h1>
+<%= render "form", announcement: @announcement %>
+<%= button_to "Remove announcement", admin_announcement_path(@announcement), method: :delete, class: "btn-secondary mt-4",
+      form: { data: { turbo_confirm: "Remove this announcement?" } } %>

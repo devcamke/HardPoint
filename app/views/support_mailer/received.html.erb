@@ -1,0 +1,7 @@
+<p><strong><%= @support_request.reference %></strong> from <%= @user.name %> (<%= mail_to @user.email_address %>),
+  <%= @account.memberships.find_by(user: @user)&.role&.humanize %> at <strong><%= @account.name %></strong> (<%= @account.subdomain %>).<br>
+  Plan: <%= @account.subscription_plan.name %>, <%= @account.subscription_status.humanize.downcase %>.<br>
+  Page: <%= @support_request.page.presence || "not given" %></p>
+
+<h2><%= @support_request.subject %></h2>
+<p style="white-space: pre-wrap"><%= @support_request.body %></p>

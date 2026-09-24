@@ -5,6 +5,7 @@ class Admin::BaseController < ActionController::Base
 
   allow_browser versions: :modern
   layout "admin"
+  before_action { Current.administrator = current_administrator }
 
   private
     # Administrators work across shops, so tenant row-level security is bypassed for their requests.

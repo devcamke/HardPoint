@@ -1,4 +1,5 @@
 class My::TwoFactorsController < ApplicationController
+  allow_while_locked
   allow_without_two_factor
   rate_limit to: 10, within: 3.minutes, only: %i[ create destroy ], with: -> { redirect_to my_profile_path, alert: "Try again later." }
   before_action :ensure_not_enabled, only: %i[ new create ]
