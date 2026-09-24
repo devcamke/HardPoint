@@ -1,5 +1,6 @@
 class SessionsController < ApplicationController
   allow_unauthenticated_access only: %i[ new create ]
+  allow_without_two_factor
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Try again later." }
 
   def new
@@ -7,8 +8,13 @@ class SessionsController < ApplicationController
 
   def create
     if user = Current.account.users.authenticate_by(params.permit(:email_address, :password))
-      start_new_session_for user
-      redirect_to after_authentication_url
+      if user.two_factor_enabled?
+        session[:two_factor_challenge] = { "user_id" => user.id, "account_id" => Current.account.id, "started_at" => Time.current.to_i }
+        redirect_to new_session_two_factor_path
+      else
+        start_new_session_for user
+        redirect_to after_authentication_url
+      end
     else
       redirect_to new_session_path(email_address: params[:email_address]), alert: "Try another email address or password."
     end

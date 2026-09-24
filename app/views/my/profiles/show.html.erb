@@ -1,0 +1,47 @@
+<% content_for :title, "Your account" %>
+
+<h1 class="text-3xl font-bold"><%= @user.name %></h1>
+<p class="hint mt-1 mb-6"><%= @user.email_address %> · <%= @membership.role.humanize %> at <%= Current.account.name %></p>
+
+<div class="grid gap-6 md:grid-cols-2">
+  <section class="card">
+    <h2 class="text-lg font-semibold">Two-factor sign-in</h2>
+    <% if @user.two_factor_enabled? %>
+      <p class="mt-2"><span class="badge bg-green-50 text-green-800">On</span> since <%= l(@user.two_factor_enabled_at.to_date, format: :long) %></p>
+      <p class="hint mt-2"><%= pluralize(@user.remaining_recovery_codes, "recovery code") %> left.</p>
+
+      <%= form_with url: my_two_factor_path, method: :delete, class: "mt-4" do |form| %>
+        <div class="field">
+          <%= form.label :password, "Confirm your password to turn it off", class: "label" %>
+          <%= form.password_field :password, required: true, autocomplete: "current-password", class: "input" %>
+        </div>
+        <%= form.submit "Turn off two-factor", class: "btn-danger" %>
+      <% end %>
+    <% else %>
+      <p class="hint mt-2">Protect your account with a code from an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password…) as well as your password.</p>
+      <%= link_to "Set up two-factor", new_my_two_factor_path, class: "btn-primary mt-4" %>
+    <% end %>
+  </section>
+
+  <% if @membership.pin_role? %>
+    <section class="card">
+      <h2 class="text-lg font-semibold">Till PIN</h2>
+      <% if @membership.pin_digest? %>
+        <p class="mt-2">
+          <% if @membership.pin_locked? %>
+            <span class="badge bg-red-50 text-red-800">Locked</span> after too many wrong tries. Set a new PIN to unlock it.
+          <% else %>
+            <span class="badge bg-green-50 text-green-800">Set</span> Use it to switch in at a till that's already signed in.
+          <% end %>
+        </p>
+        <div class="mt-4 flex gap-3">
+          <%= link_to "Change PIN", edit_my_pin_path, class: "btn-secondary" %>
+          <%= button_to "Remove PIN", my_pin_path, method: :delete, class: "btn-danger" %>
+        </div>
+      <% else %>
+        <p class="hint mt-2">Set a 4–6 digit PIN to switch in quickly at a shared till.</p>
+        <%= link_to "Set a PIN", edit_my_pin_path, class: "btn-primary mt-4" %>
+      <% end %>
+    </section>
+  <% end %>
+</div>

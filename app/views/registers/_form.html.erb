@@ -1,0 +1,23 @@
+<%= form_with model: register do |form| %>
+  <%= render "shared/errors", model: register %>
+
+  <div class="field">
+    <%= form.label :name, class: "label" %>
+    <%= form.text_field :name, required: true, autofocus: true, placeholder: "Front counter", class: "input" %>
+  </div>
+
+  <div class="field">
+    <%= form.label :branch_id, "Branch", class: "label" %>
+    <%= form.collection_select :branch_id, Current.account.branches.alphabetically, :id, :name, {}, class: "input" %>
+  </div>
+
+  <div class="field flex items-center gap-2">
+    <%= form.check_box :active, class: "size-4 accent-safety-500" %>
+    <%= form.label :active, "In use", class: "text-sm font-medium text-navy-800" %>
+  </div>
+
+  <div class="flex gap-3">
+    <%= form.submit class: "btn-primary" %>
+    <%= link_to "Cancel", registers_path, class: "btn-secondary" %>
+  </div>
+<% end %>

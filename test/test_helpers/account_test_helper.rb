@@ -2,6 +2,7 @@ module AccountTestHelper
   # Fixture accessors run outside any account, so look records up with isolation bypassed.
   def branches(*) = Account.without_isolation { super }
   def memberships(*) = Account.without_isolation { super }
+  def registers(*) = Account.without_isolation { super }
 end
 
 module AccountIntegrationTestHelper

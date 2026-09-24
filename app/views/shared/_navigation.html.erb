@@ -1,14 +1,26 @@
-<nav class="border-b border-stone-200 bg-white">
+<nav class="bg-navy-900 text-navy-100">
   <div class="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 text-sm">
-    <%= link_to Current.account.name, root_path, class: "text-base font-bold" %>
-    <%= link_to "Branches", branches_path, class: "text-stone-600 hover:text-stone-900" %>
+    <%= link_to root_path, class: "flex items-center gap-3" do %>
+      <%= render "shared/logo", dark: true %>
+      <span class="hidden border-l border-navy-700 pl-3 font-semibold text-white sm:inline"><%= Current.account.name %></span>
+    <% end %>
+
+    <%= render "shared/nav_link", name: "Branches", path: branches_path %>
+    <%= render "shared/nav_link", name: "Tills", path: registers_path %>
     <% if current_membership&.can_manage_staff? %>
-      <%= link_to "Staff", memberships_path, class: "text-stone-600 hover:text-stone-900" %>
+      <%= render "shared/nav_link", name: "Staff", path: memberships_path %>
+      <%= render "shared/nav_link", name: "Activity", path: events_path %>
     <% end %>
     <% if current_membership&.can_manage_account? %>
-      <%= link_to "Settings", edit_account_path, class: "text-stone-600 hover:text-stone-900" %>
+      <%= render "shared/nav_link", name: "Settings", path: edit_account_path %>
     <% end %>
-    <span class="ml-auto text-stone-500"><%= Current.user.name %> · <%= current_membership&.role&.humanize %></span>
-    <%= button_to "Sign out", session_path, method: :delete, class: "text-stone-600 hover:text-stone-900 cursor-pointer" %>
+
+    <div class="ml-auto flex items-center gap-4">
+      <%= link_to new_session_switch_path, class: "hover:text-white" do %>Switch user<% end %>
+      <%= link_to my_profile_path, class: "hover:text-white" do %>
+        <%= Current.user.name %> <span class="badge ml-1 bg-navy-800 text-navy-100"><%= current_membership&.role&.humanize %></span>
+      <% end %>
+      <%= button_to "Sign out", session_path, method: :delete, class: "cursor-pointer hover:text-white" %>
+    </div>
   </div>
 </nav>

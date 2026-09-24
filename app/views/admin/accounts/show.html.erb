@@ -1,0 +1,41 @@
+<% content_for :title, @account.name %>
+
+<p class="text-sm"><%= link_to "← All shops", admin_accounts_path, class: "link" %></p>
+<h1 class="mt-2 text-3xl font-bold"><%= @account.name %></h1>
+<p class="hint mt-1 mb-6 font-mono"><%= @account.subdomain %> · <%= @account.time_zone %> · <%= @account.currency %></p>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Staff</h2>
+    <table class="table">
+      <tbody>
+        <% @memberships.each do |membership| %>
+          <tr>
+            <td class="font-medium"><%= membership.user.name %><br><span class="text-xs text-steel-600"><%= membership.user.email_address %></span></td>
+            <td><%= membership.role.humanize %></td>
+            <td class="text-right">
+              <%= button_to "Sign in as", admin_impersonations_path(membership_id: membership.id), class: "btn-secondary",
+                    form: { data: { turbo: false, turbo_confirm: "Sign in to #{@account.name} as #{membership.user.name}? This is recorded in the shop's activity." } } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Branches</h2>
+    <ul class="space-y-1 text-sm">
+      <% @branches.each do |branch| %>
+        <li><%= branch.name %> <span class="text-steel-600"><%= branch.address %></span></li>
+      <% end %>
+    </ul>
+
+    <h2 class="mt-6 mb-3 text-lg font-semibold">Recent activity</h2>
+    <ol class="space-y-2 text-sm">
+      <% @events.each do |event| %>
+        <li><span class="font-semibold"><%= event_actor(event) %></span> <%= event_summary(event) %> <span class="text-steel-600">· <%= time_ago_in_words(event.created_at) %> ago</span></li>
+      <% end %>
+    </ol>
+  </section>
+</div>

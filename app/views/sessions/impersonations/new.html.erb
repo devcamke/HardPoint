@@ -1,0 +1,12 @@
+<% content_for :title, "Support sign-in" %>
+
+<div class="mx-auto max-w-md">
+  <h1 class="text-3xl font-bold">Support sign-in</h1>
+  <div class="card mt-6">
+    <p>Sign in to <strong><%= Current.account.name %></strong> as <strong><%= @impersonation.membership.user.name %></strong>
+      on behalf of <%= @impersonation.administrator.name %>?</p>
+    <p class="hint mt-2">The session ends after an hour and is recorded in the shop's activity.</p>
+
+    <%= button_to "Continue", session_impersonation_path, params: { token: params[:token] }, class: "btn-primary mt-4" %>
+  </div>
+</div>

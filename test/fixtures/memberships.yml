@@ -7,6 +7,13 @@ carl_acme:
   account: acme
   user: carl
   role: cashier
+  pin_digest: <%= BCrypt::Password.create("1234") %>
+
+sara_acme:
+  account: acme
+  user: sara
+  role: stock_clerk
+  pin_digest: <%= BCrypt::Password.create("5678") %>
 
 bob_bolt:
   account: bolt

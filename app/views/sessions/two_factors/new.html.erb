@@ -1,0 +1,17 @@
+<% content_for :title, "Two-factor sign-in" %>
+
+<div class="mx-auto max-w-md">
+  <h1 class="text-3xl font-bold">Enter your code</h1>
+  <p class="hint mt-2">Open your authenticator app and enter the 6-digit code for HardPoint. Lost your phone? Use one of your recovery codes.</p>
+
+  <div class="card mt-6">
+    <%= form_with url: session_two_factor_path do |form| %>
+      <div class="field">
+        <%= form.label :code, "Code", class: "label" %>
+        <%= form.text_field :code, required: true, autofocus: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input text-center font-mono text-2xl tracking-widest" %>
+      </div>
+
+      <%= form.submit "Verify", class: "btn-primary w-full" %>
+    <% end %>
+  </div>
+</div>

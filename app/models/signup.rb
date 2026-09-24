@@ -21,7 +21,8 @@ class Signup
     Account.transaction do
       @account = Account.create!(name: shop_name, subdomain: subdomain)
 
-      Current.set(account: @account) do
+      Current.set(account: @account, user: owner) do
+        @account.track_event "created"
         @account.memberships.create!(user: owner, role: :owner)
         @account.branches.create!(name: "Main branch")
       end
@@ -41,7 +42,7 @@ class Signup
 
   private
     def owner
-      existing_user || User.create!(name: owner_name, email_address: email_address, password: password)
+      @owner ||= existing_user || User.create!(name: owner_name, email_address: email_address, password: password)
     end
 
     def existing_user

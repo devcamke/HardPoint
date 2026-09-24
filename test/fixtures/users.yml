@@ -10,7 +10,21 @@ carl:
   email_address: carl@acme.test
   password_digest: <%= password_digest %>
 
+sara:
+  name: Sara Stockclerk
+  email_address: sara@acme.test
+  password_digest: <%= password_digest %>
+
 bob:
   name: Bob Owner
   email_address: bob@bolt.test
   password_digest: <%= password_digest %>
+
+ada:
+  name: Ada Admin
+  email_address: ada@hardpoint.test
+  password_digest: <%= password_digest %>
+  admin: true
+  two_factor_secret: JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP
+  two_factor_enabled_at: <%= 1.month.ago.to_fs(:db) %>
+  two_factor_recovery_codes: "aaaaa-11111\nbbbbb-22222"

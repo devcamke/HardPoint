@@ -14,6 +14,7 @@ class SignupTest < ActiveSupport::TestCase
     assert_equal [ "Main branch" ], account.branches.pluck(:name)
     assert account.memberships.sole.owner?
     assert_equal "wanjiru@mjengo.test", account.users.sole.email_address
+    assert_equal [ account.users.sole ], account.account_events.map(&:creator).uniq, "Signup events are credited to the new owner"
   end
 
   test "an existing user can open another shop with their password" do

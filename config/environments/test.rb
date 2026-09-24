@@ -42,6 +42,13 @@ Rails.application.configure do
   # Tests address shops as acme.localhost, like development.
   config.action_dispatch.tld_length = 0
 
+  # Non-secret Active Record Encryption keys for test only. Production reads real keys from
+  # credentials (bin/rails db:encryption:init, then add them with bin/rails credentials:edit).
+  config.active_record.encryption.primary_key = "test-primary-key-not-secret"
+  config.active_record.encryption.deterministic_key = "test-deterministic-key-not-secret"
+  config.active_record.encryption.key_derivation_salt = "test-key-derivation-salt-not-secret"
+  config.active_record.encryption.encrypt_fixtures = true
+
   # Verifying fixture foreign keys needs a superuser, and superusers skip row-level security.
   # Our foreign keys are deferrable and checked when the fixture transaction commits instead.
   config.active_record.verify_foreign_keys_for_fixtures = false

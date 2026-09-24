@@ -43,6 +43,12 @@ Rails.application.configure do
   # Shops live on subdomains: visit http://acme.localhost:3000 (browsers resolve *.localhost).
   config.action_dispatch.tld_length = 0
 
+  # Non-secret Active Record Encryption keys for development only. Production reads real keys from
+  # credentials (bin/rails db:encryption:init, then add them with bin/rails credentials:edit).
+  config.active_record.encryption.primary_key = "development-primary-key-not-secret"
+  config.active_record.encryption.deterministic_key = "development-deterministic-key-not-secret"
+  config.active_record.encryption.key_derivation_salt = "development-key-derivation-salt-not-secret"
+
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 

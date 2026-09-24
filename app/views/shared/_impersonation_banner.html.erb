@@ -1,0 +1,6 @@
+<div class="bg-safety-500 text-navy-900">
+  <p class="mx-auto max-w-5xl px-4 py-2 text-sm font-semibold">
+    HardPoint support (<%= Current.session.impersonator.name %>) is signed in as <%= Current.user.name %>.
+    This session ends <%= distance_of_time_in_words_to_now(Current.session.expires_at) %> from now and is recorded in Activity.
+  </p>
+</div>

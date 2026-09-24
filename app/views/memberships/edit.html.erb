@@ -5,7 +5,7 @@
 <div class="card max-w-xl">
   <%= form_with model: @membership do |form| %>
     <%= render "shared/errors", model: @membership %>
-    <p class="mb-4 text-sm text-stone-600"><%= @membership.user.email_address %></p>
+    <p class="mb-4 text-sm text-steel-600"><%= @membership.user.email_address %></p>
 
     <%= render "role_field", form: form %>
 

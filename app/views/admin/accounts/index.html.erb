@@ -1,0 +1,22 @@
+<% content_for :title, "Shops" %>
+
+<h1 class="mb-6 text-3xl font-bold">Shops</h1>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr><th>Shop</th><th>Address</th><th>Staff</th><th>Branches</th><th>Opened</th></tr>
+    </thead>
+    <tbody>
+      <% @accounts.each do |account| %>
+        <tr id="<%= dom_id(account) %>">
+          <td><%= link_to account.name, admin_account_path(account), class: "link" %></td>
+          <td class="font-mono text-xs"><%= account.subdomain %></td>
+          <td><%= @member_counts.fetch(account.id, 0) %></td>
+          <td><%= @branch_counts.fetch(account.id, 0) %></td>
+          <td><%= l(account.created_at.to_date, format: :long) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

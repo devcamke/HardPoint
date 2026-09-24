@@ -22,9 +22,12 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="min-h-screen bg-stone-50 text-stone-900">
+  <body class="min-h-screen bg-concrete-100 text-navy-900">
     <% if authenticated? %>
       <%= render "shared/navigation" %>
+      <%= render "shared/impersonation_banner" if Current.session.impersonated? %>
+    <% else %>
+      <header class="mx-auto max-w-5xl px-4 pt-8"><%= render "shared/logo" %></header>
     <% end %>
 
     <main class="mx-auto max-w-5xl px-4 py-8">

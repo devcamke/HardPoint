@@ -1,5 +1,7 @@
 class Account < ApplicationRecord
-  include Isolation
+  include Eventable, Isolation
+  # Creation is recorded by Signup, once the new account is current.
+  tracks_lifecycle only: :update
 
   RESERVED_SUBDOMAINS = %w[ admin api app assets blog cdn docs help mail smtp status support www ].freeze
 
@@ -7,6 +9,8 @@ class Account < ApplicationRecord
   has_many :users, through: :memberships
   has_many :sessions, dependent: :delete_all
   has_many :branches, dependent: :destroy
+  has_many :account_events, class_name: "Event", dependent: :delete_all
+  has_many :registers, dependent: :destroy
 
   normalizes :subdomain, with: ->(subdomain) { subdomain.strip.downcase }
 
@@ -16,4 +20,9 @@ class Account < ApplicationRecord
     exclusion: { in: RESERVED_SUBDOMAINS, message: "is reserved" }
   validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
   validates :currency, format: { with: /\A[A-Z]{3}\z/, message: "must be a 3-letter ISO code" }
+
+  private
+    def event_account
+      self
+    end
 end

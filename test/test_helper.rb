@@ -3,6 +3,7 @@ require_relative "../config/environment"
 require "rails/test_help"
 require_relative "test_helpers/session_test_helper"
 require_relative "test_helpers/account_test_helper"
+require_relative "test_helpers/two_factor_test_helper"
 
 # Fixtures hold rows for several accounts, so they're inserted with row-level security bypassed.
 module FixturesAcrossAccounts

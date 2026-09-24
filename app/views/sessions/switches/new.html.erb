@@ -1,0 +1,31 @@
+<% content_for :title, "Switch user" %>
+
+<h1 class="text-3xl font-bold">Who's at the till?</h1>
+<p class="hint mt-1 mb-6">Tap your name and enter your PIN. <%= Current.user.name %> will be signed out on this till.</p>
+
+<% if @memberships.any? %>
+  <%= form_with url: session_switch_path, class: "card max-w-2xl" do |form| %>
+    <fieldset class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <legend class="label mb-3">Staff</legend>
+      <% @memberships.each do |membership| %>
+        <label class="cursor-pointer rounded-lg border-2 border-concrete-200 p-4 text-center font-semibold has-checked:border-safety-500 has-checked:bg-safety-50">
+          <%= form.radio_button :membership_id, membership.id, required: true, class: "sr-only" %>
+          <span class="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-navy-900 text-lg text-white"><%= membership.user.name.first %></span>
+          <%= membership.user.name %>
+          <span class="block text-xs font-normal text-steel-600"><%= membership.role.humanize %></span>
+        </label>
+      <% end %>
+    </fieldset>
+
+    <div class="field max-w-xs">
+      <%= form.label :pin, "PIN", class: "label" %>
+      <%= form.password_field :pin, required: true, inputmode: "numeric", pattern: "\\d{4,6}", maxlength: 6, autocomplete: "off", class: "input text-center font-mono text-2xl tracking-[0.5em]" %>
+    </div>
+
+    <%= form.submit "Switch in", class: "btn-primary px-8 py-3 text-base" %>
+  <% end %>
+<% else %>
+  <div class="card max-w-2xl">
+    <p class="hint">No cashiers or stock clerks have set a till PIN yet. They can set one under their name in the top bar.</p>
+  </div>
+<% end %>

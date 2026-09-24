@@ -1,20 +1,33 @@
 <% content_for :title, "Dashboard" %>
 
 <h1 class="text-3xl font-bold">Welcome, <%= Current.user.name %></h1>
-<p class="mt-1 text-stone-600"><%= Current.account.name %> · <%= Time.zone.now.to_fs(:long) %></p>
+<p class="mt-1 text-steel-600"><%= Current.account.name %> · <%= Time.zone.now.to_fs(:long) %></p>
 
-<div class="mt-8 grid gap-4 sm:grid-cols-2">
+<% if (current_membership.owner? || current_membership.manager?) && !Current.user.two_factor_enabled? %>
+  <div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-safety-200 bg-safety-50 px-4 py-3">
+    <p class="text-sm"><span class="font-semibold">Protect your shop:</span> turn on two-factor sign-in for your account.</p>
+    <%= link_to "Set it up", new_my_two_factor_path, class: "btn-primary" %>
+  </div>
+<% end %>
+
+<div class="mt-8 grid gap-4 sm:grid-cols-3">
   <div class="card">
-    <p class="text-sm text-stone-500">Branches</p>
+    <p class="text-sm text-steel-600">Branches</p>
     <p class="mt-1 text-3xl font-bold"><%= @branches.size %></p>
-    <%= link_to "Manage branches", branches_path, class: "mt-3 inline-block text-sm text-amber-700 underline" %>
+    <%= link_to "Manage branches", branches_path, class: "mt-3 inline-block text-sm link" %>
   </div>
 
   <div class="card">
-    <p class="text-sm text-stone-500">Staff</p>
+    <p class="text-sm text-steel-600">Tills</p>
+    <p class="mt-1 text-3xl font-bold"><%= @registers_count %></p>
+    <%= link_to "Manage tills", registers_path, class: "mt-3 inline-block text-sm link" %>
+  </div>
+
+  <div class="card">
+    <p class="text-sm text-steel-600">Staff</p>
     <p class="mt-1 text-3xl font-bold"><%= @memberships.size %></p>
     <% if current_membership.can_manage_staff? %>
-      <%= link_to "Manage staff", memberships_path, class: "mt-3 inline-block text-sm text-amber-700 underline" %>
+      <%= link_to "Manage staff", memberships_path, class: "mt-3 inline-block text-sm link" %>
     <% end %>
   </div>
 </div>

@@ -1,0 +1,25 @@
+<% content_for :title, "Activity" %>
+
+<h1 class="text-3xl font-bold">Activity</h1>
+<p class="hint mt-1 mb-6">Everything that changes in <%= Current.account.name %>, newest first. Entries can't be edited or deleted.</p>
+
+<div class="card">
+  <% if @events.any? %>
+    <ol class="divide-y divide-concrete-100">
+      <% @events.each do |event| %>
+        <li id="<%= dom_id(event) %>" class="flex items-baseline justify-between gap-4 py-3 text-sm">
+          <p><span class="font-semibold"><%= event_actor(event) %></span> <%= event_summary(event) %></p>
+          <time datetime="<%= event.created_at.iso8601 %>" class="shrink-0 text-steel-600" title="<%= l(event.created_at, format: :long) %>">
+            <%= time_ago_in_words(event.created_at) %> ago
+          </time>
+        </li>
+      <% end %>
+    </ol>
+
+    <% if @events.size == EventsController::PAGE_SIZE %>
+      <%= link_to "Older activity", events_path(before: @events.last.id), class: "link mt-4 inline-block text-sm" %>
+    <% end %>
+  <% else %>
+    <p class="hint">Nothing has happened yet.</p>
+  <% end %>
+</div>

@@ -1,0 +1,24 @@
+<% content_for :title, "Till PIN" %>
+
+<h1 class="mb-6 text-3xl font-bold">Till PIN</h1>
+
+<div class="card max-w-md">
+  <%= form_with url: my_pin_path, method: :patch do |form| %>
+    <%= render "shared/errors", model: @membership %>
+
+    <div class="field">
+      <%= form.label :pin, "New PIN (4–6 digits)", class: "label" %>
+      <%= form.password_field :pin, required: true, autofocus: true, inputmode: "numeric", pattern: "\\d{4,6}", maxlength: 6, autocomplete: "off", class: "input font-mono text-xl tracking-[0.4em]" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :password, "Your password", class: "label" %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password", class: "input" %>
+    </div>
+
+    <div class="flex gap-3">
+      <%= form.submit "Save PIN", class: "btn-primary" %>
+      <%= link_to "Cancel", my_profile_path, class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>

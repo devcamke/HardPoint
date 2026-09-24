@@ -1,0 +1,14 @@
+acme_front:
+  account: acme
+  branch: acme_main
+  name: Front counter
+
+acme_yard:
+  account: acme
+  branch: acme_yard
+  name: Yard gate
+
+bolt_front:
+  account: bolt
+  branch: bolt_main
+  name: Counter 1

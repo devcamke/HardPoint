@@ -1,15 +1,57 @@
 @import "tailwindcss";
 
+/*
+ * HardPoint brand — "Ironworks"
+ *   Steel Navy     structure: navigation, headings, body text     navy-900  #102A43
+ *   Safety Orange  action: primary buttons, logo, focus, alerts    safety-500 #F76707
+ *   Concrete       calm surfaces for long shifts at the till       concrete-100 #F5F4F1
+ * Contrast (WCAG AA): navy-900 on concrete-100 13.3:1 · navy-900 on safety-500 4.8:1 ·
+ * safety-700 on white 5.2:1 · white on navy-700 8.7:1 · steel-600 on concrete-100 5.4:1
+ */
+@theme {
+  --color-navy-50: #f0f4f8;
+  --color-navy-100: #d9e2ec;
+  --color-navy-200: #bcccdc;
+  --color-navy-300: #9fb3c8;
+  --color-navy-400: #829ab1;
+  --color-navy-500: #627d98;
+  --color-navy-600: #486581;
+  --color-navy-700: #1f4e79;
+  --color-navy-800: #173a5e;
+  --color-navy-900: #102a43;
+  --color-navy-950: #0a1b2d;
+
+  --color-safety-50: #fff4e6;
+  --color-safety-100: #ffe8cc;
+  --color-safety-200: #ffd8a8;
+  --color-safety-300: #ffc078;
+  --color-safety-400: #ff922b;
+  --color-safety-500: #f76707;
+  --color-safety-600: #e8590c;
+  --color-safety-700: #c2410c;
+  --color-safety-800: #9a3412;
+  --color-safety-900: #7c2d12;
+
+  --color-concrete-50: #fafaf8;
+  --color-concrete-100: #f5f4f1;
+  --color-concrete-200: #e7e5e0;
+  --color-concrete-300: #d6d3cc;
+
+  --color-steel-500: #7b8594;
+  --color-steel-600: #5b6573;
+  --color-steel-700: #414a57;
+}
+
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium cursor-pointer transition-colors;
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-semibold cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-safety-500;
 }
 
 @utility btn-primary {
-  @apply btn bg-amber-600 text-white hover:bg-amber-500;
+  @apply btn bg-safety-500 text-navy-900 shadow-sm hover:bg-safety-400;
 }
 
 @utility btn-secondary {
-  @apply btn border border-stone-300 bg-white text-stone-800 hover:bg-stone-50;
+  @apply btn border border-navy-200 bg-white text-navy-900 hover:bg-navy-50;
 }
 
 @utility btn-danger {
@@ -17,11 +59,11 @@
 }
 
 @utility input {
-  @apply block w-full rounded-md border border-stone-300 bg-white px-3 py-2 shadow-sm focus:outline-2 focus:outline-amber-500;
+  @apply block w-full rounded-md border border-concrete-300 bg-white px-3 py-2 text-navy-900 shadow-sm focus:outline-2 focus:outline-safety-500;
 }
 
 @utility label {
-  @apply mb-1 block text-sm font-medium text-stone-700;
+  @apply mb-1 block text-sm font-medium text-navy-800;
 }
 
 @utility field {
@@ -29,7 +71,19 @@
 }
 
 @utility card {
-  @apply rounded-lg border border-stone-200 bg-white p-6 shadow-sm;
+  @apply rounded-lg border border-concrete-200 bg-white p-6 shadow-sm;
+}
+
+@utility link {
+  @apply font-medium text-safety-700 underline decoration-safety-300 underline-offset-2 hover:decoration-safety-700;
+}
+
+@utility hint {
+  @apply text-sm text-steel-600;
+}
+
+@utility badge {
+  @apply inline-flex items-center rounded-full bg-navy-50 px-2 py-0.5 text-xs font-medium text-navy-700;
 }
 
 @layer components {
@@ -37,9 +91,9 @@
     @apply w-full text-left text-sm;
   }
   .table th {
-    @apply border-b border-stone-200 py-2 pr-4 font-medium text-stone-500;
+    @apply border-b border-concrete-200 py-2 pr-4 font-medium text-steel-600;
   }
   .table td {
-    @apply border-b border-stone-100 py-3 pr-4;
+    @apply border-b border-concrete-100 py-3 pr-4;
   }
 }

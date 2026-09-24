@@ -1,7 +1,7 @@
 <% content_for :title, "Open your shop" %>
 
 <h1 class="text-3xl font-bold">Open your shop</h1>
-<p class="mt-2 mb-8 text-stone-600">Point of sale and stock control for hardware stores. Your shop's data is private to your shop.</p>
+<p class="mt-2 mb-8 text-steel-600">Point of sale and stock control for hardware stores. Your shop's data is private to your shop.</p>
 
 <div class="card">
   <%# Turbo can't follow the redirect to the new shop's subdomain (another origin), so submit normally. %>
@@ -17,7 +17,7 @@
       <%= form.label :subdomain, "Web address", class: "label" %>
       <div class="flex items-center gap-2">
         <%= form.text_field :subdomain, required: true, pattern: "[a-z0-9][a-z0-9-]*", class: "input", placeholder: "acme" %>
-        <span class="text-stone-500">.<%= request.host %></span>
+        <span class="text-steel-600">.<%= request.host %></span>
       </div>
     </div>
 

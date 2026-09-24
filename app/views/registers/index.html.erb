@@ -1,0 +1,37 @@
+<% content_for :title, "Tills" %>
+
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-3xl font-bold">Tills</h1>
+    <p class="hint mt-1">Each till is a point of sale in one of your branches.</p>
+  </div>
+  <% if current_membership.can_manage_branches? %>
+    <%= link_to "Add till", new_register_path, class: "btn-primary" %>
+  <% end %>
+</div>
+
+<div class="card">
+  <% if @registers.any? %>
+    <table class="table">
+      <thead>
+        <tr><th>Till</th><th>Branch</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% @registers.each do |register| %>
+          <tr id="<%= dom_id(register) %>">
+            <td class="font-medium"><%= register.name %></td>
+            <td><%= register.branch.name %></td>
+            <td><span class="badge <%= "bg-concrete-200 text-steel-600" unless register.active? %>"><%= register.active? ? "Active" : "Inactive" %></span></td>
+            <td class="text-right">
+              <% if current_membership.can_manage_branches? %>
+                <%= link_to "Edit", edit_register_path(register), class: "link" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No tills yet. Add one for each counter where you take payments.</p>
+  <% end %>
+</div>

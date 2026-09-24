@@ -11,9 +11,9 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="min-h-screen bg-stone-50 text-stone-900">
+  <body class="min-h-screen bg-concrete-100 text-navy-900">
     <main class="mx-auto max-w-xl px-4 py-12">
-      <p class="mb-8 text-2xl font-bold tracking-tight">Hard<span class="text-amber-600">Point</span></p>
+      <p class="mb-8"><%= render "shared/logo" %></p>
       <%= render "shared/flash" %>
       <%= yield %>
     </main>

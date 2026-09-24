@@ -5,12 +5,37 @@ Rails.application.routes.draw do
     root "signups#new", as: :signup_root
   end
 
-  constraints ->(request) { request.subdomain.present? } do
-    resource :session
+  # Platform administration on admin.<domain>.
+  constraints subdomain: "admin" do
+    namespace :admin, path: "" do
+      resource :session, only: %i[ new create destroy ]
+      resource :two_factor, only: %i[ new create ]
+      resources :accounts, only: %i[ index show ]
+      resources :impersonations, only: :create
+      root "accounts#index"
+    end
+  end
+
+  constraints ->(request) { request.subdomain.present? && request.subdomain != "admin" } do
+    resource :session do
+      scope module: :sessions do
+        resource :two_factor, only: %i[ new create ]
+        resource :switch, only: %i[ new create ]
+        resource :impersonation, only: %i[ new create ]
+      end
+    end
+    namespace :my do
+      resource :profile, only: :show
+      resource :two_factor, only: %i[ new create destroy ]
+      resource :recovery_codes, only: :show
+      resource :pin, only: %i[ edit update destroy ]
+    end
     resources :passwords, param: :token
     resource :account, only: %i[ edit update ]
     resources :branches, except: :show
+    resources :registers, except: :show
     resources :memberships, except: :show
+    resources :events, only: :index
     root "dashboards#show"
   end
 

@@ -4,6 +4,11 @@ source "https://rubygems.org"
 gem "rails", "~> 8.1.3", ">= 8.1.3.1"
 # json 3.0 changed JSON.parse's signature and Active Support 8.1.3.1 isn't compatible yet.
 gem "json", "~> 2.21"
+
+# The short list of non-Rails gems, each covering something Rails has no built-in for (docs/PLAN.md §1):
+# TOTP codes for two-factor sign-in, and QR codes to enrol authenticator apps.
+gem "rotp", "~> 6.3"
+gem "rqrcode", "~> 3.2"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record

@@ -1,0 +1,16 @@
+<% content_for :title, "Recovery codes" %>
+
+<h1 class="text-3xl font-bold">Two-factor sign-in is on</h1>
+
+<div class="card mt-6 max-w-2xl">
+  <p class="font-semibold">Save these recovery codes somewhere safe.</p>
+  <p class="hint mt-1">Each one works once if you lose your phone. They won't be shown again.</p>
+
+  <ul class="mt-4 grid grid-cols-2 gap-2 font-mono text-lg">
+    <% @recovery_codes.each do |code| %>
+      <li class="rounded bg-concrete-100 px-3 py-1.5 text-center"><%= code %></li>
+    <% end %>
+  </ul>
+
+  <%= link_to "I've saved them", my_profile_path, class: "btn-primary mt-6" %>
+</div>

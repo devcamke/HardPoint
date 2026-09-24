@@ -1,0 +1,10 @@
+<% content_for :title, "Edit #{@register.name}" %>
+
+<h1 class="mb-6 text-3xl font-bold">Edit <%= @register.name %></h1>
+
+<div class="card max-w-xl">
+  <%= render "form", register: @register %>
+</div>
+
+<%= button_to "Remove till", register_path(@register), method: :delete, class: "btn-danger mt-6",
+      form: { data: { turbo_confirm: "Remove #{@register.name}?" } } %>

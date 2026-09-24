@@ -21,7 +21,15 @@
       <%= form.text_field :currency, required: true, maxlength: 3, class: "input uppercase" %>
     </div>
 
-    <p class="mb-4 text-sm text-stone-500">Web address: <%= request.host %> (contact support to change it)</p>
+    <div class="field flex items-start gap-2">
+      <%= form.check_box :require_two_factor_for_managers, class: "mt-1 size-4 accent-safety-500" %>
+      <div>
+        <%= form.label :require_two_factor_for_managers, "Require two-factor sign-in for owners and managers", class: "text-sm font-medium text-navy-800" %>
+        <p class="hint">They'll be asked to set it up the next time they use HardPoint.</p>
+      </div>
+    </div>
+
+    <p class="mb-4 text-sm text-steel-600">Web address: <%= request.host %> (contact support to change it)</p>
 
     <%= form.submit "Save settings", class: "btn-primary" %>
   <% end %>

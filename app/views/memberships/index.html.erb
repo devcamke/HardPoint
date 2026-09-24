@@ -16,7 +16,7 @@
           <td class="font-medium"><%= membership.user.name %></td>
           <td><%= membership.user.email_address %></td>
           <td><%= membership.role.humanize %></td>
-          <td class="text-right"><%= link_to "Edit", edit_membership_path(membership), class: "text-amber-700 underline" %></td>
+          <td class="text-right"><%= link_to "Edit", edit_membership_path(membership), class: "link" %></td>
         </tr>
       <% end %>
     </tbody>

@@ -20,7 +20,7 @@
           <td><%= branch.phone %></td>
           <td class="text-right">
             <% if current_membership.can_manage_branches? %>
-              <%= link_to "Edit", edit_branch_path(branch), class: "text-amber-700 underline" %>
+              <%= link_to "Edit", edit_branch_path(branch), class: "link" %>
             <% end %>
           </td>
         </tr>
