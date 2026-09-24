@@ -1,0 +1,51 @@
+<%= form_with model: customer_order, class: "card max-w-4xl" do |form| %>
+  <%= render "shared/errors", model: customer_order %>
+
+  <div class="grid gap-4 sm:grid-cols-4">
+    <div class="field sm:col-span-2"><%= form.label :customer_id, "Customer", class: "label" %>
+      <%= form.collection_select :customer_id, Current.account.customers.alphabetically, :id, :name, { prompt: "Choose…" }, required: true, class: "input" %>
+      <p class="hint mt-1">Not listed? <%= link_to "Add a customer", new_customer_path, class: "link" %> first.</p></div>
+    <div class="field"><%= form.label :branch_id, "Branch", class: "label" %>
+      <%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %></div>
+    <% if customer_order.new_record? || customer_order.quote? %>
+      <div class="field"><%= form.label :valid_until, "Quote valid until", class: "label" %><%= form.date_field :valid_until, class: "input" %>
+        <p class="hint mt-1">Blank: <%= CustomerOrder::QUOTE_VALIDITY.in_days.to_i %> days</p></div>
+    <% end %>
+    <div class="field"><%= form.label :needed_by, "Needed by", class: "label" %><%= form.date_field :needed_by, class: "input" %></div>
+  </div>
+
+  <p class="label mt-2">Products</p>
+  <table class="table mb-2">
+    <thead><tr><th>Barcode or SKU</th><th class="text-right">Quantity</th><% if current_membership.approver? %><th class="text-right">Unit price (blank = their price)</th><% end %><th class="text-right">Remove</th></tr></thead>
+    <tbody>
+      <%= form.fields_for :lines do |line| %>
+        <tr>
+          <td>
+            <% if line.object.persisted? %>
+              <%= line.hidden_field :id %><%= line.object.description %> <span class="font-mono text-xs text-steel-600"><%= line.object.product.sku %></span>
+              <span class="hint">· <%= money(line.object.unit_price_cents) %></span>
+            <% else %>
+              <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Scan or type", class: "input py-1.5 font-mono", "aria-label": "Barcode or SKU" %>
+            <% end %>
+          </td>
+          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, class: "input w-24 py-1.5 text-right", "aria-label": "Quantity" %></td>
+          <% if current_membership.approver? %>
+            <td class="text-right"><%= line.number_field :unit_price, value: (plain_number(line.object.unit_price) if line.object.unit_price_cents.to_i.positive?), step: "0.01", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit price" %></td>
+          <% end %>
+          <td class="text-right"><%= line.check_box :_destroy, class: "size-4 accent-safety-500", "aria-label": "Remove line" if line.object.persisted? %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p class="hint mb-4">Prices are the customer's own (their price list and quantity breaks) and hold once saved.</p>
+
+  <div class="field"><%= form.label :note, "Note (shown on the quote)", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. delivery to site included" %></div>
+  <div class="flex flex-wrap items-center gap-3">
+    <% if customer_order.new_record? %>
+      <%= form.submit "Save quote", class: "btn-primary" %>
+      <%= form.button "Save as confirmed order", name: "order_now", value: "1", class: "btn-secondary" %>
+    <% else %>
+      <%= form.submit "Save", class: "btn-primary" %>
+    <% end %>
+  </div>
+<% end %>

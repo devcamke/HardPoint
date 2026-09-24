@@ -2,13 +2,9 @@
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
   <h1 class="text-3xl font-bold">Sales</h1>
-  <div class="flex gap-2">
-    <%= link_to "Customers", customers_path, class: "btn-secondary" %>
-    <%= link_to "Returns", returns_path, class: "btn-secondary" %>
-    <%= link_to "Shifts", shifts_path, class: "btn-secondary" %>
-    <%= link_to "Go to till", pos_path, class: "btn-primary" %>
-  </div>
+  <%= link_to "Go to till", pos_path, class: "btn-primary" %>
 </div>
+<%= render "sales/tabs" %>
 
 <%= form_with url: sales_path, method: :get, class: "card mb-4 flex flex-wrap items-end gap-3 p-4", data: { controller: "auto-submit" } do |form| %>
   <div><%= form.label :query, "Receipt number", class: "label" %><%= form.search_field :query, value: params[:query], placeholder: "#{(@branch || branches_for_selection.first)&.code}-000123", class: "input font-mono" %></div>

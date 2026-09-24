@@ -1,0 +1,37 @@
+<% content_for :title, "Who owes us" %>
+
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Sales</h1>
+  <button type="button" class="btn-secondary" onclick="window.print()">Print</button>
+</div>
+<%= render "sales/tabs" %>
+
+<p class="hint mb-4">What customers owe on account by how late it is, as of <%= l(Date.current, format: :long) %>. Each account sale is due after the customer's payment terms; payments and returns settle their oldest sales first.</p>
+
+<div class="card overflow-x-auto">
+  <% if @rows.any? %>
+    <table class="table">
+      <thead><tr><th>Customer</th><th class="text-right">Not yet due</th><th class="text-right">1–30 days late</th><th class="text-right">31–60</th><th class="text-right">61–90</th><th class="text-right">Over 90</th><th class="text-right">Total</th><th class="text-right">Credit limit</th><th></th></tr></thead>
+      <tbody>
+        <% @rows.each do |customer, ageing, balance| %>
+          <tr>
+            <td><%= link_to customer.name, customer, class: "link" %><%= tag.span(customer.phone, class: "ml-2 text-xs text-steel-600") if customer.phone %></td>
+            <% Ageing::BUCKETS.each_key do |bucket| %>
+              <td class="text-right tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket]) if ageing[bucket].nonzero? %></td>
+            <% end %>
+            <td class="text-right font-semibold tabular-nums <%= "text-red-700" if balance > customer.credit_limit_cents %>"><%= money(balance) %></td>
+            <td class="text-right tabular-nums text-steel-600"><%= money(customer.credit_limit_cents) %></td>
+            <td class="text-right whitespace-nowrap"><%= link_to "Statement", customer_statement_path(customer), class: "link text-sm" %></td>
+          </tr>
+        <% end %>
+        <tr class="font-bold">
+          <td>Total</td>
+          <% Ageing::BUCKETS.each_key do |bucket| %><td class="text-right tabular-nums"><%= money(@totals[bucket]) %></td><% end %>
+          <td class="text-right tabular-nums"><%= money(@rows.sum(&:last)) %></td><td></td><td></td>
+        </tr>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Nobody owes anything on account.</p>
+  <% end %>
+</div>

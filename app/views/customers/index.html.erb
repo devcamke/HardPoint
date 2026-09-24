@@ -1,9 +1,10 @@
 <% content_for :title, "Customers" %>
 
-<div class="mb-6 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Customers</h1>
-  <%= link_to "Add customer", new_customer_path, class: "btn-primary" %>
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Sales</h1>
+  <%= link_to "Add customer", new_customer_path, class: "btn-primary" if current_membership.can_sell? %>
 </div>
+<%= render "sales/tabs" %>
 
 <%= form_with url: customers_path, method: :get, class: "mb-4", data: { controller: "auto-submit" } do |form| %>
   <%= form.search_field :query, value: params[:query], placeholder: "Search by name or phone", class: "input max-w-md", "aria-label": "Search customers", data: { action: "input->auto-submit#debouncedSubmit" } %>

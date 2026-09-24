@@ -1,7 +1,7 @@
 class Payment < ApplicationRecord
   include AccountOwned, Monetary
 
-  TENDERS = %w[ cash card mobile_money on_account ].freeze
+  TENDERS = %w[ cash card mobile_money on_account deposit ].freeze
 
   belongs_to :sale
 
@@ -19,6 +19,6 @@ class Payment < ApplicationRecord
   end
 
   def label
-    tender.humanize
+    deposit? ? "Deposit used" : tender.humanize
   end
 end

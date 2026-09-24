@@ -13,6 +13,7 @@ module Sale::Voidable
 
       lines.each(&:restore_stock)
       update! status: :voided, voided_by: by, voided_at: Time.current, void_reason: reason
+      customer_order&.reopen
       track_event "voided", creator: by, reason: reason, approver: approver.name, total: total_cents
     end
   end

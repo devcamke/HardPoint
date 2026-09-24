@@ -103,10 +103,37 @@ Rails.application.routes.draw do
         resource :recall, only: :create
         resource :void, only: %i[ new create ]
         resources :returns, only: %i[ new create ]
+        resource :invoice, only: :show
       end
     end
     resources :returns, only: %i[ index show ], controller: :sale_returns
-    resources :customers, except: :destroy
+
+    # Customers, orders and accounts
+    resources :customers, except: :destroy do
+      scope module: :customers do
+        resources :payments, only: %i[ new create ]
+        resource :statement, only: :show
+        resource :statement_email, only: :create
+      end
+    end
+    resources :customer_orders, path: "orders", except: :destroy do
+      scope module: :customer_orders do
+        resource :confirmation, only: :create
+        resource :readiness, only: :create
+        resource :cancellation, only: :create
+        resource :email, only: :create
+        resource :collection, only: :create
+        resources :deposits, only: %i[ new create ]
+      end
+    end
+    resource :receivables, only: :show
+    resources :delivery_notes, path: "deliveries", only: %i[ index show new create ] do
+      scope module: :delivery_notes do
+        resource :dispatch, only: :create
+        resource :delivery, only: :create
+        resource :cancellation, only: :create
+      end
+    end
 
     # Purchasing
     resources :suppliers, except: :destroy do

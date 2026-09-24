@@ -5,10 +5,12 @@
     <div class="field"><%= form.label :phone, class: "label" %><%= form.telephone_field :phone, class: "input" %></div>
     <div class="field"><%= form.label :email, class: "label" %><%= form.email_field :email, class: "input" %></div>
     <div class="field"><%= form.label :tax_pin, "Tax PIN (for tax invoices)", class: "label" %><%= form.text_field :tax_pin, class: "input uppercase" %></div>
+    <div class="field"><%= form.label :address, "Address (for deliveries and statements)", class: "label" %><%= form.text_field :address, class: "input" %></div>
     <% if current_membership.approver? %>
       <div class="field"><%= form.label :price_list_id, "Prices", class: "label" %><%= form.collection_select :price_list_id, Current.account.price_lists.alphabetically, :id, :name, { include_blank: "Retail" }, class: "input" %></div>
       <div class="field"><%= form.label :credit_limit, "Credit limit (#{Current.account.currency})", class: "label" %><%= form.number_field :credit_limit, value: plain_number(customer.credit_limit), step: "0.01", min: 0, class: "input" %>
         <p class="hint mt-1">0 means cash only; above 0 lets them buy on account.</p></div>
+      <div class="field"><%= form.label :payment_terms_days, "Pays within (days)", class: "label" %><%= form.number_field :payment_terms_days, min: 0, step: 1, class: "input" %></div>
     <% end %>
   </div>
   <div class="field"><%= form.label :notes, class: "label" %><%= form.text_area :notes, rows: 2, class: "input" %></div>

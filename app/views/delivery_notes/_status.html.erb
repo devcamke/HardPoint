@@ -1,0 +1,3 @@
+<% classes = { "pending" => "bg-concrete-200 text-steel-600", "dispatched" => "bg-safety-100 text-safety-800",
+               "delivered" => "bg-green-50 text-green-800", "cancelled" => "bg-concrete-200 text-steel-600 line-through" } %>
+<span class="badge <%= classes[note.status] %>"><%= note.status.humanize %></span>

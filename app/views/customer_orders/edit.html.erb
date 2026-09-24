@@ -1,0 +1,4 @@
+<% content_for :title, "Edit #{@customer_order.reference}" %>
+<p class="text-sm"><%= link_to "← #{@customer_order.reference}", @customer_order, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Edit <%= @customer_order.kind.downcase %> <%= @customer_order.reference %></h1>
+<%= render "form", customer_order: @customer_order %>

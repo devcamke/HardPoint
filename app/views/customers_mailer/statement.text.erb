@@ -1,0 +1,7 @@
+Hello <%= @customer.name %>,
+
+Your statement from <%= @account.name %> for <%= @from.to_fs(:long) %> to <%= @to.to_fs(:long) %> is attached.
+
+Balance: <%= money(@balance_cents, currency: @account.currency) %>
+
+Payment terms are <%= @customer.payment_terms_days %> days. Please pay by M-Pesa, bank transfer or at the counter, quoting your name.

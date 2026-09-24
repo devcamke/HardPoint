@@ -1,9 +1,10 @@
 <% content_for :title, "Shifts" %>
 
-<div class="mb-6 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Shifts</h1>
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Sales</h1>
   <%= link_to "Go to till", pos_path, class: "btn-primary" %>
 </div>
+<%= render "sales/tabs" %>
 
 <div class="card">
   <table class="table">

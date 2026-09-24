@@ -1,33 +1,95 @@
 <% content_for :title, @customer.name %>
 
 <p class="text-sm"><%= link_to "← Customers", customers_path, class: "link" %></p>
-<div class="mt-2 mb-6 flex items-start justify-between">
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="text-3xl font-bold"><%= @customer.name %></h1>
-    <p class="hint mt-1"><%= [ @customer.phone, @customer.email, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %></p>
+    <p class="hint mt-1"><%= [ @customer.phone, @customer.email, @customer.address, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %></p>
   </div>
-  <%= link_to "Edit", edit_customer_path(@customer), class: "btn-secondary" %>
+  <div class="flex flex-wrap gap-2">
+    <% if current_membership.can_sell? %>
+      <%= link_to "Edit", edit_customer_path(@customer), class: "btn-secondary" %>
+      <%= link_to "New quote", new_customer_order_path(customer_id: @customer.id), class: "btn-secondary" %>
+    <% end %>
+    <%= link_to "Statement", customer_statement_path(@customer), class: "btn-secondary" if current_membership.can_manage_receivables? %>
+    <%= link_to "Record payment", new_customer_payment_path(@customer), class: "btn-primary" if @customer.balance_cents.positive? %>
+  </div>
 </div>
 
-<div class="mb-6 grid gap-4 sm:grid-cols-3">
+<div class="mb-6 grid gap-4 sm:grid-cols-4">
   <div class="card"><p class="hint">Prices</p><p class="mt-1 text-xl font-bold"><%= @customer.price_list&.name || "Retail" %></p></div>
-  <div class="card"><p class="hint">Owes on account</p><p class="mt-1 text-xl font-bold tabular-nums"><%= money(@customer.balance_cents) %></p></div>
+  <div class="card"><p class="hint">Owes on account</p><p class="mt-1 text-xl font-bold tabular-nums"><%= money(@customer.balance_cents) %></p>
+    <% overdue = @customer.overdue_cents %><%= tag.p("#{money(overdue)} overdue", class: "text-sm font-semibold text-red-700") if overdue.positive? %></div>
   <div class="card"><p class="hint">Credit left</p><p class="mt-1 text-xl font-bold tabular-nums"><%= @customer.buys_on_account? ? money(@customer.available_credit_cents) : "Cash only" %></p>
     <% if @customer.buys_on_account? %><p class="hint">of <%= money(@customer.credit_limit_cents) %></p><% end %></div>
+  <div class="card"><p class="hint">Pays within</p><p class="mt-1 text-xl font-bold"><%= pluralize(@customer.payment_terms_days, "day") %></p></div>
 </div>
 
-<section class="card">
-  <h2 class="mb-3 text-lg font-semibold">Recent purchases</h2>
-  <% if @sales.any? %>
-    <table class="table">
-      <tbody>
-        <% @sales.each do |sale| %>
-          <tr><td><%= link_to sale.receipt_number, sale, class: "link font-mono" %></td><td><%= l(sale.completed_at, format: :short) %></td>
-            <td class="text-right tabular-nums <%= "line-through" if sale.voided? %>"><%= money(sale.total_cents) %></td></tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p class="hint">No purchases yet.</p>
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Unpaid account sales</h2>
+    <% if @open_invoices.any? %>
+      <table class="table">
+        <thead><tr><th>Sale</th><th>Due</th><th class="text-right">On account</th><th class="text-right">Still owed</th></tr></thead>
+        <tbody>
+          <% @open_invoices.each do |open| %>
+            <tr>
+              <td><%= link_to open.sale.receipt_number, open.sale, class: "link font-mono" %></td>
+              <td class="<%= "font-semibold text-red-700" if open.days_overdue.positive? %>"><%= tag.span(l(open.due_date, format: :long), class: "whitespace-nowrap") %><%= tag.span(" · #{pluralize(open.days_overdue, "day")} late", class: "whitespace-nowrap") if open.days_overdue.positive? %></td>
+              <td class="text-right tabular-nums"><%= money(open.amount_cents) %></td>
+              <td class="text-right tabular-nums"><%= money(open.outstanding_cents) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint">Nothing owed.</p>
+    <% end %>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Payments on account</h2>
+    <% if @payments.any? %>
+      <table class="table">
+        <tbody>
+          <% @payments.each do |payment| %>
+            <tr><td class="whitespace-nowrap"><%= l(payment.paid_on, format: :long) %></td><td><%= payment.payment_method.humanize %><%= " · #{payment.reference}" if payment.reference.present? %></td>
+              <td class="text-steel-600"><%= payment.creator&.name %></td><td class="text-right tabular-nums"><%= money(payment.amount_cents) %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint">No payments yet.</p>
+    <% end %>
+  </section>
+
+  <% if @orders.any? %>
+    <section class="card">
+      <h2 class="mb-3 text-lg font-semibold">Quotes and orders</h2>
+      <table class="table">
+        <tbody>
+          <% @orders.each do |order| %>
+            <tr><td><%= link_to order.reference, order, class: "link font-mono" %></td><td><%= render "customer_orders/status", order: order %></td>
+              <td class="text-right tabular-nums"><%= money(order.total_cents) %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </section>
   <% end %>
-</section>
+
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Recent purchases</h2>
+    <% if @sales.any? %>
+      <table class="table">
+        <tbody>
+          <% @sales.each do |sale| %>
+            <tr><td><%= link_to sale.receipt_number, sale, class: "link font-mono" %></td><td><%= l(sale.completed_at, format: :short) %></td>
+              <td class="text-right tabular-nums <%= "line-through" if sale.voided? %>"><%= money(sale.total_cents) %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint">No purchases yet.</p>
+    <% end %>
+  </section>
+</div>

@@ -1,0 +1,48 @@
+<% content_for :title, "#{@customer.name} statement" %>
+<% period = { from: @statement.from, to: @statement.to } %>
+
+<p class="text-sm"><%= link_to "← #{@customer.name}", @customer, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold">Statement</h1>
+    <p class="hint mt-1"><%= @customer.name %> · <%= l(@statement.from, format: :long) %> to <%= l(@statement.to, format: :long) %></p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "PDF", customer_statement_path(@customer, period.merge(format: :pdf)), target: "_blank", class: "btn-secondary" %>
+    <%= button_to (@customer.email.present? ? "Email to #{@customer.email}" : "Email"), customer_statement_email_path(@customer), params: period, class: "btn-primary",
+          disabled: @customer.email.blank?, title: ("Add an email address to the customer first" if @customer.email.blank?) %>
+  </div>
+</div>
+
+<%= form_with url: customer_statement_path(@customer), method: :get, class: "card mb-4 flex flex-wrap items-end gap-3 p-4" do |form| %>
+  <div><%= form.label :from, class: "label" %><%= form.date_field :from, value: @statement.from, class: "input" %></div>
+  <div><%= form.label :to, class: "label" %><%= form.date_field :to, value: @statement.to, class: "input" %></div>
+  <%= form.submit "Show", class: "btn-secondary" %>
+<% end %>
+
+<div class="card mb-6">
+  <table class="table">
+    <thead><tr><th>Date</th><th>Details</th><th>Reference</th><th class="text-right">Charges</th><th class="text-right">Credits</th><th class="text-right">Balance</th></tr></thead>
+    <tbody>
+      <tr class="text-steel-600"><td><%= l(@statement.from, format: :long) %></td><td>Brought forward</td><td></td><td></td><td></td><td class="text-right tabular-nums"><%= money(@statement.opening_balance_cents) %></td></tr>
+      <% @statement.entries.each do |entry| %>
+        <tr>
+          <td><%= l(entry.date, format: :long) %></td><td><%= entry.description %></td><td class="font-mono text-sm"><%= entry.reference %></td>
+          <td class="text-right tabular-nums"><%= money(entry.charge_cents) if entry.charge_cents.positive? %></td>
+          <td class="text-right tabular-nums"><%= money(entry.credit_cents) if entry.credit_cents.positive? %></td>
+          <td class="text-right tabular-nums"><%= money(entry.balance_cents) %></td>
+        </tr>
+      <% end %>
+      <tr class="font-bold"><td colspan="5">Balance due</td><td class="text-right tabular-nums"><%= money(@statement.closing_balance_cents) %></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card max-w-3xl">
+  <h2 class="mb-2 font-semibold">Ageing at <%= l(@statement.to, format: :long) %></h2>
+  <% ageing = @statement.ageing %>
+  <table class="table">
+    <thead><tr><th class="text-right">Not yet due</th><th class="text-right">1–30 days late</th><th class="text-right">31–60</th><th class="text-right">61–90</th><th class="text-right">Over 90</th></tr></thead>
+    <tbody><tr><% Ageing::BUCKETS.each_key do |bucket| %><td class="text-right tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket]) %></td><% end %></tr></tbody>
+  </table>
+</div>

@@ -34,7 +34,17 @@
 
   <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Takings</p>
   <% Payment::TENDERS.each do |tender| %>
-    <%= row.(tender.humanize, money(@report.takings_by_tender.fetch(tender, 0))) %>
+    <%= row.(tender == "deposit" ? "Deposits used" : tender.humanize, money(@report.takings_by_tender.fetch(tender, 0))) %>
+  <% end %>
+
+  <% if @report.deposits_by_tender.any? || @report.account_payments_by_method.any? %>
+    <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Deposits and account payments</p>
+    <% @report.deposits_by_tender.each do |tender, cents| %>
+      <%= row.("Deposits, #{tender.humanize.downcase}", money(cents)) %>
+    <% end %>
+    <% @report.account_payments_by_method.each do |method, cents| %>
+      <%= row.("Account payments, #{method.humanize.downcase}", money(cents)) %>
+    <% end %>
   <% end %>
 
   <% if @report.returns_count.positive? %>
@@ -48,6 +58,8 @@
   <%= row.("Opening float", money(@shift.opening_float_cents)) %>
   <%= row.("Cash sales", money(@shift.cash_sales_cents)) %>
   <%= row.("Cash refunds", "−#{money(@shift.cash_refunds_cents)}") if @shift.cash_refunds_cents.positive? %>
+  <%= row.("Cash deposits (net)", money(@shift.cash_deposits_cents)) if @shift.cash_deposits_cents.nonzero? %>
+  <%= row.("Cash account payments", money(@shift.cash_account_payments_cents)) if @shift.cash_account_payments_cents.positive? %>
   <% @report.cash_movements.each do |movement| %>
     <%= row.("#{movement.kind.humanize}: #{movement.reason}", "#{movement.outgoing? ? "−" : "+"}#{money(movement.amount_cents)}") %>
   <% end %>

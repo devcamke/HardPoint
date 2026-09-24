@@ -1,9 +1,10 @@
 class Customer < ApplicationRecord
-  include AccountOwned, Eventable, Monetary
+  include AccountOwned, Eventable, Monetary, Receivables
   tracks_lifecycle
 
   belongs_to :price_list, optional: true
   has_many :sales, dependent: :restrict_with_error
+  has_many :customer_orders, dependent: :restrict_with_error
 
   money_attribute :credit_limit
 
@@ -13,6 +14,7 @@ class Customer < ApplicationRecord
   validates :name, presence: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :credit_limit_cents, numericality: { greater_than_or_equal_to: 0 }
+  validates :payment_terms_days, numericality: { greater_than_or_equal_to: 0, only_integer: true }
   validates_same_account :price_list
 
   scope :alphabetically, -> { order(:name) }
@@ -24,13 +26,6 @@ class Customer < ApplicationRecord
     digits = query.gsub(/\D/, "").last(9)
     phone_match = digits.length >= 4 ? "%#{digits}%" : nil
     where("customers.name ILIKE :like OR customers.phone LIKE :phone", like: "%#{sanitize_sql_like(query)}%", phone: phone_match)
-  end
-
-  # What the customer owes on account: sales put on account, less returns credited back.
-  def balance_cents
-    charged = Payment.on_account.joins(:sale).where(sales: { customer_id: id, status: "completed" }).sum(:amount_cents)
-    credited = SaleReturn.joins(:sale).where(refund_method: "on_account", sales: { customer_id: id }).sum(:total_cents)
-    charged - credited
   end
 
   def available_credit_cents

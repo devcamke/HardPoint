@@ -16,7 +16,7 @@
         <% @rows.each do |supplier, ageing, balance| %>
           <tr>
             <td><%= link_to supplier.name, supplier, class: "link" %></td>
-            <% Supplier::Payables::AGEING_BUCKETS.each_key do |bucket| %>
+            <% Ageing::BUCKETS.each_key do |bucket| %>
               <td class="text-right tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket]) if ageing[bucket].nonzero? %></td>
             <% end %>
             <td class="text-right font-semibold tabular-nums"><%= money(balance) %></td>
@@ -25,7 +25,7 @@
         <% end %>
         <tr class="font-bold">
           <td>Total</td>
-          <% Supplier::Payables::AGEING_BUCKETS.each_key do |bucket| %><td class="text-right tabular-nums"><%= money(@totals[bucket]) %></td><% end %>
+          <% Ageing::BUCKETS.each_key do |bucket| %><td class="text-right tabular-nums"><%= money(@totals[bucket]) %></td><% end %>
           <td class="text-right tabular-nums"><%= money(@rows.sum(&:last)) %></td><td></td>
         </tr>
       </tbody>

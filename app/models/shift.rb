@@ -11,6 +11,8 @@ class Shift < ApplicationRecord
   has_many :sales, dependent: :restrict_with_error
   has_many :cash_movements, dependent: :destroy
   has_many :sale_returns, dependent: :restrict_with_error
+  has_many :deposits, dependent: :restrict_with_error
+  has_many :customer_payments, dependent: :restrict_with_error
 
   enum :status, %w[ open closed ].index_by(&:itself), default: :open
 
@@ -41,13 +43,22 @@ class Shift < ApplicationRecord
     sale_returns.where(refund_method: "cash").sum(:total_cents)
   end
 
+  # Deposits on orders (less deposits refunded) and account payments, taken in cash.
+  def cash_deposits_cents
+    deposits.cash.sum(:amount_cents)
+  end
+
+  def cash_account_payments_cents
+    customer_payments.cash.sum(:amount_cents)
+  end
+
   def cash_movement_totals
     cash_movements.group(:kind).sum(:amount_cents)
   end
 
   def expected_cash_cents_now
     movements = cash_movement_totals
-    opening_float_cents + cash_sales_cents - cash_refunds_cents +
+    opening_float_cents + cash_sales_cents - cash_refunds_cents + cash_deposits_cents + cash_account_payments_cents +
       movements.fetch("pay_in", 0) - movements.fetch("payout", 0) - movements.fetch("drop", 0)
   end
 

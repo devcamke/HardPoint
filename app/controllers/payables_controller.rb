@@ -5,6 +5,6 @@ class PayablesController < ApplicationController
   def show
     @rows = Current.account.suppliers.alphabetically.map { |supplier| [ supplier, supplier.ageing, supplier.balance_cents ] }
       .reject { |_, _, balance| balance.zero? }
-    @totals = Supplier::Payables::AGEING_BUCKETS.keys.index_with { |bucket| @rows.sum { _2[bucket] } }
+    @totals = Ageing::BUCKETS.keys.index_with { |bucket| @rows.sum { _2[bucket] } }
   end
 end

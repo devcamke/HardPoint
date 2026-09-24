@@ -3,7 +3,8 @@ class Pos::PaymentsController < ApplicationController
 
   def create
     payment = @sale.pay(tender: params[:tender], amount_cents: Monetary.to_cents(params[:amount]),
-      tendered_cents: Monetary.to_cents(params[:tendered]), reference: params[:reference])
+      tendered_cents: Monetary.to_cents(params[:tendered]), reference: params[:reference],
+      credit_approver: (approver_for_action if params[:tender] == "on_account"))
 
     if payment.errors.any?
       render_cart alert: payment.errors.full_messages.to_sentence, status: :unprocessable_entity

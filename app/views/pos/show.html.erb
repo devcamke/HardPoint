@@ -25,6 +25,7 @@
 
     <div class="mt-auto flex flex-wrap gap-2 text-sm">
       <%= link_to "Parked sales (#{current_shift.sales.parked.count})", pos_parked_sales_path, class: "btn-secondary" %>
+      <%= link_to "Collect an order", customer_orders_path(status: "open"), class: "btn-secondary" %>
       <%= button_to "Park this sale", pos_parking_path, class: "btn-secondary", form: { data: { shortcuts_target: "park" } } %>
       <%= button_to "Clear sale", pos_discard_path, class: "btn-danger", form: { data: { turbo_confirm: "Clear everything in this sale?" } } %>
     </div>

@@ -1,0 +1,42 @@
+<% content_for :title, "Orders & quotes" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Sales</h1>
+  <%= link_to "New quote or order", new_customer_order_path, class: "btn-primary" %>
+</div>
+<%= render "sales/tabs" %>
+
+<%= form_with url: customer_orders_path, method: :get, class: "mb-4 flex flex-wrap items-end gap-3", data: { controller: "auto-submit" } do |form| %>
+  <div class="flex flex-wrap gap-1 text-sm">
+    <% [ [ "open", "Open orders" ], [ "ready", "Ready to collect" ], [ "quote", "Quotes" ], [ "collected", "Collected" ], [ "cancelled", "Cancelled" ], [ "all", "All" ] ].each do |value, label| %>
+      <%= link_to label, customer_orders_path(status: value, query: params[:query]), class: class_names("rounded-full px-3 py-1", "bg-navy-900 text-white" => @status == value, "bg-white text-steel-600 hover:text-navy-900" => @status != value) %>
+    <% end %>
+  </div>
+  <%= form.hidden_field :status, value: @status %>
+  <%= form.search_field :query, value: params[:query], placeholder: "Customer name or phone", class: "input ml-auto w-64", "aria-label": "Customer",
+        data: { action: "input->auto-submit#debouncedSubmit" } %>
+<% end %>
+
+<div class="card">
+  <% if @customer_orders.any? %>
+    <table class="table">
+      <thead><tr><th>Number</th><th>Customer</th><th>Date</th><th>Needed / valid until</th><th>Status</th><th class="text-right">Deposit</th><th class="text-right">Total</th></tr></thead>
+      <tbody>
+        <% @customer_orders.each do |order| %>
+          <tr>
+            <td><%= link_to order.reference, order, class: "link font-mono" %></td>
+            <td><%= order.customer.name %></td>
+            <td><%= l(order.created_at.to_date, format: :long) %></td>
+            <td><%= l(order.quote? ? order.valid_until : order.needed_by, format: :long) if (order.quote? ? order.valid_until : order.needed_by) %></td>
+            <td><%= render "customer_orders/status", order: order %></td>
+            <td class="text-right tabular-nums"><% deposit = order.deposit_balance_cents %><%= money(deposit) if deposit.positive? %></td>
+            <td class="text-right tabular-nums"><%= money(order.total_cents) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Nothing here yet. Quotes become orders when the customer confirms or pays a deposit, and are collected at the till.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Shows the right fields for the chosen tender and the change due as cash is typed.
 export default class extends Controller {
-  static targets = [ "cashFields", "otherFields", "referenceField", "quickCash", "tendered", "amount", "change" ]
+  static targets = [ "cashFields", "otherFields", "referenceField", "approvalField", "quickCash", "tendered", "amount", "change" ]
   static values = { due: Number }
 
   connect() {
@@ -16,6 +16,10 @@ export default class extends Controller {
     this.quickCashTarget.classList.toggle("hidden", !cash)
     this.otherFieldsTarget.classList.toggle("hidden", cash)
     this.referenceFieldTarget.classList.toggle("hidden", !(tender === "mobile_money" || tender === "card"))
+    if (this.hasApprovalFieldTarget) this.approvalFieldTarget.classList.toggle("hidden", tender !== "on_account")
+    // A deposit can only cover what's held; otherwise the amount defaults to what's due.
+    const deposit = this.amountTarget.dataset.deposit
+    if (deposit) this.amountTarget.value = tender === "deposit" ? deposit : (this.dueValue / 100).toFixed(2)
     this.showChange()
   }
 

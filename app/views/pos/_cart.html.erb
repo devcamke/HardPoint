@@ -3,9 +3,10 @@
     <div class="min-w-0">
       <p class="text-xs uppercase tracking-wide text-steel-600">Customer</p>
       <p class="truncate font-semibold"><%= sale.customer&.name || "Walk-in" %>
-        <%= tag.span(sale.customer.price_list.name, class: "badge ml-1") if sale.customer&.price_list %></p>
+        <%= tag.span(sale.customer.price_list.name, class: "badge ml-1") if sale.customer&.price_list %>
+        <%= tag.span("Order #{sale.customer_order.reference}", class: "badge ml-1 bg-safety-100 text-safety-800") if sale.customer_order %></p>
     </div>
-    <details class="relative">
+    <details class="relative<%= " hidden" if sale.customer_order %>">
       <summary class="btn-secondary cursor-pointer list-none py-1.5">Change</summary>
       <div class="absolute right-0 z-10 mt-2 w-80 rounded-lg border border-concrete-200 bg-white p-3 shadow-lg">
         <%= form_with url: pos_customers_path, method: :get, data: { turbo_frame: "customer_results", controller: "auto-submit" } do |form| %>

@@ -96,4 +96,8 @@
   .table td {
     @apply border-b border-concrete-100 py-3 pr-4;
   }
+  /* Amounts and document numbers never break across lines. */
+  .table td.tabular-nums, .table td.font-mono, .table td > a.font-mono {
+    @apply whitespace-nowrap;
+  }
 }

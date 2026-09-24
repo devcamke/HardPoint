@@ -11,6 +11,8 @@
   <% if @sale.completed? || @sale.voided? %>
     <div class="flex flex-wrap gap-2">
       <%= link_to "Print receipt", sale_receipt_path(@sale, print: 1), target: "_blank", class: "btn-secondary" %>
+      <%= link_to "Tax invoice (A4)", sale_invoice_path(@sale), target: "_blank", class: "btn-secondary" if @sale.completed? && @sale.customer %>
+      <%= link_to "Deliver", new_delivery_note_path(sale_id: @sale.id), class: "btn-secondary" if @sale.completed? %>
       <% if @sale.returnable? %><%= link_to "Return items", new_sale_return_path(@sale), class: "btn-secondary" %><% end %>
       <% if @sale.voidable? %><%= link_to "Void sale", new_sale_void_path(@sale), class: "btn-danger" %><% end %>
     </div>
@@ -46,7 +48,9 @@
     <section class="card">
       <h2 class="mb-2 font-semibold">Customer</h2>
       <p><%= @sale.customer ? link_to(@sale.customer.name, @sale.customer, class: "link") : "Walk-in" %></p>
+      <% if @sale.customer_order %><p class="mt-1 text-sm">Collected order <%= link_to @sale.customer_order.reference, @sale.customer_order, class: "link font-mono" %></p><% end %>
       <% if @sale.discount_approver %><p class="hint mt-1">Discount approved by <%= @sale.discount_approver.name %></p><% end %>
+      <% if @sale.credit_approver %><p class="hint mt-1">Over the credit limit, approved by <%= @sale.credit_approver.name %></p><% end %>
     </section>
     <section class="card">
       <h2 class="mb-2 font-semibold">Payments</h2>
@@ -55,6 +59,14 @@
       <% end %>
       <% if @sale.change_cents.positive? %><p class="hint mt-1">Change given <%= money(@sale.change_cents) %></p><% end %>
     </section>
+    <% if @sale.delivery_notes.any? %>
+      <section class="card">
+        <h2 class="mb-2 font-semibold">Deliveries</h2>
+        <% @sale.delivery_notes.each do |note| %>
+          <p class="flex items-center justify-between text-sm"><%= link_to note.reference, note, class: "link font-mono" %><%= render "delivery_notes/status", note: note %></p>
+        <% end %>
+      </section>
+    <% end %>
     <% if @sale.sale_returns.any? %>
       <section class="card">
         <h2 class="mb-2 font-semibold">Returns</h2>

@@ -14,11 +14,19 @@
   <% end %>
 
   <%= form_with url: pos_payments_path, data: { action: "turbo:submit-end->payment#reset" } do |form| %>
-    <fieldset class="mb-2 grid grid-cols-4 gap-1 text-sm" data-action="change->payment#switchTender">
+    <% tenders = [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], [ "card", "Card" ], [ "on_account", "Account" ] ]
+       deposit = sale.deposit_available_cents
+       tenders << [ "deposit", "Deposit" ] if deposit.positive?
+       # After a refused payment (e.g. over the credit limit), the same tender stays chosen.
+       chosen_tender = params[:tender].presence_in(tenders.map(&:first)) || "cash" %>
+    <% if deposit.positive? %>
+      <p class="mb-2 text-sm"><%= sale.customer_order.reference %> has a <strong><%= money(deposit) %></strong> deposit to use.</p>
+    <% end %>
+    <fieldset class="mb-2 grid <%= tenders.size > 4 ? "grid-cols-5" : "grid-cols-4" %> gap-1 text-sm" data-action="change->payment#switchTender">
       <legend class="sr-only">Payment method</legend>
-      <% [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], [ "card", "Card" ], [ "on_account", "Account" ] ].each_with_index do |(value, label), index| %>
+      <% tenders.each do |value, label| %>
         <label class="cursor-pointer rounded-md border border-concrete-300 bg-white py-2 text-center font-semibold has-checked:border-navy-900 has-checked:bg-navy-900 has-checked:text-white">
-          <%= form.radio_button :tender, value, checked: index.zero?, class: "sr-only" %><%= label %>
+          <%= form.radio_button :tender, value, checked: value == chosen_tender, class: "sr-only" %><%= label %>
         </label>
       <% end %>
     </fieldset>
@@ -31,12 +39,18 @@
       </div>
       <div class="hidden flex-1" data-payment-target="otherFields">
         <%= form.label :amount, "Amount", class: "label" %>
-        <%= form.number_field :amount, step: "0.01", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount" } %>
+        <%= form.number_field :amount, step: "0.01", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount", deposit: (plain_number(BigDecimal([ deposit, due ].min) / 100) if deposit.positive?) } %>
       </div>
       <div class="hidden flex-1" data-payment-target="referenceField">
         <%= form.label :reference, "Code", class: "label" %>
         <%= form.text_field :reference, autocomplete: "off", placeholder: "e.g. SJK4H7T2QP", class: "input font-mono uppercase" %>
       </div>
+      <% unless current_membership.approver? %>
+        <div class="hidden w-32" data-payment-target="approvalField">
+          <%= form.label :approval_pin, "Manager PIN", class: "label", title: "Needed to go over the customer's credit limit" %>
+          <%= form.password_field :approval_pin, inputmode: "numeric", autocomplete: "off", placeholder: "Over limit", class: "input" %>
+        </div>
+      <% end %>
     </div>
 
     <div class="mt-2 flex flex-wrap gap-1" data-payment-target="quickCash">

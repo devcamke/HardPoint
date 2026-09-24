@@ -42,6 +42,14 @@ class ShiftReport
     shift.sale_returns.group(:refund_method).sum(:total_cents)
   end
 
+  def deposits_by_tender
+    shift.deposits.group(:tender).sum(:amount_cents)
+  end
+
+  def account_payments_by_method
+    shift.customer_payments.group(:payment_method).sum(:amount_cents)
+  end
+
   def returns_count
     shift.sale_returns.count
   end

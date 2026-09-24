@@ -81,6 +81,23 @@ was under 30).
 
 ![Reorder suggestions](docs/screenshots/62-reorder-suggestions.png)
 
+## Phase 5: customers, credit, quotes and invoices
+
+- **Quotes → orders → collection**, one document all the way: a quote (PDF or email, valid for 14 days by default)
+  is confirmed into an order, takes **deposits** (cash, M-Pesa, card or bank; refundable), is marked ready when the
+  goods are in, and is **collected at the till** at the quoted prices, with the deposit as a tender
+- **Invoices on account:** a sale put on account is the invoice, due after the customer's payment terms, with an
+  **A4 tax invoice** PDF for trade customers
+- **Payments on account** settle the oldest sales first; **statements** (PDF or email) bring the balance forward and
+  run it through the period with ageing; **Who owes us** lists every customer's balance by how late it is
+- **Credit limit at the till:** going over it needs an owner's or manager's approval PIN, recorded on the sale
+- **Delivery notes** from a completed sale: printable note with a signature line, dispatch with driver and vehicle,
+  and proof of delivery (who received it and a photo of the signed note)
+- Cash deposits and cash account payments go through the till's drawer and show on the **X/Z report**
+- Accountants see customers, statements and who owes us, but not the till
+
+![Customer account](docs/screenshots/77-customer-account.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -121,7 +138,8 @@ Then open <http://localhost:3000> to sign up a shop, or <http://demo.localhost:3
 PIN is `1234`, and the owner's approval PIN (for big discounts, voids and returns at a cashier's till) is `2468`.
 
 The demo shop comes with about 30 hardware products, stock at both branches, a transfer in transit and a stock take
-in progress. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.
+in progress, suppliers with orders and invoices, and trade customers with account sales (one overdue), a quote, an
+order ready to collect with a deposit, and deliveries. The low-stock email is previewable at <http://demo.localhost:3000/rails/mailers/stock_mailer/low_stock_digest>.
 
 The platform admin is at <http://admin.localhost:3000> (`admin@hardpoint.test` / `hardpoint-demo`). For two-factor,
 add the development-only key `HARDPOINTDEVADMINTOTPSECRETKEYAB` to an authenticator app, or print a code with

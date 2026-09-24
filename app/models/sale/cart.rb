@@ -6,7 +6,7 @@ module Sale::Cart
   def add(product, product_unit: nil, quantity: 1)
     raise ArgumentError, "This sale can't be changed" unless open?
 
-    existing = lines.find { |line| line.product == product && line.product_unit == product_unit && !product.serialized? && line.discount_cents.zero? }
+    existing = lines.find { |line| line.product == product && line.product_unit == product_unit && !product.serialized? && line.discount_cents.zero? && line.customer_order_line_id.nil? }
     line = if existing
       existing.quantity += quantity.to_d
       existing
@@ -20,6 +20,8 @@ module Sale::Cart
   end
 
   def change_customer(customer)
+    raise ArgumentError, "The customer of an order can't be changed" if customer_order && customer != customer_order.customer
+
     self.customer = customer
     lines.each(&:reprice)
     transaction do

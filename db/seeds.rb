@@ -84,9 +84,11 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
 
     # The till: quick-pick buttons, customers, and the owner's approval PIN (2468) for discounts, voids and returns.
     %w[ CEM-BAM-50 STL-Y12 NAIL-4 NAIL-ROOF PVC-2 PPR-20 SCR-815 PNT-BR3 ELC-LED9 ELC-SW1 TL-TAPE5 SEC-PL50 ].each { |sku| products[sku].update!(quick_pick: true) }
-    account.customers.create!(name: "Mwangi Builders Ltd", phone: "0722 000 111", email: "accounts@mwangi.test", tax_pin: "P051234567X",
-      price_list: contractor, credit_limit: 250_000)
-    account.customers.create!(name: "Grace Wambui", phone: "0733 000 222")
+    mwangi = account.customers.create!(name: "Mwangi Builders Ltd", phone: "0722 000 111", email: "accounts@mwangi.test", tax_pin: "P051234567X",
+      price_list: contractor, credit_limit: 250_000, payment_terms_days: 30, address: "Plot 12, Mombasa Road, Nairobi")
+    grace = account.customers.create!(name: "Grace Wambui", phone: "0733 000 222", email: "grace@wambui.test", address: "Kiambu Road, Ridgeways")
+    otieno = account.customers.create!(name: "Otieno & Sons Contractors", phone: "0711 000 333", email: "office@otieno-sons.test",
+      price_list: contractor, credit_limit: 80_000, payment_terms_days: 14, address: "Site 4, Ruiru Bypass")
     account.memberships.find_by!(user: owner).set_approval_pin("2468")
     account.update!(receipt_footer: "Goods sold are returnable within 7 days with this receipt.")
 
@@ -125,6 +127,35 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     account.supplier_invoices.create!(supplier: suppliers["Devki Steel Mills"], number: "DSM-0931", invoice_date: 100.days.ago.to_date, total: 96_000)
     suppliers["Devki Steel Mills"].supplier_payments.create!(account: account, paid_on: 20.days.ago.to_date, amount: 50_000,
       payment_method: "bank_transfer", reference: "EFT 55120")
+
+    # Customer accounts: past account sales (one overdue), a payment, a quote, an order with a deposit, and a delivery.
+    front_counter = account.registers.find_by!(name: "Front counter")
+    account_sale = ->(customer, days_ago, items) do
+      shift = account.shifts.create!(register: front_counter, opening_float: 5000, opened_at: days_ago.days.ago)
+      sale = shift.current_sale
+      sale.change_customer(customer)
+      items.each { |sku, quantity| sale.add(products[sku], quantity: quantity) }
+      sale.pay(tender: "on_account", credit_approver: owner)
+      sale.update_columns(completed_at: days_ago.days.ago, created_at: days_ago.days.ago)
+      shift.close(counted_cash_cents: 5000_00)
+      sale
+    end
+    account_sale.(mwangi, 50, { "CEM-BAM-50" => 60, "STL-Y12" => 40 })
+    delivered = account_sale.(mwangi, 12, { "STL-BRC142" => 6, "NAIL-4" => 10 })
+    account_sale.(otieno, 25, { "PVC-2" => 12, "PPR-20" => 30 })
+    mwangi.customer_payments.create!(account: account, paid_on: 20.days.ago.to_date, amount: 40_000, payment_method: "bank_transfer", reference: "EFT 77301")
+
+    note = account.delivery_notes.create!(sale: delivered, contact_phone: "0722 000 111", note: "Ask for the site foreman")
+    note.dispatch(driver_name: "Joseph Mutua", vehicle: "KDA 123B")
+    note.deliver(received_by: "Peter (site foreman)")
+    account.delivery_notes.create!(sale: delivered, address: "Plot 12, Mombasa Road, Nairobi", note: "Second drop: balance of the mesh")
+
+    account.customer_orders.create!(branch: main, customer: grace, note: "Delivery to Ridgeways can be arranged",
+      lines_attributes: [ { product_code: "PNT-CRN-W20", quantity: 3 }, { product_code: "TL-TAPE5", quantity: 1 }, { product_code: "ELC-LED9", quantity: 12 } ])
+    order = account.customer_orders.create!(branch: main, customer: otieno, needed_by: 5.days.from_now.to_date, note: "Special order: 4-inch pipes for the Ruiru site",
+      lines_attributes: [ { product_code: "PVC-4", quantity: 20 }, { product_code: "PLB-GV34", quantity: 4 } ])
+    order.take_deposit(amount_cents: 15_000_00, tender: "mobile_money", reference: "SJK4H7T2QP")
+    order.mark_ready
 
     products["CEM-BAM-50"].move_stock(branch: main, quantity: -3, reason: "damaged", note: "Bags split in the rain")
     account.stock_transfers.create!(from_branch: yard, to_branch: main, note: "Tuesday lorry",

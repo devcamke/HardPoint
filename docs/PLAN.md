@@ -28,8 +28,16 @@ customers, staff, or reports.
 | Costing | Weighted-average cost, updated on each delivery from its landed cost (goods plus a value-weighted share of transport and duty); FIFO costing stays in the backlog |
 | Receiving | Goods beyond what was ordered go on a separate receipt, so each order stays a true record of what was agreed |
 | Supplier payments | Settle the oldest invoices first (FIFO), which is how suppliers read their statements and what the ageing report shows |
-| PDFs | Prawn 2.5 with vendored DejaVu Sans (for characters like ½ and ×); `prawn-table` is unmaintained, so tables are laid out directly |
+| PDFs | Prawn 2.5 with vendored DejaVu Sans (for characters like ½ and ×); `prawn-table` is unmaintained, so tables are laid out directly. Every document shares one letterhead (`DocumentPdf`) |
 | Customers | A minimal record arrives in Phase 3 (price list, credit limit, balance); statements, ageing and payments on account come in Phase 5 |
+| Quotes and orders | **One document** (`CustomerOrder`) goes quote → ordered → ready → collected (or cancelled). Prices are fixed when it's written and held at collection; it's collected by loading it into a till, where the deposit is a tender |
+| Invoices on account | A sale (partly) paid "on account" **is** the invoice: due after the customer's payment terms, with an A4 tax invoice PDF. No separate invoice table, so the till stays the one place money is taken |
+| Receivables | Payments and returns credited to the account settle the oldest account sales first (FIFO), mirroring supplier payables; ageing and statements are based on that |
+| Cash away from the sale | Cash deposits and cash account payments go through the device's till and its open shift, so the drawer count still balances |
+| Credit limit | Going over it at the till needs an owner's or manager's approval PIN (or their own sign-in); the approver is recorded on the sale and in Activity |
+| Stock for orders | Not reserved; orders are visible in "Open orders" and "Ready to collect". Reservation waits until shops ask |
+| Deliveries | One delivery note per trip from a completed sale: pending → dispatched (driver, vehicle) → delivered (received by, optional photo of the signed note) |
+| Loyalty points | Skipped (optional in the plan) |
 
 | Phase | Status |
 |---|---|
@@ -38,7 +46,8 @@ customers, staff, or reports.
 | 2 — Catalogue & inventory | **Done:** categories, brands, units, tax rates, price lists and quantity breaks, products with barcodes, pack sizes, kits and photos, trigram search, stock ledger with reconciliation, adjustments, transfers, stock takes with approval, reorder list, daily low-stock email, CSV import (20k rows in ~12 s) and export, barcode labels. |
 | 3 — POS checkout | **Done:** till selection per device, shifts with float/drops/payouts/X and blind-count Z reports, scanner-first cart with packs, decimals, serials and price lists, line and sale discounts with manager approval PIN, split tender (cash, M-Pesa code, card, on account), gap-free receipt numbers per branch, stock deducted on completion, park/recall, voids and returns with approval, 80 mm receipts and email receipts, sales history, minimal customers. 10-line split-payment sale ≈ 2.6 s. |
 | 4 — Purchasing & suppliers | **Done:** suppliers and supplier products (cost, lead time, minimum order, preferred), purchase orders with PDF by email, partial/full receiving with landed costs and weighted-average costing, reorder suggestions with one-click orders, supplier invoices, FIFO payments and ageing. |
-| 5–10 | Not started |
+| 5 — Customers, credit, quotes & invoices | **Done:** customer addresses and payment terms; quotes and orders with PDF/email, validity dates, deposits (and refunds) and collection at the till; account sales as invoices with A4 tax invoice PDFs; payments on account (FIFO), statements (PDF/email), ageing and a "Who owes us" report; delivery notes with dispatch and proof of delivery; credit-limit override by approval PIN; deposits and account payments on the X/Z report. Loyalty skipped. |
+| 6–10 | Not started |
 
 ---
 

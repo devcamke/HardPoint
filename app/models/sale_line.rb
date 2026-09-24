@@ -32,7 +32,9 @@ class SaleLine < ApplicationRecord
     gross_cents.positive? ? discount_cents * 100.0 / gross_cents : 0
   end
 
+  # Lines from a customer order keep the price the customer was quoted.
   def reprice
+    return if customer_order_line_id
     self.unit_price_cents = product_unit ? product_unit.effective_price_cents : product.price_cents_for(quantity: quantity, price_list: sale.price_list)
   end
 

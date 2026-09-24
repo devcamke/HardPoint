@@ -1,5 +1,6 @@
 class CustomersController < ApplicationController
-  before_action :ensure_can_sell
+  before_action :ensure_can_sell, except: %i[ index show ]
+  before_action :ensure_can_sell_or_manage_receivables, only: %i[ index show ]
   before_action :set_customer, only: %i[ show edit update ]
 
   def index
@@ -8,6 +9,9 @@ class CustomersController < ApplicationController
 
   def show
     @sales = @customer.sales.finished.chronologically.limit(20)
+    @orders = @customer.customer_orders.where.not(status: %w[ collected cancelled ]).chronologically.includes(:branch)
+    @open_invoices = @customer.open_invoices
+    @payments = @customer.customer_payments.chronologically.limit(10).includes(:creator)
   end
 
   def new
@@ -42,8 +46,8 @@ class CustomersController < ApplicationController
 
     # Only owners and managers decide who buys on credit and at what prices.
     def customer_params
-      permitted = %i[ name phone email tax_pin notes ]
-      permitted += %i[ price_list_id credit_limit ] if current_membership.approver?
+      permitted = %i[ name phone email tax_pin address notes ]
+      permitted += %i[ price_list_id credit_limit payment_terms_days ] if current_membership.approver?
       params.expect(customer: permitted)
     end
 end

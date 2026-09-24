@@ -11,6 +11,9 @@ class Sale < ApplicationRecord
   belongs_to :cashier, class_name: "User", default: -> { Current.user }
   belongs_to :discount_approver, class_name: "User", optional: true
   belongs_to :voided_by, class_name: "User", optional: true
+  belongs_to :credit_approver, class_name: "User", optional: true
+  belongs_to :customer_order, optional: true
+  has_many :delivery_notes, dependent: :restrict_with_error
   has_many :lines, -> { order(:id) }, class_name: "SaleLine", dependent: :destroy, inverse_of: :sale
   has_many :sale_returns, dependent: :restrict_with_error
 
@@ -18,7 +21,7 @@ class Sale < ApplicationRecord
 
   money_attribute :discount, :subtotal, :tax, :total
 
-  validates_same_account :branch, :register, :shift, :customer
+  validates_same_account :branch, :register, :shift, :customer, :customer_order
 
   scope :chronologically, -> { order(Arel.sql("COALESCE(sales.completed_at, sales.created_at) DESC"), id: :desc) }
   scope :finished, -> { where(status: %w[ completed voided ]) }

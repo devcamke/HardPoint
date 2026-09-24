@@ -388,6 +388,132 @@ ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
 
 
 --
+-- Name: customer_order_lines; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.customer_order_lines (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    customer_order_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    product_unit_id bigint,
+    quantity numeric(14,3) NOT NULL,
+    unit_price_cents bigint DEFAULT 0 NOT NULL,
+    tax_rate numeric(5,2) DEFAULT 0.0 NOT NULL,
+    total_cents bigint DEFAULT 0 NOT NULL,
+    tax_cents bigint DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.customer_order_lines FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: customer_order_lines_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.customer_order_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: customer_order_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.customer_order_lines_id_seq OWNED BY public.customer_order_lines.id;
+
+
+--
+-- Name: customer_orders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.customer_orders (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    customer_id bigint NOT NULL,
+    creator_id bigint,
+    number integer NOT NULL,
+    status character varying DEFAULT 'quote'::character varying NOT NULL,
+    valid_until date,
+    needed_by date,
+    note character varying,
+    total_cents bigint DEFAULT 0 NOT NULL,
+    tax_cents bigint DEFAULT 0 NOT NULL,
+    ordered_at timestamp(6) without time zone,
+    collected_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.customer_orders FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: customer_orders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.customer_orders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: customer_orders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.customer_orders_id_seq OWNED BY public.customer_orders.id;
+
+
+--
+-- Name: customer_payments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.customer_payments (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    customer_id bigint NOT NULL,
+    shift_id bigint,
+    creator_id bigint,
+    paid_on date NOT NULL,
+    amount_cents bigint NOT NULL,
+    payment_method character varying NOT NULL,
+    reference character varying,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.customer_payments FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: customer_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.customer_payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: customer_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.customer_payments_id_seq OWNED BY public.customer_payments.id;
+
+
+--
 -- Name: customers; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -402,7 +528,9 @@ CREATE TABLE public.customers (
     credit_limit_cents bigint DEFAULT 0 NOT NULL,
     notes text,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    payment_terms_days integer DEFAULT 30 NOT NULL,
+    address character varying
 );
 
 ALTER TABLE ONLY public.customers FORCE ROW LEVEL SECURITY;
@@ -425,6 +553,90 @@ CREATE SEQUENCE public.customers_id_seq
 --
 
 ALTER SEQUENCE public.customers_id_seq OWNED BY public.customers.id;
+
+
+--
+-- Name: delivery_notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.delivery_notes (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    sale_id bigint NOT NULL,
+    creator_id bigint,
+    number integer NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    address character varying NOT NULL,
+    contact_phone character varying,
+    driver_name character varying,
+    vehicle character varying,
+    received_by character varying,
+    note character varying,
+    dispatched_at timestamp(6) without time zone,
+    delivered_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.delivery_notes FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: delivery_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.delivery_notes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: delivery_notes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.delivery_notes_id_seq OWNED BY public.delivery_notes.id;
+
+
+--
+-- Name: deposits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.deposits (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    customer_order_id bigint NOT NULL,
+    shift_id bigint,
+    creator_id bigint,
+    amount_cents bigint NOT NULL,
+    tender character varying NOT NULL,
+    reference character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.deposits FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: deposits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.deposits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: deposits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.deposits_id_seq OWNED BY public.deposits.id;
 
 
 --
@@ -1022,7 +1234,8 @@ CREATE TABLE public.sale_lines (
     tax_cents bigint DEFAULT 0 NOT NULL,
     serial_number character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    customer_order_line_id bigint
 );
 
 ALTER TABLE ONLY public.sale_lines FORCE ROW LEVEL SECURITY;
@@ -1152,7 +1365,9 @@ CREATE TABLE public.sales (
     completed_at timestamp(6) without time zone,
     voided_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    customer_order_id bigint,
+    credit_approver_id bigint
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -1884,10 +2099,45 @@ ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
+-- Name: customer_order_lines id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_order_lines ALTER COLUMN id SET DEFAULT nextval('public.customer_order_lines_id_seq'::regclass);
+
+
+--
+-- Name: customer_orders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders ALTER COLUMN id SET DEFAULT nextval('public.customer_orders_id_seq'::regclass);
+
+
+--
+-- Name: customer_payments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payments ALTER COLUMN id SET DEFAULT nextval('public.customer_payments_id_seq'::regclass);
+
+
+--
 -- Name: customers id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.customers ALTER COLUMN id SET DEFAULT nextval('public.customers_id_seq'::regclass);
+
+
+--
+-- Name: delivery_notes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_notes ALTER COLUMN id SET DEFAULT nextval('public.delivery_notes_id_seq'::regclass);
+
+
+--
+-- Name: deposits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.deposits ALTER COLUMN id SET DEFAULT nextval('public.deposits_id_seq'::regclass);
 
 
 --
@@ -2224,11 +2474,51 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- Name: customer_order_lines customer_order_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_order_lines
+    ADD CONSTRAINT customer_order_lines_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: customer_orders customer_orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders
+    ADD CONSTRAINT customer_orders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: customer_payments customer_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payments
+    ADD CONSTRAINT customer_payments_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: customers customers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.customers
     ADD CONSTRAINT customers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: delivery_notes delivery_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_notes
+    ADD CONSTRAINT delivery_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: deposits deposits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.deposits
+    ADD CONSTRAINT deposits_pkey PRIMARY KEY (id);
 
 
 --
@@ -2646,6 +2936,76 @@ CREATE INDEX index_categories_on_parent_id ON public.categories USING btree (par
 
 
 --
+-- Name: index_customer_order_lines_on_customer_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_order_lines_on_customer_order_id ON public.customer_order_lines USING btree (customer_order_id);
+
+
+--
+-- Name: index_customer_order_lines_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_order_lines_on_product_id ON public.customer_order_lines USING btree (product_id);
+
+
+--
+-- Name: index_customer_order_lines_on_product_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_order_lines_on_product_unit_id ON public.customer_order_lines USING btree (product_unit_id);
+
+
+--
+-- Name: index_customer_orders_on_account_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_orders_on_account_id_and_status ON public.customer_orders USING btree (account_id, status);
+
+
+--
+-- Name: index_customer_orders_on_branch_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_customer_orders_on_branch_id_and_number ON public.customer_orders USING btree (branch_id, number);
+
+
+--
+-- Name: index_customer_orders_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_orders_on_creator_id ON public.customer_orders USING btree (creator_id);
+
+
+--
+-- Name: index_customer_orders_on_customer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_orders_on_customer_id ON public.customer_orders USING btree (customer_id);
+
+
+--
+-- Name: index_customer_payments_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payments_on_creator_id ON public.customer_payments USING btree (creator_id);
+
+
+--
+-- Name: index_customer_payments_on_customer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payments_on_customer_id ON public.customer_payments USING btree (customer_id);
+
+
+--
+-- Name: index_customer_payments_on_shift_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payments_on_shift_id ON public.customer_payments USING btree (shift_id);
+
+
+--
 -- Name: index_customers_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2671,6 +3031,55 @@ CREATE INDEX index_customers_on_phone ON public.customers USING btree (phone);
 --
 
 CREATE INDEX index_customers_on_price_list_id ON public.customers USING btree (price_list_id);
+
+
+--
+-- Name: index_delivery_notes_on_account_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delivery_notes_on_account_id_and_status ON public.delivery_notes USING btree (account_id, status);
+
+
+--
+-- Name: index_delivery_notes_on_branch_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_delivery_notes_on_branch_id_and_number ON public.delivery_notes USING btree (branch_id, number);
+
+
+--
+-- Name: index_delivery_notes_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delivery_notes_on_creator_id ON public.delivery_notes USING btree (creator_id);
+
+
+--
+-- Name: index_delivery_notes_on_sale_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delivery_notes_on_sale_id ON public.delivery_notes USING btree (sale_id);
+
+
+--
+-- Name: index_deposits_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_deposits_on_creator_id ON public.deposits USING btree (creator_id);
+
+
+--
+-- Name: index_deposits_on_customer_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_deposits_on_customer_order_id ON public.deposits USING btree (customer_order_id);
+
+
+--
+-- Name: index_deposits_on_shift_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_deposits_on_shift_id ON public.deposits USING btree (shift_id);
 
 
 --
@@ -2954,6 +3363,13 @@ CREATE UNIQUE INDEX index_registers_on_branch_id_and_name ON public.registers US
 
 
 --
+-- Name: index_sale_lines_on_customer_order_line_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sale_lines_on_customer_order_line_id ON public.sale_lines USING btree (customer_order_line_id);
+
+
+--
 -- Name: index_sale_lines_on_product_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3045,10 +3461,24 @@ CREATE INDEX index_sales_on_cashier_id ON public.sales USING btree (cashier_id);
 
 
 --
+-- Name: index_sales_on_credit_approver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sales_on_credit_approver_id ON public.sales USING btree (credit_approver_id);
+
+
+--
 -- Name: index_sales_on_customer_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_sales_on_customer_id ON public.sales USING btree (customer_id);
+
+
+--
+-- Name: index_sales_on_customer_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sales_on_customer_order_id ON public.sales USING btree (customer_order_id);
 
 
 --
@@ -3396,6 +3826,22 @@ ALTER TABLE ONLY public.stock_count_lines
 
 
 --
+-- Name: customer_payments fk_rails_045749c2cc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payments
+    ADD CONSTRAINT fk_rails_045749c2cc FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: customer_orders fk_rails_07be4466a9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders
+    ADD CONSTRAINT fk_rails_07be4466a9 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: product_units fk_rails_0817b7e517; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3404,11 +3850,35 @@ ALTER TABLE ONLY public.product_units
 
 
 --
+-- Name: delivery_notes fk_rails_08d3745445; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_notes
+    ADD CONSTRAINT fk_rails_08d3745445 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: customer_order_lines fk_rails_09b5ec3af1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_order_lines
+    ADD CONSTRAINT fk_rails_09b5ec3af1 FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) DEFERRABLE;
+
+
+--
 -- Name: stock_transfer_lines fk_rails_100e940960; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stock_transfer_lines
     ADD CONSTRAINT fk_rails_100e940960 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: customer_orders fk_rails_13f33fda6c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders
+    ADD CONSTRAINT fk_rails_13f33fda6c FOREIGN KEY (customer_id) REFERENCES public.customers(id) DEFERRABLE;
 
 
 --
@@ -3457,6 +3927,14 @@ ALTER TABLE ONLY public.events
 
 ALTER TABLE ONLY public.supplier_payments
     ADD CONSTRAINT fk_rails_1846f352d5 FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
+-- Name: sales fk_rails_1ce6d6bb84; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sales
+    ADD CONSTRAINT fk_rails_1ce6d6bb84 FOREIGN KEY (customer_order_id) REFERENCES public.customer_orders(id) DEFERRABLE;
 
 
 --
@@ -3596,6 +4074,22 @@ ALTER TABLE ONLY public.cash_movements
 
 
 --
+-- Name: customer_order_lines fk_rails_457f9ffe1c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_order_lines
+    ADD CONSTRAINT fk_rails_457f9ffe1c FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: customer_payments fk_rails_46bd4fcc4d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payments
+    ADD CONSTRAINT fk_rails_46bd4fcc4d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: barcodes fk_rails_480951f2bc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3652,6 +4146,14 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- Name: deposits fk_rails_523551a98d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.deposits
+    ADD CONSTRAINT fk_rails_523551a98d FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: stock_movements fk_rails_52f9c5d347; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3684,6 +4186,14 @@ ALTER TABLE ONLY public.price_list_items
 
 
 --
+-- Name: delivery_notes fk_rails_5a5cb24495; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_notes
+    ADD CONSTRAINT fk_rails_5a5cb24495 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: registers fk_rails_5af33f0b45; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3708,6 +4218,14 @@ ALTER TABLE ONLY public.purchase_orders
 
 
 --
+-- Name: delivery_notes fk_rails_5d133c6939; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_notes
+    ADD CONSTRAINT fk_rails_5d133c6939 FOREIGN KEY (sale_id) REFERENCES public.sales(id) DEFERRABLE;
+
+
+--
 -- Name: sale_returns fk_rails_5d56732d50; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3724,11 +4242,27 @@ ALTER TABLE ONLY public.shifts
 
 
 --
+-- Name: customer_order_lines fk_rails_65d173b232; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_order_lines
+    ADD CONSTRAINT fk_rails_65d173b232 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: goods_receipts fk_rails_68b64d7d0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.goods_receipts
     ADD CONSTRAINT fk_rails_68b64d7d0c FOREIGN KEY (receiver_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: customer_payments fk_rails_6a2298bcd2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payments
+    ADD CONSTRAINT fk_rails_6a2298bcd2 FOREIGN KEY (customer_id) REFERENCES public.customers(id) DEFERRABLE;
 
 
 --
@@ -3876,6 +4410,14 @@ ALTER TABLE ONLY public.price_list_items
 
 
 --
+-- Name: deposits fk_rails_869f62908d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.deposits
+    ADD CONSTRAINT fk_rails_869f62908d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: supplier_payments fk_rails_89a9bab56d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3913,6 +4455,14 @@ ALTER TABLE ONLY public.sale_returns
 
 ALTER TABLE ONLY public.stock_count_lines
     ADD CONSTRAINT fk_rails_95d9016807 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: deposits fk_rails_963028660e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.deposits
+    ADD CONSTRAINT fk_rails_963028660e FOREIGN KEY (shift_id) REFERENCES public.shifts(id) DEFERRABLE;
 
 
 --
@@ -4068,6 +4618,14 @@ ALTER TABLE ONLY public.suppliers
 
 
 --
+-- Name: customer_payments fk_rails_b70f755a3f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payments
+    ADD CONSTRAINT fk_rails_b70f755a3f FOREIGN KEY (shift_id) REFERENCES public.shifts(id) DEFERRABLE;
+
+
+--
 -- Name: sale_return_lines fk_rails_b7496a0bb6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4097,6 +4655,14 @@ ALTER TABLE ONLY public.goods_receipt_lines
 
 ALTER TABLE ONLY public.goods_receipts
     ADD CONSTRAINT fk_rails_bbe00c5362 FOREIGN KEY (purchase_order_id) REFERENCES public.purchase_orders(id) DEFERRABLE;
+
+
+--
+-- Name: customer_orders fk_rails_bdb6d95444; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders
+    ADD CONSTRAINT fk_rails_bdb6d95444 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -4140,11 +4706,51 @@ ALTER TABLE ONLY public.barcodes
 
 
 --
+-- Name: deposits fk_rails_c92b54cb89; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.deposits
+    ADD CONSTRAINT fk_rails_c92b54cb89 FOREIGN KEY (customer_order_id) REFERENCES public.customer_orders(id) DEFERRABLE;
+
+
+--
 -- Name: kit_components fk_rails_ce48264f0b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.kit_components
     ADD CONSTRAINT fk_rails_ce48264f0b FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: delivery_notes fk_rails_cf07ace81d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_notes
+    ADD CONSTRAINT fk_rails_cf07ace81d FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: sale_lines fk_rails_d1a1fea6f0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sale_lines
+    ADD CONSTRAINT fk_rails_d1a1fea6f0 FOREIGN KEY (customer_order_line_id) REFERENCES public.customer_order_lines(id) DEFERRABLE;
+
+
+--
+-- Name: customer_order_lines fk_rails_d48831d047; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_order_lines
+    ADD CONSTRAINT fk_rails_d48831d047 FOREIGN KEY (customer_order_id) REFERENCES public.customer_orders(id) DEFERRABLE;
+
+
+--
+-- Name: customer_orders fk_rails_d4dae4ddfe; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders
+    ADD CONSTRAINT fk_rails_d4dae4ddfe FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
 
 
 --
@@ -4364,6 +4970,14 @@ ALTER TABLE ONLY public.purchase_orders
 
 
 --
+-- Name: sales fk_rails_f3a8888c10; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sales
+    ADD CONSTRAINT fk_rails_f3a8888c10 FOREIGN KEY (credit_approver_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: products fk_rails_f3b4d49caa; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4447,10 +5061,45 @@ CREATE POLICY account_isolation ON public.categories USING (((current_setting('a
 
 
 --
+-- Name: customer_order_lines account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.customer_order_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: customer_orders account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.customer_orders USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: customer_payments account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.customer_payments USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: customers account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY account_isolation ON public.customers USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: delivery_notes account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.delivery_notes USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: deposits account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.deposits USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -4722,10 +5371,40 @@ ALTER TABLE public.cash_movements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: customer_order_lines; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.customer_order_lines ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: customer_orders; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.customer_orders ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: customer_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.customer_payments ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: customers; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: delivery_notes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.delivery_notes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: deposits; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.deposits ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: document_sequences; Type: ROW SECURITY; Schema: public; Owner: -
@@ -4938,6 +5617,7 @@ ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120000'),
 ('20260925110000'),
 ('20260925100000'),
 ('20260925090401'),

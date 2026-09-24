@@ -1,0 +1,4 @@
+<% content_for :title, "New quote" %>
+<p class="text-sm"><%= link_to "← Orders & quotes", customer_orders_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">New quote or order</h1>
+<%= render "form", customer_order: @customer_order %>

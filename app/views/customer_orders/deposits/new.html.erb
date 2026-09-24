@@ -1,0 +1,17 @@
+<% content_for :title, @refund ? "Refund deposit" : "Take deposit" %>
+<% order = @customer_order %>
+<p class="text-sm"><%= link_to "← #{order.reference}", order, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold"><%= @refund ? "Refund deposit" : "Take a deposit" %></h1>
+<p class="hint mb-6"><%= order.customer.name %> · <%= order.kind.downcase %> total <%= money(order.total_cents) %> · deposit held <%= money(order.deposit_balance_cents) %></p>
+
+<%= form_with model: @deposit, url: customer_order_deposits_path(order), class: "card max-w-md" do |form| %>
+  <%= hidden_field_tag :refund, 1 if @refund %>
+  <%= render "shared/errors", model: @deposit %>
+  <div class="field"><%= form.label :amount, "Amount (#{Current.account.currency})", class: "label" %>
+    <%= form.number_field :amount, value: (plain_number(@deposit.amount.abs) if @deposit.amount_cents), step: "0.01", min: 0, required: true, autofocus: true, class: "input" %></div>
+  <div class="field"><%= form.label :tender, @refund ? "Paid back by" : "Paid by", class: "label" %>
+    <%= form.select :tender, Deposit::TENDERS.map { [ _1.humanize, _1 ] }, {}, class: "input" %>
+    <p class="hint mt-1"><%= current_shift ? "Cash goes #{@refund ? "out of" : "into"} the drawer of #{current_till.name}." : "Cash needs this device's till to have an open shift." %></p></div>
+  <div class="field"><%= form.label :reference, "Reference (M-Pesa code, card slip or bank reference)", class: "label" %><%= form.text_field :reference, class: "input font-mono uppercase" %></div>
+  <%= form.submit @refund ? "Record refund" : "Take deposit", class: "btn-primary" %>
+<% end %>

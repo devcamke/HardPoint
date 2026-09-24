@@ -1,0 +1,15 @@
+<p style="margin-top:0;">Hello <%= @order.customer.name %>,</p>
+<% if @order.quote? %>
+  <p>Thank you for asking <strong><%= @account.name %></strong> for a quote. Here it is<%= ", valid until #{@order.valid_until.to_fs(:long)}" if @order.valid_until %>; the PDF is attached.</p>
+<% else %>
+  <p>Here is your order with <strong><%= @account.name %></strong>; the PDF is attached.</p>
+<% end %>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="font-size:14px; border-collapse:collapse;">
+  <tr style="color:#5B6573; text-align:left;"><th>Item</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Total</th></tr>
+  <% @order.lines.includes(product: :unit, product_unit: :unit).each do |line| %>
+    <tr style="border-top:1px solid #E7E5E0;"><td><%= line.description %></td><td style="text-align:right;"><%= quantity(line.quantity, line.unit) %></td><td style="text-align:right;"><%= money(line.total_cents, currency: @account.currency) %></td></tr>
+  <% end %>
+  <tr style="border-top:2px solid #102A43; font-weight:700;"><td colspan="2">Total (incl. tax)</td><td style="text-align:right;"><%= money(@order.total_cents, currency: @account.currency) %></td></tr>
+</table>
+<% if @order.deposit_balance_cents.positive? %><p>Deposit paid: <%= money(@order.deposit_balance_cents, currency: @account.currency) %>.</p><% end %>
+<p>Please quote <strong><%= @order.reference %></strong> when you <%= @order.quote? ? "order" : "collect" %>. Reply to this email with any questions.</p>

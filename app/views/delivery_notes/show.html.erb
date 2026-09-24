@@ -1,0 +1,71 @@
+<% content_for :title, "Delivery #{@delivery_note.reference}" %>
+<% note = @delivery_note %>
+
+<p class="text-sm"><%= link_to "← Deliveries", delivery_notes_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold"><%= note.reference %> <%= render "delivery_notes/status", note: note %></h1>
+    <p class="hint mt-1">Sale <%= link_to note.sale.receipt_number, note.sale, class: "link font-mono" %> · <%= note.customer&.name || "Walk-in" %> · <%= note.branch.name %>
+      · created <%= l(note.created_at, format: :short) %> by <%= note.creator&.name %></p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Print delivery note", delivery_note_path(note, format: :pdf), target: "_blank", class: "btn-secondary" %>
+    <% if note.pending? || note.dispatched? %>
+      <%= button_to "Cancel delivery", delivery_note_cancellation_path(note), class: "btn-danger", form: { data: { turbo_confirm: "Cancel #{note.reference}?" } } %>
+    <% end %>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="card lg:col-span-2">
+    <p class="label">Deliver to</p>
+    <p class="mb-1 text-lg font-semibold"><%= note.address %></p>
+    <p class="hint mb-4"><%= [ note.contact_phone, note.note ].compact_blank.join(" · ") %></p>
+    <table class="table">
+      <thead><tr><th>Item</th><th class="text-right">Qty</th></tr></thead>
+      <tbody>
+        <% note.sale.lines.includes(product: :unit, product_unit: :unit).each do |line| %>
+          <tr><td><%= line.description %> <span class="font-mono text-xs text-steel-600"><%= line.product.sku %></span></td><td class="text-right tabular-nums"><%= quantity(line.quantity, line.unit) %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="space-y-6">
+    <section class="card">
+      <h2 class="mb-3 font-semibold">1. Dispatch</h2>
+      <% if note.pending? %>
+        <%= form_with url: delivery_note_dispatch_path(note) do |form| %>
+          <div class="field"><%= form.label :driver_name, "Driver", class: "label" %><%= form.text_field :driver_name, required: true, class: "input" %></div>
+          <div class="field"><%= form.label :vehicle, "Vehicle", class: "label" %><%= form.text_field :vehicle, class: "input uppercase", placeholder: "e.g. KDA 123B" %></div>
+          <%= form.submit "Dispatch", class: "btn-primary w-full" %>
+        <% end %>
+      <% elsif note.dispatched_at %>
+        <p class="text-sm"><%= l(note.dispatched_at, format: :short) %> with <strong><%= note.driver_name %></strong><%= " · #{note.vehicle}" if note.vehicle.present? %></p>
+      <% else %>
+        <p class="hint">Not dispatched.</p>
+      <% end %>
+    </section>
+
+    <section class="card">
+      <h2 class="mb-3 font-semibold">2. Proof of delivery</h2>
+      <% if note.dispatched? %>
+        <%= form_with url: delivery_note_delivery_path(note), multipart: true do |form| %>
+          <div class="field"><%= form.label :received_by, "Received by", class: "label" %><%= form.text_field :received_by, required: true, class: "input", placeholder: "Name of whoever signed" %></div>
+          <div class="field"><%= form.label :proof_photo, "Photo of the signed note (optional)", class: "label" %>
+            <%= form.file_field :proof_photo, accept: "image/*", capture: "environment", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-navy-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-navy-900 hover:file:bg-navy-50" %></div>
+          <%= form.submit "Mark delivered", class: "btn-primary w-full" %>
+        <% end %>
+      <% elsif note.delivered? %>
+        <p class="text-sm"><%= l(note.delivered_at, format: :short) %> · received by <strong><%= note.received_by %></strong></p>
+        <% if note.proof_photo.attached? %>
+          <%= link_to rails_blob_path(note.proof_photo, disposition: :inline), target: "_blank" do %>
+            <%= image_tag note.proof_photo, alt: "Signed delivery note", class: "mt-3 max-h-80 w-full rounded-md border border-concrete-200 object-contain" %>
+          <% end %>
+        <% end %>
+      <% else %>
+        <p class="hint"><%= note.cancelled? ? "Cancelled." : "Dispatch it first." %></p>
+      <% end %>
+    </section>
+  </div>
+</div>

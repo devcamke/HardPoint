@@ -35,6 +35,10 @@ class Account < ApplicationRecord
   has_many :goods_receipts, dependent: :destroy
   has_many :supplier_invoices, dependent: :destroy
   has_many :supplier_payments, dependent: :destroy
+  has_many :customer_orders, dependent: :destroy
+  has_many :customer_payments, dependent: :destroy
+  has_many :deposits, dependent: :destroy
+  has_many :delivery_notes, dependent: :destroy
 
   normalizes :subdomain, with: ->(subdomain) { subdomain.strip.downcase }
 

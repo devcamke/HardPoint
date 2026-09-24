@@ -1,7 +1,7 @@
 <% content_for :title, "Returns" %>
 
-<p class="text-sm"><%= link_to "← Sales", sales_path, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Returns</h1>
+<h1 class="mb-4 text-3xl font-bold">Sales</h1>
+<%= render "sales/tabs" %>
 
 <div class="card">
   <% if @returns.any? %>

@@ -1,0 +1,11 @@
+Hello <%= @order.customer.name %>,
+
+<% if @order.quote? %>Thank you for asking <%= @account.name %> for a quote. Here it is<%= ", valid until #{@order.valid_until.to_fs(:long)}" if @order.valid_until %>; the PDF is attached.<% else %>Here is your order with <%= @account.name %>; the PDF is attached.<% end %>
+
+<% @order.lines.includes(product: :unit, product_unit: :unit).each do |line| %>
+<%= line.description %>: <%= quantity(line.quantity, line.unit) %> = <%= money(line.total_cents, currency: @account.currency) %>
+<% end %>
+Total (incl. tax): <%= money(@order.total_cents, currency: @account.currency) %>
+<% if @order.deposit_balance_cents.positive? %>Deposit paid: <%= money(@order.deposit_balance_cents, currency: @account.currency) %>
+<% end %>
+Please quote <%= @order.reference %> when you <%= @order.quote? ? "order" : "collect" %>.

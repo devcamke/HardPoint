@@ -1,0 +1,4 @@
+<p style="margin-top:0;">Hello <%= @customer.name %>,</p>
+<p>Your statement from <strong><%= @account.name %></strong> for <%= @from.to_fs(:long) %> to <%= @to.to_fs(:long) %> is attached.</p>
+<p style="font-size:18px; font-weight:700;">Balance: <%= money(@balance_cents, currency: @account.currency) %></p>
+<p>Payment terms are <%= @customer.payment_terms_days %> days. Please pay by M-Pesa, bank transfer or at the counter, quoting your name. Reply to this email with any questions.</p>

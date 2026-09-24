@@ -46,6 +46,14 @@ module Authorization
       head :forbidden unless current_membership&.can_sell?
     end
 
+    def ensure_can_manage_receivables
+      head :forbidden unless current_membership&.can_manage_receivables?
+    end
+
+    def ensure_can_sell_or_manage_receivables
+      head :forbidden unless current_membership&.can_sell? || current_membership&.can_manage_receivables?
+    end
+
     # Owners and managers approve their own actions; anyone else needs one of them to type an approval PIN.
     def approver_for_action
       current_membership&.approver? ? Current.user : Approval.approver_for(Current.account, params[:approval_pin])

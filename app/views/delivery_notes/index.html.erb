@@ -1,0 +1,36 @@
+<% content_for :title, "Deliveries" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Sales</h1>
+</div>
+<%= render "sales/tabs" %>
+
+<div class="mb-4 flex flex-wrap gap-1 text-sm">
+  <% [ [ "outstanding", "To deliver" ], [ "delivered", "Delivered" ], [ "cancelled", "Cancelled" ], [ "all", "All" ] ].each do |value, label| %>
+    <%= link_to label, delivery_notes_path(status: value), class: class_names("rounded-full px-3 py-1", "bg-navy-900 text-white" => @status == value, "bg-white text-steel-600 hover:text-navy-900" => @status != value) %>
+  <% end %>
+</div>
+
+<div class="card">
+  <% if @delivery_notes.any? %>
+    <table class="table">
+      <thead><tr><th>Note</th><th>Sale</th><th>Customer</th><th>Deliver to</th><th>Driver</th><th>Status</th><th>Updated</th></tr></thead>
+      <tbody>
+        <% @delivery_notes.each do |note| %>
+          <tr>
+            <td><%= link_to note.reference, note, class: "link font-mono" %></td>
+            <td><%= link_to note.sale.receipt_number, note.sale, class: "font-mono hover:text-safety-700" %></td>
+            <td><%= note.customer&.name || "Walk-in" %></td>
+            <td class="max-w-64 truncate"><%= note.address %></td>
+            <td><%= note.driver_name %></td>
+            <td><%= render "delivery_notes/status", note: note %></td>
+            <td><%= l(note.delivered_at || note.dispatched_at || note.created_at, format: :short) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Nothing <%= @status == "outstanding" ? "waiting to be delivered" : "here" %>. Create a delivery note from a completed sale.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

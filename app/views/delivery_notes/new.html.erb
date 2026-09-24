@@ -1,0 +1,14 @@
+<% content_for :title, "New delivery note" %>
+<% sale = @delivery_note.sale %>
+<p class="text-sm"><%= link_to "← Sale #{sale.receipt_number}", sale, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold">Deliver sale <%= sale.receipt_number %></h1>
+<p class="hint mb-6"><%= sale.customer&.name || "Walk-in customer" %> · <%= pluralize(sale.lines.size, "line") %> · <%= money(sale.total_cents) %></p>
+
+<%= form_with model: @delivery_note, class: "card max-w-xl" do |form| %>
+  <%= render "shared/errors", model: @delivery_note %>
+  <%= form.hidden_field :sale_id %>
+  <div class="field"><%= form.label :address, "Deliver to", class: "label" %><%= form.text_field :address, required: true, autofocus: true, class: "input", placeholder: "Site, street, landmark" %></div>
+  <div class="field"><%= form.label :contact_phone, "Contact on site", class: "label" %><%= form.telephone_field :contact_phone, class: "input" %></div>
+  <div class="field"><%= form.label :note, "Note for the driver", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. offload at the back gate" %></div>
+  <%= form.submit "Create delivery note", class: "btn-primary" %>
+<% end %>
