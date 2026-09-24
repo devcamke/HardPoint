@@ -107,6 +107,24 @@ Rails.application.routes.draw do
     end
     resources :returns, only: %i[ index show ], controller: :sale_returns
     resources :customers, except: :destroy
+
+    # Purchasing
+    resources :suppliers, except: :destroy do
+      scope module: :suppliers do
+        resources :products, only: %i[ create update destroy ]
+        resources :payments, only: %i[ new create ]
+      end
+    end
+    resources :purchase_orders, except: :destroy do
+      scope module: :purchase_orders do
+        resource :sending, only: :create
+        resource :cancellation, only: :create
+      end
+    end
+    resources :goods_receipts, only: %i[ index new create show ]
+    resource :reorder_suggestions, only: :show
+    resources :supplier_invoices, only: %i[ index new create show ]
+    resource :payables, only: :show
     root "dashboards#show"
   end
 

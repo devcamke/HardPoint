@@ -1,0 +1,11 @@
+<p style="margin-top:0;">Hello <%= @order.supplier.contact_name.presence || @order.supplier.name %>,</p>
+<p><strong><%= @account.name %></strong> would like to order the following for delivery to <strong><%= @order.branch.name %></strong><%= " by #{@order.expected_on.to_fs(:long)}" if @order.expected_on %>. The order is attached as a PDF.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="font-size:14px; border-collapse:collapse;">
+  <tr style="color:#5B6573; text-align:left;"><th>Item</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Unit cost</th></tr>
+  <% @order.lines.includes(product: :unit).each do |line| %>
+    <tr style="border-top:1px solid #E7E5E0;"><td><%= line.product.name %></td><td style="text-align:right;"><%= quantity(line.quantity, line.product.unit) %></td><td style="text-align:right;"><%= money(line.unit_cost_cents, currency: @account.currency) %></td></tr>
+  <% end %>
+  <tr style="border-top:2px solid #102A43; font-weight:700;"><td colspan="2">Total</td><td style="text-align:right;"><%= money(@order.total_cents, currency: @account.currency) %></td></tr>
+</table>
+<% if @order.note.present? %><p>Note: <%= @order.note %></p><% end %>
+<p>Please quote <strong><%= @order.reference %></strong> on your delivery note and invoice. Reply to this email with any questions.</p>

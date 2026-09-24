@@ -1,5 +1,5 @@
 class Product < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Pricing, Stockable, Searchable, Barcoded
+  include AccountOwned, Eventable, Monetary, Pricing, Stockable, Searchable, Barcoded, Purchasing
   tracks_lifecycle
 
   belongs_to :category, optional: true

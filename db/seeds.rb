@@ -90,6 +90,42 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     account.memberships.find_by!(user: owner).set_approval_pin("2468")
     account.update!(receipt_footer: "Goods sold are returnable within 7 days with this receipt.")
 
+    # Purchasing: suppliers, what they supply, an order on its way, a delivery received, and invoices to pay.
+    suppliers = {
+      "Bamburi Cement Distributors" => { email: "orders@bamburi-dist.test", contact_name: "Peter Otieno", phone: "0722 100 200", payment_terms_days: 30,
+        products: { "CEM-BAM-50" => [ 740, 2, 50 ], "CEM-SAV-50" => [ 690, 3, 50 ] } },
+      "Devki Steel Mills" => { email: "sales@devki.test", contact_name: "Asha Patel", phone: "0733 300 400", payment_terms_days: 45,
+        products: { "STL-Y12" => [ 960, 7, 100 ], "STL-Y10" => [ 690, 7, 100 ], "STL-BRC142" => [ 5800, 10, 10 ], "STL-BW25" => [ 3650, 7, 5 ] } },
+      "Kentube Plumbing Supplies" => { email: "orders@kentube.test", contact_name: "Samuel Kariuki", payment_terms_days: 14,
+        products: { "PVC-2" => [ 880, 5, 10 ], "PVC-4" => [ 1850, 5, 5 ], "PPR-20" => [ 250, 5, 20 ], "PLB-GV34" => [ 950, 10, 5 ], "PLB-TAP12" => [ 620, 10, 6 ] } },
+      "Crown Paints Depot" => { email: "trade@crown-depot.test", payment_terms_days: 30,
+        products: { "PNT-CRN-W20" => [ 7500, 4, 4 ], "PNT-CRN-B4" => [ 2500, 4, 6 ] } }
+    }.to_h do |name, details|
+      supplier = account.suppliers.create!(name: name, **details.except(:products))
+      details[:products].each do |sku, (cost, lead_time, minimum)|
+        supplier.supplier_products.create!(account: account, product: products[sku], cost: cost, lead_time_days: lead_time, min_order_quantity: minimum, preferred: true)
+      end
+      [ name, supplier ]
+    end
+
+    steel_order = account.purchase_orders.create!(supplier: suppliers["Devki Steel Mills"], branch: main, expected_on: 3.days.from_now.to_date,
+      note: "Deliver to the back gate", lines_attributes: [ { product_code: "STL-Y10", quantity: 200 }, { product_code: "STL-BRC142", quantity: 10 } ])
+    steel_order.mark_sent
+
+    cement_order = account.purchase_orders.create!(supplier: suppliers["Bamburi Cement Distributors"], branch: main,
+      lines_attributes: [ { product_code: "CEM-SAV-50", quantity: 100 } ])
+    cement_order.mark_sent
+    delivery = account.goods_receipts.create!(supplier: cement_order.supplier, branch: main, purchase_order: cement_order,
+      supplier_reference: "DN-88213", extra_costs: 2500,
+      lines_attributes: [ { purchase_order_line: cement_order.lines.first, quantity: 100, unit_cost: 690 } ])
+
+    account.supplier_invoices.create!(supplier: suppliers["Bamburi Cement Distributors"], goods_receipt: delivery, number: "BCD-40551",
+      invoice_date: 40.days.ago.to_date, total: 71_500, tax: 9_862.07)
+    account.supplier_invoices.create!(supplier: suppliers["Kentube Plumbing Supplies"], number: "KT-2291", invoice_date: 5.days.ago.to_date, total: 18_400)
+    account.supplier_invoices.create!(supplier: suppliers["Devki Steel Mills"], number: "DSM-0931", invoice_date: 100.days.ago.to_date, total: 96_000)
+    suppliers["Devki Steel Mills"].supplier_payments.create!(account: account, paid_on: 20.days.ago.to_date, amount: 50_000,
+      payment_method: "bank_transfer", reference: "EFT 55120")
+
     products["CEM-BAM-50"].move_stock(branch: main, quantity: -3, reason: "damaged", note: "Bags split in the rain")
     account.stock_transfers.create!(from_branch: yard, to_branch: main, note: "Tuesday lorry",
       lines_attributes: [ { product_code: "CEM-BAM-50", quantity: 60 }, { product_code: "STL-Y10", quantity: 40 } ])

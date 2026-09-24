@@ -1,0 +1,36 @@
+<% content_for :title, "What we owe" %>
+
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Purchasing</h1>
+  <button type="button" class="btn-secondary" onclick="window.print()">Print</button>
+</div>
+<%= render "purchasing/tabs" %>
+
+<p class="hint mb-4">Unpaid supplier invoices by how late they are, as of <%= l(Date.current, format: :long) %>. Payments settle each supplier's oldest invoices first.</p>
+
+<div class="card overflow-x-auto">
+  <% if @rows.any? %>
+    <table class="table">
+      <thead><tr><th>Supplier</th><th class="text-right">Not yet due</th><th class="text-right">1–30 days late</th><th class="text-right">31–60</th><th class="text-right">61–90</th><th class="text-right">Over 90</th><th class="text-right">Total</th><th></th></tr></thead>
+      <tbody>
+        <% @rows.each do |supplier, ageing, balance| %>
+          <tr>
+            <td><%= link_to supplier.name, supplier, class: "link" %></td>
+            <% Supplier::Payables::AGEING_BUCKETS.each_key do |bucket| %>
+              <td class="text-right tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket]) if ageing[bucket].nonzero? %></td>
+            <% end %>
+            <td class="text-right font-semibold tabular-nums"><%= money(balance) %></td>
+            <td class="text-right"><%= link_to "Pay", new_supplier_payment_path(supplier), class: "link text-sm" %></td>
+          </tr>
+        <% end %>
+        <tr class="font-bold">
+          <td>Total</td>
+          <% Supplier::Payables::AGEING_BUCKETS.each_key do |bucket| %><td class="text-right tabular-nums"><%= money(@totals[bucket]) %></td><% end %>
+          <td class="text-right tabular-nums"><%= money(@rows.sum(&:last)) %></td><td></td>
+        </tr>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Nothing owed to suppliers.</p>
+  <% end %>
+</div>

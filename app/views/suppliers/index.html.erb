@@ -1,0 +1,32 @@
+<% content_for :title, "Suppliers" %>
+
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Purchasing</h1>
+  <% if current_membership.can_purchase? %><%= link_to "Add supplier", new_supplier_path, class: "btn-primary" %><% end %>
+</div>
+<%= render "purchasing/tabs" %>
+
+<%= form_with url: suppliers_path, method: :get, class: "mb-4", data: { controller: "auto-submit" } do |form| %>
+  <%= form.search_field :query, value: params[:query], placeholder: "Search suppliers", class: "input max-w-md", "aria-label": "Search suppliers", data: { action: "input->auto-submit#debouncedSubmit" } %>
+<% end %>
+
+<div class="card">
+  <% if @suppliers.any? %>
+    <table class="table">
+      <thead><tr><th>Supplier</th><th>Contact</th><th>Terms</th><th class="text-right">We owe</th></tr></thead>
+      <tbody>
+        <% @suppliers.each do |supplier| %>
+          <tr>
+            <td><%= link_to supplier.name, supplier, class: "link" %><%= tag.span("Inactive", class: "badge ml-1 bg-concrete-200 text-steel-600") unless supplier.active? %></td>
+            <td><%= [ supplier.contact_name, supplier.phone ].compact_blank.join(" · ") %></td>
+            <td><%= supplier.payment_terms_days.zero? ? "Cash" : "#{supplier.payment_terms_days} days" %></td>
+            <td class="text-right tabular-nums"><%= money(supplier.balance_cents) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No suppliers yet.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

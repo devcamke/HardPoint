@@ -70,6 +70,15 @@ class Membership < ApplicationRecord
     owner? || manager? || stock_clerk?
   end
 
+  def can_purchase?
+    owner? || manager? || stock_clerk?
+  end
+
+  # Supplier invoices and payments: the money side of purchasing.
+  def can_manage_payables?
+    owner? || manager? || accountant?
+  end
+
   def can_approve_stock_counts?
     owner? || manager?
   end

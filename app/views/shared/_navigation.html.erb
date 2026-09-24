@@ -1,8 +1,8 @@
 <nav class="bg-navy-900 text-navy-100">
-  <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 text-sm">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 text-sm">
     <%= link_to root_path, class: "flex items-center gap-3" do %>
       <%= render "shared/logo", dark: true %>
-      <span class="hidden border-l border-navy-700 pl-3 font-semibold text-white sm:inline"><%= Current.account.name %></span>
+      <span class="hidden border-l border-navy-700 pl-3 font-semibold text-white xl:inline"><%= Current.account.name %></span>
     <% end %>
 
     <% if current_membership&.can_sell? %>
@@ -11,13 +11,17 @@
     <% end %>
     <%= render "shared/nav_link", name: "Products", path: products_path %>
     <%= render "shared/nav_link", name: "Stock", path: stock_path %>
+    <% if current_membership&.can_purchase? || current_membership&.can_manage_payables? %>
+      <%= render "shared/nav_link", name: "Purchasing", path: current_membership.can_purchase? ? purchase_orders_path : suppliers_path,
+            also: [ "/suppliers", "/goods_receipts", "/reorder_suggestions", "/supplier_invoices", "/payables", "/purchase_orders" ] %>
+    <% end %>
     <% if current_membership&.can_manage_staff? %>
       <%= render "shared/nav_link", name: "Staff", path: memberships_path %>
       <%= render "shared/nav_link", name: "Activity", path: events_path %>
     <% end %>
     <%= render "shared/nav_link", name: "Settings", path: settings_path %>
 
-    <div class="ml-auto flex items-center gap-4">
+    <div class="ml-auto flex items-center gap-3">
       <%= link_to "Switch user", new_session_switch_path, class: "hover:text-white" %>
       <%= link_to my_profile_path, class: "hover:text-white" do %>
         <%= Current.user.name %> <span class="badge ml-1 bg-navy-800 text-navy-100"><%= current_membership&.role&.humanize %></span>

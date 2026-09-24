@@ -1,0 +1,3 @@
+<% classes = { "draft" => "bg-concrete-200 text-steel-600", "sent" => "bg-navy-50 text-navy-700", "partially_received" => "bg-safety-100 text-safety-800",
+               "received" => "bg-green-50 text-green-800", "cancelled" => "bg-concrete-200 text-steel-600 line-through" } %>
+<span class="badge <%= classes[order.status] %>"><%= order.status.humanize %></span>

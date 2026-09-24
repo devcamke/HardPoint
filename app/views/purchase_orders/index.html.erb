@@ -1,0 +1,37 @@
+<% content_for :title, "Purchase orders" %>
+
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Purchasing</h1>
+  <%= link_to "New order", new_purchase_order_path, class: "btn-primary" %>
+</div>
+<%= render "purchasing/tabs" %>
+
+<div class="mb-4 flex flex-wrap gap-4 text-sm">
+  <% [ [ "All", nil ], [ "Drafts", "draft" ], [ "Waiting for delivery", "open" ], [ "Received", "received" ], [ "Cancelled", "cancelled" ] ].each do |label, status| %>
+    <%= link_to label, purchase_orders_path(status: status), class: params[:status] == status ? "font-semibold text-navy-900" : "link" %>
+  <% end %>
+</div>
+
+<div class="card">
+  <% if @purchase_orders.any? %>
+    <table class="table">
+      <thead><tr><th>Order</th><th>Supplier</th><th>Deliver to</th><th>Created</th><th>Expected</th><th class="text-right">Total</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @purchase_orders.each do |order| %>
+          <tr>
+            <td><%= link_to order.reference, order, class: "link font-mono" %></td>
+            <td><%= order.supplier.name %></td>
+            <td><%= order.branch.name %></td>
+            <td><%= l(order.created_at.to_date, format: :short) %></td>
+            <td class="<%= "text-red-700" if order.expected_on&.past? && order.receivable? %>"><%= order.expected_on ? l(order.expected_on, format: :short) : "—" %></td>
+            <td class="text-right tabular-nums"><%= money(order.total_cents) %></td>
+            <td><%= render "purchasing/status", order: order %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No purchase orders<%= " here" if params[:status] %>. Start one, or let <%= link_to "reorder suggestions", reorder_suggestions_path, class: "link" %> draft them for you.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

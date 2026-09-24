@@ -1,0 +1,18 @@
+acme_cement_from_ncd:
+  account: acme
+  supplier: acme_cement_distributor
+  product: acme_cement
+  supplier_sku: NCD-BAM50
+  cost_cents: 68000
+  lead_time_days: 3
+  min_order_quantity: 10
+  preferred: true
+
+acme_pipe_from_kentube:
+  account: acme
+  supplier: acme_plumbing_supplies
+  product: acme_pipe
+  cost_cents: 85000
+  lead_time_days: 5
+  min_order_quantity: 5
+  preferred: true

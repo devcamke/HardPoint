@@ -1,0 +1,12 @@
+Hello <%= @order.supplier.contact_name.presence || @order.supplier.name %>,
+
+<%= @account.name %> would like to order the following for delivery to <%= @order.branch.name %><%= " by #{@order.expected_on.to_fs(:long)}" if @order.expected_on %>. The order is attached as a PDF.
+
+<% @order.lines.includes(product: :unit).each do |line| %>
+- <%= line.product.name %>: <%= quantity(line.quantity, line.product.unit) %> at <%= money(line.unit_cost_cents, currency: @account.currency) %>
+<% end %>
+
+Total: <%= money(@order.total_cents, currency: @account.currency) %>
+<% if @order.note.present? %>Note: <%= @order.note %>
+<% end %>
+Please quote <%= @order.reference %> on your delivery note and invoice.

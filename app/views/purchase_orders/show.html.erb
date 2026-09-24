@@ -1,0 +1,60 @@
+<% content_for :title, @purchase_order.reference %>
+<% order = @purchase_order %>
+
+<p class="text-sm"><%= link_to "← Purchase orders", purchase_orders_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold"><%= order.reference %> <%= render "purchasing/status", order: order %></h1>
+    <p class="hint mt-1"><%= link_to order.supplier.name, order.supplier, class: "link" %> → <%= order.branch.name %>
+      · created <%= l(order.created_at, format: :short) %> by <%= order.creator&.name %>
+      <%= "· sent #{l(order.sent_at, format: :short)}" if order.sent_at %><%= "· expected #{l(order.expected_on, format: :long)}" if order.expected_on %></p>
+    <%= tag.p("Note: #{order.note}", class: "mt-1 text-sm") if order.note.present? %>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "PDF", purchase_order_path(order, format: :pdf), target: "_blank", class: "btn-secondary" %>
+    <% if order.draft? %>
+      <%= link_to "Edit", edit_purchase_order_path(order), class: "btn-secondary" %>
+      <% if order.supplier.email.present? %>
+        <%= button_to "Mark sent (phoned in)", purchase_order_sending_path(order), class: "btn-secondary" %>
+        <%= button_to "Email to #{order.supplier.email}", purchase_order_sending_path(order), params: { email: "1" }, class: "btn-primary" %>
+      <% else %>
+        <%= button_to "Mark as sent", purchase_order_sending_path(order), class: "btn-primary" %>
+      <% end %>
+    <% end %>
+    <% if order.receivable? %>
+      <%= link_to "Receive goods", new_goods_receipt_path(purchase_order_id: order.id), class: "btn-primary" %>
+    <% end %>
+    <% if order.draft? || order.sent? %>
+      <%= button_to "Cancel order", purchase_order_cancellation_path(order), class: "btn-danger", form: { data: { turbo_confirm: "Cancel #{order.reference}?" } } %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card mb-6">
+  <table class="table">
+    <thead><tr><th>Product</th><th class="text-right">Ordered</th><th class="text-right">Received</th><th class="text-right">To come</th><th class="text-right">Unit cost</th><th class="text-right">Total</th></tr></thead>
+    <tbody>
+      <% order.lines.includes(product: :unit).each do |line| %>
+        <tr>
+          <td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %> <span class="font-mono text-xs text-steel-600"><%= line.product.sku %></span></td>
+          <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
+          <td class="text-right tabular-nums"><%= quantity(line.received_quantity) %></td>
+          <td class="text-right tabular-nums <%= "font-semibold" if line.outstanding_quantity.positive? %>"><%= quantity([ line.outstanding_quantity, 0 ].max) %></td>
+          <td class="text-right tabular-nums"><%= money(line.unit_cost_cents) %></td>
+          <td class="text-right tabular-nums"><%= money(line.line_total_cents) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p class="mt-3 text-right text-lg font-bold">Total <%= money(order.total_cents) %></p>
+</div>
+
+<% if order.goods_receipts.any? %>
+  <section class="card max-w-2xl">
+    <h2 class="mb-3 text-lg font-semibold">Deliveries</h2>
+    <% order.goods_receipts.includes(:receiver).each do |receipt| %>
+      <p class="flex justify-between text-sm"><%= link_to receipt.reference, receipt, class: "link font-mono" %>
+        <span><%= l(receipt.created_at, format: :short) %> · <%= receipt.receiver&.name %></span><span class="tabular-nums"><%= money(receipt.total_cents) %></span></p>
+    <% end %>
+  </section>
+<% end %>

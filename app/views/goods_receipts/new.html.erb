@@ -1,0 +1,51 @@
+<% content_for :title, "Receive goods" %>
+<% order = @goods_receipt.purchase_order %>
+
+<p class="text-sm"><%= link_to order ? "← #{order.reference}" : "← Receiving", order || goods_receipts_path, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold">Receive goods<%= " for #{order.reference}" if order %></h1>
+<p class="hint mb-6">Count what actually arrived. Stock goes into the branch and product costs update to the weighted average, including any transport or duty.</p>
+
+<%= form_with model: @goods_receipt, class: "card max-w-4xl" do |form| %>
+  <%= render "shared/errors", model: @goods_receipt %>
+  <%= form.hidden_field :purchase_order_id %>
+
+  <div class="grid gap-4 sm:grid-cols-3">
+    <% if order %>
+      <div class="field"><p class="label">Supplier</p><p class="py-2"><%= order.supplier.name %></p></div>
+      <div class="field"><p class="label">Into</p><p class="py-2"><%= order.branch.name %></p></div>
+    <% else %>
+      <div class="field"><%= form.label :supplier_id, "Supplier", class: "label" %><%= form.collection_select :supplier_id, Current.account.suppliers.active.alphabetically, :id, :name, { prompt: "Choose…" }, required: true, class: "input" %></div>
+      <div class="field"><%= form.label :branch_id, "Into", class: "label" %><%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %></div>
+    <% end %>
+    <div class="field"><%= form.label :supplier_reference, "Delivery note number", class: "label" %><%= form.text_field :supplier_reference, class: "input" %></div>
+  </div>
+
+  <table class="table mb-4">
+    <thead><tr><th>Product</th><% if order %><th class="text-right">To come</th><% end %><th class="text-right">Received now</th><th class="text-right">Unit cost</th></tr></thead>
+    <tbody>
+      <%= form.fields_for :lines do |line| %>
+        <tr>
+          <td>
+            <% if line.object.purchase_order_line %>
+              <%= line.hidden_field :purchase_order_line_id %><%= line.object.product.name %> <span class="font-mono text-xs text-steel-600"><%= line.object.product.sku %></span>
+            <% else %>
+              <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Scan or type", class: "input py-1.5 font-mono", "aria-label": "Barcode or SKU" %>
+            <% end %>
+          </td>
+          <% if order %><td class="text-right tabular-nums"><%= quantity(line.object.purchase_order_line&.outstanding_quantity) %></td><% end %>
+          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, class: "input w-24 py-1.5 text-right", "aria-label": "Quantity received" %></td>
+          <td class="text-right"><%= line.number_field :unit_cost, value: plain_number(line.object.unit_cost), step: "0.01", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit cost" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :extra_costs, "Transport, duty and other costs (#{Current.account.currency})", class: "label" %>
+      <%= form.number_field :extra_costs, value: plain_number(@goods_receipt.extra_costs), step: "0.01", min: 0, class: "input" %>
+      <p class="hint mt-1">Shared across the lines by value, so each product carries its true cost.</p></div>
+    <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. 2 bags torn, set aside" %></div>
+  </div>
+
+  <%= form.submit "Receive into stock", class: "btn-primary" %>
+<% end %>

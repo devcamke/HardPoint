@@ -1,0 +1,46 @@
+<% content_for :title, "Receiving" %>
+
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Purchasing</h1>
+  <%= link_to "Receive without an order", new_goods_receipt_path, class: "btn-secondary" %>
+</div>
+<%= render "purchasing/tabs" %>
+
+<% waiting = Current.account.purchase_orders.open.includes(:supplier, :branch).order(:expected_on) %>
+<% if waiting.any? %>
+  <section class="card mb-6">
+    <h2 class="mb-3 text-lg font-semibold">Waiting for delivery</h2>
+    <table class="table"><tbody>
+      <% waiting.each do |order| %>
+        <tr><td><%= link_to order.reference, order, class: "link font-mono" %></td><td><%= order.supplier.name %></td><td><%= order.branch.name %></td>
+          <td class="<%= "text-red-700" if order.expected_on&.past? %>"><%= order.expected_on ? "expected #{l(order.expected_on, format: :short)}" : "" %></td>
+          <td class="text-right"><%= link_to "Receive", new_goods_receipt_path(purchase_order_id: order.id), class: "btn-primary py-1" %></td></tr>
+      <% end %>
+    </tbody></table>
+  </section>
+<% end %>
+
+<div class="card">
+  <h2 class="mb-3 text-lg font-semibold">Received</h2>
+  <% if @goods_receipts.any? %>
+    <table class="table">
+      <thead><tr><th>GRN</th><th>Supplier</th><th>Branch</th><th>Order</th><th>Delivery note</th><th>When</th><th class="text-right">Value</th></tr></thead>
+      <tbody>
+        <% @goods_receipts.each do |receipt| %>
+          <tr>
+            <td><%= link_to receipt.reference, receipt, class: "link font-mono" %></td>
+            <td><%= receipt.supplier.name %></td>
+            <td><%= receipt.branch.name %></td>
+            <td class="font-mono text-xs"><%= receipt.purchase_order&.reference %></td>
+            <td><%= receipt.supplier_reference %></td>
+            <td><%= l(receipt.created_at, format: :short) %></td>
+            <td class="text-right tabular-nums"><%= money(receipt.total_cents) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Nothing received yet.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

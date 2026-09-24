@@ -1,0 +1,20 @@
+<% content_for :title, "Record supplier invoice" %>
+
+<p class="text-sm"><%= link_to "← Invoices", supplier_invoices_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Record a supplier invoice</h1>
+
+<%= form_with model: @invoice, class: "card max-w-xl" do |form| %>
+  <%= render "shared/errors", model: @invoice %>
+  <%= form.hidden_field :goods_receipt_id %>
+  <% if @invoice.goods_receipt %><p class="hint mb-4">For delivery <%= link_to @invoice.goods_receipt.reference, @invoice.goods_receipt, class: "link" %> (<%= money(@invoice.goods_receipt.total_cents) %> received).</p><% end %>
+  <div class="field"><%= form.label :supplier_id, "Supplier", class: "label" %><%= form.collection_select :supplier_id, Current.account.suppliers.alphabetically, :id, :name, { prompt: "Choose…" }, required: true, class: "input" %></div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :number, "Their invoice number", class: "label" %><%= form.text_field :number, required: true, class: "input font-mono uppercase" %></div>
+    <div class="field"><%= form.label :invoice_date, class: "label" %><%= form.date_field :invoice_date, required: true, class: "input" %></div>
+    <div class="field"><%= form.label :total, "Total incl. tax (#{Current.account.currency})", class: "label" %><%= form.number_field :total, value: plain_number(@invoice.total), step: "0.01", min: 0, required: true, class: "input" %></div>
+    <div class="field"><%= form.label :tax, "of which tax", class: "label" %><%= form.number_field :tax, value: plain_number(@invoice.tax), step: "0.01", min: 0, class: "input" %></div>
+    <div class="field"><%= form.label :due_date, "Due (blank = supplier's terms)", class: "label" %><%= form.date_field :due_date, class: "input" %></div>
+  </div>
+  <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input" %></div>
+  <%= form.submit "Record invoice", class: "btn-primary" %>
+<% end %>

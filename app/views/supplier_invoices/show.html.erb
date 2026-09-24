@@ -1,0 +1,16 @@
+<% content_for :title, "Invoice #{@invoice.number}" %>
+
+<p class="text-sm"><%= link_to "← #{@invoice.supplier.name}", @invoice.supplier, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Invoice <%= @invoice.number %></h1>
+
+<div class="card max-w-xl space-y-2 text-sm">
+  <p class="flex justify-between"><span>Supplier</span><%= link_to @invoice.supplier.name, @invoice.supplier, class: "link" %></p>
+  <p class="flex justify-between"><span>Dated</span><span><%= l(@invoice.invoice_date, format: :long) %></span></p>
+  <p class="flex justify-between"><span>Due</span><span><%= l(@invoice.due_date, format: :long) %></span></p>
+  <% if @invoice.goods_receipt %><p class="flex justify-between"><span>Delivery</span><%= link_to @invoice.goods_receipt.reference, @invoice.goods_receipt, class: "link font-mono" %></p><% end %>
+  <p class="flex justify-between"><span>Tax</span><span class="tabular-nums"><%= money(@invoice.tax_cents) %></span></p>
+  <p class="flex justify-between text-lg font-bold"><span>Total</span><span class="tabular-nums"><%= money(@invoice.total_cents) %></span></p>
+  <% outstanding = @invoice.supplier.open_invoices.find { _1.invoice == @invoice }&.outstanding_cents || 0 %>
+  <p class="flex justify-between"><span>Still to pay</span><span class="tabular-nums font-semibold"><%= outstanding.zero? ? "Paid" : money(outstanding) %></span></p>
+  <p class="hint">Recorded by <%= @invoice.creator&.name %> on <%= l(@invoice.created_at.to_date, format: :long) %><%= " · #{@invoice.note}" if @invoice.note.present? %></p>
+</div>

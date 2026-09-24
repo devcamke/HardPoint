@@ -1,0 +1,4 @@
+<% content_for :title, "New supplier" %>
+<p class="text-sm"><%= link_to "← Suppliers", suppliers_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">New supplier</h1>
+<%= render "form", supplier: @supplier %>

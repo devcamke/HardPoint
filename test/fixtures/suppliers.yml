@@ -1,0 +1,16 @@
+acme_cement_distributor:
+  account: acme
+  name: Nairobi Cement Distributors
+  email: orders@ncd.test
+  phone: "+254720111222"
+  payment_terms_days: 30
+
+acme_plumbing_supplies:
+  account: acme
+  name: Kentube Plumbing Supplies
+  email: sales@kentube.test
+  payment_terms_days: 14
+
+bolt_supplier:
+  account: bolt
+  name: Bolt's tool wholesaler

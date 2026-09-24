@@ -13,6 +13,8 @@ gem "rqrcode", "~> 3.2"
 gem "barby", "~> 0.7"
 # Product spreadsheets. CSV is Ruby's own library but ships as a separate gem since Ruby 3.4.
 gem "csv"
+# Purchase order PDFs to email to suppliers.
+gem "prawn", "~> 2.5"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record

@@ -501,6 +501,84 @@ ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
 
 
 --
+-- Name: goods_receipt_lines; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.goods_receipt_lines (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    goods_receipt_id bigint NOT NULL,
+    purchase_order_line_id bigint,
+    product_id bigint NOT NULL,
+    quantity numeric(14,3) NOT NULL,
+    unit_cost_cents bigint NOT NULL,
+    landed_unit_cost_cents bigint DEFAULT 0 NOT NULL
+);
+
+ALTER TABLE ONLY public.goods_receipt_lines FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: goods_receipt_lines_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.goods_receipt_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: goods_receipt_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.goods_receipt_lines_id_seq OWNED BY public.goods_receipt_lines.id;
+
+
+--
+-- Name: goods_receipts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.goods_receipts (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    supplier_id bigint NOT NULL,
+    purchase_order_id bigint,
+    branch_id bigint NOT NULL,
+    receiver_id bigint,
+    number integer NOT NULL,
+    supplier_reference character varying,
+    extra_costs_cents bigint DEFAULT 0 NOT NULL,
+    total_cents bigint DEFAULT 0 NOT NULL,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.goods_receipts FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: goods_receipts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.goods_receipts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: goods_receipts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.goods_receipts_id_seq OWNED BY public.goods_receipts.id;
+
+
+--
 -- Name: kit_components; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -808,6 +886,86 @@ CREATE SEQUENCE public.products_id_seq
 --
 
 ALTER SEQUENCE public.products_id_seq OWNED BY public.products.id;
+
+
+--
+-- Name: purchase_order_lines; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.purchase_order_lines (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    purchase_order_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    quantity numeric(14,3) NOT NULL,
+    received_quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
+    unit_cost_cents bigint DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.purchase_order_lines FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: purchase_order_lines_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.purchase_order_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: purchase_order_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.purchase_order_lines_id_seq OWNED BY public.purchase_order_lines.id;
+
+
+--
+-- Name: purchase_orders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.purchase_orders (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    supplier_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    creator_id bigint,
+    number integer NOT NULL,
+    status character varying DEFAULT 'draft'::character varying NOT NULL,
+    expected_on date,
+    note character varying,
+    total_cents bigint DEFAULT 0 NOT NULL,
+    sent_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.purchase_orders FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: purchase_orders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.purchase_orders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: purchase_orders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.purchase_orders_id_seq OWNED BY public.purchase_orders.id;
 
 
 --
@@ -1383,6 +1541,169 @@ ALTER SEQUENCE public.stock_transfers_id_seq OWNED BY public.stock_transfers.id;
 
 
 --
+-- Name: supplier_invoices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.supplier_invoices (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    supplier_id bigint NOT NULL,
+    goods_receipt_id bigint,
+    creator_id bigint,
+    number character varying NOT NULL,
+    invoice_date date NOT NULL,
+    due_date date NOT NULL,
+    total_cents bigint NOT NULL,
+    tax_cents bigint DEFAULT 0 NOT NULL,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.supplier_invoices FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: supplier_invoices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.supplier_invoices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: supplier_invoices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.supplier_invoices_id_seq OWNED BY public.supplier_invoices.id;
+
+
+--
+-- Name: supplier_payments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.supplier_payments (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    supplier_id bigint NOT NULL,
+    creator_id bigint,
+    paid_on date NOT NULL,
+    amount_cents bigint NOT NULL,
+    payment_method character varying NOT NULL,
+    reference character varying,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.supplier_payments FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: supplier_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.supplier_payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: supplier_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.supplier_payments_id_seq OWNED BY public.supplier_payments.id;
+
+
+--
+-- Name: supplier_products; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.supplier_products (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    supplier_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    supplier_sku character varying,
+    cost_cents bigint DEFAULT 0 NOT NULL,
+    lead_time_days integer DEFAULT 7 NOT NULL,
+    min_order_quantity numeric(14,3) DEFAULT 1.0 NOT NULL,
+    preferred boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.supplier_products FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: supplier_products_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.supplier_products_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: supplier_products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.supplier_products_id_seq OWNED BY public.supplier_products.id;
+
+
+--
+-- Name: suppliers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.suppliers (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    name character varying NOT NULL,
+    contact_name character varying,
+    phone character varying,
+    email character varying,
+    tax_pin character varying,
+    address character varying,
+    payment_terms_days integer DEFAULT 30 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    notes text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.suppliers FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: suppliers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.suppliers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: suppliers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.suppliers_id_seq OWNED BY public.suppliers.id;
+
+
+--
 -- Name: tax_rates; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1584,6 +1905,20 @@ ALTER TABLE ONLY public.events ALTER COLUMN id SET DEFAULT nextval('public.event
 
 
 --
+-- Name: goods_receipt_lines id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipt_lines ALTER COLUMN id SET DEFAULT nextval('public.goods_receipt_lines_id_seq'::regclass);
+
+
+--
+-- Name: goods_receipts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipts ALTER COLUMN id SET DEFAULT nextval('public.goods_receipts_id_seq'::regclass);
+
+
+--
 -- Name: kit_components id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1637,6 +1972,20 @@ ALTER TABLE ONLY public.product_units ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.products ALTER COLUMN id SET DEFAULT nextval('public.products_id_seq'::regclass);
+
+
+--
+-- Name: purchase_order_lines id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_order_lines ALTER COLUMN id SET DEFAULT nextval('public.purchase_order_lines_id_seq'::regclass);
+
+
+--
+-- Name: purchase_orders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_orders ALTER COLUMN id SET DEFAULT nextval('public.purchase_orders_id_seq'::regclass);
 
 
 --
@@ -1735,6 +2084,34 @@ ALTER TABLE ONLY public.stock_transfer_lines ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.stock_transfers ALTER COLUMN id SET DEFAULT nextval('public.stock_transfers_id_seq'::regclass);
+
+
+--
+-- Name: supplier_invoices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_invoices ALTER COLUMN id SET DEFAULT nextval('public.supplier_invoices_id_seq'::regclass);
+
+
+--
+-- Name: supplier_payments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_payments ALTER COLUMN id SET DEFAULT nextval('public.supplier_payments_id_seq'::regclass);
+
+
+--
+-- Name: supplier_products id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_products ALTER COLUMN id SET DEFAULT nextval('public.supplier_products_id_seq'::regclass);
+
+
+--
+-- Name: suppliers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.suppliers ALTER COLUMN id SET DEFAULT nextval('public.suppliers_id_seq'::regclass);
 
 
 --
@@ -1871,6 +2248,22 @@ ALTER TABLE ONLY public.events
 
 
 --
+-- Name: goods_receipt_lines goods_receipt_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipt_lines
+    ADD CONSTRAINT goods_receipt_lines_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: goods_receipts goods_receipts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipts
+    ADD CONSTRAINT goods_receipts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: kit_components kit_components_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1932,6 +2325,22 @@ ALTER TABLE ONLY public.product_units
 
 ALTER TABLE ONLY public.products
     ADD CONSTRAINT products_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: purchase_order_lines purchase_order_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_order_lines
+    ADD CONSTRAINT purchase_order_lines_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: purchase_orders purchase_orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_orders
+    ADD CONSTRAINT purchase_orders_pkey PRIMARY KEY (id);
 
 
 --
@@ -2052,6 +2461,38 @@ ALTER TABLE ONLY public.stock_transfer_lines
 
 ALTER TABLE ONLY public.stock_transfers
     ADD CONSTRAINT stock_transfers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: supplier_invoices supplier_invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_invoices
+    ADD CONSTRAINT supplier_invoices_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: supplier_payments supplier_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_payments
+    ADD CONSTRAINT supplier_payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: supplier_products supplier_products_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_products
+    ADD CONSTRAINT supplier_products_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: suppliers suppliers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.suppliers
+    ADD CONSTRAINT suppliers_pkey PRIMARY KEY (id);
 
 
 --
@@ -2261,6 +2702,55 @@ CREATE INDEX index_events_on_eventable ON public.events USING btree (eventable_t
 
 
 --
+-- Name: index_goods_receipt_lines_on_goods_receipt_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipt_lines_on_goods_receipt_id ON public.goods_receipt_lines USING btree (goods_receipt_id);
+
+
+--
+-- Name: index_goods_receipt_lines_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipt_lines_on_product_id ON public.goods_receipt_lines USING btree (product_id);
+
+
+--
+-- Name: index_goods_receipt_lines_on_purchase_order_line_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipt_lines_on_purchase_order_line_id ON public.goods_receipt_lines USING btree (purchase_order_line_id);
+
+
+--
+-- Name: index_goods_receipts_on_branch_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_goods_receipts_on_branch_id_and_number ON public.goods_receipts USING btree (branch_id, number);
+
+
+--
+-- Name: index_goods_receipts_on_purchase_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipts_on_purchase_order_id ON public.goods_receipts USING btree (purchase_order_id);
+
+
+--
+-- Name: index_goods_receipts_on_receiver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipts_on_receiver_id ON public.goods_receipts USING btree (receiver_id);
+
+
+--
+-- Name: index_goods_receipts_on_supplier_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipts_on_supplier_id ON public.goods_receipts USING btree (supplier_id);
+
+
+--
 -- Name: index_kit_components_on_component_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2398,6 +2888,48 @@ CREATE INDEX index_products_on_tax_rate_id ON public.products USING btree (tax_r
 --
 
 CREATE INDEX index_products_on_unit_id ON public.products USING btree (unit_id);
+
+
+--
+-- Name: index_purchase_order_lines_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_purchase_order_lines_on_product_id ON public.purchase_order_lines USING btree (product_id);
+
+
+--
+-- Name: index_purchase_order_lines_on_purchase_order_id_and_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_purchase_order_lines_on_purchase_order_id_and_product_id ON public.purchase_order_lines USING btree (purchase_order_id, product_id);
+
+
+--
+-- Name: index_purchase_orders_on_account_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_purchase_orders_on_account_id_and_status ON public.purchase_orders USING btree (account_id, status);
+
+
+--
+-- Name: index_purchase_orders_on_branch_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_purchase_orders_on_branch_id_and_number ON public.purchase_orders USING btree (branch_id, number);
+
+
+--
+-- Name: index_purchase_orders_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_purchase_orders_on_creator_id ON public.purchase_orders USING btree (creator_id);
+
+
+--
+-- Name: index_purchase_orders_on_supplier_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_purchase_orders_on_supplier_id ON public.purchase_orders USING btree (supplier_id);
 
 
 --
@@ -2765,6 +3297,76 @@ CREATE INDEX index_stock_transfers_on_to_branch_id ON public.stock_transfers USI
 
 
 --
+-- Name: index_supplier_invoices_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_invoices_on_creator_id ON public.supplier_invoices USING btree (creator_id);
+
+
+--
+-- Name: index_supplier_invoices_on_goods_receipt_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_invoices_on_goods_receipt_id ON public.supplier_invoices USING btree (goods_receipt_id);
+
+
+--
+-- Name: index_supplier_invoices_on_supplier_id_and_due_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_invoices_on_supplier_id_and_due_date ON public.supplier_invoices USING btree (supplier_id, due_date);
+
+
+--
+-- Name: index_supplier_invoices_on_supplier_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_supplier_invoices_on_supplier_id_and_number ON public.supplier_invoices USING btree (supplier_id, number);
+
+
+--
+-- Name: index_supplier_payments_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_payments_on_creator_id ON public.supplier_payments USING btree (creator_id);
+
+
+--
+-- Name: index_supplier_payments_on_supplier_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_payments_on_supplier_id ON public.supplier_payments USING btree (supplier_id);
+
+
+--
+-- Name: index_supplier_products_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_products_on_product_id ON public.supplier_products USING btree (product_id);
+
+
+--
+-- Name: index_supplier_products_on_supplier_id_and_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_supplier_products_on_supplier_id_and_product_id ON public.supplier_products USING btree (supplier_id, product_id);
+
+
+--
+-- Name: index_suppliers_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_suppliers_on_account_id_and_name ON public.suppliers USING btree (account_id, name);
+
+
+--
+-- Name: index_suppliers_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_suppliers_on_name ON public.suppliers USING gin (name public.gin_trgm_ops);
+
+
+--
 -- Name: index_tax_rates_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2810,6 +3412,22 @@ ALTER TABLE ONLY public.stock_transfer_lines
 
 
 --
+-- Name: supplier_invoices fk_rails_14468d4381; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_invoices
+    ADD CONSTRAINT fk_rails_14468d4381 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_payments fk_rails_1472ef0893; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_payments
+    ADD CONSTRAINT fk_rails_1472ef0893 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: shifts fk_rails_153ce46569; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2834,11 +3452,35 @@ ALTER TABLE ONLY public.events
 
 
 --
+-- Name: supplier_payments fk_rails_1846f352d5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_payments
+    ADD CONSTRAINT fk_rails_1846f352d5 FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_invoices fk_rails_1ced2062f2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_invoices
+    ADD CONSTRAINT fk_rails_1ced2062f2 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: stock_counts fk_rails_1cf6040ee2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stock_counts
     ADD CONSTRAINT fk_rails_1cf6040ee2 FOREIGN KEY (approver_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: purchase_orders fk_rails_1d67bb2d7b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_orders
+    ADD CONSTRAINT fk_rails_1d67bb2d7b FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
 
 
 --
@@ -2866,11 +3508,35 @@ ALTER TABLE ONLY public.stock_movements
 
 
 --
+-- Name: supplier_invoices fk_rails_291f86350e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_invoices
+    ADD CONSTRAINT fk_rails_291f86350e FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
 -- Name: stock_adjustments fk_rails_2beda46d36; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stock_adjustments
     ADD CONSTRAINT fk_rails_2beda46d36 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_products fk_rails_2d632ee52e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_products
+    ADD CONSTRAINT fk_rails_2d632ee52e FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: goods_receipts fk_rails_2ed6dc1c7f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipts
+    ADD CONSTRAINT fk_rails_2ed6dc1c7f FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
 
 
 --
@@ -3034,6 +3700,14 @@ ALTER TABLE ONLY public.sales
 
 
 --
+-- Name: purchase_orders fk_rails_5c343fe226; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_orders
+    ADD CONSTRAINT fk_rails_5c343fe226 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
 -- Name: sale_returns fk_rails_5d56732d50; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3047,6 +3721,14 @@ ALTER TABLE ONLY public.sale_returns
 
 ALTER TABLE ONLY public.shifts
     ADD CONSTRAINT fk_rails_64dbadba30 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: goods_receipts fk_rails_68b64d7d0c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipts
+    ADD CONSTRAINT fk_rails_68b64d7d0c FOREIGN KEY (receiver_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -3194,6 +3876,30 @@ ALTER TABLE ONLY public.price_list_items
 
 
 --
+-- Name: supplier_payments fk_rails_89a9bab56d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_payments
+    ADD CONSTRAINT fk_rails_89a9bab56d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: goods_receipts fk_rails_8cb1c140bf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipts
+    ADD CONSTRAINT fk_rails_8cb1c140bf FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_products fk_rails_8e1c65b71a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_products
+    ADD CONSTRAINT fk_rails_8e1c65b71a FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
 -- Name: sale_returns fk_rails_94137afb72; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3242,6 +3948,14 @@ ALTER TABLE ONLY public.active_storage_variant_records
 
 
 --
+-- Name: supplier_products fk_rails_9a363579c5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_products
+    ADD CONSTRAINT fk_rails_9a363579c5 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
 -- Name: document_sequences fk_rails_9acc2b60b1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3255,6 +3969,14 @@ ALTER TABLE ONLY public.document_sequences
 
 ALTER TABLE ONLY public.product_imports
     ADD CONSTRAINT fk_rails_9c4c03515c FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: goods_receipt_lines fk_rails_9f16d899e5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipt_lines
+    ADD CONSTRAINT fk_rails_9f16d899e5 FOREIGN KEY (purchase_order_line_id) REFERENCES public.purchase_order_lines(id) DEFERRABLE;
 
 
 --
@@ -3274,6 +3996,14 @@ ALTER TABLE ONLY public.product_units
 
 
 --
+-- Name: purchase_order_lines fk_rails_a4215877c0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_order_lines
+    ADD CONSTRAINT fk_rails_a4215877c0 FOREIGN KEY (purchase_order_id) REFERENCES public.purchase_orders(id) DEFERRABLE;
+
+
+--
 -- Name: sale_return_lines fk_rails_a63cffa5db; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3287,6 +4017,14 @@ ALTER TABLE ONLY public.sale_return_lines
 
 ALTER TABLE ONLY public.shifts
     ADD CONSTRAINT fk_rails_a644c1fb7c FOREIGN KEY (closed_by_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: purchase_order_lines fk_rails_a75963ca00; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_order_lines
+    ADD CONSTRAINT fk_rails_a75963ca00 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -3322,11 +4060,43 @@ ALTER TABLE ONLY public.payments
 
 
 --
+-- Name: suppliers fk_rails_b2568e91c4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.suppliers
+    ADD CONSTRAINT fk_rails_b2568e91c4 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: sale_return_lines fk_rails_b7496a0bb6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sale_return_lines
     ADD CONSTRAINT fk_rails_b7496a0bb6 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_invoices fk_rails_b87e804d59; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_invoices
+    ADD CONSTRAINT fk_rails_b87e804d59 FOREIGN KEY (goods_receipt_id) REFERENCES public.goods_receipts(id) DEFERRABLE;
+
+
+--
+-- Name: goods_receipt_lines fk_rails_b8f8f3e8a5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipt_lines
+    ADD CONSTRAINT fk_rails_b8f8f3e8a5 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: goods_receipts fk_rails_bbe00c5362; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipts
+    ADD CONSTRAINT fk_rails_bbe00c5362 FOREIGN KEY (purchase_order_id) REFERENCES public.purchase_orders(id) DEFERRABLE;
 
 
 --
@@ -3338,11 +4108,27 @@ ALTER TABLE ONLY public.stock_transfers
 
 
 --
+-- Name: purchase_orders fk_rails_c3649bab02; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_orders
+    ADD CONSTRAINT fk_rails_c3649bab02 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.active_storage_attachments
     ADD CONSTRAINT fk_rails_c3b3935057 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id) DEFERRABLE;
+
+
+--
+-- Name: purchase_order_lines fk_rails_c4844677c7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_order_lines
+    ADD CONSTRAINT fk_rails_c4844677c7 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
 
 
 --
@@ -3378,6 +4164,14 @@ ALTER TABLE ONLY public.stock_levels
 
 
 --
+-- Name: goods_receipt_lines fk_rails_dac7fab7a3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipt_lines
+    ADD CONSTRAINT fk_rails_dac7fab7a3 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: sales fk_rails_de939a1f04; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3391,6 +4185,14 @@ ALTER TABLE ONLY public.sales
 
 ALTER TABLE ONLY public.stock_movements
     ADD CONSTRAINT fk_rails_deb37fa2ee FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: goods_receipts fk_rails_df6450b6dd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipts
+    ADD CONSTRAINT fk_rails_df6450b6dd FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
 
 
 --
@@ -3546,6 +4348,22 @@ ALTER TABLE ONLY public.stock_transfer_lines
 
 
 --
+-- Name: goods_receipt_lines fk_rails_f2f12b04b3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipt_lines
+    ADD CONSTRAINT fk_rails_f2f12b04b3 FOREIGN KEY (goods_receipt_id) REFERENCES public.goods_receipts(id) DEFERRABLE;
+
+
+--
+-- Name: purchase_orders fk_rails_f3a3354387; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_orders
+    ADD CONSTRAINT fk_rails_f3a3354387 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: products fk_rails_f3b4d49caa; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3650,6 +4468,20 @@ CREATE POLICY account_isolation ON public.events USING (((current_setting('app.b
 
 
 --
+-- Name: goods_receipt_lines account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.goods_receipt_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: goods_receipts account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.goods_receipts USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: kit_components account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -3703,6 +4535,20 @@ CREATE POLICY account_isolation ON public.product_units USING (((current_setting
 --
 
 CREATE POLICY account_isolation ON public.products USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: purchase_order_lines account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.purchase_order_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: purchase_orders account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.purchase_orders USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -3804,6 +4650,34 @@ CREATE POLICY account_isolation ON public.stock_transfers USING (((current_setti
 
 
 --
+-- Name: supplier_invoices account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.supplier_invoices USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: supplier_payments account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.supplier_payments USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: supplier_products account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.supplier_products USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: suppliers account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.suppliers USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: tax_rates account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -3866,6 +4740,18 @@ ALTER TABLE public.document_sequences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: goods_receipt_lines; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.goods_receipt_lines ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: goods_receipts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.goods_receipts ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: kit_components; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -3912,6 +4798,18 @@ ALTER TABLE public.product_units ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: purchase_order_lines; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.purchase_order_lines ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: purchase_orders; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.purchase_orders ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: registers; Type: ROW SECURITY; Schema: public; Owner: -
@@ -3998,6 +4896,30 @@ ALTER TABLE public.stock_transfer_lines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stock_transfers ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: supplier_invoices; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.supplier_invoices ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: supplier_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.supplier_payments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: supplier_products; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.supplier_products ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: suppliers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: tax_rates; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4016,6 +4938,7 @@ ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925110000'),
 ('20260925100000'),
 ('20260925090401'),
 ('20260925090400'),

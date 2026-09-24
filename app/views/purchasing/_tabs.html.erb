@@ -1,0 +1,10 @@
+<nav class="mb-6 flex flex-wrap gap-x-6 gap-y-2 border-b border-concrete-200 text-sm">
+  <% tabs = []
+     tabs += [ [ "Orders", purchase_orders_path ], [ "Receiving", goods_receipts_path ], [ "Reorder suggestions", reorder_suggestions_path ] ] if current_membership.can_purchase?
+     tabs << [ "Suppliers", suppliers_path ]
+     tabs += [ [ "Invoices", supplier_invoices_path ], [ "What we owe", payables_path ] ] if current_membership.can_manage_payables? %>
+  <% tabs.each do |name, path| %>
+    <% active = request.path == path || request.path.start_with?("#{path}/") %>
+    <%= link_to name, path, class: class_names("-mb-px border-b-2 pb-2", "border-safety-500 font-semibold text-navy-900" => active, "border-transparent text-steel-600 hover:text-navy-900" => !active) %>
+  <% end %>
+</nav>

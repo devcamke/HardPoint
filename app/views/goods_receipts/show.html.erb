@@ -1,0 +1,38 @@
+<% content_for :title, @goods_receipt.reference %>
+<% receipt = @goods_receipt %>
+
+<p class="text-sm"><%= link_to "← Receiving", goods_receipts_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold"><%= receipt.reference %></h1>
+    <p class="hint mt-1"><%= link_to receipt.supplier.name, receipt.supplier, class: "link" %> → <%= receipt.branch.name %> · <%= l(receipt.created_at, format: :long) %> · <%= receipt.receiver&.name %>
+      <%= "· delivery note #{receipt.supplier_reference}" if receipt.supplier_reference.present? %>
+      <%= tag.span("· for ") + link_to(receipt.purchase_order.reference, receipt.purchase_order, class: "link") if receipt.purchase_order %></p>
+    <%= tag.p(receipt.note, class: "mt-1 text-sm") if receipt.note.present? %>
+  </div>
+  <% if current_membership.can_manage_payables? && receipt.supplier_invoices.none? %>
+    <%= link_to "Record the supplier's invoice", new_supplier_invoice_path(goods_receipt_id: receipt.id), class: "btn-primary" %>
+  <% end %>
+</div>
+
+<div class="card max-w-4xl">
+  <table class="table">
+    <thead><tr><th>Product</th><th class="text-right">Received</th><th class="text-right">Unit cost</th><th class="text-right">Landed unit cost</th><th class="text-right">Value</th></tr></thead>
+    <tbody>
+      <% receipt.lines.includes(product: :unit).each do |line| %>
+        <tr>
+          <td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %></td>
+          <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
+          <td class="text-right tabular-nums"><%= money(line.unit_cost_cents) %></td>
+          <td class="text-right tabular-nums"><%= money(line.landed_unit_cost_cents) %></td>
+          <td class="text-right tabular-nums"><%= money(line.line_value_cents) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <div class="ml-auto mt-3 max-w-xs space-y-1 text-sm">
+    <div class="flex justify-between"><span>Goods</span><span class="tabular-nums"><%= money(receipt.goods_value_cents) %></span></div>
+    <div class="flex justify-between"><span>Transport, duty, other</span><span class="tabular-nums"><%= money(receipt.extra_costs_cents) %></span></div>
+    <div class="flex justify-between text-lg font-bold"><span>Total</span><span class="tabular-nums"><%= money(receipt.total_cents) %></span></div>
+  </div>
+</div>

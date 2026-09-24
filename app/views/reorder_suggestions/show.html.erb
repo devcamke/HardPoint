@@ -1,0 +1,47 @@
+<% content_for :title, "Reorder suggestions" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Purchasing</h1>
+  <%= render "shared/branch_picker" %>
+</div>
+<%= render "purchasing/tabs" %>
+
+<p class="hint mb-4 max-w-3xl">For <%= selected_branch&.name %>: products at or below their reorder level, or selling fast enough to run out before a delivery could arrive.
+  Each suggestion covers the supplier's lead time plus two weeks of sales (or twice the reorder level), less what's on hand and already on order, rounded up to the supplier's minimum.</p>
+
+<% if @suggestion.rows.empty? %>
+  <div class="card"><p class="hint">Nothing needs ordering for this branch right now.</p></div>
+<% end %>
+
+<% @suggestion.by_supplier.each do |supplier, rows| %>
+  <section class="card mb-6">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <h2 class="text-lg font-semibold"><%= supplier ? link_to(supplier.name, supplier, class: "hover:text-safety-700") : "No supplier set yet" %>
+        <span class="hint font-normal">· <%= pluralize(rows.size, "product") %> · about <%= money(rows.sum(&:cost_cents)) %></span></h2>
+      <% if supplier %>
+        <%= button_to "Draft an order for #{supplier.name}", purchase_orders_path, params: { from_suggestions: 1, supplier_id: supplier.id, branch_id: selected_branch.id }, class: "btn-primary" %>
+      <% else %>
+        <span class="hint">Add these to a supplier to order them in one click.</span>
+      <% end %>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Product</th><th class="text-right">On hand</th><th class="text-right">On order</th><th class="text-right">Sold (30 days)</th><th class="text-right">Reorder at</th><th class="text-right">Lead time</th><th class="text-right">Order</th><th class="text-right">Cost</th></tr></thead>
+        <tbody>
+          <% rows.each do |row| %>
+            <tr>
+              <td><%= link_to row.product.name, row.product, class: "hover:text-safety-700" %></td>
+              <td class="text-right tabular-nums <%= "text-red-700" unless row.on_hand.positive? %>"><%= quantity(row.on_hand, row.product.unit) %></td>
+              <td class="text-right tabular-nums"><%= quantity(row.on_order) %></td>
+              <td class="text-right tabular-nums"><%= quantity(row.sold) %></td>
+              <td class="text-right tabular-nums"><%= quantity(row.product.reorder_level) %></td>
+              <td class="text-right"><%= row.lead_time %> days</td>
+              <td class="text-right font-semibold tabular-nums"><%= quantity(row.quantity, row.product.unit) %></td>
+              <td class="text-right tabular-nums"><%= money(row.cost_cents) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% end %>

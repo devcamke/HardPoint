@@ -30,6 +30,18 @@ module Authorization
       head :forbidden unless current_membership&.can_manage_stock?
     end
 
+    def ensure_can_purchase
+      head :forbidden unless current_membership&.can_purchase?
+    end
+
+    def ensure_can_manage_payables
+      head :forbidden unless current_membership&.can_manage_payables?
+    end
+
+    def ensure_can_purchase_or_pay
+      head :forbidden unless current_membership&.can_purchase? || current_membership&.can_manage_payables?
+    end
+
     def ensure_can_sell
       head :forbidden unless current_membership&.can_sell?
     end
