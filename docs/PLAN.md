@@ -6,49 +6,75 @@ customers, staff, or reports.
 
 ---
 
-## 1. Technology stack
+## 1. Philosophy & technology stack
 
-### Your picks
-| Layer | Choice | Notes |
-|---|---|---|
-| Framework | **Ruby on Rails 8.x** (Ruby 3.4) | Full-stack, "one-person framework" |
-| Database | **PostgreSQL 17** | Row-Level Security (RLS) is the backbone of tenant isolation |
-| Styling | **Tailwind CSS v4** via `tailwindcss-rails` | No Node build step needed |
+### Guiding principle: vanilla Rails
+Build it the way Rails itself (and 37signals' apps such as Basecamp, HEY, Fizzy) is built:
 
-### Additions recommended
-| Concern | Choice | Why |
+- **Rails defaults first.** If Rails ships it (auth generator, Solid Queue/Cache/Cable,
+  Hotwire, Importmap, Propshaft, Kamal, Minitest, fixtures, `rate_limit`, Active Record
+  Encryption, Active Storage, Action Mailer), use it. No replacement gems.
+- **A gem only where Rails has no answer** (e.g. generating PDFs or XLSX files), and
+  each one has to justify itself. The list is short and explicit below.
+- **Rich domain models, thin controllers.** Business logic lives in Active Record models
+  and **concerns** (`Sale::Payable`, `Product::Stockable`, `Account::Subscribable`), not in
+  service objects, interactors, form objects, or a `app/services` folder.
+- **Everything is CRUD.** When an action isn't CRUD, make it a new resource:
+  voiding a sale is `resource :void` → `Sales::VoidsController#create`; closing a shift is
+  `Shifts::ClosuresController#create`; receiving a PO is `PurchaseOrders::ReceiptsController#create`.
+- **`Current` attributes** (`Current.account`, `Current.user`, `Current.session`,
+  `Current.branch`) for request context.
+- **Jobs stay thin**: `sale.transmit_to_tax_authority_later` enqueues a job whose `perform`
+  just calls `sale.transmit_to_tax_authority_now`. The logic stays on the model.
+- **Server-rendered HTML + Hotwire.** Turbo Frames/Streams and small Stimulus controllers;
+  no SPA and no JSON API for our own UI.
+- **Callbacks, `delegated_type`, `store_accessor`, `enum`, `normalizes`,
+  `generates_token_for`, `has_secure_password`, `encrypts`**: reach for these built-ins first.
+- **Minitest + fixtures + system tests.** No RSpec, FactoryBot or mocking frameworks.
+- **One database, one app, one server** until measurement says otherwise.
+
+### Stack
+| Layer | Choice (Rails default unless noted) | Notes |
 |---|---|---|
-| Frontend interactivity | **Hotwire (Turbo + Stimulus)** | Fast, SPA-like POS screen without React |
-| JS delivery | **Importmap** + **Propshaft** | Rails 8 defaults, no bundler |
-| Background jobs | **Solid Queue** | DB-backed, no Redis needed |
-| Cache | **Solid Cache** | DB/disk-backed cache |
-| WebSockets | **Solid Cable** | Live dashboard / stock updates |
-| Multi-tenancy | **`acts_as_tenant`** + **Postgres RLS** | App-level scoping *and* DB-enforced isolation |
-| Authentication | Rails 8 auth generator (or **Devise**) + **TOTP 2FA** (`rotp`) | 2FA for owners/admins |
-| Authorization | **Pundit** | Roles: owner, manager, cashier, stock clerk, accountant |
-| Money | **`money-rails`** | Integer cents, no float rounding bugs |
-| Search | **`pg_search`** + `pg_trgm` | Fast fuzzy product lookup at the till |
-| Pagination | **Pagy** | Fastest Rails paginator |
-| Audit trail | **`paper_trail`** or `audited` | Who changed prices / voided sales |
-| PDFs | **Prawn** + `prawn-table` | Receipts, invoices, quotations, delivery notes |
-| Barcodes | **`barby`** (generate), keyboard-wedge USB scanners (read) | Shelf labels, product lookup |
-| Receipt printing | Browser print (80mm CSS) → later **QZ Tray** / ESC/POS | Thermal printers, cash drawer kick |
-| Spreadsheets | **`caxlsx`** (export), **`roo`** (import) | Bulk product import, report export |
-| Charts | **Chartkick** + **Groupdate** | Dashboards |
-| Email | **AWS SES** via `aws-sdk-rails` (`:ses_v2` delivery) | Transactional mail |
-| File storage | **Active Storage** → S3-compatible (Contabo Object Storage / Cloudflare R2 / S3) | Product images, logos, imports |
-| Deployment | **Kamal 2** + **kamal-proxy** + **Thruster** | Docker deploys to the Contabo VPS, zero-downtime |
-| Rate limiting | Rails 8 `rate_limit` + **`rack-attack`** | Login brute-force protection |
-| Error tracking | **Sentry** (or Honeybadger / AppSignal) | Exceptions & performance |
-| Uptime | **Uptime Kuma** (self-hosted) or Better Stack | Alerting |
-| DB insight | **PgHero** | Slow queries, index advice |
-| Backups | **pgBackRest** or `pg_dump` cron → offsite object storage | Point-in-time recovery |
-| Security scanning | **Brakeman**, **bundler-audit**, **importmap audit** | In CI |
-| Code style | **rubocop-rails-omakase** | Rails 8 default |
-| Testing | **Minitest** (or RSpec) + **Capybara** system tests + **FactoryBot** | Includes cross-tenant leak tests |
-| CI/CD | **GitHub Actions** | Test → scan → `kamal deploy` |
-| Offline POS | **PWA**: service worker + IndexedDB sale queue | Till keeps selling when internet drops |
-| SaaS billing | Stripe / Paystack / M-Pesa (region dependent) | Charging shops a subscription |
+| Framework | **Ruby on Rails 8.x** on Ruby 3.4 | |
+| Database | **PostgreSQL 17** | Your pick; RLS provides a DB-level safety net |
+| CSS | **Tailwind CSS v4** via `tailwindcss-rails` | Your pick; the official `--css=tailwind` option, no Node |
+| Frontend | **Hotwire**: Turbo + Stimulus | POS screen, live updates |
+| JS / assets | **Importmap** + **Propshaft** | No bundler, no Node |
+| Web server | **Puma** + **Thruster** | HTTP caching/compression, X-Sendfile |
+| Jobs | **Solid Queue** (+ Mission Control – Jobs UI, a Rails gem) | Recurring jobs via `config/recurring.yml` |
+| Cache | **Solid Cache** | |
+| WebSockets | **Solid Cable** | Live dashboards / stock updates |
+| Authentication | **`bin/rails generate authentication`** + `has_secure_password` | Sessions table, password resets built in |
+| Authorization | Plain Ruby: `Membership` `enum :role` + model predicates (`user.can_void?`) + `before_action` | No policy gem |
+| Multi-tenancy | **Associations off `Current.account`** + Postgres RLS | No tenancy gem (see §2) |
+| Money | `integer` cents columns + a tiny `Money`-formatting concern / `number_to_currency` | No money gem |
+| Search | Postgres `pg_trgm` / full-text via plain scopes | No search gem |
+| Pagination | Simple `limit`/`offset` (or keyset) scope in a concern; or `geared_pagination` (37signals) | |
+| Audit trail | Own `Event` model (polymorphic `eventable`, `action`, `particulars` jsonb, `creator`) recorded from model callbacks | Same approach Basecamp uses |
+| Rate limiting | Rails 8 **`rate_limit`** in controllers | Plus Cloudflare rate-limit rules |
+| Secrets / PII | Rails **credentials** + **Active Record Encryption** (`encrypts`) | Payment API keys, tax PINs |
+| Files | **Active Storage** → S3-compatible service (Contabo Object Storage / Cloudflare R2) | |
+| Email | **Action Mailer over SMTP** to the **AWS SES SMTP endpoint** | No AWS SDK gem needed |
+| Charts | Server-rendered SVG/CSS bars in views, or a Chart.js import-map pin + a Stimulus controller | |
+| Receipts | HTML view + 80mm print CSS, `window.print()` | Works with any thermal printer driver |
+| Testing | **Minitest**, **fixtures**, **system tests** (Capybara + Selenium, Rails default) | Two-tenant fixtures for isolation tests |
+| Lint / security | **rubocop-rails-omakase**, **Brakeman**, `bin/importmap audit` | All generated by `rails new` |
+| CI | GitHub Actions workflow generated by `rails new` | |
+| Deploy | **Kamal 2** + kamal-proxy | Generated by `rails new` |
+| Offline POS | Rails 8 **PWA** scaffold (`app/views/pwa/manifest`, `service-worker`) + IndexedDB queue | |
+
+### The deliberate, short gem list (only where Rails has no built-in)
+| Need | Gem | Why it's unavoidable |
+|---|---|---|
+| PDF invoices, quotes, statements | `prawn` (+ `prawn-table`) | Rails can't generate PDFs |
+| Barcode images for shelf labels | `barby` (or render Code128 as SVG in a helper) | No built-in |
+| XLSX import/export | `caxlsx` / `roo` (or stick to **CSV**, which Ruby's stdlib handles) | Start with CSV; add only if shops demand Excel |
+| TOTP two-factor auth | `rotp` (+ `rqrcode` for the QR) | No built-in; alternative is emailed one-time codes with `generates_token_for` |
+| Error tracking | `sentry-ruby`/`sentry-rails`, or Rails 8's `Rails.error` reporter + a subscriber that emails you | Optional |
+
+Everything else (payments, tax e-invoicing, SMS) is plain `Net::HTTP` calls wrapped in a
+model or concern (`MobileMoney::Payment`, `Etims::Transmission`). No vendor SDK gems.
 
 ### Payments & tax (region dependent)
 If operating in Kenya: **M-Pesa Daraja API** (STK Push, C2B Till/Paybill callbacks) and
@@ -63,53 +89,79 @@ equivalents (card terminal integration, local fiscal/e-invoicing API).
 | Strategy | Isolation | Ops cost | Verdict |
 |---|---|---|---|
 | Database per tenant | Strongest | High (migrations × N, connections) | Overkill for small shops |
-| Schema per tenant (Apartment) | Strong | Medium-high; gem poorly maintained, slow migrations | Avoid |
-| **Shared tables + `tenant_id` + Postgres RLS** | Strong (DB-enforced) | Low | **Chosen** |
+| Schema per tenant | Strong | Medium-high, slow migrations, needs a gem | Avoid |
+| **Shared tables + `account_id`, scoped through associations, + Postgres RLS** | Strong (DB-enforced) | Low | **Chosen** |
 
-### How isolation is enforced — three layers
-1. **Routing layer** — each shop gets a subdomain: `acme.hardpoint.app`.
-   A `Current.tenant` is resolved from the subdomain on every request; users can only log
-   into a tenant they belong to (`memberships` table).
-2. **Application layer** — `acts_as_tenant :tenant` on every tenant-owned model. All
-   queries are automatically scoped with `WHERE tenant_id = ?`; creating a record without
-   a current tenant raises an error. Background jobs carry `tenant_id` and set it before
-   running.
-3. **Database layer (defense in depth)** — Postgres Row-Level Security on every tenant table:
+The tenant is called an **`Account`** (the Rails/37signals convention). A shop's business
+is one account.
+
+### How isolation is enforced: three layers, no tenancy gem
+1. **Routing layer**: each shop gets a subdomain, `acme.hardpoint.app`. A controller
+   concern resolves the account from the subdomain and sets `Current.account`:
+   ```ruby
+   # app/controllers/concerns/account_scoped.rb
+   module AccountScoped
+     extend ActiveSupport::Concern
+     included { before_action :set_current_account }
+
+     private
+       def set_current_account
+         Current.account = Account.find_by!(subdomain: request.subdomain)
+       end
+   end
+   ```
+   A user can only sign in to an account they have a `Membership` in.
+2. **Application layer**: **never query a tenant model from its class**. Always go through
+   the account's associations, the way Basecamp does:
+   ```ruby
+   @product = Current.account.products.find(params[:id])     # ✅
+   @product = Product.find(params[:id])                       # ❌ never
+   ```
+   Every tenant model `belongs_to :account, default: -> { Current.account }`.
+   Child records (sale lines, payments) inherit the account from their parent.
+   Jobs receive records (Global ID), so they already know their account and set
+   `Current.account` in an `around_perform`.
+   No `default_scope`: explicit association scoping is the Rails way and is easy to review.
+3. **Database layer (safety net)**: Postgres Row-Level Security on every tenant table:
    ```sql
    ALTER TABLE products ENABLE ROW LEVEL SECURITY;
    ALTER TABLE products FORCE ROW LEVEL SECURITY;
-   CREATE POLICY tenant_isolation ON products
-     USING (tenant_id = current_setting('app.current_tenant_id')::bigint)
-     WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::bigint);
+   CREATE POLICY account_isolation ON products
+     USING (account_id = current_setting('app.current_account_id')::bigint)
+     WITH CHECK (account_id = current_setting('app.current_account_id')::bigint);
    ```
-   The app sets `SET LOCAL app.current_tenant_id = ...` inside each request/job transaction
-   (around_action / job callback). The Rails app connects as a **non-superuser role without
-   `BYPASSRLS`**, so even a forgotten scope or raw SQL cannot read another shop's rows.
-   A separate privileged role is used only for migrations and the platform super-admin.
+   Written in normal migrations with `execute`; switch to
+   `config.active_record.schema_format = :sql` (`db/structure.sql`) so policies are dumped.
+   The app sets `app.current_account_id` for each request/job (an `around_action` wrapping
+   the request in a transaction with `SET LOCAL`, or a session-level `SET` reset at the end).
+   Rails connects as a **non-superuser role without `BYPASSRLS`**, so a forgotten scope or raw
+   SQL still can't read another shop's rows. Migrations run as a separate owner role.
+   *If you'd rather keep it 100% plain Rails, layers 1–2 alone are how Basecamp/HEY do it;
+   RLS is extra insurance, recommended for a POS holding financial data.*
 
 ### Other isolation rules
-- Every unique index includes `tenant_id` (e.g. `UNIQUE (tenant_id, sku)`), so two shops
-  can both have SKU `CEM-50KG`.
-- Composite foreign keys (or model validations) ensure a sale line can't point to another
-  tenant's product.
-- Active Storage keys prefixed with `tenants/<id>/`; files served only via signed,
-  expiring URLs after a tenant check.
-- Cache keys namespaced by tenant.
-- Per-tenant sequences for receipt/invoice numbers (`INV-000123` per shop, gap-free,
-  generated under a row lock).
-- **Automated leak tests**: a test suite that creates two tenants and asserts every
-  controller/endpoint, report and export returns zero rows of the other tenant.
-- Super-admin impersonation is audited and time-boxed.
+- Every unique index includes `account_id` (e.g. `UNIQUE (account_id, sku)`), so two shops
+  can both have SKU `CEM-50KG`. Model validations use `uniqueness: { scope: :account_id }`.
+- Composite foreign keys (or validations) ensure a sale line can't point to another
+  account's product.
+- Active Storage keys prefixed with `accounts/<id>/`; files served via Rails' signed,
+  expiring blob URLs after an account check.
+- Cache keys include the account (`cache [Current.account, @product]`).
+- Per-account document numbers (`INV-000123` per shop, gap-free, generated under a row
+  lock on the account/branch counter).
+- **Automated leak tests**: fixtures for two accounts; tests assert every controller,
+  report, export and job returns zero rows of the other account.
+- Super-admin impersonation is recorded as an `Event` and time-boxed.
 
 ### Tenant hierarchy
 ```
 Platform (you)
- └── Tenant (a business, e.g. "Acme Hardware Ltd")  ← isolation boundary
+ └── Account (a business, e.g. "Acme Hardware Ltd")  ← isolation boundary
       ├── Branches / Locations (Main St shop, Warehouse, Branch 2)
       │    └── Registers / Tills
       └── Users (via memberships with a role, optionally limited to branches)
 ```
-Branches are inside a tenant, so one business with several branches sees consolidated
+Branches are inside an account, so one business with several branches sees consolidated
 reports, while different businesses never see each other.
 
 ---
@@ -117,48 +169,49 @@ reports, while different businesses never see each other.
 ## 3. Core domain model (initial sketch)
 
 ```
-tenants(id, name, subdomain, currency, timezone, tax_pin, plan, status, settings jsonb)
+accounts(id, name, subdomain, currency, timezone, tax_pin, plan, status, settings jsonb)
 users(id, email, password_digest, name, otp_secret, ...)          -- global identity
-memberships(tenant_id, user_id, role, branch_ids[], pin_hash)     -- cashier quick PIN
-branches(tenant_id, name, address, phone)
-registers(tenant_id, branch_id, name, receipt_printer_config)
+memberships(account_id, user_id, role, branch_ids[], pin_hash)     -- cashier quick PIN
+branches(account_id, name, address, phone)
+registers(account_id, branch_id, name, receipt_printer_config)
 
-categories(tenant_id, parent_id, name)
-brands(tenant_id, name)
-units(tenant_id, name, abbreviation)                  -- pc, box, kg, m, ft, bag, litre
-products(tenant_id, sku, barcode, name, category_id, brand_id, base_unit_id,
+categories(account_id, parent_id, name)
+brands(account_id, name)
+units(account_id, name, abbreviation)                  -- pc, box, kg, m, ft, bag, litre
+products(account_id, sku, barcode, name, category_id, brand_id, base_unit_id,
          cost_cents, price_cents, tax_rate_id, track_stock, serialised, reorder_level,
          allow_decimal_qty, active)
-product_units(tenant_id, product_id, unit_id, factor, barcode, price_cents)
+product_units(account_id, product_id, unit_id, factor, barcode, price_cents)
                                                       -- box of 100 screws = 100 pc
 product_variants(...)                                 -- sizes/colours if needed
-price_lists(tenant_id, name)                          -- retail, contractor, wholesale
-price_list_items(tenant_id, price_list_id, product_id, price_cents, min_qty)
-tax_rates(tenant_id, name, rate, inclusive)
+price_lists(account_id, name)                          -- retail, contractor, wholesale
+price_list_items(account_id, price_list_id, product_id, price_cents, min_qty)
+tax_rates(account_id, name, rate, inclusive)
 
-stock_levels(tenant_id, branch_id, product_id, quantity)          -- cached balance
-stock_movements(tenant_id, branch_id, product_id, qty_change, kind,
+stock_levels(account_id, branch_id, product_id, quantity)          -- cached balance
+stock_movements(account_id, branch_id, product_id, qty_change, kind,
                 source_type, source_id, unit_cost_cents, user_id) -- immutable ledger
-serial_numbers(tenant_id, product_id, serial, status, sale_line_id)
+serial_numbers(account_id, product_id, serial, status, sale_line_id)
 stock_transfers(+ lines) · stock_counts(+ lines) · stock_adjustments(+ reason codes)
 
-suppliers(tenant_id, ...) · purchase_orders(+ lines) · goods_receipts(+ lines)
+suppliers(account_id, ...) · purchase_orders(+ lines) · goods_receipts(+ lines)
 supplier_invoices · supplier_payments
 
-customers(tenant_id, name, phone, email, tax_pin, price_list_id, credit_limit_cents)
-customer_ledger_entries(tenant_id, customer_id, amount_cents, kind, source)
+customers(account_id, name, phone, email, tax_pin, price_list_id, credit_limit_cents)
+customer_ledger_entries(account_id, customer_id, amount_cents, kind, source)
 quotations(+ lines) → sales_orders → invoices / sales
 
-shifts(tenant_id, register_id, user_id, opening_float, closing_count, variance)
-sales(tenant_id, branch_id, register_id, shift_id, customer_id, number, status,
+shifts(account_id, register_id, user_id, opening_float, closing_count, variance)
+sales(account_id, branch_id, register_id, shift_id, customer_id, number, status,
       subtotal, discount, tax, total, offline_uuid)
-sale_lines(tenant_id, sale_id, product_id, unit_id, qty, unit_price, discount, tax)
-payments(tenant_id, sale_id, method, amount_cents, reference, status)
+sale_lines(account_id, sale_id, product_id, unit_id, qty, unit_price, discount, tax)
+payments(account_id, sale_id, method, amount_cents, reference, status)
                                      -- cash, card, mobile money, credit, split tender
 refunds / returns(+ lines, restock flag)
-cash_movements(tenant_id, shift_id, kind, amount, reason)   -- payouts, drops
+cash_movements(account_id, shift_id, kind, amount, reason)   -- payouts, drops
 delivery_notes(+ lines)
-audit logs (paper_trail versions, tenant-scoped)
+events(account_id, eventable_type, eventable_id, action, particulars jsonb, creator_id)
+                                     -- audit trail, recorded from model callbacks
 ```
 Stock is an **append-only movement ledger**; `stock_levels` is a cache updated in the
 same transaction (with `SELECT ... FOR UPDATE`) so balances are always explainable.
@@ -193,7 +246,10 @@ deployable and usable.
 sending email through SES, with CI/CD.
 
 - `rails new hardpoint --database=postgresql --css=tailwind` (Rails 8, Solid Queue/Cache/Cable).
-- Repo conventions: rubocop-rails-omakase, Brakeman, bundler-audit, GitHub Actions CI.
+- Keep what `rails new` generates: rubocop-rails-omakase, Brakeman, `bin/importmap audit`,
+  the GitHub Actions CI workflow, Kamal config, PWA files, Dockerfile.
+- `config.active_record.schema_format = :sql` (needed for RLS policies).
+- A `docs/CONVENTIONS.md` stating the vanilla-Rails rules from §1 so every contributor follows them.
 - **Contabo VPS hardening**
   - Ubuntu 24.04 LTS, non-root deploy user, SSH keys only, disable password & root login.
   - `ufw`: allow 22 (ideally from your IP only), 80/443 **only from Cloudflare IP ranges**.
@@ -220,10 +276,13 @@ sending email through SES, with CI/CD.
   - Request production access (leave sandbox).
   - Configuration set + SNS topic → webhook endpoint in the app for **bounces and
     complaints**; suppress those addresses.
-  - IAM user limited to `ses:SendEmail`/`ses:SendRawEmail`.
+  - Create **SES SMTP credentials** (an IAM user limited to `ses:SendRawEmail`) and configure
+    Action Mailer's built-in `:smtp` delivery (`email-smtp.<region>.amazonaws.com`, port 587,
+    STARTTLS), credentials in Rails credentials. Deliver with `deliver_later` (Solid Queue).
 - **Backups**: nightly `pg_dump` (or pgBackRest with WAL archiving) to off-site object
   storage (not the same VPS), encrypted, 30-day retention. Test a restore.
-- **Monitoring**: Sentry, Uptime Kuma, PgHero, log rotation.
+- **Monitoring**: `Rails.error` reporting (optionally to Sentry), Uptime Kuma, PgHero
+  (a Rails engine), log rotation. Mission Control – Jobs mounted for admins.
 - Staging environment (a second small VPS or a separate Kamal destination).
 
 **Exit criteria:** `git push main` → tests → deploy; HTTPS works on a test subdomain;
@@ -232,14 +291,18 @@ a test email lands in an inbox with DKIM/SPF/DMARC passing; a restore has been t
 ### Phase 1 — Multi-tenant core, auth & roles (Weeks 3–5)
 **Goal:** Shops can sign up, get a subdomain, invite staff, and are fully isolated.
 
-- `tenants`, `users`, `memberships`, `branches`, `registers`.
+- `accounts`, `users`, `sessions`, `memberships`, `branches`, `registers`
+  (start from `bin/rails generate authentication`).
 - Subdomain resolution middleware/concern, reserved subdomains (`www`, `admin`, `api`, `app`, `mail`).
-- `acts_as_tenant` on all tenant models; `Current.tenant`, `Current.user`, `Current.branch`.
-- **Postgres RLS** migrations + helper to set `app.current_tenant_id` per request and per job.
+- `AccountScoped` controller concern; all lookups via `Current.account.<association>`;
+  `Current.account`, `Current.user`, `Current.branch`.
+- **Postgres RLS** migrations + helper to set `app.current_account_id` per request and per job.
 - Authentication: email/password, password reset & email confirmation (via SES),
   TOTP 2FA for owners/managers, session management, device list.
 - **Cashier quick-switch**: 4–6 digit PIN on a logged-in register for fast shift changes.
-- Pundit roles: Owner, Manager, Cashier, Stock Clerk, Accountant; branch-restricted access.
+- Roles as `enum :role` on `Membership` (owner, manager, cashier, stock_clerk, accountant);
+  permission predicates on the model (`membership.can_void_sales?`) enforced with
+  `before_action :ensure_can_void_sales`; branch-restricted access.
 - Staff invitations by email.
 - Tenant settings: business name, logo, currency, timezone, tax PIN, receipt footer.
 - Platform **super-admin** at `admin.hardpoint.app` (separate auth, audited impersonation).
@@ -266,7 +329,8 @@ or direct SQL as the app role.
 - **Stock takes** (full or cycle counts), variance report, approval step.
 - Low-stock alerts (dashboard + daily email digest).
 - Barcode **label printing** (PDF sheets and 2-inch label printers).
-- Fast product search (`pg_search` + trigram on name/SKU/barcode).
+- Fast product search: `pg_trgm` GIN index + a `Product.search(query)` scope in plain SQL
+  on name/SKU/barcode.
 
 **Exit criteria:** Import 20k products in minutes; stock value report reconciles to ledger.
 
@@ -340,7 +404,8 @@ under 30 seconds; shift closes with correct variance.
 - **Offline sales queue**: sales recorded locally with a client UUID and synced when online
   (idempotent via `offline_uuid`); conflict handling for stock going negative.
 - Connection indicator; cash-only mode when offline (mobile-money/eTIMS queued).
-- Silent printing & cash drawer control via **QZ Tray** (or a small local print agent),
+- Silent printing & cash drawer control via a local print agent (e.g. QZ Tray) or kiosk-mode
+  browser printing,
   ESC/POS commands, customer-facing display (optional), weighing scale input (optional).
 
 ### Phase 9 — SaaS business layer (Weeks 33–35)
@@ -361,7 +426,7 @@ under 30 seconds; shift closes with correct variance.
 - Load test the POS endpoints (k6) with realistic concurrency.
 - Postgres tuning (`pgtune` for VPS size), index review via PgHero, connection limits.
 - Disaster-recovery drill: rebuild production from backups onto a fresh VPS, document RTO/RPO.
-- Security headers/CSP, Active Record Encryption for secrets and PII, log scrubbing
+- Security headers/CSP (`config/initializers/content_security_policy.rb`), `encrypts` for secrets and PII, log scrubbing
   (`filter_parameters`), dependency update routine (Dependabot).
 - Pilot with 2–3 real hardware stores → fix → general launch.
 
@@ -405,16 +470,17 @@ for dozens of shops. Keep staging on a smaller instance.
 ---
 
 ## 7. Security checklist (applies to every phase)
-- RLS on every tenant table; CI test fails if a new table has `tenant_id` without a policy.
+- RLS on every tenant table; CI test fails if a new table has `account_id` without a policy.
 - App DB role cannot bypass RLS; migrations use a separate role.
 - 2FA for owners/admins; lockout + rate limits on login and PIN entry.
-- Pundit `verify_authorized` / `verify_policy_scoped` in all controllers.
-- Encrypted secrets (Rails credentials / Kamal secrets); per-tenant payment credentials
-  encrypted at rest.
+- Every controller inherits `AccountScoped` + `Authentication`; a test asserts that no
+  controller calls a tenant model class directly (`Product.find`), and code review checks it.
+- Encrypted secrets (Rails credentials / Kamal secrets); per-account payment credentials
+  encrypted at rest with `encrypts`.
 - Audit log for prices, discounts, voids, refunds, stock adjustments, permission changes.
 - Cloudflare-only origin access; SSH hardened; automatic security updates.
 - Backups encrypted, off-site, restore-tested quarterly.
-- Brakeman + bundler-audit in CI; Dependabot.
+- Brakeman + `bin/importmap audit` in CI (as generated by `rails new`); Dependabot.
 
 ---
 
