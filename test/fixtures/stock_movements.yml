@@ -1,0 +1,12 @@
+<% { acme_main_cement: [:acme, :acme_main, :acme_cement, 50], acme_yard_cement: [:acme, :acme_yard, :acme_cement, 10],
+     acme_main_nails: [:acme, :acme_main, :acme_nails, 25.5], acme_main_screws: [:acme, :acme_main, :acme_screws, 1000],
+     acme_main_pipe: [:acme, :acme_main, :acme_pipe, 3], bolt_main_hammer: [:bolt, :bolt_main, :bolt_hammer, 5] }.each do |label, (account, branch, product, quantity)| %>
+<%= label %>_opening:
+  account: <%= account %>
+  branch: <%= branch %>
+  product: <%= product %>
+  quantity: <%= quantity %>
+  balance: <%= quantity %>
+  reason: opening
+  created_at: <%= 1.week.ago.to_fs(:db) %>
+<% end %>

@@ -10,18 +10,24 @@
   </div>
 <% end %>
 
-<div class="mt-8 grid gap-4 sm:grid-cols-3">
-  <div class="card">
-    <p class="text-sm text-steel-600">Branches</p>
-    <p class="mt-1 text-3xl font-bold"><%= @branches.size %></p>
-    <%= link_to "Manage branches", branches_path, class: "mt-3 inline-block text-sm link" %>
-  </div>
+<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <%= link_to products_path, class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Products</p>
+    <p class="mt-1 text-3xl font-bold"><%= number_with_delimiter(@products_count) %></p>
+    <p class="mt-3 text-sm link">Browse catalogue</p>
+  <% end %>
 
-  <div class="card">
-    <p class="text-sm text-steel-600">Tills</p>
-    <p class="mt-1 text-3xl font-bold"><%= @registers_count %></p>
-    <%= link_to "Manage tills", registers_path, class: "mt-3 inline-block text-sm link" %>
-  </div>
+  <%= link_to reorder_list_path, class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Low stock at <%= selected_branch&.name %></p>
+    <p class="mt-1 text-3xl font-bold <%= "text-safety-700" if @low_stock_count.positive? %>"><%= @low_stock_count %></p>
+    <p class="mt-3 text-sm link">Reorder list</p>
+  <% end %>
+
+  <%= link_to branches_path, class: "card block hover:border-safety-300" do %>
+    <p class="text-sm text-steel-600">Branches · tills</p>
+    <p class="mt-1 text-3xl font-bold"><%= @branches.size %> <span class="text-lg font-semibold text-steel-600">· <%= @registers_count %></span></p>
+    <p class="mt-3 text-sm link">Manage branches</p>
+  <% end %>
 
   <div class="card">
     <p class="text-sm text-steel-600">Staff</p>

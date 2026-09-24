@@ -1,0 +1,25 @@
+acme_piece:
+  account: acme
+  name: Piece
+  abbreviation: pc
+
+acme_box:
+  account: acme
+  name: Box
+  abbreviation: box
+
+acme_bag:
+  account: acme
+  name: Bag
+  abbreviation: bag
+
+acme_kg:
+  account: acme
+  name: Kilogram
+  abbreviation: kg
+  fractional: true
+
+bolt_piece:
+  account: bolt
+  name: Piece
+  abbreviation: pc

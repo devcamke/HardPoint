@@ -1,0 +1,55 @@
+<% content_for :title, "Stock" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Stock</h1>
+  <%= render "shared/branch_picker" %>
+</div>
+<%= render "stock/tabs" %>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-4">
+  <% if current_membership.can_see_costs? %>
+    <div class="card"><p class="hint">Stock value at cost</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@valuation.total_value_cents) %></p><p class="hint">all branches</p></div>
+  <% end %>
+  <%= link_to reorder_list_path, class: "card block hover:border-safety-300" do %>
+    <p class="hint">Low stock at <%= selected_branch&.name %></p><p class="mt-1 text-2xl font-bold <%= "text-safety-700" if @low_stock_count.positive? %>"><%= @low_stock_count %></p><p class="hint">products to reorder</p>
+  <% end %>
+  <%= link_to stock_transfers_path, class: "card block hover:border-safety-300" do %>
+    <p class="hint">Transfers in transit</p><p class="mt-1 text-2xl font-bold"><%= @in_transit %></p><p class="hint">waiting to be received</p>
+  <% end %>
+  <%= link_to stock_counts_path, class: "card block hover:border-safety-300" do %>
+    <p class="hint">Open stock takes</p><p class="mt-1 text-2xl font-bold"><%= @open_counts %></p><p class="hint">counting or awaiting approval</p>
+  <% end %>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-5">
+  <section class="card lg:col-span-2">
+    <h2 class="mb-3 text-lg font-semibold">By branch</h2>
+    <table class="table">
+      <thead><tr><th>Branch</th><th class="text-right">Products in stock</th><% if current_membership.can_see_costs? %><th class="text-right">Value</th><% end %></tr></thead>
+      <tbody>
+        <% @valuation.rows.each do |row| %>
+          <tr>
+            <td><%= row.branch.name %><%= tag.span(" · #{row.negative_lines} below zero", class: "text-xs text-red-700") if row.negative_lines.positive? %></td>
+            <td class="text-right tabular-nums"><%= number_with_delimiter(row.products_in_stock) %></td>
+            <% if current_membership.can_see_costs? %><td class="text-right tabular-nums"><%= money(row.value_cents) %></td><% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p class="mt-3 text-sm">
+      <% if @valuation.reconciled? %>
+        <span class="badge bg-green-50 text-green-800">✓ Balanced</span> <span class="hint">Every stock level equals the sum of its movements.</span>
+      <% else %>
+        <span class="badge bg-red-50 text-red-800">Needs attention</span> <span class="hint">Some stock levels don't match their movements.</span>
+      <% end %>
+    </p>
+  </section>
+
+  <section class="card lg:col-span-3">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="text-lg font-semibold">Latest movements</h2>
+      <%= link_to "All movements", stock_movements_path, class: "link text-sm" %>
+    </div>
+    <%= render "stock_movements/table", movements: @movements, show_product: true %>
+  </section>
+</div>

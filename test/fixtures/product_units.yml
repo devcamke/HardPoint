@@ -1,0 +1,6 @@
+acme_screws_box:
+  account: acme
+  product: acme_screws
+  unit: acme_box
+  quantity: 100
+  price_cents: 40000

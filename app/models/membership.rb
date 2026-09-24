@@ -58,6 +58,23 @@ class Membership < ApplicationRecord
     owner? || manager?
   end
 
+  def can_manage_catalogue?
+    owner? || manager? || stock_clerk?
+  end
+
+  def can_manage_stock?
+    owner? || manager? || stock_clerk?
+  end
+
+  def can_approve_stock_counts?
+    owner? || manager?
+  end
+
+  # Cashiers see selling prices but not what the shop paid.
+  def can_see_costs?
+    !cashier?
+  end
+
   def pin_role?
     role.in?(PIN_ROLES)
   end

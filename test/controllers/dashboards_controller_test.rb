@@ -14,6 +14,7 @@ class DashboardsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", "Welcome, Amina Owner"
-    assert_select "p.text-3xl", "2"
+    assert_select "p.text-3xl", "5", "active products"
+    assert_select "p.text-3xl", "1", "the PVC pipe is below its reorder level"
   end
 end

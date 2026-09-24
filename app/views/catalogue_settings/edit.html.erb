@@ -1,0 +1,18 @@
+<% content_for :title, "Edit #{resource_title.singularize.downcase}" %>
+
+<p class="text-sm"><%= link_to "← #{resource_title}", { action: :index }, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Edit <%= resource_title.singularize.downcase %></h1>
+
+<div class="card max-w-xl">
+  <%= form_with model: @record, url: { action: :update, id: @record } do |form| %>
+    <%= render "shared/errors", model: @record %>
+    <%= render "fields", form: form %>
+    <div class="flex gap-3">
+      <%= form.submit "Save", class: "btn-primary" %>
+      <%= link_to "Cancel", { action: :index }, class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<%= button_to "Remove", { action: :destroy, id: @record }, method: :delete, class: "btn-danger mt-6",
+      form: { data: { turbo_confirm: "Remove this #{resource_title.singularize.downcase}?" } } %>

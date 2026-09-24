@@ -1,0 +1,31 @@
+<% content_for :title, "Settings" %>
+
+<h1 class="mb-6 text-3xl font-bold">Settings</h1>
+
+<% sections = {
+     "Shop" => [
+       ([ "Shop details", edit_account_path, "Name, time zone, currency, two-factor rule" ] if current_membership.can_manage_account?),
+       [ "Branches", branches_path, "Your locations" ],
+       [ "Tills", registers_path, "Points of sale in each branch" ]
+     ].compact,
+     "Catalogue" => [
+       [ "Categories", categories_path, "Group products, e.g. Plumbing › Pipes" ],
+       [ "Brands", brands_path, "Makers and suppliers' brands" ],
+       [ "Units", units_path, "Piece, bag, kilogram, metre…" ],
+       [ "Tax rates", tax_rates_path, "VAT and other rates" ],
+       [ "Price lists", price_lists_path, "Contractor and wholesale prices" ],
+       ([ "Import products", product_imports_path, "Load or update products from a spreadsheet" ] if current_membership.can_manage_catalogue?)
+     ].compact
+   } %>
+
+<% sections.each do |heading, links| %>
+  <h2 class="mt-8 mb-3 text-sm font-semibold uppercase tracking-wide text-steel-600"><%= heading %></h2>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <% links.each do |name, path, description| %>
+      <%= link_to path, class: "card block transition hover:border-safety-300 hover:shadow" do %>
+        <p class="font-semibold"><%= name %></p>
+        <p class="hint mt-1"><%= description %></p>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

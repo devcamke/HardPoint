@@ -1,0 +1,23 @@
+<section class="card">
+  <h2 class="mb-3 text-lg font-semibold">Barcodes</h2>
+  <table class="table mb-4">
+    <tbody>
+      <% product.barcodes.includes(product_unit: :unit).each do |barcode| %>
+        <tr>
+          <td class="font-mono"><%= barcode.code %></td>
+          <td><%= barcode.product_unit ? barcode.product_unit.to_s : "Single #{product.unit.abbreviation}" %></td>
+          <td class="text-right"><%= button_to "Remove", product_barcode_path(product, barcode), method: :delete, class: "link text-xs" if current_membership.can_manage_catalogue? %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if current_membership.can_manage_catalogue? %>
+    <%= form_with model: Barcode.new, url: product_barcodes_path(product), class: "flex flex-wrap items-end gap-2" do |form| %>
+      <div class="flex-1"><%= form.label :code, "Scan or type a barcode", class: "label" %><%= form.text_field :code, required: true, class: "input font-mono" %></div>
+      <% if product.product_units.any? %>
+        <div><%= form.label :product_unit_id, "For", class: "label" %><%= form.collection_select :product_unit_id, product.product_units.includes(:unit), :id, :to_s, { include_blank: "Single #{product.unit.abbreviation}" }, class: "input" %></div>
+      <% end %>
+      <%= form.submit "Add", class: "btn-secondary" %>
+    <% end %>
+  <% end %>
+</section>

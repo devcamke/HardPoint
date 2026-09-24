@@ -1,0 +1,7 @@
+acme_contractor:
+  account: acme
+  name: Contractor
+
+bolt_wholesale:
+  account: bolt
+  name: Wholesale

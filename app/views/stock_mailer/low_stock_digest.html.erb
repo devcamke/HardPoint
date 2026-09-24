@@ -1,0 +1,17 @@
+<p style="margin-top:0;">Good morning. These products at <strong><%= @account.name %></strong> are at or below their reorder level.</p>
+
+<% @low_stock.each do |branch, products| %>
+  <h3 style="margin:20px 0 8px; font-size:16px;"><%= branch.name %></h3>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
+    <tr style="color:#5B6573; text-align:left;"><th>Product</th><th style="text-align:right;">On hand</th><th style="text-align:right;">Reorder at</th></tr>
+    <% products.each do |product| %>
+      <tr style="border-top:1px solid #E7E5E0;">
+        <td><%= product.name %> <span style="color:#5B6573; font-family:monospace; font-size:12px;"><%= product.sku %></span></td>
+        <td style="text-align:right;<%= " color:#B91C1C;" if product.stock_quantity <= 0 %>"><%= quantity(product.stock_quantity, product.unit) %></td>
+        <td style="text-align:right;"><%= quantity(product.reorder_level, product.unit) %></td>
+      </tr>
+    <% end %>
+  </table>
+<% end %>
+
+<p style="margin-top:24px;"><%= link_to "Open the reorder list", reorder_list_url(subdomain: @account.subdomain), style: "color:#C2410C; font-weight:600;" %></p>

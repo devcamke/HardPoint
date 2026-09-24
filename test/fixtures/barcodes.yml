@@ -1,0 +1,15 @@
+acme_cement:
+  account: acme
+  product: acme_cement
+  code: "6161100420017"
+
+acme_screws_box:
+  account: acme
+  product: acme_screws
+  product_unit: acme_screws_box
+  code: "6001234500012"
+
+bolt_hammer:
+  account: bolt
+  product: bolt_hammer
+  code: "0076174512345"

@@ -1,0 +1,24 @@
+<% if movements.any? %>
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr><th>When</th><% if show_product %><th>Product</th><% end %><th>Branch</th><th>Reason</th><th class="text-right">Change</th><th class="text-right">Balance</th><th>By</th></tr>
+      </thead>
+      <tbody>
+        <% movements.each do |movement| %>
+          <tr>
+            <td class="whitespace-nowrap"><%= l(movement.created_at, format: :short) %></td>
+            <% if show_product %><td><%= link_to movement.product.name, movement.product, class: "hover:text-safety-700" %></td><% end %>
+            <td><%= movement.branch.name %></td>
+            <td><%= movement_reason(movement.reason) %><%= tag.span(" · #{movement.note}", class: "hint") if movement.note.present? %></td>
+            <td class="text-right tabular-nums <%= movement.quantity.negative? ? "text-red-700" : "text-green-700" %>"><%= movement.quantity.positive? ? "+" : "" %><%= quantity(movement.quantity) %></td>
+            <td class="text-right tabular-nums"><%= quantity(movement.balance) %></td>
+            <td><%= movement.creator&.name %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="hint">No stock movements yet.</p>
+<% end %>

@@ -1,0 +1,21 @@
+<% content_for :title, "Stock movements" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Stock</h1>
+  <%= render "shared/branch_picker" %>
+</div>
+<%= render "stock/tabs" %>
+
+<%= form_with url: stock_movements_path, method: :get, class: "mb-4 flex flex-wrap items-end gap-3", data: { controller: "auto-submit" } do |form| %>
+  <div>
+    <%= form.label :reason, class: "label" %>
+    <%= form.select :reason, StockMovement::REASONS.map { [ _1.humanize, _1 ] }, { include_blank: "All reasons", selected: params[:reason] }, class: "input", data: { action: "change->auto-submit#submit" } %>
+  </div>
+  <label class="flex items-center gap-2 pb-2 text-sm">
+    <%= form.check_box :all_branches, { checked: params[:all_branches] == "1", class: "size-4 accent-safety-500", data: { action: "change->auto-submit#submit" } }, "1", nil %>
+    All branches
+  </label>
+<% end %>
+
+<div class="card"><%= render "stock_movements/table", movements: @movements, show_product: true %></div>
+<%= render "shared/pagination" %>

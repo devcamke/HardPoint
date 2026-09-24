@@ -1,0 +1,89 @@
+<% content_for :title, @product.name %>
+
+<p class="text-sm"><%= link_to "← Products", products_path, class: "link" %></p>
+
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-4">
+  <div class="flex items-start gap-4">
+    <% if @product.image.attached? %>
+      <%= image_tag @product.image, class: "size-20 rounded-lg border border-concrete-200 object-cover", alt: "" %>
+    <% end %>
+    <div>
+      <h1 class="text-3xl font-bold"><%= @product.name %></h1>
+      <p class="hint mt-1">
+        <span class="font-mono"><%= @product.sku %></span>
+        <%= " · #{@product.category.full_name}" if @product.category %>
+        <%= " · #{@product.brand.name}" if @product.brand %>
+        · sold by <%= @product.unit.name.downcase %>
+      </p>
+      <p class="mt-2 flex flex-wrap gap-1">
+        <%= tag.span("Kit", class: "badge") if @product.kit? %>
+        <%= tag.span("Serial numbers", class: "badge") if @product.serialized? %>
+        <%= tag.span("Stock not tracked", class: "badge bg-concrete-200 text-steel-600") unless @product.track_stock? || @product.kit? %>
+        <%= tag.span("Inactive", class: "badge bg-concrete-200 text-steel-600") unless @product.active? %>
+      </p>
+    </div>
+  </div>
+  <div class="flex gap-2">
+    <%= link_to "Print labels", new_labels_path(product_ids: [ @product.id ]), class: "btn-secondary" %>
+    <% if current_membership.can_manage_catalogue? %>
+      <%= link_to "Edit", edit_product_path(@product), class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-4">
+  <div class="card"><p class="hint">Price</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@product.price_cents) %></p><p class="hint">per <%= @product.unit.abbreviation %> · <%= @product.effective_tax_rate&.to_s || "no tax" %></p></div>
+  <% if current_membership.can_see_costs? %>
+    <div class="card"><p class="hint">Cost</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@product.cost_cents) %></p><p class="hint"><%= "#{@product.margin_percent}% margin" if @product.margin_percent %></p></div>
+  <% end %>
+  <div class="card"><p class="hint">On hand, all branches</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= @product.kit? ? "—" : quantity(@product.stock_on_hand, @product.unit) %></p></div>
+  <div class="card"><p class="hint">Reorder at</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= quantity(@product.reorder_level, @product.unit) %></p></div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="card">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="text-lg font-semibold">Stock by branch</h2>
+      <% if @product.track_stock? && current_membership.can_manage_stock? %>
+        <%= link_to "Adjust stock", new_stock_adjustment_path(product_id: @product.id), class: "btn-secondary" %>
+      <% end %>
+    </div>
+    <table class="table">
+      <tbody>
+        <% Current.account.branches.alphabetically.each do |branch| %>
+          <% stock = @product.kit? ? @product.stock_at(branch) : (@levels[branch.id]&.quantity || 0) %>
+          <tr>
+            <td><%= branch.name %></td>
+            <td class="text-right tabular-nums"><%= quantity(stock, @product.unit) %></td>
+            <td class="text-right"><%= stock_badge(@product, stock, branch) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <% if @product.kit? %>
+      <p class="hint mt-2">A kit's stock is how many can be made from its parts.</p>
+    <% end %>
+  </section>
+
+  <% if @product.kit? %>
+    <%= render "products/components/section", product: @product %>
+  <% end %>
+
+  <%= render "products/prices/section", product: @product %>
+  <%= render "products/units/section", product: @product %>
+  <%= render "products/barcodes/section", product: @product %>
+
+  <% if @product.track_stock? %>
+    <section class="card lg:col-span-2">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Recent stock movements</h2>
+        <%= link_to "Full history", product_movements_path(@product), class: "link text-sm" %>
+      </div>
+      <%= render "stock_movements/table", movements: @movements, show_product: false %>
+    </section>
+  <% end %>
+</div>
+
+<% if @product.description.present? %>
+  <section class="card mt-6"><h2 class="mb-2 text-lg font-semibold">Description</h2><%= simple_format @product.description, class: "text-sm" %></section>
+<% end %>

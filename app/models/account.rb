@@ -1,5 +1,5 @@
 class Account < ApplicationRecord
-  include Eventable, Isolation
+  include CatalogueDefaults, Eventable, Isolation, LowStockDigest
   # Creation is recorded by Signup, once the new account is current.
   tracks_lifecycle only: :update
 
@@ -11,6 +11,19 @@ class Account < ApplicationRecord
   has_many :branches, dependent: :destroy
   has_many :account_events, class_name: "Event", dependent: :delete_all
   has_many :registers, dependent: :destroy
+
+  has_many :categories, dependent: :destroy
+  has_many :brands, dependent: :destroy
+  has_many :units, dependent: :destroy
+  has_many :tax_rates, dependent: :destroy
+  has_many :price_lists, dependent: :destroy
+  has_many :products, dependent: :destroy
+  has_many :stock_levels, dependent: :delete_all
+  has_many :stock_movements, dependent: :delete_all
+  has_many :stock_adjustments, dependent: :delete_all
+  has_many :stock_transfers, dependent: :destroy
+  has_many :stock_counts, dependent: :destroy
+  has_many :product_imports, dependent: :delete_all
 
   normalizes :subdomain, with: ->(subdomain) { subdomain.strip.downcase }
 

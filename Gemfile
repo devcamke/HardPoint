@@ -9,6 +9,10 @@ gem "json", "~> 2.21"
 # TOTP codes for two-factor sign-in, and QR codes to enrol authenticator apps.
 gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 3.2"
+# Barcode images for shelf labels.
+gem "barby", "~> 0.7"
+# Product spreadsheets. CSV is Ruby's own library but ships as a separate gem since Ruby 3.4.
+gem "csv"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record

@@ -1,0 +1,9 @@
+<%= form_with url: request.path, method: :get, class: "flex items-center gap-2", data: { controller: "auto-submit" } do |form| %>
+  <% request.query_parameters.except("branch_id", "page").each do |key, value| %>
+    <%= hidden_field_tag key, value unless value.is_a?(Hash) || value.is_a?(Array) %>
+  <% end %>
+  <%= form.label :branch_id, "Branch", class: "text-sm text-steel-600" %>
+  <%= form.select :branch_id, options_from_collection_for_select(branches_for_selection, :id, :name, selected_branch&.id), {},
+        class: "input w-auto py-1.5", data: { action: "change->auto-submit#submit" } %>
+  <noscript><%= form.submit "Show", class: "btn-secondary" %></noscript>
+<% end %>

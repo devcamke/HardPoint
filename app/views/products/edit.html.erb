@@ -1,0 +1,9 @@
+<% content_for :title, "Edit #{@product.name}" %>
+
+<p class="text-sm"><%= link_to "← #{@product.name}", @product, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Edit product</h1>
+
+<%= render "form", product: @product %>
+
+<%= button_to "Delete product", @product, method: :delete, class: "btn-danger mt-6",
+      form: { data: { turbo_confirm: "Delete #{@product.name}? Products with stock history can only be made inactive." } } %>

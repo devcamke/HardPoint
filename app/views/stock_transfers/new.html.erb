@@ -1,0 +1,37 @@
+<% content_for :title, "New transfer" %>
+
+<p class="text-sm"><%= link_to "← Transfers", stock_transfers_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">New transfer</h1>
+
+<%= form_with model: @transfer, class: "card max-w-3xl" do |form| %>
+  <%= render "shared/errors", model: @transfer %>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field">
+      <%= form.label :from_branch_id, "From", class: "label" %>
+      <%= form.collection_select :from_branch_id, branches_for_selection, :id, :name, {}, class: "input" %>
+    </div>
+    <div class="field">
+      <%= form.label :to_branch_id, "To", class: "label" %>
+      <%= form.collection_select :to_branch_id, branches_for_selection, :id, :name, { selected: @transfer.to_branch_id || branches_for_selection.excluding(@transfer.from_branch).first&.id }, class: "input" %>
+    </div>
+  </div>
+
+  <p class="label mt-2">Products — scan or type a barcode or SKU</p>
+  <div class="mb-4 space-y-2">
+    <%= form.fields_for :lines do |line| %>
+      <div class="flex gap-2">
+        <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Barcode or SKU", class: "input flex-1 font-mono", "aria-label": "Barcode or SKU" %>
+        <%= line.number_field :quantity, step: "any", min: 0, placeholder: "Qty", class: "input w-28", "aria-label": "Quantity" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="field">
+    <%= form.label :note, class: "label" %>
+    <%= form.text_field :note, class: "input", placeholder: "e.g. on the Tuesday lorry" %>
+  </div>
+
+  <%= form.submit "Send transfer", class: "btn-primary" %>
+  <p class="hint mt-2">Sending takes the stock out of the source branch straight away. The other branch confirms when it arrives.</p>
+<% end %>

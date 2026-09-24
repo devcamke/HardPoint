@@ -1,2 +1,2 @@
-<%= link_to name, path, class: class_names("border-b-2 py-1 hover:text-white",
-      "border-safety-500 text-white" => current_page?(path), "border-transparent" => !current_page?(path)) %>
+<% active = request.path == path || request.path.start_with?("#{path}/") || (local_assigns[:also] || []).any? { request.path.start_with?(_1) } %>
+<%= link_to name, path, class: class_names("border-b-2 py-1 hover:text-white", "border-safety-500 text-white" => active, "border-transparent" => !active) %>

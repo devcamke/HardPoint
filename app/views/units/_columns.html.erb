@@ -1,0 +1,7 @@
+<% if record %>
+  <td class="font-medium"><%= record.name %></td>
+  <td><%= record.abbreviation %></td>
+  <td><%= record.fractional? ? "Yes" : "Whole only" %></td>
+<% else %>
+  <th>Unit</th><th>Short</th><th>Parts</th>
+<% end %>

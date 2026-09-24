@@ -1,0 +1,27 @@
+<section class="card">
+  <h2 class="mb-3 text-lg font-semibold">Pack sizes</h2>
+  <% units = product.product_units.includes(:unit) %>
+  <% if units.any? %>
+    <table class="table mb-4">
+      <tbody>
+        <% units.each do |product_unit| %>
+          <tr>
+            <td><%= product_unit %></td>
+            <td class="text-right tabular-nums"><%= money(product_unit.effective_price_cents) %><%= tag.span(" (from pieces)", class: "hint") unless product_unit.price_cents %></td>
+            <td class="text-right"><%= button_to "Remove", product_unit_path(product, product_unit), method: :delete, class: "link text-xs" if current_membership.can_manage_catalogue? %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint mb-4">Sold only by the <%= product.unit.name.downcase %>. Add a pack if it's also sold by the box, bag or roll.</p>
+  <% end %>
+  <% if current_membership.can_manage_catalogue? %>
+    <%= form_with model: ProductUnit.new, url: product_units_path(product), class: "flex flex-wrap items-end gap-2" do |form| %>
+      <div><%= form.label :unit_id, "Pack", class: "label" %><%= form.collection_select :unit_id, Current.account.units.alphabetically.excluding(product.unit), :id, :name, {}, class: "input" %></div>
+      <div class="w-24"><%= form.label :quantity, "Holds (#{product.unit.abbreviation})", class: "label" %><%= form.number_field :quantity, required: true, step: "any", min: 0, class: "input" %></div>
+      <div class="w-32"><%= form.label :price, "Price (optional)", class: "label" %><%= form.number_field :price, step: "0.01", min: 0, class: "input" %></div>
+      <%= form.submit "Add", class: "btn-secondary" %>
+    <% end %>
+  <% end %>
+</section>

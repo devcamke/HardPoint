@@ -1,0 +1,15 @@
+<div class="field">
+  <%= form.label :name, class: "label" %>
+  <%= form.text_field :name, required: true, placeholder: "Kilogram", class: "input" %>
+</div>
+<div class="field">
+  <%= form.label :abbreviation, class: "label" %>
+  <%= form.text_field :abbreviation, required: true, placeholder: "kg", class: "input" %>
+</div>
+<div class="field flex items-start gap-2">
+  <%= form.check_box :fractional, class: "mt-1 size-4 accent-safety-500" %>
+  <div>
+    <%= form.label :fractional, "Sold in parts (e.g. 2.5 kg)", class: "text-sm font-medium text-navy-800" %>
+    <p class="hint">Leave unticked for things counted in whole numbers.</p>
+  </div>
+</div>

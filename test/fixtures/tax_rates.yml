@@ -1,0 +1,16 @@
+acme_vat:
+  account: acme
+  name: Standard VAT
+  rate: 16
+  default: true
+
+acme_zero:
+  account: acme
+  name: Zero-rated
+  rate: 0
+
+bolt_vat:
+  account: bolt
+  name: Standard VAT
+  rate: 16
+  default: true

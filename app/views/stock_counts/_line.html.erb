@@ -1,0 +1,19 @@
+<tr id="<%= dom_id(line) %>">
+  <td><%= line.product.name %><br><span class="font-mono text-xs text-steel-600"><%= line.product.sku %></span></td>
+  <td class="text-right tabular-nums"><%= quantity(line.expected_quantity, line.product.unit) %></td>
+  <td class="text-right">
+    <% if count.counting? && current_membership.can_manage_stock? %>
+      <%= form_with model: line, url: stock_count_line_path(count, line), class: "inline-flex gap-1", data: { controller: "auto-submit" } do |form| %>
+        <%= form.number_field :counted_quantity, value: plain_number(line.counted_quantity), step: "any", min: 0, class: "input w-24 py-1 text-right", "aria-label": "Counted #{line.product.name}",
+              data: { action: "change->auto-submit#submit" } %>
+        <noscript><%= form.submit "Save", class: "btn-secondary py-1" %></noscript>
+      <% end %>
+      <% if line.errors.any? %><p class="text-xs text-red-700"><%= line.errors.full_messages.to_sentence %></p><% end %>
+    <% else %>
+      <span class="tabular-nums"><%= line.counted_quantity ? quantity(line.counted_quantity, line.product.unit) : "—" %></span>
+    <% end %>
+  </td>
+  <td class="text-right tabular-nums font-semibold <%= line.variance.negative? ? "text-red-700" : ("text-green-700" if line.variance.positive?) %>">
+    <%= line.counted_quantity ? "#{"+" if line.variance.positive?}#{quantity(line.variance)}" : "" %>
+  </td>
+</tr>

@@ -1,0 +1,51 @@
+<% content_for :title, @import.name %>
+<% if @import.checking? || @import.importing? %>
+  <% content_for :head do %><meta http-equiv="refresh" content="2"><% end %>
+<% end %>
+
+<p class="text-sm"><%= link_to "← Imports", product_imports_path, class: "link" %></p>
+<h1 class="mt-2 mb-1 text-3xl font-bold"><%= @import.name %> <%= render "product_imports/status", import: @import %></h1>
+<p class="hint mb-6">Uploaded <%= l(@import.created_at, format: :long) %> by <%= @import.creator&.name %><%= " · stock at #{@import.branch.name}" if @import.branch %></p>
+
+<% case @import.status %>
+<% when "checking", "importing" %>
+  <div class="card"><p><%= @import.checking? ? "Checking every row…" : "Importing #{number_with_delimiter(@import.rows_count)} rows…" %></p><p class="hint mt-1">This page refreshes by itself.</p></div>
+<% else %>
+  <div class="mb-6 grid gap-4 sm:grid-cols-3">
+    <div class="card"><p class="hint">Rows</p><p class="mt-1 text-2xl font-bold"><%= number_with_delimiter(@import.rows_count) %></p></div>
+    <div class="card"><p class="hint"><%= @import.completed? ? "Added" : "New products" %></p><p class="mt-1 text-2xl font-bold"><%= number_with_delimiter(@import.created_count) %></p></div>
+    <div class="card"><p class="hint"><%= @import.completed? ? "Updated" : "Updates to existing" %></p><p class="mt-1 text-2xl font-bold"><%= number_with_delimiter(@import.updated_count) %></p></div>
+  </div>
+
+  <% if @import.problems.any? %>
+    <section class="card mb-6">
+      <h2 class="mb-1 text-lg font-semibold text-red-800"><%= @import.failed? ? "The import stopped" : "Fix these in the spreadsheet, then upload it again" %></h2>
+      <p class="hint mb-3">Line numbers match your spreadsheet (line 1 is the header row).</p>
+      <ul class="space-y-1 text-sm">
+        <% @import.problems.each do |problem| %>
+          <li><%= "Line #{problem["line"]}: " if problem["line"] %><%= problem["messages"].to_sentence %></li>
+        <% end %>
+      </ul>
+      <%= link_to "Upload a corrected file", new_product_import_path, class: "btn-primary mt-4" %>
+    </section>
+  <% end %>
+
+  <% if @import.ready? %>
+    <section class="card mb-6">
+      <h2 class="mb-3 text-lg font-semibold">Everything checks out. First rows:</h2>
+      <table class="table mb-4">
+        <thead><tr><th>SKU</th><th>Name</th><th class="text-right">Price</th><th class="text-right">Stock</th></tr></thead>
+        <tbody>
+          <% @import.preview.each do |row| %>
+            <tr><td class="font-mono text-xs"><%= row["sku"] || "(new)" %></td><td><%= row["name"] %></td><td class="text-right"><%= money(row["price"]) %></td><td class="text-right"><%= quantity(row["stock"]) if row["stock"] %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+      <%= button_to "Import #{number_with_delimiter(@import.rows_count)} products", product_import_run_path(@import), class: "btn-primary" %>
+    </section>
+  <% end %>
+
+  <% if @import.completed? %>
+    <p><%= link_to "See your products", products_path, class: "btn-primary" %></p>
+  <% end %>
+<% end %>

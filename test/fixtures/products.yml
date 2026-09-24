@@ -1,0 +1,62 @@
+acme_cement:
+  account: acme
+  name: Bamburi cement 50kg
+  sku: CEM-50
+  category: acme_building
+  brand: acme_bamburi
+  unit: acme_bag
+  tax_rate: acme_vat
+  cost_cents: 70000
+  price_cents: 80000
+  reorder_level: 20
+
+acme_nails:
+  account: acme
+  name: Wire nails 3 inch
+  sku: NAIL-3
+  category: acme_fasteners
+  unit: acme_kg
+  tax_rate: acme_vat
+  cost_cents: 18000
+  price_cents: 25000
+  reorder_level: 10
+
+acme_screws:
+  account: acme
+  name: Wood screws 8x1.5
+  sku: SCR-815
+  category: acme_fasteners
+  unit: acme_piece
+  cost_cents: 300
+  price_cents: 500
+
+acme_pipe:
+  account: acme
+  name: PVC pipe 2 inch 6m
+  sku: PVC-2
+  category: acme_plumbing
+  unit: acme_piece
+  cost_cents: 90000
+  price_cents: 120000
+  reorder_level: 5
+
+acme_plumbing_kit:
+  account: acme
+  name: Plumbing starter kit
+  sku: KIT-PLB
+  category: acme_plumbing
+  unit: acme_piece
+  price_cents: 250000
+  kit: true
+  track_stock: false
+
+bolt_hammer:
+  account: bolt
+  name: Claw hammer 16oz
+  sku: HAM-16
+  category: bolt_tools
+  brand: bolt_stanley
+  unit: bolt_piece
+  tax_rate: bolt_vat
+  cost_cents: 90000
+  price_cents: 130000

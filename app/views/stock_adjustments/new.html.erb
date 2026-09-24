@@ -1,0 +1,38 @@
+<% content_for :title, "Adjust stock" %>
+
+<p class="text-sm"><%= link_to "← #{@adjustment.product.name}", @adjustment.product, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Adjust stock</h1>
+
+<div class="card max-w-xl">
+  <%= form_with model: @adjustment do |form| %>
+    <%= render "shared/errors", model: @adjustment %>
+    <%= form.hidden_field :product_id %>
+
+    <p class="mb-4 font-semibold"><%= @adjustment.product.name %> <span class="hint font-normal">(<%= @adjustment.product.unit.name.downcase %>)</span></p>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="field">
+        <%= form.label :branch_id, "Branch", class: "label" %>
+        <%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %>
+      </div>
+      <div class="field">
+        <%= form.label :reason, class: "label" %>
+        <%= form.select :reason, StockAdjustment::REASONS.map { [ _1.humanize, _1 ] }, {}, class: "input" %>
+      </div>
+    </div>
+
+    <div class="field">
+      <%= form.label :quantity, "Change", class: "label" %>
+      <%= form.number_field :quantity, required: true, step: "any", class: "input", placeholder: "-2 for two broken, 50 for opening stock" %>
+      <p class="hint mt-1">Positive adds stock, negative removes it. On hand at each branch:
+        <%= branches_for_selection.map { "#{_1.name} #{quantity(@adjustment.product.stock_at(_1), @adjustment.product.unit)}" }.join(" · ") %></p>
+    </div>
+
+    <div class="field">
+      <%= form.label :note, class: "label" %>
+      <%= form.text_field :note, class: "input", placeholder: "e.g. bags split in the rain" %>
+    </div>
+
+    <%= form.submit "Save adjustment", class: "btn-primary" %>
+  <% end %>
+</div>

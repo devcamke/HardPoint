@@ -1,0 +1,70 @@
+<% content_for :title, "Products" %>
+
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Products</h1>
+  <div class="flex flex-wrap gap-2">
+    <% if current_membership.can_manage_catalogue? %>
+      <%= link_to "Import", new_product_import_path, class: "btn-secondary" %>
+    <% end %>
+    <%= link_to "Export CSV", products_path(request.query_parameters.merge(format: :csv)), class: "btn-secondary", data: { turbo: false } %>
+    <%= link_to "Print labels", new_labels_path(query: params[:query], category_id: params[:category_id]), class: "btn-secondary" %>
+    <% if current_membership.can_manage_catalogue? %>
+      <%= link_to "Add product", new_product_path, class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<%= form_with url: products_path, method: :get, class: "card mb-4 flex flex-wrap items-end gap-3 p-4",
+      data: { controller: "auto-submit", turbo_frame: "products", turbo_action: "advance" } do |form| %>
+  <div class="min-w-64 flex-1">
+    <%= form.label :query, "Search name, SKU or scan a barcode", class: "label" %>
+    <%= form.search_field :query, value: params[:query], autofocus: true, autocomplete: "off", class: "input",
+          data: { action: "input->auto-submit#debouncedSubmit" } %>
+  </div>
+  <div>
+    <%= form.label :category_id, "Category", class: "label" %>
+    <%= form.collection_select :category_id, Current.account.categories.alphabetically, :id, :full_name,
+          { include_blank: "All", selected: params[:category_id] }, class: "input", data: { action: "change->auto-submit#submit" } %>
+  </div>
+  <div>
+    <%= form.label :branch_id, "Stock at", class: "label" %>
+    <%= form.collection_select :branch_id, branches_for_selection, :id, :name, { selected: selected_branch&.id }, class: "input",
+          data: { action: "change->auto-submit#submit" } %>
+  </div>
+  <label class="flex items-center gap-2 pb-2 text-sm">
+    <%= form.check_box :include_inactive, { checked: params[:include_inactive] == "1", class: "size-4 accent-safety-500", data: { action: "change->auto-submit#submit" } }, "1", nil %>
+    Include inactive
+  </label>
+<% end %>
+
+<%= turbo_frame_tag "products", data: { turbo_action: "advance" } do %>
+  <div class="card overflow-x-auto p-0">
+    <% if @products.any? %>
+      <table class="table">
+        <thead>
+          <tr class="[&>th:first-child]:pl-6"><th>Product</th><th>SKU</th><th>Category</th><th class="text-right">Price</th><th class="text-right">Stock at <%= selected_branch&.name %></th><th></th></tr>
+        </thead>
+        <tbody>
+          <% @products.each do |product| %>
+            <% stock = product.kit? ? product.stock_at(selected_branch) : @stock.fetch(product.id, 0) %>
+            <tr id="<%= dom_id(product) %>" class="[&>td:first-child]:pl-6">
+              <td>
+                <%= link_to product.name, product, class: "font-medium hover:text-safety-700", data: { turbo_frame: "_top" } %>
+                <%= tag.span("Kit", class: "badge ml-1") if product.kit? %>
+                <%= tag.span("Inactive", class: "badge ml-1 bg-concrete-200 text-steel-600") unless product.active? %>
+              </td>
+              <td class="font-mono text-xs"><%= product.sku %></td>
+              <td><%= product.category&.name %></td>
+              <td class="text-right tabular-nums"><%= money(product.price_cents) %></td>
+              <td class="text-right tabular-nums"><%= quantity(stock, product.unit) if product.track_stock? || product.kit? %></td>
+              <td class="pr-6 text-right"><%= stock_badge(product, stock, selected_branch) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint p-6"><%= params[:query].present? ? "Nothing matches “#{params[:query]}”." : "No products yet. Add one or import a spreadsheet." %></p>
+    <% end %>
+  </div>
+  <%= render "shared/pagination" %>
+<% end %>

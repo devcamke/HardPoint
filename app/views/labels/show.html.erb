@@ -1,0 +1,18 @@
+<div class="toolbar">
+  <strong><%= pluralize(@labels.size, "label") %></strong>
+  <span><%= LabelsController::FORMATS[@format] %></span>
+  <button type="button" onclick="window.print()">Print</button>
+</div>
+
+<div class="<%= @format %>">
+  <% @labels.each do |product| %>
+    <% code = product.primary_barcode || product.sku %>
+    <div class="label">
+      <span class="shop"><%= Current.account.name %></span>
+      <span class="name"><%= product.name %></span>
+      <span class="price"><%= money(product.price_cents) %> <small>/ <%= product.unit.abbreviation %></small></span>
+      <%= barcode_svg(code) %>
+      <span class="code"><%= code %></span>
+    </div>
+  <% end %>
+</div>

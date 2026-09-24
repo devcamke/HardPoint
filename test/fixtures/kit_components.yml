@@ -1,0 +1,11 @@
+acme_kit_pipe:
+  account: acme
+  kit: acme_plumbing_kit
+  component: acme_pipe
+  quantity: 2
+
+acme_kit_screws:
+  account: acme
+  kit: acme_plumbing_kit
+  component: acme_screws
+  quantity: 20

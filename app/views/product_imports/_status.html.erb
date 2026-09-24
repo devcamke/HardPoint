@@ -1,0 +1,3 @@
+<% classes = { "checking" => "bg-navy-50 text-navy-700", "importing" => "bg-navy-50 text-navy-700", "ready" => "bg-safety-100 text-safety-800",
+               "needs_fixing" => "bg-red-50 text-red-800", "failed" => "bg-red-50 text-red-800", "completed" => "bg-green-50 text-green-800" } %>
+<span class="badge <%= classes[import.status] %>"><%= import.status.humanize %></span>

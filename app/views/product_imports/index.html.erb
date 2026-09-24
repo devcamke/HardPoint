@@ -1,0 +1,29 @@
+<% content_for :title, "Imports" %>
+
+<%= render "settings/back" %>
+<div class="mt-2 mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Product imports</h1>
+  <%= link_to "New import", new_product_import_path, class: "btn-primary" %>
+</div>
+
+<div class="card">
+  <% if @imports.any? %>
+    <table class="table">
+      <thead><tr><th>File</th><th>Rows</th><th>By</th><th>When</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @imports.each do |import| %>
+          <tr>
+            <td><%= link_to import.name, import, class: "link" %></td>
+            <td><%= number_with_delimiter(import.rows_count) %></td>
+            <td><%= import.creator&.name %></td>
+            <td><%= l(import.created_at, format: :short) %></td>
+            <td><%= render "product_imports/status", import: import %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No imports yet.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

@@ -9,6 +9,20 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -46,6 +60,105 @@ CREATE SEQUENCE public.accounts_id_seq
 --
 
 ALTER SEQUENCE public.accounts_id_seq OWNED BY public.accounts.id;
+
+
+--
+-- Name: active_storage_attachments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.active_storage_attachments (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    record_type character varying NOT NULL,
+    record_id bigint NOT NULL,
+    blob_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: active_storage_attachments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.active_storage_attachments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: active_storage_attachments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.active_storage_attachments_id_seq OWNED BY public.active_storage_attachments.id;
+
+
+--
+-- Name: active_storage_blobs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.active_storage_blobs (
+    id bigint NOT NULL,
+    key character varying NOT NULL,
+    filename character varying NOT NULL,
+    content_type character varying,
+    metadata text,
+    service_name character varying NOT NULL,
+    byte_size bigint NOT NULL,
+    checksum character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: active_storage_blobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.active_storage_blobs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: active_storage_blobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.active_storage_blobs_id_seq OWNED BY public.active_storage_blobs.id;
+
+
+--
+-- Name: active_storage_variant_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.active_storage_variant_records (
+    id bigint NOT NULL,
+    blob_id bigint NOT NULL,
+    variation_digest character varying NOT NULL
+);
+
+
+--
+-- Name: active_storage_variant_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.active_storage_variant_records_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: active_storage_variant_records_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.active_storage_variant_records_id_seq OWNED BY public.active_storage_variant_records.id;
 
 
 --
@@ -94,6 +207,42 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: barcodes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.barcodes (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    product_unit_id bigint,
+    code character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.barcodes FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: barcodes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.barcodes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: barcodes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.barcodes_id_seq OWNED BY public.barcodes.id;
+
+
+--
 -- Name: branches; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -127,6 +276,75 @@ CREATE SEQUENCE public.branches_id_seq
 --
 
 ALTER SEQUENCE public.branches_id_seq OWNED BY public.branches.id;
+
+
+--
+-- Name: brands; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.brands (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.brands FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: brands_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.brands_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: brands_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.brands_id_seq OWNED BY public.brands.id;
+
+
+--
+-- Name: categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.categories (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    parent_id bigint,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.categories FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
 
 
 --
@@ -167,6 +385,42 @@ ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
 
 
 --
+-- Name: kit_components; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.kit_components (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    kit_id bigint NOT NULL,
+    component_id bigint NOT NULL,
+    quantity numeric(14,3) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.kit_components FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: kit_components_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.kit_components_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: kit_components_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.kit_components_id_seq OWNED BY public.kit_components.id;
+
+
+--
 -- Name: memberships; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -201,6 +455,204 @@ CREATE SEQUENCE public.memberships_id_seq
 --
 
 ALTER SEQUENCE public.memberships_id_seq OWNED BY public.memberships.id;
+
+
+--
+-- Name: price_list_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.price_list_items (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    price_list_id bigint,
+    product_id bigint NOT NULL,
+    min_quantity numeric(14,3) DEFAULT 1.0 NOT NULL,
+    price_cents bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.price_list_items FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: price_list_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.price_list_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: price_list_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.price_list_items_id_seq OWNED BY public.price_list_items.id;
+
+
+--
+-- Name: price_lists; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.price_lists (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.price_lists FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: price_lists_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.price_lists_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: price_lists_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.price_lists_id_seq OWNED BY public.price_lists.id;
+
+
+--
+-- Name: product_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.product_imports (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    creator_id bigint,
+    branch_id bigint,
+    status character varying DEFAULT 'checking'::character varying NOT NULL,
+    filename character varying,
+    csv text NOT NULL,
+    rows_count integer DEFAULT 0 NOT NULL,
+    created_count integer DEFAULT 0 NOT NULL,
+    updated_count integer DEFAULT 0 NOT NULL,
+    problems jsonb DEFAULT '[]'::jsonb NOT NULL,
+    preview jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.product_imports FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: product_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.product_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: product_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.product_imports_id_seq OWNED BY public.product_imports.id;
+
+
+--
+-- Name: product_units; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.product_units (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    unit_id bigint NOT NULL,
+    quantity numeric(14,3) NOT NULL,
+    price_cents bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.product_units FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: product_units_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.product_units_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: product_units_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.product_units_id_seq OWNED BY public.product_units.id;
+
+
+--
+-- Name: products; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.products (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    category_id bigint,
+    brand_id bigint,
+    unit_id bigint NOT NULL,
+    tax_rate_id bigint,
+    name character varying NOT NULL,
+    sku character varying NOT NULL,
+    description text,
+    cost_cents bigint DEFAULT 0 NOT NULL,
+    price_cents bigint NOT NULL,
+    reorder_level numeric(14,3) DEFAULT 0.0 NOT NULL,
+    track_stock boolean DEFAULT true NOT NULL,
+    serialized boolean DEFAULT false NOT NULL,
+    kit boolean DEFAULT false NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.products FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: products_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.products_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.products_id_seq OWNED BY public.products.id;
 
 
 --
@@ -288,6 +740,349 @@ ALTER SEQUENCE public.sessions_id_seq OWNED BY public.sessions.id;
 
 
 --
+-- Name: stock_adjustments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_adjustments (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    creator_id bigint,
+    quantity numeric(14,3) NOT NULL,
+    reason character varying NOT NULL,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_adjustments FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_adjustments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_adjustments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_adjustments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_adjustments_id_seq OWNED BY public.stock_adjustments.id;
+
+
+--
+-- Name: stock_count_lines; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_count_lines (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    stock_count_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    expected_quantity numeric(14,3) NOT NULL,
+    counted_quantity numeric(14,3),
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_count_lines FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_count_lines_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_count_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_count_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_count_lines_id_seq OWNED BY public.stock_count_lines.id;
+
+
+--
+-- Name: stock_counts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_counts (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    category_id bigint,
+    creator_id bigint,
+    approver_id bigint,
+    status character varying DEFAULT 'counting'::character varying NOT NULL,
+    note character varying,
+    submitted_at timestamp(6) without time zone,
+    approved_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_counts FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_counts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_counts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_counts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_counts_id_seq OWNED BY public.stock_counts.id;
+
+
+--
+-- Name: stock_levels; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_levels (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_levels FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_levels_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_levels_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_levels_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_levels_id_seq OWNED BY public.stock_levels.id;
+
+
+--
+-- Name: stock_movements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_movements (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    source_type character varying,
+    source_id bigint,
+    creator_id bigint,
+    quantity numeric(14,3) NOT NULL,
+    balance numeric(14,3) NOT NULL,
+    reason character varying NOT NULL,
+    unit_cost_cents bigint,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_movements FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_movements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_movements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_movements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_movements_id_seq OWNED BY public.stock_movements.id;
+
+
+--
+-- Name: stock_transfer_lines; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_transfer_lines (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    stock_transfer_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    quantity numeric(14,3) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_transfer_lines FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_transfer_lines_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_transfer_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_transfer_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_transfer_lines_id_seq OWNED BY public.stock_transfer_lines.id;
+
+
+--
+-- Name: stock_transfers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_transfers (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    from_branch_id bigint NOT NULL,
+    to_branch_id bigint NOT NULL,
+    sender_id bigint,
+    receiver_id bigint,
+    status character varying DEFAULT 'in_transit'::character varying NOT NULL,
+    note character varying,
+    sent_at timestamp(6) without time zone,
+    received_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_transfers FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_transfers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_transfers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_transfers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_transfers_id_seq OWNED BY public.stock_transfers.id;
+
+
+--
+-- Name: tax_rates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tax_rates (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    name character varying NOT NULL,
+    rate numeric(5,2) NOT NULL,
+    "default" boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.tax_rates FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: tax_rates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tax_rates_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tax_rates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tax_rates_id_seq OWNED BY public.tax_rates.id;
+
+
+--
+-- Name: units; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.units (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    name character varying NOT NULL,
+    abbreviation character varying NOT NULL,
+    fractional boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.units FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: units_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.units_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: units_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.units_id_seq OWNED BY public.units.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -333,10 +1128,38 @@ ALTER TABLE ONLY public.accounts ALTER COLUMN id SET DEFAULT nextval('public.acc
 
 
 --
+-- Name: active_storage_attachments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_attachments ALTER COLUMN id SET DEFAULT nextval('public.active_storage_attachments_id_seq'::regclass);
+
+
+--
+-- Name: active_storage_blobs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_blobs ALTER COLUMN id SET DEFAULT nextval('public.active_storage_blobs_id_seq'::regclass);
+
+
+--
+-- Name: active_storage_variant_records id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAULT nextval('public.active_storage_variant_records_id_seq'::regclass);
+
+
+--
 -- Name: admin_sessions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.admin_sessions ALTER COLUMN id SET DEFAULT nextval('public.admin_sessions_id_seq'::regclass);
+
+
+--
+-- Name: barcodes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.barcodes ALTER COLUMN id SET DEFAULT nextval('public.barcodes_id_seq'::regclass);
 
 
 --
@@ -347,6 +1170,20 @@ ALTER TABLE ONLY public.branches ALTER COLUMN id SET DEFAULT nextval('public.bra
 
 
 --
+-- Name: brands id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.brands ALTER COLUMN id SET DEFAULT nextval('public.brands_id_seq'::regclass);
+
+
+--
+-- Name: categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.categories_id_seq'::regclass);
+
+
+--
 -- Name: events id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -354,10 +1191,52 @@ ALTER TABLE ONLY public.events ALTER COLUMN id SET DEFAULT nextval('public.event
 
 
 --
+-- Name: kit_components id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.kit_components ALTER COLUMN id SET DEFAULT nextval('public.kit_components_id_seq'::regclass);
+
+
+--
 -- Name: memberships id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.memberships ALTER COLUMN id SET DEFAULT nextval('public.memberships_id_seq'::regclass);
+
+
+--
+-- Name: price_list_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_list_items ALTER COLUMN id SET DEFAULT nextval('public.price_list_items_id_seq'::regclass);
+
+
+--
+-- Name: price_lists id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_lists ALTER COLUMN id SET DEFAULT nextval('public.price_lists_id_seq'::regclass);
+
+
+--
+-- Name: product_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_imports ALTER COLUMN id SET DEFAULT nextval('public.product_imports_id_seq'::regclass);
+
+
+--
+-- Name: product_units id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_units ALTER COLUMN id SET DEFAULT nextval('public.product_units_id_seq'::regclass);
+
+
+--
+-- Name: products id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products ALTER COLUMN id SET DEFAULT nextval('public.products_id_seq'::regclass);
 
 
 --
@@ -375,6 +1254,69 @@ ALTER TABLE ONLY public.sessions ALTER COLUMN id SET DEFAULT nextval('public.ses
 
 
 --
+-- Name: stock_adjustments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_adjustments ALTER COLUMN id SET DEFAULT nextval('public.stock_adjustments_id_seq'::regclass);
+
+
+--
+-- Name: stock_count_lines id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_lines ALTER COLUMN id SET DEFAULT nextval('public.stock_count_lines_id_seq'::regclass);
+
+
+--
+-- Name: stock_counts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_counts ALTER COLUMN id SET DEFAULT nextval('public.stock_counts_id_seq'::regclass);
+
+
+--
+-- Name: stock_levels id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_levels ALTER COLUMN id SET DEFAULT nextval('public.stock_levels_id_seq'::regclass);
+
+
+--
+-- Name: stock_movements id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_movements ALTER COLUMN id SET DEFAULT nextval('public.stock_movements_id_seq'::regclass);
+
+
+--
+-- Name: stock_transfer_lines id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfer_lines ALTER COLUMN id SET DEFAULT nextval('public.stock_transfer_lines_id_seq'::regclass);
+
+
+--
+-- Name: stock_transfers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfers ALTER COLUMN id SET DEFAULT nextval('public.stock_transfers_id_seq'::regclass);
+
+
+--
+-- Name: tax_rates id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tax_rates ALTER COLUMN id SET DEFAULT nextval('public.tax_rates_id_seq'::regclass);
+
+
+--
+-- Name: units id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.units ALTER COLUMN id SET DEFAULT nextval('public.units_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -387,6 +1329,30 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 ALTER TABLE ONLY public.accounts
     ADD CONSTRAINT accounts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: active_storage_attachments active_storage_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_attachments
+    ADD CONSTRAINT active_storage_attachments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: active_storage_blobs active_storage_blobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_blobs
+    ADD CONSTRAINT active_storage_blobs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: active_storage_variant_records active_storage_variant_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_variant_records
+    ADD CONSTRAINT active_storage_variant_records_pkey PRIMARY KEY (id);
 
 
 --
@@ -406,11 +1372,35 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: barcodes barcodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.barcodes
+    ADD CONSTRAINT barcodes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: branches branches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.branches
     ADD CONSTRAINT branches_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: brands brands_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.brands
+    ADD CONSTRAINT brands_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
 
 
 --
@@ -422,11 +1412,59 @@ ALTER TABLE ONLY public.events
 
 
 --
+-- Name: kit_components kit_components_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.kit_components
+    ADD CONSTRAINT kit_components_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: memberships memberships_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.memberships
     ADD CONSTRAINT memberships_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: price_list_items price_list_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_list_items
+    ADD CONSTRAINT price_list_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: price_lists price_lists_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_lists
+    ADD CONSTRAINT price_lists_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: product_imports product_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_imports
+    ADD CONSTRAINT product_imports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: product_units product_units_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_units
+    ADD CONSTRAINT product_units_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_pkey PRIMARY KEY (id);
 
 
 --
@@ -454,11 +1492,97 @@ ALTER TABLE ONLY public.sessions
 
 
 --
+-- Name: stock_adjustments stock_adjustments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_adjustments
+    ADD CONSTRAINT stock_adjustments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_count_lines stock_count_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_lines
+    ADD CONSTRAINT stock_count_lines_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_counts stock_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_counts
+    ADD CONSTRAINT stock_counts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_levels stock_levels_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_levels
+    ADD CONSTRAINT stock_levels_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_movements stock_movements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_movements
+    ADD CONSTRAINT stock_movements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_transfer_lines stock_transfer_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfer_lines
+    ADD CONSTRAINT stock_transfer_lines_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_transfers stock_transfers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfers
+    ADD CONSTRAINT stock_transfers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tax_rates tax_rates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tax_rates
+    ADD CONSTRAINT tax_rates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: units units_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.units
+    ADD CONSTRAINT units_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_on_product_id_branch_id_created_at_dd8be66641; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_product_id_branch_id_created_at_dd8be66641 ON public.stock_movements USING btree (product_id, branch_id, created_at);
+
+
+--
+-- Name: idx_on_product_id_price_list_id_min_quantity_f69598ecfa; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_on_product_id_price_list_id_min_quantity_f69598ecfa ON public.price_list_items USING btree (product_id, price_list_id, min_quantity) NULLS NOT DISTINCT;
 
 
 --
@@ -469,10 +1593,59 @@ CREATE UNIQUE INDEX index_accounts_on_subdomain ON public.accounts USING btree (
 
 
 --
+-- Name: index_active_storage_attachments_on_blob_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_active_storage_attachments_on_blob_id ON public.active_storage_attachments USING btree (blob_id);
+
+
+--
+-- Name: index_active_storage_attachments_uniqueness; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_storage_attachments_uniqueness ON public.active_storage_attachments USING btree (record_type, record_id, name, blob_id);
+
+
+--
+-- Name: index_active_storage_blobs_on_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_storage_blobs_on_key ON public.active_storage_blobs USING btree (key);
+
+
+--
+-- Name: index_active_storage_variant_records_uniqueness; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.active_storage_variant_records USING btree (blob_id, variation_digest);
+
+
+--
 -- Name: index_admin_sessions_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_admin_sessions_on_user_id ON public.admin_sessions USING btree (user_id);
+
+
+--
+-- Name: index_barcodes_on_account_id_and_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_barcodes_on_account_id_and_code ON public.barcodes USING btree (account_id, code);
+
+
+--
+-- Name: index_barcodes_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_barcodes_on_product_id ON public.barcodes USING btree (product_id);
+
+
+--
+-- Name: index_barcodes_on_product_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_barcodes_on_product_unit_id ON public.barcodes USING btree (product_unit_id);
 
 
 --
@@ -487,6 +1660,27 @@ CREATE INDEX index_branches_on_account_id ON public.branches USING btree (accoun
 --
 
 CREATE UNIQUE INDEX index_branches_on_account_id_and_name ON public.branches USING btree (account_id, name);
+
+
+--
+-- Name: index_brands_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_brands_on_account_id_and_name ON public.brands USING btree (account_id, name);
+
+
+--
+-- Name: index_categories_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_categories_on_account_id_and_name ON public.categories USING btree (account_id, name);
+
+
+--
+-- Name: index_categories_on_parent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_categories_on_parent_id ON public.categories USING btree (parent_id);
 
 
 --
@@ -511,6 +1705,20 @@ CREATE INDEX index_events_on_eventable ON public.events USING btree (eventable_t
 
 
 --
+-- Name: index_kit_components_on_component_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_kit_components_on_component_id ON public.kit_components USING btree (component_id);
+
+
+--
+-- Name: index_kit_components_on_kit_id_and_component_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_kit_components_on_kit_id_and_component_id ON public.kit_components USING btree (kit_id, component_id);
+
+
+--
 -- Name: index_memberships_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -529,6 +1737,104 @@ CREATE UNIQUE INDEX index_memberships_on_account_id_and_user_id ON public.member
 --
 
 CREATE INDEX index_memberships_on_user_id ON public.memberships USING btree (user_id);
+
+
+--
+-- Name: index_price_list_items_on_price_list_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_price_list_items_on_price_list_id ON public.price_list_items USING btree (price_list_id);
+
+
+--
+-- Name: index_price_lists_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_price_lists_on_account_id_and_name ON public.price_lists USING btree (account_id, name);
+
+
+--
+-- Name: index_product_imports_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_product_imports_on_account_id_and_created_at ON public.product_imports USING btree (account_id, created_at);
+
+
+--
+-- Name: index_product_imports_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_product_imports_on_branch_id ON public.product_imports USING btree (branch_id);
+
+
+--
+-- Name: index_product_imports_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_product_imports_on_creator_id ON public.product_imports USING btree (creator_id);
+
+
+--
+-- Name: index_product_units_on_product_id_and_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_product_units_on_product_id_and_unit_id ON public.product_units USING btree (product_id, unit_id);
+
+
+--
+-- Name: index_product_units_on_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_product_units_on_unit_id ON public.product_units USING btree (unit_id);
+
+
+--
+-- Name: index_products_on_account_id_and_sku; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_products_on_account_id_and_sku ON public.products USING btree (account_id, sku);
+
+
+--
+-- Name: index_products_on_brand_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_products_on_brand_id ON public.products USING btree (brand_id);
+
+
+--
+-- Name: index_products_on_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_products_on_category_id ON public.products USING btree (category_id);
+
+
+--
+-- Name: index_products_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_products_on_name ON public.products USING gin (name public.gin_trgm_ops);
+
+
+--
+-- Name: index_products_on_sku_trigram; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_products_on_sku_trigram ON public.products USING gin (sku public.gin_trgm_ops);
+
+
+--
+-- Name: index_products_on_tax_rate_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_products_on_tax_rate_id ON public.products USING btree (tax_rate_id);
+
+
+--
+-- Name: index_products_on_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_products_on_unit_id ON public.products USING btree (unit_id);
 
 
 --
@@ -567,10 +1873,209 @@ CREATE INDEX index_sessions_on_user_id ON public.sessions USING btree (user_id);
 
 
 --
+-- Name: index_stock_adjustments_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_adjustments_on_branch_id ON public.stock_adjustments USING btree (branch_id);
+
+
+--
+-- Name: index_stock_adjustments_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_adjustments_on_creator_id ON public.stock_adjustments USING btree (creator_id);
+
+
+--
+-- Name: index_stock_adjustments_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_adjustments_on_product_id ON public.stock_adjustments USING btree (product_id);
+
+
+--
+-- Name: index_stock_count_lines_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_count_lines_on_product_id ON public.stock_count_lines USING btree (product_id);
+
+
+--
+-- Name: index_stock_count_lines_on_stock_count_id_and_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_stock_count_lines_on_stock_count_id_and_product_id ON public.stock_count_lines USING btree (stock_count_id, product_id);
+
+
+--
+-- Name: index_stock_counts_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_counts_on_account_id_and_created_at ON public.stock_counts USING btree (account_id, created_at);
+
+
+--
+-- Name: index_stock_counts_on_approver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_counts_on_approver_id ON public.stock_counts USING btree (approver_id);
+
+
+--
+-- Name: index_stock_counts_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_counts_on_branch_id ON public.stock_counts USING btree (branch_id);
+
+
+--
+-- Name: index_stock_counts_on_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_counts_on_category_id ON public.stock_counts USING btree (category_id);
+
+
+--
+-- Name: index_stock_counts_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_counts_on_creator_id ON public.stock_counts USING btree (creator_id);
+
+
+--
+-- Name: index_stock_levels_on_account_id_and_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_levels_on_account_id_and_product_id ON public.stock_levels USING btree (account_id, product_id);
+
+
+--
+-- Name: index_stock_levels_on_branch_id_and_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_stock_levels_on_branch_id_and_product_id ON public.stock_levels USING btree (branch_id, product_id);
+
+
+--
+-- Name: index_stock_levels_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_levels_on_product_id ON public.stock_levels USING btree (product_id);
+
+
+--
+-- Name: index_stock_movements_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_movements_on_account_id_and_created_at ON public.stock_movements USING btree (account_id, created_at);
+
+
+--
+-- Name: index_stock_movements_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_movements_on_creator_id ON public.stock_movements USING btree (creator_id);
+
+
+--
+-- Name: index_stock_movements_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_movements_on_source ON public.stock_movements USING btree (source_type, source_id);
+
+
+--
+-- Name: index_stock_transfer_lines_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_transfer_lines_on_product_id ON public.stock_transfer_lines USING btree (product_id);
+
+
+--
+-- Name: index_stock_transfer_lines_on_stock_transfer_id_and_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_stock_transfer_lines_on_stock_transfer_id_and_product_id ON public.stock_transfer_lines USING btree (stock_transfer_id, product_id);
+
+
+--
+-- Name: index_stock_transfers_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_transfers_on_account_id_and_created_at ON public.stock_transfers USING btree (account_id, created_at);
+
+
+--
+-- Name: index_stock_transfers_on_from_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_transfers_on_from_branch_id ON public.stock_transfers USING btree (from_branch_id);
+
+
+--
+-- Name: index_stock_transfers_on_receiver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_transfers_on_receiver_id ON public.stock_transfers USING btree (receiver_id);
+
+
+--
+-- Name: index_stock_transfers_on_sender_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_transfers_on_sender_id ON public.stock_transfers USING btree (sender_id);
+
+
+--
+-- Name: index_stock_transfers_on_to_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_transfers_on_to_branch_id ON public.stock_transfers USING btree (to_branch_id);
+
+
+--
+-- Name: index_tax_rates_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_tax_rates_on_account_id_and_name ON public.tax_rates USING btree (account_id, name);
+
+
+--
+-- Name: index_units_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_units_on_account_id_and_name ON public.units USING btree (account_id, name);
+
+
+--
 -- Name: index_users_on_email_address; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_email_address ON public.users USING btree (email_address);
+
+
+--
+-- Name: stock_count_lines fk_rails_039c3d997e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_lines
+    ADD CONSTRAINT fk_rails_039c3d997e FOREIGN KEY (stock_count_id) REFERENCES public.stock_counts(id) DEFERRABLE;
+
+
+--
+-- Name: product_units fk_rails_0817b7e517; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_units
+    ADD CONSTRAINT fk_rails_0817b7e517 FOREIGN KEY (unit_id) REFERENCES public.units(id) DEFERRABLE;
+
+
+--
+-- Name: stock_transfer_lines fk_rails_100e940960; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfer_lines
+    ADD CONSTRAINT fk_rails_100e940960 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -590,11 +2095,83 @@ ALTER TABLE ONLY public.events
 
 
 --
+-- Name: stock_counts fk_rails_1cf6040ee2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_counts
+    ADD CONSTRAINT fk_rails_1cf6040ee2 FOREIGN KEY (approver_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: stock_movements fk_rails_1e404f4e69; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_movements
+    ADD CONSTRAINT fk_rails_1e404f4e69 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: stock_counts fk_rails_1f3c89c8eb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_counts
+    ADD CONSTRAINT fk_rails_1f3c89c8eb FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: stock_movements fk_rails_2243dd98bb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_movements
+    ADD CONSTRAINT fk_rails_2243dd98bb FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: stock_adjustments fk_rails_2beda46d36; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_adjustments
+    ADD CONSTRAINT fk_rails_2beda46d36 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: product_imports fk_rails_3d203e20af; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_imports
+    ADD CONSTRAINT fk_rails_3d203e20af FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: registers fk_rails_3d6ef39a50; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registers
     ADD CONSTRAINT fk_rails_3d6ef39a50 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: stock_transfers fk_rails_407d4ecd77; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfers
+    ADD CONSTRAINT fk_rails_407d4ecd77 FOREIGN KEY (receiver_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: products fk_rails_436525b193; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT fk_rails_436525b193 FOREIGN KEY (unit_id) REFERENCES public.units(id) DEFERRABLE;
+
+
+--
+-- Name: barcodes fk_rails_480951f2bc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.barcodes
+    ADD CONSTRAINT fk_rails_480951f2bc FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -606,11 +2183,67 @@ ALTER TABLE ONLY public.admin_sessions
 
 
 --
+-- Name: stock_adjustments fk_rails_49bc36f82a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_adjustments
+    ADD CONSTRAINT fk_rails_49bc36f82a FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: kit_components fk_rails_4c258499d2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.kit_components
+    ADD CONSTRAINT fk_rails_4c258499d2 FOREIGN KEY (component_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: stock_transfers fk_rails_4d5a54adc6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfers
+    ADD CONSTRAINT fk_rails_4d5a54adc6 FOREIGN KEY (sender_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: categories fk_rails_4fd3bba7e8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT fk_rails_4fd3bba7e8 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: stock_movements fk_rails_52f9c5d347; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_movements
+    ADD CONSTRAINT fk_rails_52f9c5d347 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
 -- Name: sessions fk_rails_5599381559; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sessions
     ADD CONSTRAINT fk_rails_5599381559 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: stock_levels fk_rails_5607af8fe7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_levels
+    ADD CONSTRAINT fk_rails_5607af8fe7 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: price_list_items fk_rails_592b3cdaf4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_list_items
+    ADD CONSTRAINT fk_rails_592b3cdaf4 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
 
 
 --
@@ -622,6 +2255,46 @@ ALTER TABLE ONLY public.registers
 
 
 --
+-- Name: products fk_rails_6dc06b37ef; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT fk_rails_6dc06b37ef FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: kit_components fk_rails_6f4cbebe89; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.kit_components
+    ADD CONSTRAINT fk_rails_6f4cbebe89 FOREIGN KEY (kit_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: stock_adjustments fk_rails_725b9e1daf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_adjustments
+    ADD CONSTRAINT fk_rails_725b9e1daf FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: stock_transfers fk_rails_74db096ab8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfers
+    ADD CONSTRAINT fk_rails_74db096ab8 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: stock_counts fk_rails_74decdd260; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_counts
+    ADD CONSTRAINT fk_rails_74decdd260 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: sessions fk_rails_758836b4f0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -630,11 +2303,51 @@ ALTER TABLE ONLY public.sessions
 
 
 --
+-- Name: stock_counts fk_rails_79e8c88cba; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_counts
+    ADD CONSTRAINT fk_rails_79e8c88cba FOREIGN KEY (category_id) REFERENCES public.categories(id) DEFERRABLE;
+
+
+--
+-- Name: price_lists fk_rails_7d8d7d3a3d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_lists
+    ADD CONSTRAINT fk_rails_7d8d7d3a3d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: categories fk_rails_82f48f7407; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT fk_rails_82f48f7407 FOREIGN KEY (parent_id) REFERENCES public.categories(id) DEFERRABLE;
+
+
+--
 -- Name: branches fk_rails_863a15f468; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.branches
     ADD CONSTRAINT fk_rails_863a15f468 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: price_list_items fk_rails_868b9d34b5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_list_items
+    ADD CONSTRAINT fk_rails_868b9d34b5 FOREIGN KEY (price_list_id) REFERENCES public.price_lists(id) DEFERRABLE;
+
+
+--
+-- Name: stock_count_lines fk_rails_95d9016807; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_lines
+    ADD CONSTRAINT fk_rails_95d9016807 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -654,11 +2367,226 @@ ALTER TABLE ONLY public.memberships
 
 
 --
+-- Name: active_storage_variant_records fk_rails_993965df05; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_variant_records
+    ADD CONSTRAINT fk_rails_993965df05 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id) DEFERRABLE;
+
+
+--
+-- Name: product_imports fk_rails_9c4c03515c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_imports
+    ADD CONSTRAINT fk_rails_9c4c03515c FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: units fk_rails_a04853fc0a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.units
+    ADD CONSTRAINT fk_rails_a04853fc0a FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: product_units fk_rails_a0982ff51e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_units
+    ADD CONSTRAINT fk_rails_a0982ff51e FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: stock_transfers fk_rails_bfe016d5ae; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfers
+    ADD CONSTRAINT fk_rails_bfe016d5ae FOREIGN KEY (to_branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_attachments
+    ADD CONSTRAINT fk_rails_c3b3935057 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id) DEFERRABLE;
+
+
+--
+-- Name: barcodes fk_rails_c4f3f76a0d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.barcodes
+    ADD CONSTRAINT fk_rails_c4f3f76a0d FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) DEFERRABLE;
+
+
+--
+-- Name: kit_components fk_rails_ce48264f0b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.kit_components
+    ADD CONSTRAINT fk_rails_ce48264f0b FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: stock_count_lines fk_rails_d96a46556a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_lines
+    ADD CONSTRAINT fk_rails_d96a46556a FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: stock_levels fk_rails_daaaba7e71; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_levels
+    ADD CONSTRAINT fk_rails_daaaba7e71 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: stock_movements fk_rails_deb37fa2ee; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_movements
+    ADD CONSTRAINT fk_rails_deb37fa2ee FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: brands fk_rails_e23d885924; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.brands
+    ADD CONSTRAINT fk_rails_e23d885924 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: stock_transfer_lines fk_rails_e25d7fc485; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfer_lines
+    ADD CONSTRAINT fk_rails_e25d7fc485 FOREIGN KEY (stock_transfer_id) REFERENCES public.stock_transfers(id) DEFERRABLE;
+
+
+--
+-- Name: products fk_rails_e50d729180; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT fk_rails_e50d729180 FOREIGN KEY (tax_rate_id) REFERENCES public.tax_rates(id) DEFERRABLE;
+
+
+--
+-- Name: tax_rates fk_rails_e6fafa7706; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tax_rates
+    ADD CONSTRAINT fk_rails_e6fafa7706 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: stock_levels fk_rails_e76267ceb9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_levels
+    ADD CONSTRAINT fk_rails_e76267ceb9 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: price_list_items fk_rails_e772b9cb5f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.price_list_items
+    ADD CONSTRAINT fk_rails_e772b9cb5f FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: memberships fk_rails_edbc202c67; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.memberships
     ADD CONSTRAINT fk_rails_edbc202c67 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: product_imports fk_rails_ee10a7fc5b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_imports
+    ADD CONSTRAINT fk_rails_ee10a7fc5b FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: product_units fk_rails_f23d08af71; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_units
+    ADD CONSTRAINT fk_rails_f23d08af71 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: stock_counts fk_rails_f245e0e820; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_counts
+    ADD CONSTRAINT fk_rails_f245e0e820 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: stock_transfer_lines fk_rails_f2e00b1f87; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfer_lines
+    ADD CONSTRAINT fk_rails_f2e00b1f87 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: products fk_rails_f3b4d49caa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT fk_rails_f3b4d49caa FOREIGN KEY (brand_id) REFERENCES public.brands(id) DEFERRABLE;
+
+
+--
+-- Name: stock_adjustments fk_rails_f41864ed33; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_adjustments
+    ADD CONSTRAINT fk_rails_f41864ed33 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: barcodes fk_rails_f6f6672052; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.barcodes
+    ADD CONSTRAINT fk_rails_f6f6672052 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: products fk_rails_fb915499a4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT fk_rails_fb915499a4 FOREIGN KEY (category_id) REFERENCES public.categories(id) DEFERRABLE;
+
+
+--
+-- Name: stock_transfers fk_rails_fcc993a913; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_transfers
+    ADD CONSTRAINT fk_rails_fcc993a913 FOREIGN KEY (from_branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: barcodes account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.barcodes USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -669,6 +2597,20 @@ CREATE POLICY account_isolation ON public.branches USING (((current_setting('app
 
 
 --
+-- Name: brands account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.brands USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: categories account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.categories USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: events account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -676,10 +2618,52 @@ CREATE POLICY account_isolation ON public.events USING (((current_setting('app.b
 
 
 --
+-- Name: kit_components account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.kit_components USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: memberships account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY account_isolation ON public.memberships USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: price_list_items account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.price_list_items USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: price_lists account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.price_lists USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: product_imports account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.product_imports USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: product_units account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.product_units USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: products account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.products USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -697,10 +2681,91 @@ CREATE POLICY account_isolation ON public.sessions USING (((current_setting('app
 
 
 --
+-- Name: stock_adjustments account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_adjustments USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: stock_count_lines account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_count_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: stock_counts account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_counts USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: stock_levels account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_levels USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: stock_movements account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_movements USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: stock_transfer_lines account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_transfer_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: stock_transfers account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_transfers USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: tax_rates account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.tax_rates USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: units account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.units USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: barcodes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.barcodes ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: branches; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: brands; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.brands ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: categories; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: events; Type: ROW SECURITY; Schema: public; Owner: -
@@ -709,10 +2774,46 @@ ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: kit_components; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.kit_components ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: memberships; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.memberships ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: price_list_items; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.price_list_items ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: price_lists; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.price_lists ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: product_imports; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.product_imports ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: product_units; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.product_units ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: products; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: registers; Type: ROW SECURITY; Schema: public; Owner: -
@@ -727,12 +2828,72 @@ ALTER TABLE public.registers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: stock_adjustments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_adjustments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: stock_count_lines; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_count_lines ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: stock_counts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_counts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: stock_levels; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_levels ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: stock_movements; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: stock_transfer_lines; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_transfer_lines ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: stock_transfers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_transfers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tax_rates; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tax_rates ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: units; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925090401'),
+('20260925090400'),
+('20260925090300'),
+('20260925090200'),
+('20260925090100'),
+('20260925090000'),
 ('20260924100400'),
 ('20260924100300'),
 ('20260924100200'),

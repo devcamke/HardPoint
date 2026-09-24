@@ -1,0 +1,2 @@
+<% classes = { "counting" => "bg-navy-50 text-navy-700", "submitted" => "bg-safety-100 text-safety-800", "approved" => "bg-green-50 text-green-800", "cancelled" => "bg-concrete-200 text-steel-600" } %>
+<span class="badge <%= classes[count.status] %>"><%= count.status == "submitted" ? "Awaiting approval" : count.status.humanize %></span>

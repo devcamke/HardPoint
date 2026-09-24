@@ -3,6 +3,11 @@ module AccountTestHelper
   def branches(*) = Account.without_isolation { super }
   def memberships(*) = Account.without_isolation { super }
   def registers(*) = Account.without_isolation { super }
+
+  %i[ units tax_rates categories brands price_lists products product_units barcodes kit_components
+      price_list_items stock_levels stock_movements ].each do |fixture_set|
+    define_method(fixture_set) { |*args, **options| Account.without_isolation { super(*args, **options) } }
+  end
 end
 
 module AccountIntegrationTestHelper

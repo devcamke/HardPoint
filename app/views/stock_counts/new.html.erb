@@ -1,0 +1,23 @@
+<% content_for :title, "Start a stock take" %>
+
+<p class="text-sm"><%= link_to "← Stock takes", stock_counts_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Start a stock take</h1>
+
+<%= form_with model: @count, class: "card max-w-xl" do |form| %>
+  <%= render "shared/errors", model: @count %>
+  <div class="field">
+    <%= form.label :branch_id, "Branch", class: "label" %>
+    <%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %>
+  </div>
+  <div class="field">
+    <%= form.label :category_id, "Count", class: "label" %>
+    <%= form.collection_select :category_id, Current.account.categories.alphabetically, :id, :full_name, { include_blank: "Everything (full stock take)" }, class: "input" %>
+    <p class="hint mt-1">Pick a category for a quicker cycle count.</p>
+  </div>
+  <div class="field">
+    <%= form.label :note, class: "label" %>
+    <%= form.text_field :note, class: "input" %>
+  </div>
+  <%= form.submit "Start counting", class: "btn-primary" %>
+  <p class="hint mt-2">We note what the system expects right now. You can keep selling during the count; the difference is measured against this starting point.</p>
+<% end %>

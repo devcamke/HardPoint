@@ -1,0 +1,30 @@
+<% content_for :title, "Stock takes" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Stock</h1>
+  <% if current_membership.can_manage_stock? %>
+    <%= link_to "Start a stock take", new_stock_count_path, class: "btn-primary" %>
+  <% end %>
+</div>
+<%= render "stock/tabs" %>
+
+<div class="card">
+  <% if @counts.any? %>
+    <table class="table">
+      <thead><tr><th>Branch</th><th>Scope</th><th>Started</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @counts.each do |count| %>
+          <tr>
+            <td><%= link_to count.branch.name, count, class: "link" %></td>
+            <td><%= count.category&.name || "All products" %></td>
+            <td><%= l(count.created_at, format: :short) %> · <%= count.creator&.name %></td>
+            <td><%= render "stock_counts/status", count: count %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No stock takes yet. Count everything once a year, or one category at a time (a cycle count) every week.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

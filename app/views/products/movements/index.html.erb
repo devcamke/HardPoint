@@ -1,0 +1,7 @@
+<% content_for :title, "#{@product.name} stock history" %>
+
+<p class="text-sm"><%= link_to "← #{@product.name}", @product, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Stock history</h1>
+
+<div class="card"><%= render "stock_movements/table", movements: @movements, show_product: false %></div>
+<%= render "shared/pagination" %>

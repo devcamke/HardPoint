@@ -1,0 +1,35 @@
+acme_main_cement:
+  account: acme
+  branch: acme_main
+  product: acme_cement
+  quantity: 50
+
+acme_yard_cement:
+  account: acme
+  branch: acme_yard
+  product: acme_cement
+  quantity: 10
+
+acme_main_nails:
+  account: acme
+  branch: acme_main
+  product: acme_nails
+  quantity: 25.5
+
+acme_main_screws:
+  account: acme
+  branch: acme_main
+  product: acme_screws
+  quantity: 1000
+
+acme_main_pipe:
+  account: acme
+  branch: acme_main
+  product: acme_pipe
+  quantity: 3
+
+bolt_main_hammer:
+  account: bolt
+  branch: bolt_main
+  product: bolt_hammer
+  quantity: 5

@@ -1,0 +1,32 @@
+<% content_for :title, "Transfers" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Stock</h1>
+  <% if current_membership.can_manage_stock? %>
+    <%= link_to "New transfer", new_stock_transfer_path, class: "btn-primary" %>
+  <% end %>
+</div>
+<%= render "stock/tabs" %>
+
+<div class="card">
+  <% if @transfers.any? %>
+    <table class="table">
+      <thead><tr><th>#</th><th>From</th><th>To</th><th>Lines</th><th>Sent</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @transfers.each do |transfer| %>
+          <tr>
+            <td><%= link_to "##{transfer.id}", transfer, class: "link" %></td>
+            <td><%= transfer.from_branch.name %></td>
+            <td><%= transfer.to_branch.name %></td>
+            <td><%= transfer.lines.size %></td>
+            <td><%= l(transfer.sent_at, format: :short) %> · <%= transfer.sender&.name %></td>
+            <td><%= render "stock_transfers/status", transfer: transfer %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No transfers yet. Use one to move stock between branches.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

@@ -1,0 +1,10 @@
+Good morning. These products at <%= @account.name %> are at or below their reorder level.
+<% @low_stock.each do |branch, products| %>
+
+<%= branch.name %>
+<% products.each do |product| %>
+- <%= product.name %> (<%= product.sku %>): <%= quantity(product.stock_quantity, product.unit) %> on hand, reorder at <%= quantity(product.reorder_level, product.unit) %>
+<% end %>
+<% end %>
+
+Reorder list: <%= reorder_list_url(subdomain: @account.subdomain) %>

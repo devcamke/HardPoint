@@ -1,0 +1,7 @@
+<% if @previous_page || @next_page %>
+  <nav class="mt-4 flex items-center justify-between text-sm">
+    <%= @previous_page ? link_to("← Previous", request.query_parameters.merge(page: @previous_page), class: "link") : tag.span %>
+    <span class="text-steel-600">Page <%= current_page %></span>
+    <%= @next_page ? link_to("Next →", request.query_parameters.merge(page: @next_page), class: "link") : tag.span %>
+  </nav>
+<% end %>

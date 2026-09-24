@@ -25,6 +25,7 @@ class Signup
         @account.track_event "created"
         @account.memberships.create!(user: owner, role: :owner)
         @account.branches.create!(name: "Main branch")
+        @account.create_catalogue_defaults
       end
     end
 

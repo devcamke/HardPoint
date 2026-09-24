@@ -1,0 +1,4 @@
+sku,name,barcode,category,brand,unit,price,cost,tax_rate,reorder_level,stock,active
+CEM-50,Portland cement 50kg,6161100420017,Building materials,Bamburi,Bag,850.00,720.00,Standard VAT,20,120,yes
+NAIL-3,Wire nails 3 inch,,Fasteners,,Kilogram,250.00,180.00,Standard VAT,10,45.5,yes
+PVC-2,PVC pipe 2 inch 6m,,Plumbing,,Piece,1200.00,900.00,,5,30,yes

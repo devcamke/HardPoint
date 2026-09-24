@@ -1,0 +1,27 @@
+<section class="card">
+  <h2 class="mb-1 text-lg font-semibold">Special prices</h2>
+  <p class="hint mb-3">Customers get the lowest price that applies to them.</p>
+  <% items = product.price_list_items.includes(:price_list).sort_by { [ _1.label, _1.min_quantity ] } %>
+  <% if items.any? %>
+    <table class="table mb-4">
+      <tbody>
+        <% items.each do |item| %>
+          <tr>
+            <td><%= item.label %></td>
+            <td><%= item.min_quantity > 1 ? "#{quantity(item.min_quantity, product.unit)} or more" : "Any quantity" %></td>
+            <td class="text-right tabular-nums"><%= money(item.price_cents) %></td>
+            <td class="text-right"><%= button_to "Remove", product_price_path(product, item), method: :delete, class: "link text-xs" if current_membership.can_manage_catalogue? %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+  <% if current_membership.can_manage_catalogue? %>
+    <%= form_with model: PriceListItem.new, url: product_prices_path(product), class: "flex flex-wrap items-end gap-2" do |form| %>
+      <div><%= form.label :price_list_id, "For", class: "label" %><%= form.collection_select :price_list_id, Current.account.price_lists.alphabetically, :id, :name, { include_blank: "Everyone (retail)" }, class: "input" %></div>
+      <div class="w-24"><%= form.label :min_quantity, "From qty", class: "label" %><%= form.number_field :min_quantity, value: 1, step: "any", min: 0, class: "input" %></div>
+      <div class="w-32"><%= form.label :price, "Unit price", class: "label" %><%= form.number_field :price, required: true, step: "0.01", min: 0, class: "input" %></div>
+      <%= form.submit "Add", class: "btn-secondary" %>
+    <% end %>
+  <% end %>
+</section>

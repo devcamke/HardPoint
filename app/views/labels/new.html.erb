@@ -1,0 +1,36 @@
+<% content_for :title, "Print labels" %>
+
+<p class="text-sm"><%= link_to "← Products", products_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Print labels</h1>
+
+<%= form_with url: labels_path, method: :get, class: "grid gap-6 lg:grid-cols-3", data: { turbo: false }, html: { target: "_blank" } do |form| %>
+  <div class="card lg:col-span-2">
+    <% if @products.any? %>
+      <table class="table">
+        <thead><tr><th>Product</th><th>Barcode</th><th class="text-right">Price</th><th class="text-right">Copies</th></tr></thead>
+        <tbody>
+          <% @products.each do |product| %>
+            <tr>
+              <td><%= product.name %></td>
+              <td class="font-mono text-xs"><%= product.primary_barcode %></td>
+              <td class="text-right"><%= money(product.price_cents) %></td>
+              <td class="text-right"><%= number_field_tag "copies[#{product.id}]", 1, min: 0, max: 500, class: "input w-20 py-1 text-right", "aria-label": "Copies of #{product.name}" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <% if @products.size == LabelsController::MAX_PRODUCTS %><p class="hint mt-2">Showing the first <%= LabelsController::MAX_PRODUCTS %>. Narrow your search to print others.</p><% end %>
+    <% else %>
+      <p class="hint">No products to label. Search or filter on the products page first.</p>
+    <% end %>
+  </div>
+
+  <div class="card self-start">
+    <p class="label">Label stock</p>
+    <% LabelsController::FORMATS.each do |value, description| %>
+      <label class="mb-2 flex items-center gap-2 text-sm"><%= radio_button_tag :format, value, value == "a4", class: "accent-safety-500" %> <%= description %></label>
+    <% end %>
+    <%= form.submit "Open print view", class: "btn-primary mt-3 w-full" %>
+    <p class="hint mt-2">Opens in a new tab. Print at 100% scale with margins set to “None”.</p>
+  </div>
+<% end %>

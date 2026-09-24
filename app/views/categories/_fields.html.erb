@@ -1,0 +1,8 @@
+<div class="field">
+  <%= form.label :name, class: "label" %>
+  <%= form.text_field :name, required: true, class: "input" %>
+</div>
+<div class="field">
+  <%= form.label :parent_id, "Inside category (optional)", class: "label" %>
+  <%= form.collection_select :parent_id, Current.account.categories.alphabetically.excluding(form.object), :id, :name, { include_blank: "None" }, class: "input" %>
+</div>

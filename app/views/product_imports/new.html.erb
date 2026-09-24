@@ -1,0 +1,37 @@
+<% content_for :title, "Import products" %>
+
+<p class="text-sm"><%= link_to "← Imports", product_imports_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Import products</h1>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <%= form_with model: @import, class: "card lg:col-span-2", data: { turbo: false } do |form| %>
+    <%= render "shared/errors", model: @import %>
+
+    <div class="field">
+      <%= form.label :file, "Spreadsheet (CSV)", class: "label" %>
+      <%= form.file_field :file, required: true, accept: ".csv,text/csv", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-navy-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-navy-900 hover:file:bg-navy-50" %>
+      <p class="hint mt-1">In Excel or Google Sheets use File → Save as / Download → CSV. Up to 10 MB (about 50,000 products).</p>
+    </div>
+
+    <div class="field">
+      <%= form.label :branch_id, "Stock column is the quantity on hand at", class: "label" %>
+      <%= form.collection_select :branch_id, branches_for_selection, :id, :name, { include_blank: "Ignore the stock column" }, class: "input" %>
+    </div>
+
+    <%= form.submit "Upload and check", class: "btn-primary" %>
+    <p class="hint mt-2">Nothing changes until you've seen the check and confirmed.</p>
+  <% end %>
+
+  <div class="card self-start text-sm">
+    <h2 class="mb-2 font-semibold">Columns</h2>
+    <p class="mb-2"><strong>name</strong> and <strong>price</strong> are required. Optional: sku, barcode, category, brand, unit, cost, tax_rate, reorder_level, stock, active.</p>
+    <ul class="mb-3 list-disc space-y-1 pl-5 text-steel-600">
+      <li>Rows with an existing SKU update that product; others add new products.</li>
+      <li>New categories and brands are created for you.</li>
+      <li>Units and tax rates must already exist.</li>
+      <li>Products without a barcode get an in-store one.</li>
+    </ul>
+    <%= link_to "Download a template", "/product-import-template.csv", class: "link", download: true %>
+    · <%= link_to "Export current products", products_path(format: :csv), class: "link", data: { turbo: false } %>
+  </div>
+</div>

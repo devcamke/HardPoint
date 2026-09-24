@@ -1,0 +1,39 @@
+<% content_for :title, resource_title %>
+
+<%= render "settings/back" %>
+<h1 class="mt-2 mb-6 text-3xl font-bold"><%= resource_title %></h1>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="card lg:col-span-2">
+    <% if @records.any? %>
+      <table class="table">
+        <thead><tr><%= render "columns", record: nil %><th></th></tr></thead>
+        <tbody>
+          <% @records.each do |record| %>
+            <tr id="<%= dom_id(record) %>">
+              <%= render "columns", record: record %>
+              <td class="text-right">
+                <% if current_membership.can_manage_catalogue? %>
+                  <%= link_to "Edit", { action: :edit, id: record }, class: "link" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint">None yet.</p>
+    <% end %>
+  </div>
+
+  <% if current_membership.can_manage_catalogue? %>
+    <div class="card self-start">
+      <h2 class="mb-4 font-semibold">Add <%= resource_title.singularize.downcase %></h2>
+      <%= form_with model: @record, url: { action: :create } do |form| %>
+        <%= render "shared/errors", model: @record %>
+        <%= render "fields", form: form %>
+        <%= form.submit "Add", class: "btn-primary" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

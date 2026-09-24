@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Labels · <%= Current.account.name %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #102A43; }
+      .toolbar { padding: 12px 16px; background: #102A43; color: #fff; display: flex; gap: 12px; align-items: center; font-size: 14px; }
+      .toolbar button { background: #F76707; color: #102A43; border: 0; border-radius: 6px; padding: 8px 14px; font-weight: 700; cursor: pointer; }
+      .label { overflow: hidden; display: flex; flex-direction: column; padding: 2.5mm 3mm; }
+      .label .shop { font-size: 6.5pt; color: #5B6573; text-transform: uppercase; letter-spacing: .04em; }
+      .label .name { font-size: 8.5pt; font-weight: 600; line-height: 1.15; max-height: 2.3em; overflow: hidden; }
+      .label .price { font-size: 13pt; font-weight: 800; margin-top: auto; }
+      .label .price small { font-size: 7pt; font-weight: 500; color: #5B6573; }
+      .label .barcode { display: block; width: 100%; height: 9mm; }
+      .label .code { font-family: ui-monospace, monospace; font-size: 6.5pt; text-align: center; letter-spacing: .08em; }
+
+      .a4 { width: 210mm; padding: 15mm 0 0 0; display: grid; grid-template-columns: repeat(3, 70mm); grid-auto-rows: 37mm; }
+      .a4 .label { width: 70mm; height: 37mm; }
+      .roll .label { width: 50mm; height: 25mm; padding: 1.5mm 2mm; page-break-after: always; break-after: page; }
+      .roll .label .price { font-size: 10pt; }
+      .roll .label .barcode { height: 6mm; }
+
+      @media screen { .a4, .roll { margin: 16px; } .label { outline: 1px dashed #D6D3CC; } }
+      @media print { .toolbar { display: none; } @page { margin: 0; <%= "size: 50mm 25mm;" if @format == "roll" %> } }
+    </style>
+  </head>
+  <body>
+    <%= yield %>
+  </body>
+</html>

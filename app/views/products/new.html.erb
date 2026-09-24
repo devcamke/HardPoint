@@ -1,0 +1,6 @@
+<% content_for :title, "New product" %>
+
+<p class="text-sm"><%= link_to "← Products", products_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">New product</h1>
+
+<%= render "form", product: @product %>

@@ -1,0 +1,31 @@
+<% content_for :title, "Reorder list" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Stock</h1>
+  <%= render "shared/branch_picker" %>
+</div>
+<%= render "stock/tabs" %>
+
+<p class="hint mb-4">Products at or below their reorder level at <%= selected_branch&.name %>, most urgent first. Owners, managers and stock clerks also get this list by email each morning.</p>
+
+<div class="card">
+  <% if @products.any? %>
+    <table class="table">
+      <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th class="text-right">On hand</th><th class="text-right">Reorder at</th><th class="text-right">Short by</th></tr></thead>
+      <tbody>
+        <% @products.each do |product| %>
+          <tr>
+            <td><%= link_to product.name, product, class: "font-medium hover:text-safety-700" %></td>
+            <td class="font-mono text-xs"><%= product.sku %></td>
+            <td><%= product.category&.name %></td>
+            <td class="text-right tabular-nums <%= "text-red-700" if product.stock_quantity <= 0 %>"><%= quantity(product.stock_quantity, product.unit) %></td>
+            <td class="text-right tabular-nums"><%= quantity(product.reorder_level, product.unit) %></td>
+            <td class="text-right tabular-nums font-semibold"><%= quantity(product.reorder_level - product.stock_quantity, product.unit) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Nothing is below its reorder level here.</p>
+  <% end %>
+</div>

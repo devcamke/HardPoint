@@ -1,0 +1,11 @@
+acme_cement_contractor:
+  account: acme
+  price_list: acme_contractor
+  product: acme_cement
+  price_cents: 76000
+
+acme_cement_bulk:
+  account: acme
+  product: acme_cement
+  min_quantity: 50
+  price_cents: 77000

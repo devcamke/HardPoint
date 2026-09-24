@@ -1,0 +1,6 @@
+<% if record %>
+  <td class="font-medium"><%= record.name %> <%= tag.span("Default", class: "badge") if record.default? %></td>
+  <td><%= number_to_percentage(record.rate, precision: 2, strip_insignificant_zeros: true) %></td>
+<% else %>
+  <th>Tax rate</th><th>Rate</th>
+<% end %>

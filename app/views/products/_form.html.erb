@@ -1,0 +1,89 @@
+<%= form_with model: product, class: "grid gap-6 lg:grid-cols-3" do |form| %>
+  <div class="card lg:col-span-2">
+    <%= render "shared/errors", model: product %>
+
+    <div class="field">
+      <%= form.label :name, class: "label" %>
+      <%= form.text_field :name, required: true, autofocus: product.new_record?, class: "input" %>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="field">
+        <%= form.label :sku, "SKU (leave blank to generate)", class: "label" %>
+        <%= form.text_field :sku, class: "input font-mono uppercase" %>
+      </div>
+      <% if product.new_record? %>
+        <div class="field">
+          <%= form.label :barcode, "Barcode on the packaging (optional)", class: "label" %>
+          <%= form.text_field :barcode, value: params.dig(:product, :barcode), inputmode: "numeric", class: "input font-mono" %>
+        </div>
+      <% end %>
+      <div class="field">
+        <%= form.label :category_id, class: "label" %>
+        <%= form.collection_select :category_id, Current.account.categories.alphabetically, :id, :full_name, { include_blank: "None" }, class: "input" %>
+      </div>
+      <div class="field">
+        <%= form.label :brand_id, class: "label" %>
+        <%= form.collection_select :brand_id, Current.account.brands.alphabetically, :id, :name, { include_blank: "None" }, class: "input" %>
+      </div>
+      <div class="field">
+        <%= form.label :unit_id, "Sold by", class: "label" %>
+        <%= form.collection_select :unit_id, Current.account.units.alphabetically, :id, :name, {}, class: "input" %>
+      </div>
+      <div class="field">
+        <%= form.label :tax_rate_id, "Tax", class: "label" %>
+        <%= form.collection_select :tax_rate_id, Current.account.tax_rates.alphabetically, :id, :to_s, { include_blank: "Shop default" }, class: "input" %>
+      </div>
+      <div class="field">
+        <%= form.label :price, "Selling price (#{Current.account.currency})", class: "label" %>
+        <%= form.number_field :price, value: plain_number(product.price), required: true, step: "0.01", min: 0, class: "input" %>
+      </div>
+      <% if current_membership.can_see_costs? %>
+        <div class="field">
+          <%= form.label :cost, "Cost price (#{Current.account.currency})", class: "label" %>
+          <%= form.number_field :cost, value: (plain_number(product.cost) unless product.new_record? && product.cost_cents.zero?), step: "0.01", min: 0, class: "input" %>
+        </div>
+      <% end %>
+      <div class="field">
+        <%= form.label :reorder_level, class: "label" %>
+        <%= form.number_field :reorder_level, value: plain_number(product.reorder_level), step: "any", min: 0, class: "input" %>
+        <p class="hint mt-1">Flag as low stock at or below this.</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <%= form.label :description, class: "label" %>
+      <%= form.text_area :description, rows: 3, class: "input" %>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <div class="card space-y-3">
+      <% [ [ :active, "Active", "Inactive products are hidden from the till" ],
+           [ :track_stock, "Track stock", "Untick for services such as cutting or delivery" ],
+           [ :kit, "Kit", "Sold as one item, made of other products" ],
+           [ :serialized, "Serial numbers", "Record a serial number for each one sold (power tools, generators)" ] ].each do |attribute, label, hint| %>
+        <div class="flex items-start gap-2">
+          <%= form.check_box attribute, class: "mt-1 size-4 accent-safety-500" %>
+          <div>
+            <%= form.label attribute, label, class: "text-sm font-medium text-navy-800" %>
+            <p class="hint"><%= hint %></p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="card">
+      <%= form.label :image, "Photo", class: "label" %>
+      <% if product.image.attached? %>
+        <%= image_tag product.image, class: "mb-3 aspect-square w-32 rounded object-cover" %>
+      <% end %>
+      <%= form.file_field :image, accept: "image/png,image/jpeg,image/webp", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-navy-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-navy-900 hover:file:bg-navy-50" %>
+    </div>
+
+    <div class="flex gap-3">
+      <%= form.submit product.new_record? ? "Add product" : "Save product", class: "btn-primary" %>
+      <%= link_to "Cancel", product.persisted? ? product : products_path, class: "btn-secondary" %>
+    </div>
+  </div>
+<% end %>

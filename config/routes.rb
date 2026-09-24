@@ -36,6 +36,43 @@ Rails.application.routes.draw do
     resources :registers, except: :show
     resources :memberships, except: :show
     resources :events, only: :index
+    resource :settings, only: :show
+
+    resources :categories, :brands, :units, :tax_rates, :price_lists, except: :show
+
+    resources :products do
+      scope module: :products do
+        resources :units, only: %i[ create destroy ]
+        resources :barcodes, only: %i[ create destroy ]
+        resources :prices, only: %i[ create destroy ]
+        resources :components, only: %i[ create destroy ]
+        resources :movements, only: :index
+      end
+    end
+    resources :product_imports, only: %i[ index new create show ] do
+      resource :run, only: :create, module: :product_imports
+    end
+    resource :labels, only: %i[ new show ]
+
+    resource :stock, only: :show, controller: :stock
+    resources :stock_adjustments, only: %i[ new create ]
+    resources :stock_movements, only: :index
+    resources :stock_transfers, only: %i[ index new create show ] do
+      scope module: :stock_transfers do
+        resource :receipt, only: :create
+        resource :cancellation, only: :create
+      end
+    end
+    resources :stock_counts, only: %i[ index new create show ] do
+      scope module: :stock_counts do
+        resources :lines, only: :update
+        resource :scan, only: :create
+        resource :submission, only: :create
+        resource :approval, only: :create
+        resource :cancellation, only: :create
+      end
+    end
+    resource :reorder_list, only: :show
     root "dashboards#show"
   end
 

@@ -1,0 +1,15 @@
+acme_building:
+  account: acme
+  name: Building materials
+
+acme_fasteners:
+  account: acme
+  name: Fasteners
+
+acme_plumbing:
+  account: acme
+  name: Plumbing
+
+bolt_tools:
+  account: bolt
+  name: Hand tools

@@ -1,0 +1,6 @@
+<% if record %>
+  <td class="font-medium"><%= record.name %></td>
+  <td><%= pluralize(record.items.size, "product price") %></td>
+<% else %>
+  <th>Price list</th><th>Prices</th>
+<% end %>
