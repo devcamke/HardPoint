@@ -1,0 +1,40 @@
+<li id="<%= dom_id(line) %>" class="px-4 py-2.5">
+  <div class="flex items-start justify-between gap-2">
+    <div class="min-w-0">
+      <p class="truncate font-medium"><%= line.description %></p>
+      <p class="text-xs text-steel-600"><%= money(line.unit_price_cents) %> / <%= line.unit.abbreviation %>
+        <%= "· −#{money(line.discount_cents)}" if line.discount_cents.positive? %></p>
+    </div>
+    <p class="shrink-0 font-semibold tabular-nums"><%= money(line.total_cents) %></p>
+  </div>
+
+  <div class="mt-1.5 flex flex-wrap items-center gap-2">
+    <%= form_with model: line, url: pos_line_path(line), method: :patch, class: "flex items-center gap-1", data: { controller: "auto-submit" } do |form| %>
+      <%= form.number_field :quantity, value: plain_number(line.quantity), step: (line.product_unit || !line.product.unit.fractional? ? 1 : "any"), min: 0,
+            class: "input w-20 py-1 text-right", "aria-label": "Quantity of #{line.product.name}", data: { action: "change->auto-submit#submit" } %>
+      <% if line.product.product_units.any? %>
+        <%= form.select :product_unit_id, [ [ line.product.unit.abbreviation, "" ] ] + line.product.product_units.map { [ _1.unit.name.downcase, _1.id ] },
+              {}, class: "input w-auto py-1", "aria-label": "Unit", data: { action: "change->auto-submit#submit" } %>
+      <% else %>
+        <span class="text-sm text-steel-600"><%= line.unit.abbreviation %></span>
+      <% end %>
+    <% end %>
+
+    <% if line.product.serialized? %>
+      <%= form_with model: line, url: pos_line_path(line), method: :patch, class: "flex", data: { controller: "auto-submit" } do |form| %>
+        <%= form.text_field :serial_number, placeholder: "Serial number", class: "input w-36 py-1 font-mono text-xs #{"border-red-400" if line.serial_number.blank?}",
+              "aria-label": "Serial number", data: { action: "change->auto-submit#submit" } %>
+      <% end %>
+    <% end %>
+
+    <details class="ml-auto">
+      <summary class="link cursor-pointer list-none text-xs">Discount</summary>
+      <%= form_with model: line, url: pos_line_path(line), method: :patch, class: "mt-1 flex gap-1" do |form| %>
+        <%= form.number_field :discount, value: (plain_number(line.discount) if line.discount_cents.positive?), step: "0.01", min: 0, placeholder: "Amount", class: "input w-24 py-1", "aria-label": "Line discount" %>
+        <%= password_field_tag :approval_pin, nil, inputmode: "numeric", placeholder: "Mgr PIN", class: "input w-20 py-1", "aria-label": "Manager approval PIN", autocomplete: "off" %>
+        <%= form.submit "OK", class: "btn-secondary py-1" %>
+      <% end %>
+    </details>
+    <%= button_to pos_line_path(line), method: :delete, class: "text-steel-500 hover:text-red-700", title: "Remove", "aria-label": "Remove #{line.product.name}" do %>✕<% end %>
+  </div>
+</li>

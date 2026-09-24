@@ -1,0 +1,17 @@
+<% content_for :title, "Choose a till" %>
+
+<h1 class="mb-2 text-3xl font-bold">Which till is this?</h1>
+<p class="hint mb-6">This device will remember it. You can change it later from here.</p>
+
+<% if @registers.any? %>
+  <div class="grid gap-4 sm:grid-cols-3">
+    <% @registers.each do |register| %>
+      <%= button_to pos_till_path, params: { register_id: register.id }, class: "card block w-full cursor-pointer text-left hover:border-safety-300" do %>
+        <p class="text-lg font-semibold"><%= register.name %></p>
+        <p class="hint"><%= register.branch.name %><%= " · shift open" if register.open_shift %></p>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card"><p class="hint">This shop has no tills yet. <%= link_to "Add one in Settings", registers_path, class: "link" %>.</p></div>
+<% end %>

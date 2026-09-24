@@ -1,0 +1,24 @@
+<% content_for :title, "Shifts" %>
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Shifts</h1>
+  <%= link_to "Go to till", pos_path, class: "btn-primary" %>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead><tr><th>Till</th><th>Opened</th><th>Closed</th><th class="text-right">Variance</th><th>Status</th></tr></thead>
+    <tbody>
+      <% @shifts.each do |shift| %>
+        <tr>
+          <td><%= link_to "#{shift.register.name} · #{shift.branch.name}", shift, class: "link" %></td>
+          <td><%= l(shift.opened_at, format: :short) %> · <%= shift.opened_by.name %></td>
+          <td><%= shift.closed_at ? "#{l(shift.closed_at, format: :short)} · #{shift.closed_by&.name}" : "—" %></td>
+          <td class="text-right tabular-nums <%= "text-red-700" if shift.variance_cents&.negative? %>"><%= shift.closed? ? money(shift.variance_cents) : "" %></td>
+          <td><span class="badge <%= shift.open? ? "bg-green-50 text-green-800" : "bg-concrete-200 text-steel-600" %>"><%= shift.status.humanize %></span></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<%= render "shared/pagination" %>

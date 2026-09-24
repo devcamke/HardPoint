@@ -45,6 +45,6 @@ class BranchesController < ApplicationController
     end
 
     def branch_params
-      params.expect(branch: %i[ name address phone ])
+      params.expect(branch: %i[ name code address phone ])
     end
 end

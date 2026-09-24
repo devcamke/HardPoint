@@ -1,0 +1,13 @@
+Thank you for shopping at <%= @account.name %>.
+
+Receipt <%= @sale.receipt_number %> · <%= l(@sale.completed_at.in_time_zone(@account.time_zone), format: :long) %> · <%= @sale.branch.name %>
+
+<% @sale.lines.includes(:product, product_unit: :unit).each do |line| %>
+<%= line.description %>: <%= quantity(line.quantity, line.unit) %> × <%= money(line.unit_price_cents, currency: @account.currency) %> = <%= money(line.total_cents, currency: @account.currency) %>
+<% end %>
+<% if @sale.discount_cents.positive? %>Discount: -<%= money(@sale.discount_cents, currency: @account.currency) %>
+<% end %>
+Total: <%= money(@sale.total_cents, currency: @account.currency) %> (incl. tax <%= money(@sale.tax_cents, currency: @account.currency) %>)
+Paid: <%= @sale.payments.map { "#{_1.label} #{money(_1.amount_cents, currency: @account.currency)}" }.join(", ") %>
+
+<%= @account.receipt_footer %>

@@ -1,0 +1,54 @@
+<div id="cart" class="flex min-h-0 flex-1 flex-col">
+  <div class="flex items-center justify-between gap-2 border-b border-concrete-200 px-4 py-3">
+    <div class="min-w-0">
+      <p class="text-xs uppercase tracking-wide text-steel-600">Customer</p>
+      <p class="truncate font-semibold"><%= sale.customer&.name || "Walk-in" %>
+        <%= tag.span(sale.customer.price_list.name, class: "badge ml-1") if sale.customer&.price_list %></p>
+    </div>
+    <details class="relative">
+      <summary class="btn-secondary cursor-pointer list-none py-1.5">Change</summary>
+      <div class="absolute right-0 z-10 mt-2 w-80 rounded-lg border border-concrete-200 bg-white p-3 shadow-lg">
+        <%= form_with url: pos_customers_path, method: :get, data: { turbo_frame: "customer_results", controller: "auto-submit" } do |form| %>
+          <%= form.search_field :query, placeholder: "Name or phone", class: "input py-1.5", "aria-label": "Find customer", data: { action: "input->auto-submit#debouncedSubmit" } %>
+        <% end %>
+        <%= turbo_frame_tag "customer_results", src: pos_customers_path, loading: :lazy %>
+        <% if sale.customer %>
+          <%= button_to "Walk-in customer", pos_customer_path, method: :patch, params: { customer_id: "" }, class: "link mt-2 text-sm" %>
+        <% end %>
+      </div>
+    </details>
+  </div>
+
+  <div class="min-h-0 flex-1 overflow-y-auto">
+    <% if sale.lines.any? %>
+      <ul class="divide-y divide-concrete-100">
+        <% sale.lines.includes(product: [ :unit, :product_units ], product_unit: :unit).each do |line| %>
+          <%= render "pos/line", line: line %>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="p-8 text-center text-steel-600">Scan or tap products to start a sale.</p>
+    <% end %>
+  </div>
+
+  <div class="border-t border-concrete-200 px-4 py-3 text-sm">
+    <div class="flex justify-between"><span>Items</span><span class="tabular-nums"><%= quantity(sale.item_count) %></span></div>
+    <div class="flex justify-between"><span>Subtotal</span><span class="tabular-nums"><%= money(sale.subtotal_cents) %></span></div>
+    <details class="group">
+      <summary class="flex cursor-pointer list-none justify-between">
+        <span class="link">Discount</span><span class="tabular-nums"><%= sale.discount_cents.positive? ? "−#{money(sale.discount_cents)}" : "—" %></span>
+      </summary>
+      <%= form_with url: pos_discount_path, method: :patch, class: "mt-2 flex gap-2" do |form| %>
+        <%= form.text_field :discount, value: (plain_number(sale.discount) if sale.discount_cents.positive?), placeholder: "500 or 10%", class: "input py-1", "aria-label": "Sale discount" %>
+        <%= form.password_field :approval_pin, inputmode: "numeric", placeholder: "Manager PIN", class: "input w-32 py-1", "aria-label": "Manager approval PIN", autocomplete: "off" %>
+        <%= form.submit "Apply", class: "btn-secondary py-1" %>
+      <% end %>
+    </details>
+    <div class="flex justify-between text-steel-600"><span>incl. tax</span><span class="tabular-nums"><%= money(sale.tax_cents) %></span></div>
+    <div class="mt-1 flex items-baseline justify-between text-2xl font-extrabold"><span>Total</span><span class="tabular-nums"><%= money(sale.total_cents) %></span></div>
+  </div>
+
+  <% if sale.lines.any? %>
+    <%= render "pos/payment", sale: sale %>
+  <% end %>
+</div>

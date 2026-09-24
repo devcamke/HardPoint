@@ -28,6 +28,7 @@ Rails.application.routes.draw do
       resource :profile, only: :show
       resource :two_factor, only: %i[ new create destroy ]
       resource :recovery_codes, only: :show
+      resource :approval_pin, only: %i[ edit update ]
       resource :pin, only: %i[ edit update destroy ]
     end
     resources :passwords, param: :token
@@ -73,6 +74,39 @@ Rails.application.routes.draw do
       end
     end
     resource :reorder_list, only: :show
+
+    # The till
+    resource :pos, only: :show, controller: :pos
+    namespace :pos do
+      resource :till, only: %i[ new create ]
+      resources :products, only: :index
+      resources :customers, only: :index
+      resource :customer, only: :update
+      resources :lines, only: %i[ create update destroy ]
+      resource :discount, only: :update
+      resources :payments, only: %i[ create destroy ]
+      resource :parking, only: :create
+      resources :parked_sales, only: :index
+      resource :discard, only: :create
+    end
+
+    resources :shifts, only: %i[ index show new create ] do
+      scope module: :shifts do
+        resources :cash_movements, only: %i[ new create ]
+        resource :closing, only: %i[ new create ]
+      end
+    end
+    resources :sales, only: %i[ index show ] do
+      scope module: :sales do
+        resource :receipt, only: :show
+        resource :receipt_email, only: :create
+        resource :recall, only: :create
+        resource :void, only: %i[ new create ]
+        resources :returns, only: %i[ new create ]
+      end
+    end
+    resources :returns, only: %i[ index show ], controller: :sale_returns
+    resources :customers, except: :destroy
     root "dashboards#show"
   end
 

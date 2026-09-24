@@ -1,0 +1,62 @@
+<% content_for :title, "Shift report" %>
+
+<div class="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
+  <div>
+    <p class="text-sm"><%= link_to "← Shifts", shifts_path, class: "link" %></p>
+    <h1 class="mt-2 text-3xl font-bold"><%= @shift.open? ? "X report" : "Z report" %> <span class="badge <%= @shift.open? ? "bg-green-50 text-green-800" : "bg-concrete-200 text-steel-600" %>"><%= @shift.status.humanize %></span></h1>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <button type="button" class="btn-secondary" onclick="window.print()">Print</button>
+    <% if @shift.open? %>
+      <%= link_to "Cash drop / payout", new_shift_cash_movement_path(@shift), class: "btn-secondary" %>
+      <%= link_to "Back to till", pos_path, class: "btn-secondary" %>
+      <%= link_to "Close shift", new_shift_closing_path(@shift), class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card mx-auto max-w-xl font-mono text-sm print:border-0 print:shadow-none">
+  <p class="text-center font-sans text-lg font-bold"><%= Current.account.name %></p>
+  <p class="text-center"><%= @shift.branch.name %> · <%= @shift.register.name %></p>
+  <p class="mb-3 text-center"><%= @shift.open? ? "X report (shift still open)" : "Z report" %> · printed <%= l(Time.current, format: :short) %></p>
+
+  <% row = ->(label, value, strong: false) { tag.div(class: class_names("flex justify-between", "font-bold" => strong)) { tag.span(label) + tag.span(value, class: "tabular-nums") } } %>
+  <%= row.("Opened", "#{l(@shift.opened_at, format: :short)} #{@shift.opened_by.name}") %>
+  <%= row.("Closed", "#{l(@shift.closed_at, format: :short)} #{@shift.closed_by&.name}") if @shift.closed? %>
+
+  <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Sales</p>
+  <%= row.("Sales", @report.sales_count) %>
+  <%= row.("Voided", @report.voided_count) %>
+  <%= row.("Gross", money(@report.gross_cents)) %>
+  <%= row.("Discounts", money(@report.discount_cents)) %>
+  <%= row.("Net sales", money(@report.net_cents), strong: true) %>
+  <%= row.("of which tax", money(@report.tax_cents)) %>
+
+  <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Takings</p>
+  <% Payment::TENDERS.each do |tender| %>
+    <%= row.(tender.humanize, money(@report.takings_by_tender.fetch(tender, 0))) %>
+  <% end %>
+
+  <% if @report.returns_count.positive? %>
+    <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Refunds (<%= @report.returns_count %>)</p>
+    <% @report.refunds_by_method.each do |method, cents| %>
+      <%= row.(method.humanize, "−#{money(cents)}") %>
+    <% end %>
+  <% end %>
+
+  <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Cash drawer</p>
+  <%= row.("Opening float", money(@shift.opening_float_cents)) %>
+  <%= row.("Cash sales", money(@shift.cash_sales_cents)) %>
+  <%= row.("Cash refunds", "−#{money(@shift.cash_refunds_cents)}") if @shift.cash_refunds_cents.positive? %>
+  <% @report.cash_movements.each do |movement| %>
+    <%= row.("#{movement.kind.humanize}: #{movement.reason}", "#{movement.outgoing? ? "−" : "+"}#{money(movement.amount_cents)}") %>
+  <% end %>
+  <%= row.("Expected in drawer", money(@report.expected_cash_cents), strong: true) %>
+  <% if @shift.closed? %>
+    <%= row.("Counted", money(@shift.counted_cash_cents), strong: true) %>
+    <div class="flex justify-between font-bold <%= @shift.variance_cents.negative? ? "text-red-700" : (@shift.variance_cents.positive? ? "text-green-700" : "") %>">
+      <span><%= @shift.variance_cents.negative? ? "Short" : (@shift.variance_cents.positive? ? "Over" : "Balanced") %></span><span class="tabular-nums"><%= money(@shift.variance_cents) %></span>
+    </div>
+    <%= tag.p("Note: #{@shift.note}", class: "mt-2") if @shift.note.present? %>
+  <% end %>
+</div>

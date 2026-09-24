@@ -5,6 +5,11 @@ class Register < ApplicationRecord
 
   belongs_to :account, default: -> { Current.account }
   belongs_to :branch
+  has_many :shifts, dependent: :restrict_with_error
+
+  def open_shift
+    shifts.open.first
+  end
 
   validates :name, presence: true, uniqueness: { scope: :branch_id }
   validate :branch_belongs_to_account

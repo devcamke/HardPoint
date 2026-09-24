@@ -14,6 +14,12 @@ module EventsHelper
     in [ "Membership", "destroyed" ] then "removed #{subject}'s access"
     in [ "Membership", "pin_set" ] then "set #{whose(event)} till PIN"
     in [ "Membership", "pin_removed" ] then "removed #{whose(event)} till PIN"
+    in [ "Shift", "opened" ] then "opened a shift on #{subject} with #{money(event.particulars["opening_float"])} float"
+    in [ "Shift", "closed" ] then "closed the shift on #{subject}: counted #{money(event.particulars["counted"])}, #{variance_words(event.particulars["variance"])}"
+    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
+    in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"
+    in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{event.particulars["approver"]}"
+    in [ "Membership", "approval_pin_set" ] then "set their approval PIN"
     in [ "User", "two_factor_enabled" ] then "turned on two-factor sign-in"
     in [ "User", "two_factor_disabled" ] then "turned off two-factor sign-in"
     in [ _, "created" ] then "added #{thing} #{subject}"
@@ -28,6 +34,11 @@ module EventsHelper
   end
 
   private
+    def variance_words(cents)
+      cents = cents.to_i
+      cents.zero? ? "balanced" : "#{money(cents.abs)} #{cents.negative? ? "short" : "over"}"
+    end
+
     def whose(event)
       event.creator&.name == event.particulars["name"] ? "their" : "#{event.particulars["name"]}'s"
     end

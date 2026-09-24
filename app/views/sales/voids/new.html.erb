@@ -1,0 +1,14 @@
+<% content_for :title, "Void sale" %>
+
+<p class="text-sm"><%= link_to "← #{@sale.receipt_number}", @sale, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold">Void <%= @sale.receipt_number %></h1>
+<p class="hint mb-6"><%= money(@sale.total_cents) %> · stock goes back and it stops counting in this shift's takings. Give back any money received.</p>
+
+<%= form_with url: sale_void_path(@sale), class: "card max-w-md" do |form| %>
+  <% if flash.now[:alert] %><p id="alert" class="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-800"><%= flash.now[:alert] %></p><% end %>
+  <div class="field"><%= form.label :reason, class: "label" %><%= form.text_field :reason, value: params[:reason], required: true, class: "input", placeholder: "e.g. Rang up twice" %></div>
+  <% unless current_membership.approver? %>
+    <div class="field"><%= form.label :approval_pin, "Manager approval PIN", class: "label" %><%= form.password_field :approval_pin, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %></div>
+  <% end %>
+  <%= form.submit "Void sale", class: "btn-danger" %>
+<% end %>

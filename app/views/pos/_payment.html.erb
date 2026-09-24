@@ -1,0 +1,51 @@
+<% due = sale.balance_due_cents %>
+<div class="border-t-2 border-navy-900 bg-concrete-50 px-4 py-3" data-controller="payment" data-payment-due-value="<%= due %>">
+  <% if sale.payments.any? %>
+    <ul class="mb-2 space-y-1 text-sm">
+      <% sale.payments.each do |payment| %>
+        <li class="flex items-center justify-between">
+          <span><%= payment.label %><%= " · #{payment.reference}" if payment.reference %></span>
+          <span class="flex items-center gap-2 tabular-nums"><%= money(payment.amount_cents) %>
+            <%= button_to "✕", pos_payment_path(payment), method: :delete, class: "text-steel-500 hover:text-red-700", "aria-label": "Remove payment" %></span>
+        </li>
+      <% end %>
+    </ul>
+    <p class="mb-2 flex justify-between font-semibold"><span>Still due</span><span class="tabular-nums"><%= money(due) %></span></p>
+  <% end %>
+
+  <%= form_with url: pos_payments_path, data: { action: "turbo:submit-end->payment#reset" } do |form| %>
+    <fieldset class="mb-2 grid grid-cols-4 gap-1 text-sm" data-action="change->payment#switchTender">
+      <legend class="sr-only">Payment method</legend>
+      <% [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], [ "card", "Card" ], [ "on_account", "Account" ] ].each_with_index do |(value, label), index| %>
+        <label class="cursor-pointer rounded-md border border-concrete-300 bg-white py-2 text-center font-semibold has-checked:border-navy-900 has-checked:bg-navy-900 has-checked:text-white">
+          <%= form.radio_button :tender, value, checked: index.zero?, class: "sr-only" %><%= label %>
+        </label>
+      <% end %>
+    </fieldset>
+
+    <div class="flex items-end gap-2">
+      <div class="flex-1" data-payment-target="cashFields">
+        <%= form.label :tendered, "Cash received", class: "label" %>
+        <%= form.number_field :tendered, step: "0.01", min: 0, placeholder: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums",
+              data: { payment_target: "tendered", shortcuts_target: "pay", action: "input->payment#showChange" } %>
+      </div>
+      <div class="hidden flex-1" data-payment-target="otherFields">
+        <%= form.label :amount, "Amount", class: "label" %>
+        <%= form.number_field :amount, step: "0.01", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount" } %>
+      </div>
+      <div class="hidden flex-1" data-payment-target="referenceField">
+        <%= form.label :reference, "Code", class: "label" %>
+        <%= form.text_field :reference, autocomplete: "off", placeholder: "e.g. SJK4H7T2QP", class: "input font-mono uppercase" %>
+      </div>
+    </div>
+
+    <div class="mt-2 flex flex-wrap gap-1" data-payment-target="quickCash">
+      <% [ due, *[ 100_00, 500_00, 1000_00 ].map { |step| ((due + step - 1) / step) * step } ].uniq.select(&:positive?).first(4).each do |amount| %>
+        <button type="button" class="btn-secondary px-2 py-1 text-xs" data-action="payment#fill" data-amount="<%= plain_number(BigDecimal(amount) / 100) %>"><%= money(amount) %></button>
+      <% end %>
+    </div>
+    <p class="mt-1 h-5 text-sm font-semibold text-green-800" data-payment-target="change"></p>
+
+    <%= form.submit "Take payment", class: "btn-primary mt-1 w-full py-3 text-lg" %>
+  <% end %>
+</div>

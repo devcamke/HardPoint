@@ -1,0 +1,7 @@
+acme_front_open:
+  account: acme
+  branch: acme_main
+  register: acme_front
+  opened_by: carl
+  opening_float_cents: 500000
+  opened_at: <%= 2.hours.ago.to_fs(:db) %>

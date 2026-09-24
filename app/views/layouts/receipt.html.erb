@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Receipt · <%= Current.account.name %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      /* 80 mm thermal paper (72 mm printable). Set the printer's "open cash drawer" option to pop the drawer on print. */
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #F5F4F1; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: #000; font-size: 12px; line-height: 1.35; }
+      .receipt { width: 72mm; margin: 16px auto; background: #fff; padding: 4mm 3mm; }
+      .center { text-align: center; } .bold { font-weight: 700; } .big { font-size: 16px; } .muted { color: #444; }
+      .row { display: flex; justify-content: space-between; gap: 8px; } .row span:last-child { text-align: right; white-space: nowrap; }
+      hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
+      .item { margin: 3px 0; }
+      .receipt svg.barcode { display: block; width: 100%; height: 12mm; margin-top: 4px; }
+      .toolbar { font-family: sans-serif; text-align: center; margin: 12px; }
+      .toolbar button { background: #F76707; color: #102A43; border: 0; border-radius: 6px; padding: 8px 14px; font-weight: 700; cursor: pointer; }
+      @media print { body { background: #fff; } .receipt { margin: 0; padding: 0 1mm; } .toolbar { display: none; } @page { size: 80mm auto; margin: 0; } }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar"><button type="button" onclick="window.print()">Print</button></div>
+    <%= yield %>
+    <% if params[:print] %><script>window.addEventListener("load", () => window.print())</script><% end %>
+  </body>
+</html>

@@ -14,9 +14,12 @@ class Membership < ApplicationRecord
   # A short PIN lets staff switch in at a shared till that's already signed in. It's limited
   # to roles without admin rights, so it can never stand in for an owner's password and 2FA.
   has_secure_password :pin, validations: false
+  has_secure_password :approval_pin, validations: false
 
   validates :pin, format: { with: /\A\d{4,6}\z/, message: "must be 4 to 6 digits" }, allow_nil: true
   validate :pin_only_for_till_roles, if: -> { pin.present? }
+  validates :approval_pin, format: { with: /\A\d{4,6}\z/, message: "must be 4 to 6 digits" }, allow_nil: true
+  validate { errors.add :approval_pin, "is only for owners and managers" if approval_pin.present? && !approver? }
 
   validates :user, uniqueness: { scope: :account_id, message: "is already a member of this shop" }
   validate :account_keeps_an_owner, on: :update, if: -> { role_changed?(from: "owner") }
@@ -27,6 +30,7 @@ class Membership < ApplicationRecord
   scope :with_pin, -> { where.not(pin_digest: nil).where(role: PIN_ROLES) }
 
   before_save :clear_pin, if: -> { role_changed? && !pin_role? }
+  before_save(if: -> { role_changed? && !approver? }) { self.approval_pin_digest = nil }
 
   # Finds the person by email address, or creates a user with an unusable random password
   # that they replace through the invitation's set-password link.
@@ -73,6 +77,23 @@ class Membership < ApplicationRecord
   # Cashiers see selling prices but not what the shop paid.
   def can_see_costs?
     !cashier?
+  end
+
+  def approver?
+    owner? || manager?
+  end
+
+  def can_sell?
+    !accountant?
+  end
+
+  def set_approval_pin(pin)
+    if pin.blank?
+      errors.add :approval_pin, "can't be blank"
+      false
+    elsif update(approval_pin: pin)
+      track_event "approval_pin_set"
+    end
   end
 
   def pin_role?

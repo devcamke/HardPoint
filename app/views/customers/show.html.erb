@@ -1,0 +1,33 @@
+<% content_for :title, @customer.name %>
+
+<p class="text-sm"><%= link_to "← Customers", customers_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex items-start justify-between">
+  <div>
+    <h1 class="text-3xl font-bold"><%= @customer.name %></h1>
+    <p class="hint mt-1"><%= [ @customer.phone, @customer.email, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %></p>
+  </div>
+  <%= link_to "Edit", edit_customer_path(@customer), class: "btn-secondary" %>
+</div>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-3">
+  <div class="card"><p class="hint">Prices</p><p class="mt-1 text-xl font-bold"><%= @customer.price_list&.name || "Retail" %></p></div>
+  <div class="card"><p class="hint">Owes on account</p><p class="mt-1 text-xl font-bold tabular-nums"><%= money(@customer.balance_cents) %></p></div>
+  <div class="card"><p class="hint">Credit left</p><p class="mt-1 text-xl font-bold tabular-nums"><%= @customer.buys_on_account? ? money(@customer.available_credit_cents) : "Cash only" %></p>
+    <% if @customer.buys_on_account? %><p class="hint">of <%= money(@customer.credit_limit_cents) %></p><% end %></div>
+</div>
+
+<section class="card">
+  <h2 class="mb-3 text-lg font-semibold">Recent purchases</h2>
+  <% if @sales.any? %>
+    <table class="table">
+      <tbody>
+        <% @sales.each do |sale| %>
+          <tr><td><%= link_to sale.receipt_number, sale, class: "link font-mono" %></td><td><%= l(sale.completed_at, format: :short) %></td>
+            <td class="text-right tabular-nums <%= "line-through" if sale.voided? %>"><%= money(sale.total_cents) %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No purchases yet.</p>
+  <% end %>
+</section>

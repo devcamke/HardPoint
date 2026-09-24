@@ -1,0 +1,47 @@
+<% content_for :title, "Return items" %>
+
+<p class="text-sm"><%= link_to "← #{@sale.receipt_number}", @sale, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold">Return items from <%= @sale.receipt_number %></h1>
+<p class="hint mb-6">Refunds are what the customer paid for the items, including their share of any discount. Refunding at <%= current_till.name %>.</p>
+
+<%= form_with model: @return, url: sale_returns_path(@sale), class: "card max-w-3xl" do |form| %>
+  <% if flash.now[:alert] %><p id="alert" class="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-800"><%= flash.now[:alert] %></p><% end %>
+  <%= render "shared/errors", model: @return %>
+
+  <table class="table mb-4">
+    <thead><tr><th>Item</th><th class="text-right">Bought</th><th class="text-right">Returning</th><th class="text-center">Back on the shelf?</th></tr></thead>
+    <tbody>
+      <% @sale.lines.includes(:product, product_unit: :unit).each_with_index do |line, index| %>
+        <% returnable = line.quantity - @sale.returned_quantity(line) %>
+        <tr>
+          <td><%= line.description %><%= tag.span(" · #{quantity(line.quantity - returnable)} already returned", class: "hint") if returnable < line.quantity %></td>
+          <td class="text-right tabular-nums"><%= quantity(line.quantity, line.unit) %></td>
+          <td class="text-right">
+            <%= hidden_field_tag "sale_return[lines_attributes][#{index}][sale_line_id]", line.id %>
+            <%= number_field_tag "sale_return[lines_attributes][#{index}][quantity]", 0, min: 0, max: plain_number(returnable), step: "any", disabled: returnable.zero?,
+                  class: "input w-24 py-1 text-right", "aria-label": "Returning #{line.description}" %>
+          </td>
+          <td class="text-center">
+            <%= hidden_field_tag "sale_return[lines_attributes][#{index}][restock]", "0", id: nil %>
+            <%= check_box_tag "sale_return[lines_attributes][#{index}][restock]", "1", true, class: "size-4 accent-safety-500", "aria-label": "Restock #{line.description}" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field">
+      <%= form.label :refund_method, "Refund by", class: "label" %>
+      <%= form.select :refund_method, SaleReturn::REFUND_METHODS.map { [ _1 == "on_account" ? "Credit to customer's account" : _1.humanize, _1 ] }, {}, class: "input" %>
+    </div>
+    <div class="field">
+      <%= form.label :reason, class: "label" %>
+      <%= form.text_field :reason, class: "input", placeholder: "e.g. wrong size" %>
+    </div>
+  </div>
+  <% unless current_membership.approver? %>
+    <div class="field"><%= label_tag :approval_pin, "Manager approval PIN", class: "label" %><%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %></div>
+  <% end %>
+  <%= form.submit "Process return", class: "btn-primary" %>
+<% end %>

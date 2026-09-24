@@ -10,7 +10,15 @@
   </div>
 <% end %>
 
-<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+  <% if current_membership.can_sell? %>
+    <%= link_to sales_path, class: "card block hover:border-safety-300" do %>
+      <p class="text-sm text-steel-600">Sales today</p>
+      <p class="mt-1 text-3xl font-bold tabular-nums"><%= money(@sales_today_cents) %></p>
+      <p class="mt-3 text-sm link"><%= pluralize(@sales_today_count, "sale") %></p>
+    <% end %>
+  <% end %>
+
   <%= link_to products_path, class: "card block hover:border-safety-300" do %>
     <p class="text-sm text-steel-600">Products</p>
     <p class="mt-1 text-3xl font-bold"><%= number_with_delimiter(@products_count) %></p>

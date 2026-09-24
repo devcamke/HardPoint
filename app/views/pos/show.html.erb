@@ -1,0 +1,36 @@
+<% content_for :title, "Till" %>
+
+<div class="grid h-[calc(100vh-3.25rem)] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_30rem]">
+  <section class="flex min-h-0 flex-col gap-4 overflow-y-auto p-4">
+    <% if @completed_sale %>
+      <%= render "pos/completed", sale: @completed_sale %>
+    <% end %>
+    <% if notice || alert %>
+      <%= render "pos/message", message: notice, alert: alert %>
+    <% else %>
+      <%= render "pos/message", message: nil, alert: nil %>
+    <% end %>
+
+    <%= form_with url: pos_lines_path, class: "flex gap-2", data: { controller: "scanner", scanner_search_url_value: pos_products_path,
+          action: "turbo:submit-end->scanner#reset" } do |form| %>
+      <%= form.search_field :code, autofocus: true, autocomplete: "off", placeholder: "Scan a barcode, or type to search products",
+            class: "input py-3 text-lg", "aria-label": "Scan or search", data: { scanner_target: "input", shortcuts_target: "scanner",
+            action: "input->scanner#search keydown.esc->scanner#clear" } %>
+      <%= form.submit "Add", class: "btn-secondary px-5" %>
+    <% end %>
+
+    <%= turbo_frame_tag "search_results", src: pos_products_path, loading: :eager do %>
+      <p class="hint">Loading…</p>
+    <% end %>
+
+    <div class="mt-auto flex flex-wrap gap-2 text-sm">
+      <%= link_to "Parked sales (#{current_shift.sales.parked.count})", pos_parked_sales_path, class: "btn-secondary" %>
+      <%= button_to "Park this sale", pos_parking_path, class: "btn-secondary", form: { data: { shortcuts_target: "park" } } %>
+      <%= button_to "Clear sale", pos_discard_path, class: "btn-danger", form: { data: { turbo_confirm: "Clear everything in this sale?" } } %>
+    </div>
+  </section>
+
+  <aside class="flex min-h-0 flex-col border-l border-concrete-200 bg-white">
+    <%= render "pos/cart", sale: @sale %>
+  </aside>
+</div>

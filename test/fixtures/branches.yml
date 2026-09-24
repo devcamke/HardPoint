@@ -1,12 +1,15 @@
 acme_main:
   account: acme
   name: Main branch
+  code: MAIN
   address: 1 Moi Avenue
 
 acme_yard:
   account: acme
   name: Timber yard
+  code: YRD
 
 bolt_main:
   account: bolt
   name: Main branch
+  code: BLT

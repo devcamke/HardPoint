@@ -23,6 +23,15 @@
     <% end %>
   </section>
 
+  <% if @membership.approver? %>
+    <section class="card">
+      <h2 class="text-lg font-semibold">Approval PIN</h2>
+      <p class="hint mt-2">Lets you approve big discounts, voids and returns at a cashier's till without signing them out.</p>
+      <p class="mt-2"><%= @membership.approval_pin_digest? ? tag.span("Set", class: "badge bg-green-50 text-green-800") : tag.span("Not set", class: "badge bg-concrete-200 text-steel-600") %></p>
+      <%= link_to (@membership.approval_pin_digest? ? "Change approval PIN" : "Set an approval PIN"), edit_my_approval_pin_path, class: "btn-secondary mt-4" %>
+    </section>
+  <% end %>
+
   <% if @membership.pin_role? %>
     <section class="card">
       <h2 class="text-lg font-semibold">Till PIN</h2>

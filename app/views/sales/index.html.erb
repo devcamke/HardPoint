@@ -1,0 +1,41 @@
+<% content_for :title, "Sales" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Sales</h1>
+  <div class="flex gap-2">
+    <%= link_to "Customers", customers_path, class: "btn-secondary" %>
+    <%= link_to "Returns", returns_path, class: "btn-secondary" %>
+    <%= link_to "Shifts", shifts_path, class: "btn-secondary" %>
+    <%= link_to "Go to till", pos_path, class: "btn-primary" %>
+  </div>
+</div>
+
+<%= form_with url: sales_path, method: :get, class: "card mb-4 flex flex-wrap items-end gap-3 p-4", data: { controller: "auto-submit" } do |form| %>
+  <div><%= form.label :query, "Receipt number", class: "label" %><%= form.search_field :query, value: params[:query], placeholder: "#{(@branch || branches_for_selection.first)&.code}-000123", class: "input font-mono" %></div>
+  <div><%= form.label :date, class: "label" %><%= form.date_field :date, value: @date, class: "input", data: { action: "change->auto-submit#submit" } %></div>
+  <div><%= form.label :branch_id, "Branch", class: "label" %><%= form.collection_select :branch_id, branches_for_selection, :id, :name, { selected: @branch&.id, include_blank: "All branches" }, class: "input", data: { action: "change->auto-submit#submit" } %></div>
+  <%= form.submit "Show", class: "btn-secondary" %>
+<% end %>
+
+<div class="card">
+  <% if @sales.any? %>
+    <table class="table">
+      <thead><tr><th>Receipt</th><th>Time</th><th>Customer</th><th>Cashier</th><th class="text-right">Total</th><th></th></tr></thead>
+      <tbody>
+        <% @sales.each do |sale| %>
+          <tr>
+            <td><%= link_to sale.receipt_number, sale, class: "link font-mono" %></td>
+            <td><%= l(sale.completed_at, format: :short) %></td>
+            <td><%= sale.customer&.name || "Walk-in" %></td>
+            <td><%= sale.cashier.name %></td>
+            <td class="text-right tabular-nums <%= "line-through text-steel-500" if sale.voided? %>"><%= money(sale.total_cents) %></td>
+            <td><%= tag.span("Voided", class: "badge bg-red-50 text-red-800") if sale.voided? %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No sales <%= params[:query].present? ? "with that receipt number" : "on #{l(@date, format: :long)}" %>.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

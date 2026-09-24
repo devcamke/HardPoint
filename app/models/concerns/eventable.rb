@@ -1,7 +1,7 @@
 module Eventable
   extend ActiveSupport::Concern
 
-  UNTRACKED_ATTRIBUTES = %w[ created_at updated_at password_digest pin_digest failed_pin_attempts ].freeze
+  UNTRACKED_ATTRIBUTES = %w[ created_at updated_at password_digest pin_digest approval_pin_digest failed_pin_attempts ].freeze
 
   included do
     has_many :events, as: :eventable

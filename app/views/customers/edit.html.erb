@@ -1,0 +1,4 @@
+<% content_for :title, "Edit #{@customer.name}" %>
+<p class="text-sm"><%= link_to "← #{@customer.name}", @customer, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Edit customer</h1>
+<%= render "form", customer: @customer %>

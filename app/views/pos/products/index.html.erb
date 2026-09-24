@@ -1,0 +1,25 @@
+<%= turbo_frame_tag "search_results" do %>
+  <% products = @products.presence || @quick_picks %>
+  <% if params[:query].present? && @products.empty? %>
+    <p class="hint">No products match “<%= params[:query] %>”.</p>
+  <% else %>
+    <p class="mb-2 text-xs uppercase tracking-wide text-steel-600"><%= params[:query].present? ? "Results" : "Quick picks" %></p>
+    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+      <% products.each do |product| %>
+        <div class="flex flex-col rounded-lg border border-concrete-200 bg-white p-3">
+          <%= button_to pos_lines_path, params: { product_id: product.id }, class: "w-full cursor-pointer text-left", form: { data: { turbo_frame: "_top" } }, form_class: "flex-1" do %>
+            <span class="line-clamp-2 font-medium leading-snug"><%= product.name %></span>
+            <span class="mt-1 block text-lg font-bold tabular-nums"><%= money(product.price_cents) %></span>
+            <% if @branch && (product.track_stock? || product.kit?) %>
+              <span class="text-xs <%= product.stock_at(@branch).positive? ? "text-steel-600" : "text-red-700" %>"><%= quantity(product.stock_at(@branch), product.unit) %> here</span>
+            <% end %>
+          <% end %>
+          <% product.product_units.each do |pack| %>
+            <%= button_to pos_lines_path, params: { product_id: product.id, product_unit_id: pack.id }, class: "btn-secondary mt-2 w-full px-2 py-1 text-xs",
+                  form: { data: { turbo_frame: "_top" } } do %><%= pack.unit.name %> · <%= money(pack.effective_price_cents) %><% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

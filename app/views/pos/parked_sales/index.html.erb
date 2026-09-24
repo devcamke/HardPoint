@@ -1,0 +1,21 @@
+<% content_for :title, "Parked sales" %>
+
+<div class="mx-auto max-w-3xl p-6">
+  <p class="text-sm"><%= link_to "← Back to the till", pos_path, class: "link" %></p>
+  <h1 class="mt-2 mb-6 text-3xl font-bold">Parked sales</h1>
+  <% if @parked.any? %>
+    <div class="card divide-y divide-concrete-100 p-0">
+      <% @parked.each do |sale| %>
+        <div class="flex items-center justify-between gap-4 px-6 py-4">
+          <div>
+            <p class="font-semibold"><%= sale.customer&.name || "Walk-in" %> · <%= money(sale.total_cents) %></p>
+            <p class="hint"><%= pluralize(sale.lines.size, "line") %> · parked <%= time_ago_in_words(sale.updated_at) %> ago by <%= sale.cashier.name %></p>
+          </div>
+          <%= button_to "Recall", sale_recall_path(sale), class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="hint">No parked sales on this till.</p>
+  <% end %>
+</div>

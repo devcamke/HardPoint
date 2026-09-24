@@ -21,6 +21,16 @@
       <%= form.text_field :currency, required: true, maxlength: 3, class: "input uppercase" %>
     </div>
 
+    <div class="field">
+      <%= form.label :max_cashier_discount_percent, "Largest discount a cashier can give without approval (%)", class: "label" %>
+      <%= form.number_field :max_cashier_discount_percent, value: plain_number(@account.max_cashier_discount_percent), step: "0.5", min: 0, max: 100, class: "input w-32" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :receipt_footer, "Receipt footer", class: "label" %>
+      <%= form.text_area :receipt_footer, rows: 2, class: "input", placeholder: "e.g. Goods sold are returnable within 7 days with this receipt. PIN P051234567X" %>
+    </div>
+
     <div class="field flex items-start gap-2">
       <%= form.check_box :require_two_factor_for_managers, class: "mt-1 size-4 accent-safety-500" %>
       <div>

@@ -5,7 +5,7 @@ module AccountTestHelper
   def registers(*) = Account.without_isolation { super }
 
   %i[ units tax_rates categories brands price_lists products product_units barcodes kit_components
-      price_list_items stock_levels stock_movements ].each do |fixture_set|
+      price_list_items stock_levels stock_movements customers shifts ].each do |fixture_set|
     define_method(fixture_set) { |*args, **options| Account.without_isolation { super(*args, **options) } }
   end
 end

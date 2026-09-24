@@ -82,6 +82,14 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
       category: account.categories.find_by!(name: "Plumbing"))
     { "PPR-20" => 5, "PLB-GV34" => 1, "PLB-TAP12" => 2 }.each { |sku, qty| kit.kit_components.create!(account: account, component: products[sku], quantity: qty) }
 
+    # The till: quick-pick buttons, customers, and the owner's approval PIN (2468) for discounts, voids and returns.
+    %w[ CEM-BAM-50 STL-Y12 NAIL-4 NAIL-ROOF PVC-2 PPR-20 SCR-815 PNT-BR3 ELC-LED9 ELC-SW1 TL-TAPE5 SEC-PL50 ].each { |sku| products[sku].update!(quick_pick: true) }
+    account.customers.create!(name: "Mwangi Builders Ltd", phone: "0722 000 111", email: "accounts@mwangi.test", tax_pin: "P051234567X",
+      price_list: contractor, credit_limit: 250_000)
+    account.customers.create!(name: "Grace Wambui", phone: "0733 000 222")
+    account.memberships.find_by!(user: owner).set_approval_pin("2468")
+    account.update!(receipt_footer: "Goods sold are returnable within 7 days with this receipt.")
+
     products["CEM-BAM-50"].move_stock(branch: main, quantity: -3, reason: "damaged", note: "Bags split in the rain")
     account.stock_transfers.create!(from_branch: yard, to_branch: main, note: "Tuesday lorry",
       lines_attributes: [ { product_code: "CEM-BAM-50", quantity: 60 }, { product_code: "STL-Y10", quantity: 40 } ])

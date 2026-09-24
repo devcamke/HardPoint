@@ -1,0 +1,34 @@
+<div class="receipt">
+  <p class="center bold big"><%= Current.account.name %></p>
+  <p class="center"><%= @sale.branch.name %><%= tag.br + @sale.branch.address if @sale.branch.address.present? %><%= tag.br + "Tel #{@sale.branch.phone}" if @sale.branch.phone.present? %></p>
+  <hr>
+  <div class="row"><span>Receipt</span><span class="bold"><%= @sale.receipt_number %></span></div>
+  <div class="row"><span><%= l(@sale.completed_at || @sale.created_at, format: :short) %></span><span><%= @sale.register.name %></span></div>
+  <div class="row"><span>Served by</span><span><%= @sale.cashier.name %></span></div>
+  <% if @sale.customer %><div class="row"><span>Customer</span><span><%= @sale.customer.name %></span></div><% end %>
+  <% if @sale.voided? %><p class="center bold">*** VOIDED ***</p><% end %>
+  <hr>
+  <% @sale.lines.includes(:product, product_unit: :unit).each do |line| %>
+    <div class="item">
+      <div><%= line.description %></div>
+      <div class="row muted"><span><%= quantity(line.quantity, line.unit) %> × <%= number_with_precision(line.unit_price_cents / 100.0, precision: 2, delimiter: ",") %></span><span><%= number_with_precision(line.total_cents / 100.0, precision: 2, delimiter: ",") %></span></div>
+      <% if line.discount_cents.positive? %><div class="row muted"><span>  discount</span><span>−<%= number_with_precision(line.discount_cents / 100.0, precision: 2, delimiter: ",") %></span></div><% end %>
+      <% if line.serial_number.present? %><div class="muted">  S/N <%= line.serial_number %></div><% end %>
+    </div>
+  <% end %>
+  <hr>
+  <% if @sale.discount_cents.positive? %>
+    <div class="row"><span>Subtotal</span><span><%= money(@sale.subtotal_cents) %></span></div>
+    <div class="row"><span>Discount</span><span>−<%= money(@sale.discount_cents) %></span></div>
+  <% end %>
+  <div class="row bold big"><span>TOTAL</span><span><%= money(@sale.total_cents) %></span></div>
+  <div class="row muted"><span>Incl. tax</span><span><%= money(@sale.tax_cents) %></span></div>
+  <hr>
+  <% @sale.payments.each do |payment| %>
+    <div class="row"><span><%= payment.label %><%= " #{payment.reference}" if payment.reference %></span><span><%= money(payment.cash? ? payment.tendered_cents : payment.amount_cents) %></span></div>
+  <% end %>
+  <% if @sale.change_cents.positive? %><div class="row bold"><span>Change</span><span><%= money(@sale.change_cents) %></span></div><% end %>
+  <hr>
+  <p class="center"><%= Current.account.receipt_footer.presence || "Thank you for shopping with us" %></p>
+  <p class="center"><%= barcode_svg(@sale.receipt_number) if @sale.receipt_number %></p>
+</div>

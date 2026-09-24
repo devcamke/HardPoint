@@ -1,0 +1,76 @@
+<% content_for :title, "Sale #{@sale.receipt_number}" %>
+
+<p class="text-sm"><%= link_to "← Sales", sales_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold"><%= @sale.receipt_number || "Unfinished sale" %>
+      <% if @sale.voided? %><span class="badge bg-red-50 text-red-800">Voided</span><% elsif !@sale.completed? %><span class="badge"><%= @sale.status.humanize %></span><% end %></h1>
+    <p class="hint mt-1"><%= @sale.branch.name %> · <%= @sale.register.name %> · <%= @sale.cashier.name %><%= " · #{l(@sale.completed_at, format: :long)}" if @sale.completed_at %></p>
+    <% if @sale.voided? %><p class="mt-1 text-sm text-red-800">Voided <%= l(@sale.voided_at, format: :short) %> by <%= @sale.voided_by&.name %>: <%= @sale.void_reason %></p><% end %>
+  </div>
+  <% if @sale.completed? || @sale.voided? %>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "Print receipt", sale_receipt_path(@sale, print: 1), target: "_blank", class: "btn-secondary" %>
+      <% if @sale.returnable? %><%= link_to "Return items", new_sale_return_path(@sale), class: "btn-secondary" %><% end %>
+      <% if @sale.voidable? %><%= link_to "Void sale", new_sale_void_path(@sale), class: "btn-danger" %><% end %>
+    </div>
+  <% end %>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="card lg:col-span-2">
+    <table class="table">
+      <thead><tr><th>Item</th><th class="text-right">Qty</th><th class="text-right">Price</th><th class="text-right">Discount</th><th class="text-right">Total</th></tr></thead>
+      <tbody>
+        <% @sale.lines.includes(:product, product_unit: :unit).each do |line| %>
+          <tr>
+            <td><%= link_to line.description, line.product, class: "hover:text-safety-700" %><%= tag.span(" · SN #{line.serial_number}", class: "font-mono text-xs") if line.serial_number.present? %>
+              <% returned = @sale.returned_quantity(line) %><%= tag.span(" · #{quantity(returned)} returned", class: "text-xs text-safety-700") if returned.positive? %></td>
+            <td class="text-right tabular-nums"><%= quantity(line.quantity, line.unit) %></td>
+            <td class="text-right tabular-nums"><%= money(line.unit_price_cents) %></td>
+            <td class="text-right tabular-nums"><%= money(line.discount_cents) if line.discount_cents.positive? %></td>
+            <td class="text-right tabular-nums"><%= money(line.total_cents) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="ml-auto mt-3 max-w-xs space-y-1 text-sm">
+      <div class="flex justify-between"><span>Subtotal</span><span class="tabular-nums"><%= money(@sale.subtotal_cents) %></span></div>
+      <% if @sale.discount_cents.positive? %><div class="flex justify-between"><span>Discount</span><span class="tabular-nums">−<%= money(@sale.discount_cents) %></span></div><% end %>
+      <div class="flex justify-between text-lg font-bold"><span>Total</span><span class="tabular-nums"><%= money(@sale.total_cents) %></span></div>
+      <div class="flex justify-between text-steel-600"><span>incl. tax</span><span class="tabular-nums"><%= money(@sale.tax_cents) %></span></div>
+    </div>
+  </section>
+
+  <div class="space-y-6">
+    <section class="card">
+      <h2 class="mb-2 font-semibold">Customer</h2>
+      <p><%= @sale.customer ? link_to(@sale.customer.name, @sale.customer, class: "link") : "Walk-in" %></p>
+      <% if @sale.discount_approver %><p class="hint mt-1">Discount approved by <%= @sale.discount_approver.name %></p><% end %>
+    </section>
+    <section class="card">
+      <h2 class="mb-2 font-semibold">Payments</h2>
+      <% @sale.payments.each do |payment| %>
+        <p class="flex justify-between text-sm"><span><%= payment.label %><%= " · #{payment.reference}" if payment.reference %></span><span class="tabular-nums"><%= money(payment.amount_cents) %></span></p>
+      <% end %>
+      <% if @sale.change_cents.positive? %><p class="hint mt-1">Change given <%= money(@sale.change_cents) %></p><% end %>
+    </section>
+    <% if @sale.sale_returns.any? %>
+      <section class="card">
+        <h2 class="mb-2 font-semibold">Returns</h2>
+        <% @sale.sale_returns.each do |sale_return| %>
+          <p class="flex justify-between text-sm"><%= link_to sale_return.return_number, return_path(sale_return), class: "link font-mono" %><span class="tabular-nums">−<%= money(sale_return.total_cents) %></span></p>
+        <% end %>
+      </section>
+    <% end %>
+    <% if @sale.completed? %>
+      <section class="card">
+        <h2 class="mb-2 font-semibold">Email the receipt</h2>
+        <%= form_with url: sale_receipt_email_path(@sale), class: "flex gap-2" do |form| %>
+          <%= form.email_field :email, value: @sale.customer&.email, required: true, class: "input", "aria-label": "Email address" %>
+          <%= form.submit "Send", class: "btn-secondary" %>
+        <% end %>
+      </section>
+    <% end %>
+  </div>
+</div>

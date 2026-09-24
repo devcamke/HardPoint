@@ -30,6 +30,15 @@ module Authorization
       head :forbidden unless current_membership&.can_manage_stock?
     end
 
+    def ensure_can_sell
+      head :forbidden unless current_membership&.can_sell?
+    end
+
+    # Owners and managers approve their own actions; anyone else needs one of them to type an approval PIN.
+    def approver_for_action
+      current_membership&.approver? ? Current.user : Approval.approver_for(Current.account, params[:approval_pin])
+    end
+
     def ensure_can_approve_stock_counts
       head :forbidden unless current_membership&.can_approve_stock_counts?
     end

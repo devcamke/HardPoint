@@ -1,0 +1,27 @@
+<% content_for :title, "Returns" %>
+
+<p class="text-sm"><%= link_to "← Sales", sales_path, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Returns</h1>
+
+<div class="card">
+  <% if @returns.any? %>
+    <table class="table">
+      <thead><tr><th>Return</th><th>Receipt</th><th>When</th><th>By</th><th>Refund</th><th class="text-right">Amount</th></tr></thead>
+      <tbody>
+        <% @returns.each do |sale_return| %>
+          <tr>
+            <td><%= link_to sale_return.return_number, return_path(sale_return), class: "link font-mono" %></td>
+            <td><%= link_to sale_return.sale.receipt_number, sale_return.sale, class: "font-mono hover:text-safety-700" %></td>
+            <td><%= l(sale_return.created_at, format: :short) %></td>
+            <td><%= sale_return.creator.name %></td>
+            <td><%= sale_return.refund_method.humanize %></td>
+            <td class="text-right tabular-nums"><%= money(sale_return.total_cents) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No returns yet.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

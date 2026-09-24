@@ -5,6 +5,10 @@
       <span class="hidden border-l border-navy-700 pl-3 font-semibold text-white sm:inline"><%= Current.account.name %></span>
     <% end %>
 
+    <% if current_membership&.can_sell? %>
+      <%= link_to "Till", pos_path, class: "rounded-md bg-safety-500 px-3 py-1 font-semibold text-navy-900 hover:bg-safety-400" %>
+      <%= render "shared/nav_link", name: "Sales", path: sales_path, also: [ "/shifts", "/returns", "/customers" ] %>
+    <% end %>
     <%= render "shared/nav_link", name: "Products", path: products_path %>
     <%= render "shared/nav_link", name: "Stock", path: stock_path %>
     <% if current_membership&.can_manage_staff? %>

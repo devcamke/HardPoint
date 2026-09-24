@@ -17,6 +17,6 @@ class AccountsController < ApplicationController
 
   private
     def account_params
-      params.expect(account: %i[ name time_zone currency require_two_factor_for_managers ])
+      params.expect(account: %i[ name time_zone currency require_two_factor_for_managers max_cashier_discount_percent receipt_footer ])
     end
 end

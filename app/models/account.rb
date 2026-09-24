@@ -24,6 +24,12 @@ class Account < ApplicationRecord
   has_many :stock_transfers, dependent: :destroy
   has_many :stock_counts, dependent: :destroy
   has_many :product_imports, dependent: :delete_all
+  has_many :customers, dependent: :destroy
+  has_many :barcodes
+  has_many :product_units
+  has_many :shifts, dependent: :destroy
+  has_many :sales, dependent: :destroy
+  has_many :sale_returns, dependent: :destroy
 
   normalizes :subdomain, with: ->(subdomain) { subdomain.strip.downcase }
 
@@ -32,6 +38,7 @@ class Account < ApplicationRecord
     format: { with: /\A[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\z/, message: "can only contain lowercase letters, numbers and dashes" },
     exclusion: { in: RESERVED_SUBDOMAINS, message: "is reserved" }
   validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
+  validates :max_cashier_discount_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
   validates :currency, format: { with: /\A[A-Z]{3}\z/, message: "must be a 3-letter ISO code" }
 
   private

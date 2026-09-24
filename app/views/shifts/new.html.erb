@@ -1,0 +1,14 @@
+<% content_for :title, "Open a shift" %>
+
+<h1 class="mb-2 text-3xl font-bold">Open a shift on <%= current_till.name %></h1>
+<p class="hint mb-6"><%= current_till.branch.name %> · <%= link_to "not this till?", new_pos_till_path, class: "link" %></p>
+
+<%= form_with model: @shift, class: "card max-w-md" do |form| %>
+  <%= render "shared/errors", model: @shift %>
+  <div class="field">
+    <%= form.label :opening_float, "Cash in the drawer to start (#{Current.account.currency})", class: "label" %>
+    <%= form.number_field :opening_float, value: plain_number(@shift.opening_float), step: "0.01", min: 0, required: true, autofocus: true, class: "input text-lg" %>
+    <p class="hint mt-1">Count the change float before you start selling.</p>
+  </div>
+  <%= form.submit "Open shift", class: "btn-primary w-full" %>
+<% end %>

@@ -1,0 +1,14 @@
+<%= turbo_frame_tag "customer_results" do %>
+  <ul class="mt-2 max-h-64 divide-y divide-concrete-100 overflow-y-auto text-sm">
+    <% @customers.each do |customer| %>
+      <li>
+        <%= button_to pos_customer_path, method: :patch, params: { customer_id: customer.id }, class: "w-full cursor-pointer py-2 text-left hover:bg-concrete-50",
+              form: { data: { turbo_frame: "_top" } } do %>
+          <span class="font-medium"><%= customer.name %></span>
+          <span class="block text-xs text-steel-600"><%= [ customer.phone, customer.price_list&.name, ("account" if customer.buys_on_account?) ].compact.join(" · ") %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+  <%= link_to "New customer", new_customer_path, class: "link mt-2 inline-block text-sm", data: { turbo_frame: "_top" } %>
+<% end %>

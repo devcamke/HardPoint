@@ -1,0 +1,31 @@
+<% content_for :title, "Customers" %>
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Customers</h1>
+  <%= link_to "Add customer", new_customer_path, class: "btn-primary" %>
+</div>
+
+<%= form_with url: customers_path, method: :get, class: "mb-4", data: { controller: "auto-submit" } do |form| %>
+  <%= form.search_field :query, value: params[:query], placeholder: "Search by name or phone", class: "input max-w-md", "aria-label": "Search customers", data: { action: "input->auto-submit#debouncedSubmit" } %>
+<% end %>
+
+<div class="card">
+  <% if @customers.any? %>
+    <table class="table">
+      <thead><tr><th>Name</th><th>Phone</th><th>Prices</th><th class="text-right">Credit limit</th></tr></thead>
+      <tbody>
+        <% @customers.each do |customer| %>
+          <tr>
+            <td><%= link_to customer.name, customer, class: "link" %></td>
+            <td><%= customer.phone %></td>
+            <td><%= customer.price_list&.name || "Retail" %></td>
+            <td class="text-right tabular-nums"><%= customer.buys_on_account? ? money(customer.credit_limit_cents) : "Cash only" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No customers yet. Add contractors and regulars to give them their prices and credit.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

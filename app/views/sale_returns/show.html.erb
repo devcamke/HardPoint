@@ -1,0 +1,38 @@
+<% if params[:print] %>
+  <div class="receipt">
+    <p class="center bold big"><%= Current.account.name %></p>
+    <p class="center"><%= @return.branch.name %></p>
+    <hr>
+    <div class="row"><span>Return</span><span class="bold"><%= @return.return_number %></span></div>
+    <div class="row"><span>Against receipt</span><span><%= @return.sale.receipt_number %></span></div>
+    <div class="row"><span><%= l(@return.created_at, format: :short) %></span><span><%= @return.creator.name %></span></div>
+    <hr>
+    <% @return.lines.includes(sale_line: [ :product, { product_unit: :unit } ]).each do |line| %>
+      <div class="row"><span><%= quantity(line.quantity) %> × <%= line.sale_line.description %></span><span><%= number_with_precision(line.total_cents / 100.0, precision: 2, delimiter: ",") %></span></div>
+    <% end %>
+    <hr>
+    <div class="row bold big"><span>REFUND</span><span><%= money(@return.total_cents) %></span></div>
+    <div class="row"><span>By</span><span><%= @return.refund_method.humanize %></span></div>
+  </div>
+<% else %>
+  <% content_for :title, "Return #{@return.return_number}" %>
+  <p class="text-sm"><%= link_to "← #{@return.sale.receipt_number}", @return.sale, class: "link" %></p>
+  <div class="mt-2 mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">Return <%= @return.return_number %></h1>
+      <p class="hint mt-1"><%= l(@return.created_at, format: :long) %> · <%= @return.creator.name %><%= " · approved by #{@return.approver.name}" if @return.approver %><%= " · #{@return.reason}" if @return.reason.present? %></p>
+    </div>
+    <%= link_to "Print", return_path(@return, print: 1), target: "_blank", class: "btn-secondary" %>
+  </div>
+  <div class="card max-w-2xl">
+    <table class="table">
+      <thead><tr><th>Item</th><th class="text-right">Qty</th><th>Restocked</th><th class="text-right">Refund</th></tr></thead>
+      <tbody>
+        <% @return.lines.includes(sale_line: [ :product, { product_unit: :unit } ]).each do |line| %>
+          <tr><td><%= line.sale_line.description %></td><td class="text-right"><%= quantity(line.quantity) %></td><td><%= line.restock? ? "Yes" : "Written off" %></td><td class="text-right tabular-nums"><%= money(line.total_cents) %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p class="mt-3 flex justify-between text-lg font-bold"><span>Refunded by <%= @return.refund_method.humanize.downcase %></span><span><%= money(@return.total_cents) %></span></p>
+  </div>
+<% end %>
