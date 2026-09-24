@@ -98,6 +98,11 @@ Rails.application.routes.draw do
       resource :discard, only: :create
       resources :mpesa_requests, only: %i[ create show destroy ]
       resources :mpesa_matches, only: :create
+      resource :catalogue, only: :show
+      resources :offline_sales, only: %i[ new create ]
+      resource :offline, only: :show
+      resource :display, only: :show
+      resources :drawer_openings, only: :create
     end
 
     resources :shifts, only: %i[ index show new create ] do
@@ -161,6 +166,10 @@ Rails.application.routes.draw do
     resource :etims_retries, path: "etims/retries", only: :create
     resources :sms_messages, path: "texts", only: :index
 
+    # Direct printing through QZ Tray: its certificate, and signatures for its requests.
+    resource :qz_certificate, only: :show
+    resource :qz_signature, only: :create
+
     # Reports
     resources :reports, only: %i[ index show ], param: :key
     resources :delivery_notes, path: "deliveries", only: %i[ index show new create ] do
@@ -195,7 +204,7 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  # The installable till (web app manifest) and its service worker, which must sit at the root to cover every page.
+  get "manifest" => "pwa#manifest", as: :pwa_manifest
+  get "service-worker" => "pwa#service_worker", as: :pwa_service_worker
 end

@@ -1,0 +1,14 @@
+<div class="flex h-full flex-col p-8" data-controller="customer-display" data-customer-display-shop-value="<%= Current.account.name %>">
+  <header class="flex items-center justify-between">
+    <%= render "shared/logo", dark: true %>
+    <p class="text-2xl font-semibold"><%= Current.account.name %></p>
+  </header>
+  <div class="mt-8 grid min-h-0 flex-1 grid-cols-[1fr_22rem] gap-8">
+    <ul class="min-h-0 divide-y divide-navy-700 overflow-y-auto text-2xl" data-customer-display-target="lines"></ul>
+    <div class="flex flex-col justify-end rounded-2xl bg-navy-800 p-8">
+      <p class="text-lg text-navy-200" data-customer-display-target="label">Total</p>
+      <p class="text-6xl font-extrabold tabular-nums text-safety-400" data-customer-display-target="total"></p>
+      <p class="mt-4 text-xl" data-customer-display-target="note"></p>
+    </div>
+  </div>
+</div>

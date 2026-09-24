@@ -1456,7 +1456,10 @@ CREATE TABLE public.registers (
     name character varying NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    print_mode character varying DEFAULT 'browser'::character varying NOT NULL,
+    printer_name character varying,
+    receipt_width integer DEFAULT 48 NOT NULL
 );
 
 ALTER TABLE ONLY public.registers FORCE ROW LEVEL SECURITY;
@@ -1633,7 +1636,9 @@ CREATE TABLE public.sales (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     customer_order_id bigint,
-    credit_approver_id bigint
+    credit_approver_id bigint,
+    offline_uuid uuid,
+    offline_receipt_number character varying
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -4007,6 +4012,13 @@ CREATE INDEX index_sale_returns_on_shift_id ON public.sale_returns USING btree (
 --
 
 CREATE INDEX index_sales_on_account_id_and_completed_at ON public.sales USING btree (account_id, completed_at);
+
+
+--
+-- Name: index_sales_on_account_id_and_offline_uuid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_sales_on_account_id_and_offline_uuid ON public.sales USING btree (account_id, offline_uuid) WHERE (offline_uuid IS NOT NULL);
 
 
 --
@@ -6450,6 +6462,7 @@ ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120300'),
 ('20260925120200'),
 ('20260925120100'),
 ('20260925120000'),

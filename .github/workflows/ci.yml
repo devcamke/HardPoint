@@ -65,6 +65,21 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+  test_js:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The offline till's arithmetic and receipt printing; no packages needed.
+      - name: Run JavaScript tests
+        run: node --test test/javascript/*.mjs
+
   test:
     runs-on: ubuntu-latest
 

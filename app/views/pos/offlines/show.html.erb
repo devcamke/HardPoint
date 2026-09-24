@@ -1,0 +1,81 @@
+<% content_for :title, "Offline till" %>
+<% content_for :head do %>
+  <style>
+    /* The offline receipt, printed on 80 mm paper while everything else is hidden. */
+    #offline-receipt .receipt { width: 72mm; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.35; color: #000; }
+    #offline-receipt .center { text-align: center; } #offline-receipt .bold { font-weight: 700; } #offline-receipt .big { font-size: 16px; }
+    #offline-receipt .row { display: flex; justify-content: space-between; gap: 8px; } #offline-receipt hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
+    #offline-receipt { display: none; }
+    @media print { body > *:not(#offline-receipt) { display: none !important; } #offline-receipt { display: block; } body { background: #fff; height: auto; overflow: visible; } @page { size: 80mm auto; margin: 0; } }
+  </style>
+<% end %>
+
+<div class="grid h-[calc(100vh-3.25rem)] grid-cols-[1fr_24rem] overflow-hidden" data-controller="offline-till">
+  <section class="flex min-h-0 flex-col gap-3 overflow-y-auto p-4">
+    <div class="rounded-lg border-2 border-safety-500 bg-safety-50 px-4 py-3">
+      <p class="font-semibold">Offline till <span class="font-normal" data-offline-till-target="till"></span></p>
+      <p class="text-sm">Sales are kept on this device and sent as soon as it's back online; they get their receipt numbers then.
+        Cash, or a typed M-Pesa or card code. <span class="text-steel-600" data-offline-till-target="snapshot"></span></p>
+    </div>
+    <p hidden data-offline-till-target="message"></p>
+
+    <form class="flex gap-2" data-action="submit->offline-till#scan">
+      <input type="search" autofocus autocomplete="off" placeholder="Scan a barcode, or type to search products" class="input py-3 text-lg"
+             aria-label="Scan or search" data-offline-till-target="code" data-action="input->offline-till#search">
+      <button class="btn-secondary px-5">Add</button>
+    </form>
+    <div class="grid grid-cols-2 gap-2 lg:grid-cols-4" data-offline-till-target="results"></div>
+
+    <p class="text-xs uppercase tracking-wide text-steel-600">Quick picks</p>
+    <div class="grid grid-cols-2 gap-2 lg:grid-cols-4" data-offline-till-target="quickPicks"></div>
+
+    <section class="card mt-auto">
+      <h2 class="mb-1 font-semibold">Sales on this till</h2>
+      <ul class="divide-y divide-concrete-100" data-offline-till-target="queue"></ul>
+    </section>
+  </section>
+
+  <aside class="flex min-h-0 flex-col border-l border-concrete-200 bg-white">
+    <div class="border-b border-concrete-200 px-4 py-3">
+      <p class="text-xs uppercase tracking-wide text-steel-600">Customer</p>
+      <p class="font-semibold">Walk-in <span class="hint font-normal">(customers need the till online)</span></p>
+    </div>
+    <ul class="min-h-0 flex-1 divide-y divide-concrete-100 overflow-y-auto" data-offline-till-target="cart"></ul>
+    <div class="border-t border-concrete-200 px-4 py-3 text-sm">
+      <div class="flex justify-between"><span>Items</span><span class="tabular-nums" data-offline-till-target="items">0</span></div>
+      <div class="flex justify-between text-steel-600"><span>incl. tax</span><span class="tabular-nums" data-offline-till-target="tax"></span></div>
+      <div class="mt-1 flex items-baseline justify-between text-2xl font-extrabold"><span>Total</span><span class="tabular-nums" data-offline-till-target="total"></span></div>
+    </div>
+
+    <form class="border-t-2 border-navy-900 bg-concrete-50 px-4 py-3" data-action="submit->offline-till#pay">
+      <fieldset class="mb-2 grid grid-cols-3 gap-1 text-sm" data-action="change->offline-till#switchTender">
+        <legend class="sr-only">Payment method</legend>
+        <% [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa code" ], [ "card", "Card" ] ].each_with_index do |(value, label), index| %>
+          <label class="cursor-pointer rounded-md border border-concrete-300 bg-white py-2 text-center font-semibold has-checked:border-navy-900 has-checked:bg-navy-900 has-checked:text-white">
+            <input type="radio" name="tender" value="<%= value %>" class="sr-only" <%= "checked" if index.zero? %>><%= label %>
+          </label>
+        <% end %>
+      </fieldset>
+      <div data-offline-till-target="tenderedField">
+        <label class="label" for="offline_tendered">Cash received</label>
+        <input id="offline_tendered" type="number" step="0.01" min="0" class="input text-lg tabular-nums" data-offline-till-target="tendered" data-action="input->offline-till#showChange">
+      </div>
+      <div hidden data-offline-till-target="referenceField">
+        <label class="label" for="offline_reference">Transaction code</label>
+        <input id="offline_reference" type="text" autocomplete="off" placeholder="e.g. SJK4H7T2QP" class="input font-mono uppercase" data-offline-till-target="reference">
+      </div>
+      <p class="mt-1 h-5 text-sm font-semibold text-green-800" data-offline-till-target="change"></p>
+      <button class="btn-primary mt-1 w-full py-3 text-lg" data-offline-till-target="payButton">Complete sale</button>
+      <button type="button" class="link mt-2 text-sm" data-action="offline-till#clear">Clear sale</button>
+    </form>
+
+    <div hidden class="border-t-2 border-green-600 bg-green-50 p-4" data-offline-till-target="completed">
+      <p class="font-semibold text-green-900" data-role="summary"></p>
+      <div class="mt-2 flex gap-2">
+        <button type="button" class="btn-secondary" data-action="offline-till#print">Print again</button>
+        <button type="button" class="btn-primary" data-action="offline-till#newSale">Next sale</button>
+      </div>
+    </div>
+  </aside>
+  <div id="offline-receipt" data-offline-till-target="receipt"></div>
+</div>

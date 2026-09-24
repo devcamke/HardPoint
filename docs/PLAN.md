@@ -24,7 +24,7 @@ customers, staff, or reports.
 | Approvals | Owners and managers have a separate **approval PIN** that authorises one action at a cashier's till (big discount, void, return) without signing anyone in; a discount only needs approving again if it goes beyond what was already approved |
 | Negative stock | Sales aren't blocked when the system shows no stock (deliveries are often booked late); the till warns and the Stock page flags branches below zero |
 | Voids vs returns | A sale can be voided only while its shift is open; after that it's a return against the receipt |
-| Cash drawer | Opened by the receipt printer's driver on print, so no local agent is needed yet (QZ Tray in Phase 8 for silent printing) |
+| Cash drawer | Opened by the receipt printer's driver on print, or by QZ Tray's ESC/POS drawer kick on tills set up for it (Phase 8) |
 | Costing | Weighted-average cost, updated on each delivery from its landed cost (goods plus a value-weighted share of transport and duty); FIFO costing stays in the backlog |
 | Receiving | Goods beyond what was ordered go on a separate receipt, so each order stays a true record of what was agreed |
 | Supplier payments | Settle the oldest invoices first (FIFO), which is how suppliers read their statements and what the ageing report shows |
@@ -52,6 +52,13 @@ customers, staff, or reports.
 | eTIMS failures | Unreachable → retried by a job every 5 minutes with doubling gaps (2 minutes up to 6 hours); refused → marked with KRA's reason for someone to fix and retry; selling never stops for KRA |
 | SMS | Africa's Talking on the platform's account; shops opt in; at most 500 texts per shop per day; no SMS one-time passwords for sign-in (authenticator apps are safer than SMS against SIM swaps) |
 | Card terminals, accounting sync | Card payments keep their typed reference until a shop's acquirer is chosen; QuickBooks/Xero sync is left out (optional in the plan; the CSV reports cover exports for now) |
+| Offline selling | A service worker keeps the offline till page and its files; navigations that can't reach the server get the offline till. Nothing else is served from cache, so online pages are never stale. The catalogue snapshot (no costs) lives in IndexedDB and refreshes every 5 minutes online (ETag, so unchanged catalogues aren't sent again) |
+| What works offline | Walk-in retail sales: scanning, search, packs, retail quantity breaks, cash with change, typed M-Pesa/card codes. Customers, accounts, price lists, discounts, M-Pesa prompts, returns and voids need the till online |
+| Offline sales on the server | Idempotent by the till's UUID; recorded in their original shift and at the time they happened (limited to the shift's range); receipt numbers assigned on arrival (offline receipts carry a temporary number, kept on the sale). The till's price is what the customer paid, so it's kept; the server's own total wins if they differ; warnings (price since raised, stock below zero, shift already closed, total differed) go in the answer and Activity. A sale the payments don't cover is parked at its till |
+| "Offline" | Measured by reaching the server (`/up`), not just the browser's online flag, so a working Wi-Fi with no internet counts as offline |
+| Printing | Per till: the browser (silent with Chrome `--kiosk-printing`) or QZ Tray with ESC/POS (cut, QR, drawer kick for cash). QZ Tray 2.3.0 is vendored (LGPL-2.1, checked against npm's integrity hash) and loaded only on tills that use it. Signed requests if a certificate is set up; otherwise QZ Tray asks once |
+| Customer display | A page on a second monitor fed by the till through BroadcastChannel (same browser), so it needs no server round trip and works offline |
+| Weighing scales | Left out (optional in the plan): Web Serial support and scale protocols vary; kilograms are typed |
 | Daily summary | Yesterday's figures at 04:15 UTC (07:15 in Nairobi), to owners, managers and accountants who haven't turned it off; nothing is sent after a day without sales |
 
 | Phase | Status |
@@ -64,7 +71,8 @@ customers, staff, or reports.
 | 5 — Customers, credit, quotes & invoices | **Done:** customer addresses and payment terms; quotes and orders with PDF/email, validity dates, deposits (and refunds) and collection at the till; account sales as invoices with A4 tax invoice PDFs; payments on account (FIFO), statements (PDF/email), ageing and a "Who owes us" report; delivery notes with dispatch and proof of delivery; credit-limit override by approval PIN; deposits and account payments on the X/Z report. Loyalty skipped. |
 | 6 — Reporting & dashboards | **Done:** live owner dashboard (Solid Cable), eight reports (sales and margin by day/month/branch/cashier/category/product, profit and loss, VAT, payments by method, discounts/voids/returns, stock valuation, dead stock, shifts) plus the existing movement history and ageing reports, period and branch filters, CSV and PDF export, cost recorded on each sale line, daily summary email with opt-out. Measured at a year of 180k sale lines: under 1 s per report. |
 | 7 — Payment & tax integrations | **Done (to be proven against the live sandboxes):** M-Pesa Daraja per shop (encrypted credentials, STK push from the till with automatic completion, C2B confirmations with automatic matching to orders, accounts and typed codes, reconciliation report, token-and-IP-checked idempotent callbacks), KRA eTIMS OSCU per branch (initialisation, item registration, sales and credit notes, signed receipts with QR code, retry queue, refusals to fix), SMS via Africa's Talking (receipts, order ready, balance reminders), simulators for all three. Card terminals stay manual; accounting sync skipped. |
-| 8–10 | Not started |
+| 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
+| 9–10 | Not started |
 
 ---
 

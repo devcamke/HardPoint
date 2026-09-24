@@ -34,6 +34,9 @@ module Hardpoint
     # sets Safaricom's published addresses; override with MPESA_CALLBACK_IPS (comma-separated).
     config.x.mpesa_callback_ips = []
 
+    # Names this release (Kamal sets KAMAL_VERSION on deploy); a new one refreshes tills' offline copies.
+    config.x.release = ENV.fetch("KAMAL_VERSION") { Time.now.utc.strftime("%Y%m%d%H%M%S") }
+
     # Texts go to Africa's Talking only in production; elsewhere they're kept in Sms::Outbox.
     config.x.sms_outbox = !Rails.env.production?
   end

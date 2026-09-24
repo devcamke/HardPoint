@@ -104,7 +104,7 @@ module Sale::Payable
       self.cashier = Current.user if Current.user
       self.number = DocumentSequence.next_number(branch, "sale")
       lines.each(&:deduct_stock)
-      update! status: :completed, completed_at: Time.current
+      update! status: :completed, completed_at: happened_at || Time.current
       customer_order&.mark_collected(self)
     end
 end

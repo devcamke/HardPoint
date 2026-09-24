@@ -145,6 +145,26 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![M-Pesa at the till](docs/screenshots/103-till-mpesa-waiting.png)
 
+## Phase 8: selling offline, and the till's hardware
+
+- **The till keeps selling when HardPoint can't be reached.** Each till keeps an offline copy of itself (a service
+  worker) and a snapshot of the catalogue (retail prices, quantity breaks, packs, barcodes, stock at its branch; no
+  costs) in the browser. When the connection drops, the till says so and switches to the **offline till**: scan,
+  search, cash with change, or a typed M-Pesa or card code, and an offline receipt
+- **Offline sales are sent by themselves** when the till is back, each with its own ID so sending twice records it
+  once. They get their real receipt numbers then and keep the time they happened. Anything worth a second look comes
+  back as a warning and goes in Activity: a price that has since gone up, stock now below zero, a shift that had
+  already closed, or a total the till worked out differently. Typed M-Pesa codes are checked by the M-Pesa reconciliation
+- **Connection indicator** on every till page: Online / Offline, and how many sales are waiting
+- **Installable till** (web app manifest), opening straight on the till
+- **Receipt printers:** each till prints through the browser (silent with a kiosk-mode browser) or **straight to the
+  printer through QZ Tray** in ESC/POS, which also cuts the paper, prints KRA's QR code, and **opens the cash drawer**
+  for cash sales. An **Open drawer** button logs every no-sale opening in Activity
+- **Customer display:** a second screen beside the till shows the cart, the total, the Paybill to pay to, and the
+  change; it works offline too
+
+![Offline till](docs/screenshots/123-offline-cart.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -203,6 +223,7 @@ Override the database connection with `DATABASE_HOST`, `DATABASE_USERNAME` and `
 
 ```sh
 bin/rails test     # includes the tenant isolation tests
+node --test test/javascript/*.mjs   # the offline till's arithmetic and receipt printing
 bin/rubocop
 bin/brakeman
 bin/bundler-audit
@@ -226,6 +247,11 @@ Kamal deploys to a single Contabo VPS (see `config/deploy.yml`):
   before switching a device to production.
 - **SMS:** add `africas_talking: { username:, api_key:, sender_id: }` with `bin/rails credentials:edit` (username
   `sandbox` for their sandbox). Development and tests keep texts in `Sms::Outbox` and the log instead of sending them.
+- **Tills:** open the till once while online on each device (that's when it keeps its offline copy). For silent browser
+  printing, run Chrome with `--kiosk-printing`. For QZ Tray, install it on the till's computer, set the till to
+  "Straight to the printer" with the printer's name, and (to skip QZ Tray's "allow" prompt) add a certificate and key
+  with `bin/rails credentials:edit` under `qz: { certificate:, private_key: }`. The customer display is the
+  "Customer display" link, dragged to a second monitor.
 - Simulators are refused in production unless `ALLOW_INTEGRATION_SIMULATORS` is set (e.g. for a public demo).
 - Two-factor secrets are encrypted with Active Record Encryption. Run `bin/rails db:encryption:init` and add the
   printed `active_record_encryption` keys with `bin/rails credentials:edit`. Development and test use fixed,

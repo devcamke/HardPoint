@@ -27,6 +27,7 @@ class Account < ApplicationRecord
   has_many :customers, dependent: :destroy
   has_many :barcodes
   has_many :product_units
+  has_many :price_list_items
   has_many :shifts, dependent: :destroy
   has_many :cash_movements
   has_many :sales, dependent: :destroy

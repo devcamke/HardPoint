@@ -1,4 +1,4 @@
-# A till: the point where sales are rung up. Receipt printers and cash drawers attach here later.
+# A till: the point where sales are rung up, with how it prints receipts and opens its drawer.
 class Register < ApplicationRecord
   include Eventable
   tracks_lifecycle
@@ -11,7 +11,13 @@ class Register < ApplicationRecord
     shifts.open.first
   end
 
+  PRINT_MODES = %w[ browser qz_tray ].freeze
+  RECEIPT_WIDTHS = [ 32, 42, 48 ].freeze
+
   validates :name, presence: true, uniqueness: { scope: :branch_id }
+  validates :print_mode, inclusion: { in: PRINT_MODES }
+  validates :receipt_width, inclusion: { in: RECEIPT_WIDTHS }
+  validates :printer_name, presence: { message: "is needed to print through QZ Tray" }, if: -> { print_mode == "qz_tray" }
   validate :branch_belongs_to_account
 
   scope :active, -> { where(active: true) }

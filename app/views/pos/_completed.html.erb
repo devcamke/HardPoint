@@ -1,4 +1,5 @@
-<div id="completed_sale" class="flex flex-wrap items-center gap-4 rounded-lg border-2 border-green-600 bg-green-50 p-4">
+<div id="completed_sale" class="flex flex-wrap items-center gap-4 rounded-lg border-2 border-green-600 bg-green-50 p-4" data-controller="cart-broadcast"
+     data-cart-broadcast-state-value="<%= { status: "complete", total: money(sale.total_cents), change: (money(sale.change_cents) if sale.change_cents.positive?) }.to_json %>">
   <div>
     <p class="text-sm text-green-800">Sale <strong><%= sale.receipt_number %></strong> complete · <%= money(sale.total_cents) %></p>
     <% if sale.change_cents.positive? %>
@@ -6,7 +7,9 @@
     <% end %>
   </div>
   <div class="ml-auto flex flex-wrap items-center gap-2">
-    <%= link_to "Print receipt", sale_receipt_path(sale, print: 1), target: "_blank", class: "btn-primary" %>
+    <%= link_to "Print receipt", sale_receipt_path(sale, print: 1), target: "_blank", class: "btn-primary", data: { controller: "receipt-printer", action: "receipt-printer#print",
+          receipt_printer_till_value: current_till.slice(:print_mode, :printer_name, :receipt_width).to_json, receipt_printer_receipt_url_value: sale_receipt_path(sale, format: :json),
+          receipt_printer_auto_value: current_till.print_mode == "qz_tray" } %>
     <%= form_with url: sale_receipt_email_path(sale), class: "flex gap-2" do |form| %>
       <%= form.email_field :email, value: sale.customer&.email, placeholder: "Email receipt to…", class: "input w-52 py-1.5", "aria-label": "Email receipt to" %>
       <%= form.submit "Send", class: "btn-secondary" %>

@@ -11,6 +11,21 @@
     <%= form.collection_select :branch_id, Current.account.branches.alphabetically, :id, :name, {}, class: "input" %>
   </div>
 
+  <div class="field">
+    <%= form.label :print_mode, "Receipts print", class: "label" %>
+    <%= form.select :print_mode, [ [ "Through the browser (silent in a kiosk-mode browser)", "browser" ], [ "Straight to the printer with QZ Tray (opens the cash drawer)", "qz_tray" ] ], {}, class: "input" %>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field">
+      <%= form.label :printer_name, "Printer name (QZ Tray)", class: "label" %>
+      <%= form.text_field :printer_name, placeholder: "e.g. EPSON TM-T20III", class: "input" %>
+    </div>
+    <div class="field">
+      <%= form.label :receipt_width, "Characters per line", class: "label" %>
+      <%= form.select :receipt_width, [ [ "48 (80 mm paper, most printers)", 48 ], [ "42 (80 mm, larger font)", 42 ], [ "32 (58 mm paper)", 32 ] ], {}, class: "input" %>
+    </div>
+  </div>
+
   <div class="field flex items-center gap-2">
     <%= form.check_box :active, class: "size-4 accent-safety-500" %>
     <%= form.label :active, "In use", class: "text-sm font-medium text-navy-800" %>

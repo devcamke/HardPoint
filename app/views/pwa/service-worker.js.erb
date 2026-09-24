@@ -1,0 +1,61 @@
+// HardPoint's service worker. It keeps the offline till page and the files it needs, and when a
+// page can't be reached it shows the offline till instead, so the till keeps selling.
+// Everything else goes to the network as usual; nothing a page shows is served stale.
+
+const VERSION = "<%= Rails.application.config.x.release %>"
+const CACHE = `hardpoint-${VERSION}`
+const OFFLINE_TILL = "/pos/offline"
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(cacheOfflineTill().catch(() => {}))
+  self.skipWaiting()
+})
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil((async () => {
+    for (const name of await caches.keys()) if (name !== CACHE) await caches.delete(name)
+    await self.clients.claim()
+  })())
+})
+
+// The till sends the offline page and its files to keep, each time it's opened online.
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "cache") return
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE)
+    await cacheOfflineTill()
+    await Promise.all(event.data.urls.filter((url) => url.startsWith("/assets/") || url.startsWith("/icon"))
+      .map((url) => cache.match(url).then((hit) => hit || cache.add(url)).catch(() => {})))
+  })())
+})
+
+self.addEventListener("fetch", (event) => {
+  const request = event.request
+  const url = new URL(request.url)
+  if (request.method !== "GET" || url.origin !== location.origin) return
+
+  // Fingerprinted files never change, so a kept copy is always right.
+  if (url.pathname.startsWith("/assets/")) {
+    event.respondWith(caches.match(request).then((hit) => hit || fetchAndKeep(request)))
+  } else if (request.mode === "navigate") {
+    event.respondWith(fetch(request).catch(() => offlineFallback()))
+  }
+})
+
+async function cacheOfflineTill() {
+  // Only a real page is kept: signed out, the till would redirect to the sign-in form.
+  const response = await fetch(OFFLINE_TILL, { credentials: "same-origin", redirect: "manual" })
+  if (response.ok && response.type === "basic") await (await caches.open(CACHE)).put(OFFLINE_TILL, response)
+}
+
+async function fetchAndKeep(request) {
+  const response = await fetch(request)
+  if (response.ok) (await caches.open(CACHE)).put(request, response.clone())
+  return response
+}
+
+async function offlineFallback() {
+  return (await caches.match(OFFLINE_TILL)) ||
+    new Response("<h1>Offline</h1><p>This device hasn't had the till open online yet, so it can't sell offline. Reconnect and open the till once.</p>",
+                 { headers: { "Content-Type": "text/html" } })
+}

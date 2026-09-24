@@ -43,7 +43,7 @@ class RegistersController < ApplicationController
 
     # The branch is looked up through the account, so a till can't be attached to another shop's branch.
     def register_params
-      params.expect(register: %i[ name branch_id active ]).tap do |permitted|
+      params.expect(register: %i[ name branch_id active print_mode printer_name receipt_width ]).tap do |permitted|
         permitted[:branch] = Current.account.branches.find(permitted.delete(:branch_id)) if permitted.key?(:branch_id)
       end
     end

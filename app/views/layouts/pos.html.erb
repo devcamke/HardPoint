@@ -8,11 +8,18 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="manifest" href="<%= pwa_manifest_path(format: :json) %>">
+    <meta name="theme-color" content="#102A43">
+    <meta name="qz-tray-src" content="<%= asset_path("qz-tray.js") %>">
+    <%= yield :head %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-screen overflow-hidden bg-concrete-100 text-navy-900" data-controller="shortcuts" data-action="keydown@window->shortcuts#handle">
+  <body class="h-screen overflow-hidden bg-concrete-100 text-navy-900" data-controller="shortcuts offline-sync" data-action="keydown@window->shortcuts#handle"
+        data-offline-sync-catalogue-url-value="<%= pos_catalogue_path %>" data-offline-sync-sales-url-value="<%= pos_offline_sales_path %>"
+        data-offline-sync-token-url-value="<%= new_pos_offline_sale_path %>" data-offline-sync-offline-url-value="<%= pos_offline_path %>"
+        data-offline-sync-till-url-value="<%= pos_path %>" data-offline-sync-offline-page-value="<%= controller_name == "offlines" %>">
     <header class="flex h-13 items-center gap-4 bg-navy-900 px-4 text-sm text-navy-100">
       <%= link_to root_path, title: "Back to HardPoint" do %><%= render "shared/logo", dark: true %><% end %>
       <span class="font-semibold text-white"><%= current_till&.name %></span>
@@ -22,12 +29,27 @@
       <% end %>
       <%= link_to "Sales", sales_path, class: "hover:text-white" %>
       <div class="ml-auto flex items-center gap-4">
+        <span class="rounded-full px-2 py-0.5 text-xs font-semibold data-[state=online]:bg-green-700 data-[state=online]:text-white data-[state=offline]:bg-safety-500 data-[state=offline]:text-navy-900"
+              data-offline-sync-target="status" role="status" aria-live="polite">Checking…</span>
+        <%= link_to "Customer display", pos_display_path, target: "hardpoint-display", class: "hidden hover:text-white lg:inline" %>
+        <% if current_till&.print_mode == "qz_tray" %>
+          <button type="button" class="hover:text-white" data-controller="receipt-printer" data-action="receipt-printer#openDrawer"
+                  data-receipt-printer-till-value="<%= current_till.slice(:print_mode, :printer_name, :receipt_width).to_json %>"
+                  data-receipt-printer-drawer-url-value="<%= pos_drawer_openings_path %>">Open drawer</button>
+        <% end %>
         <span class="hidden text-xs text-navy-300 md:inline">F2 scan · F8 park · F9 pay</span>
         <%= link_to "Switch user", new_session_switch_path, class: "hover:text-white" %>
         <span class="font-semibold text-white"><%= Current.user.name %></span>
       </div>
     </header>
     <%= render "shared/impersonation_banner" if Current.session.impersonated? %>
+    <div hidden class="bg-safety-500 px-4 py-2 text-sm font-semibold text-navy-900" data-offline-sync-target="banner">
+      <% if controller_name == "offlines" %>
+        You're back online and every offline sale has been sent. <%= link_to "Go back to the till", pos_path, class: "underline" %>
+      <% else %>
+        The till can't reach HardPoint. <%= link_to "Keep selling on the offline till", pos_offline_path, class: "underline", data: { turbo: false } %>
+      <% end %>
+    </div>
     <%= yield %>
   </body>
 </html>
