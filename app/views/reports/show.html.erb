@@ -10,7 +10,7 @@
   <div class="flex gap-2 print:hidden">
     <%= link_to "CSV", report_path(report.class.key, request.query_parameters.merge(format: :csv)), class: "btn-secondary" %>
     <%= link_to "PDF", report_path(report.class.key, request.query_parameters.merge(format: :pdf)), target: "_blank", class: "btn-secondary" %>
-    <button type="button" class="btn-secondary" onclick="window.print()">Print</button>
+    <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
   </div>
 </div>
 

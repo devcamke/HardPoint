@@ -22,6 +22,7 @@
           <%= link_to "Shops", admin_accounts_path, class: "hover:text-white" %>
           <%= link_to "Support", admin_support_requests_path, class: "hover:text-white" %>
           <%= link_to "Announcements", admin_announcements_path, class: "hover:text-white" %>
+          <%= link_to "Database", admin_database_path, class: "hover:text-white" %>
           <span class="ml-auto"><%= current_administrator.name %></span>
           <%= button_to "Sign out", admin_session_path, method: :delete, class: "cursor-pointer hover:text-white" %>
         <% end %>

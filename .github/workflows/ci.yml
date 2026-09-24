@@ -4,6 +4,9 @@ on:
   pull_request:
   push:
     branches: [ main ]
+  # Weekly, so newly published advisories for gems and pinned JavaScript show up without a commit.
+  schedule:
+    - cron: "0 5 * * 1"
 
 jobs:
   scan_ruby:

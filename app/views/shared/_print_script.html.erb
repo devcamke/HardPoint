@@ -1,0 +1,6 @@
+<%# locals: (on_load: false) %>
+<%# For pages without the app's JavaScript (receipts, labels): Print buttons, and printing on open. %>
+<%= javascript_tag nonce: true do %>
+  document.querySelectorAll("[data-print]").forEach((button) => button.addEventListener("click", () => window.print()))
+  <% if on_load %>window.addEventListener("load", () => window.print())<% end %>
+<% end %>

@@ -3,7 +3,7 @@
 class Pos::OfflineSalesController < ApplicationController
   allow_while_locked
   before_action :ensure_can_sell
-  rate_limit to: 60, within: 1.minute, only: :create
+  rate_limit to: 60, within: 1.minute, only: :create, by: -> { cookies.signed[:session_id] || request.remote_ip } # per till, not per shop
 
   MAX_PER_REQUEST = 50
 

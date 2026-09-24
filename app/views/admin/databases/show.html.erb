@@ -1,0 +1,70 @@
+<% content_for :title, "Database" %>
+<% rates = @health.cache_hit_rates %>
+<% connections = @health.connections %>
+
+<h1 class="mb-6 text-3xl font-bold">Database</h1>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="card"><p class="hint">Size</p><p class="text-2xl font-bold"><%= @health.size %></p><p class="hint">PostgreSQL <%= @health.version %></p></div>
+  <div class="card"><p class="hint">Connections</p><p class="text-2xl font-bold tabular-nums"><%= connections.values.sum %> <span class="text-base font-normal text-steel-600">of <%= @health.max_connections %></span></p>
+    <p class="hint"><%= connections.map { "#{_2} #{_1}" }.join(" · ") %></p></div>
+  <div class="card"><p class="hint">Cache hits (tables)</p><p class="text-2xl font-bold tabular-nums <%= "text-red-700" if rates[:tables] && rates[:tables] < 99 %>"><%= rates[:tables] ? "#{rates[:tables]}%" : "–" %></p><p class="hint">Below 99%: more memory helps</p></div>
+  <div class="card"><p class="hint">Cache hits (indexes)</p><p class="text-2xl font-bold tabular-nums <%= "text-red-700" if rates[:indexes] && rates[:indexes] < 99 %>"><%= rates[:indexes] ? "#{rates[:indexes]}%" : "–" %></p></div>
+</div>
+
+<% if (long = @health.long_running).any? %>
+  <section class="card mb-6 border-red-200">
+    <h2 class="mb-3 text-lg font-semibold text-red-800">Running for more than 30 seconds</h2>
+    <table class="table"><tbody>
+      <% long.each do |pid, duration, state, query| %>
+        <tr><td class="font-mono"><%= pid %></td><td><%= duration %></td><td><%= state %></td><td><div class="max-w-xl font-mono text-xs [overflow-wrap:anywhere]"><%= query %></div></td></tr>
+      <% end %>
+    </tbody></table>
+  </section>
+<% end %>
+
+<section id="slowest" class="card mb-6">
+  <h2 class="mb-1 text-lg font-semibold">Where the database spends its time</h2>
+  <% if @health.query_stats? %>
+    <p class="hint mb-3">Queries by total time since statistics were last reset.</p>
+    <table class="table">
+      <thead><tr><th class="text-right">Calls</th><th class="text-right">Total ms</th><th class="text-right">Mean ms</th><th>Query</th></tr></thead>
+      <tbody>
+        <% @health.slowest_queries.each do |query| %>
+          <tr><td class="text-right tabular-nums"><%= number_with_delimiter query.calls %></td><td class="text-right tabular-nums"><%= number_with_delimiter query.total_ms %></td>
+            <td class="text-right tabular-nums"><%= query.mean_ms %></td><td><div class="max-w-3xl font-mono text-xs [overflow-wrap:anywhere]"><%= truncate(query.query, length: 300) %></div></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Needs the pg_stat_statements extension (loaded by config/postgres/postgresql.conf in production).</p>
+  <% end %>
+</section>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Largest tables</h2>
+    <table class="table">
+      <thead><tr><th>Table</th><th class="text-right">Size</th><th class="text-right">Rows</th><th class="text-right">Dead rows</th><th>Vacuumed</th></tr></thead>
+      <tbody>
+        <% @health.largest_tables.each do |table, size, live, dead, vacuumed| %>
+          <tr><td class="font-mono text-xs"><%= table %></td><td class="text-right tabular-nums"><%= size %></td><td class="text-right tabular-nums"><%= number_with_delimiter live %></td>
+            <td class="text-right tabular-nums <%= "text-red-700" if live.to_i.positive? && dead.to_i > live.to_i / 5 %>"><%= number_with_delimiter dead %></td>
+            <td class="text-xs text-steel-600"><%= vacuumed ? "#{time_ago_in_words(vacuumed)} ago" : "never" %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-1 text-lg font-semibold">Indexes never used</h2>
+    <p class="hint mb-3">Since statistics were last reset. Unused indexes slow down writes; check before dropping (some only serve rare reports).</p>
+    <table class="table">
+      <tbody>
+        <% @health.unused_indexes.each do |table, index, size| %>
+          <tr><td class="font-mono text-xs"><%= index %><br><span class="text-steel-600"><%= table %></span></td><td class="text-right tabular-nums"><%= size %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+</div>

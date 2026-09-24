@@ -6,7 +6,7 @@
     <h1 class="mt-2 text-3xl font-bold"><%= @shift.open? ? "X report" : "Z report" %> <span class="badge <%= @shift.open? ? "bg-green-50 text-green-800" : "bg-concrete-200 text-steel-600" %>"><%= @shift.status.humanize %></span></h1>
   </div>
   <div class="flex flex-wrap gap-2">
-    <button type="button" class="btn-secondary" onclick="window.print()">Print</button>
+    <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
     <% if @shift.open? %>
       <%= link_to "Cash drop / payout", new_shift_cash_movement_path(@shift), class: "btn-secondary" %>
       <%= link_to "Back to till", pos_path, class: "btn-secondary" %>

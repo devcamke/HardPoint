@@ -39,6 +39,7 @@ Rails.application.routes.draw do
       resources :impersonations, only: :create
       resources :announcements, except: :show
       resources :support_requests, only: %i[ index update ]
+      resource :database, only: :show
       root "accounts#index"
     end
   end

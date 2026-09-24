@@ -29,7 +29,7 @@ module PosSale
       respond_to do |format|
         format.turbo_stream do
           render turbo_stream: [
-            turbo_stream.replace("cart", partial: "pos/cart", locals: { sale: @sale.reload }),
+            turbo_stream.replace("cart", partial: "pos/cart", locals: { sale: @sale.reload_for_cart }),
             turbo_stream.replace("pos_message", partial: "pos/message", locals: { message: message, alert: alert }),
             turbo_stream.remove("completed_sale")
           ], status: status

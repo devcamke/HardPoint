@@ -19,8 +19,8 @@
     </style>
   </head>
   <body>
-    <div class="toolbar"><button type="button" onclick="window.print()">Print</button></div>
+    <div class="toolbar"><button type="button" data-print>Print</button></div>
     <%= yield %>
-    <% if params[:print] %><script>window.addEventListener("load", () => window.print())</script><% end %>
+    <%= render "shared/print_script", on_load: params[:print].present? %>
   </body>
 </html>

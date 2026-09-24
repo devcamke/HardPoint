@@ -1,6 +1,6 @@
 class Sales::ReceiptTextsController < ApplicationController
   include SaleScoped
-  rate_limit to: 20, within: 10.minutes, only: :create, with: -> { redirect_back_or_to sale_path(@sale), alert: "Try again later." }
+  rate_limit to: 100, within: 10.minutes, only: :create, by: -> { Current.account.id }, with: -> { redirect_back_or_to sale_path(@sale), alert: "Try again later." }
 
   def create
     text = Sms::Message.receipt(@sale, to: params[:phone]) if @sale.completed?

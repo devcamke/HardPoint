@@ -3701,6 +3701,13 @@ CREATE UNIQUE INDEX index_billing_invoices_on_number ON public.billing_invoices 
 
 
 --
+-- Name: index_billing_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_billing_payments_on_account_id ON public.billing_payments USING btree (account_id);
+
+
+--
 -- Name: index_billing_payments_on_invoice_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3743,6 +3750,13 @@ CREATE UNIQUE INDEX index_brands_on_account_id_and_name ON public.brands USING b
 
 
 --
+-- Name: index_cash_movements_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cash_movements_on_account_id ON public.cash_movements USING btree (account_id);
+
+
+--
 -- Name: index_cash_movements_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3768,6 +3782,13 @@ CREATE UNIQUE INDEX index_categories_on_account_id_and_name ON public.categories
 --
 
 CREATE INDEX index_categories_on_parent_id ON public.categories USING btree (parent_id);
+
+
+--
+-- Name: index_customer_order_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_order_lines_on_account_id ON public.customer_order_lines USING btree (account_id);
 
 
 --
@@ -3817,6 +3838,13 @@ CREATE INDEX index_customer_orders_on_creator_id ON public.customer_orders USING
 --
 
 CREATE INDEX index_customer_orders_on_customer_id ON public.customer_orders USING btree (customer_id);
+
+
+--
+-- Name: index_customer_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payments_on_account_id ON public.customer_payments USING btree (account_id);
 
 
 --
@@ -3897,6 +3925,13 @@ CREATE INDEX index_delivery_notes_on_sale_id ON public.delivery_notes USING btre
 
 
 --
+-- Name: index_deposits_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_deposits_on_account_id ON public.deposits USING btree (account_id);
+
+
+--
 -- Name: index_deposits_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3918,6 +3953,13 @@ CREATE INDEX index_deposits_on_shift_id ON public.deposits USING btree (shift_id
 
 
 --
+-- Name: index_document_sequences_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_document_sequences_on_account_id ON public.document_sequences USING btree (account_id);
+
+
+--
 -- Name: index_document_sequences_on_branch_id_and_kind; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3925,10 +3967,24 @@ CREATE UNIQUE INDEX index_document_sequences_on_branch_id_and_kind ON public.doc
 
 
 --
+-- Name: index_etims_devices_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_devices_on_account_id ON public.etims_devices USING btree (account_id);
+
+
+--
 -- Name: index_etims_devices_on_branch_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_etims_devices_on_branch_id ON public.etims_devices USING btree (branch_id);
+
+
+--
+-- Name: index_etims_item_registrations_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_item_registrations_on_account_id ON public.etims_item_registrations USING btree (account_id);
 
 
 --
@@ -3995,6 +4051,13 @@ CREATE INDEX index_events_on_eventable ON public.events USING btree (eventable_t
 
 
 --
+-- Name: index_goods_receipt_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipt_lines_on_account_id ON public.goods_receipt_lines USING btree (account_id);
+
+
+--
 -- Name: index_goods_receipt_lines_on_goods_receipt_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4013,6 +4076,13 @@ CREATE INDEX index_goods_receipt_lines_on_product_id ON public.goods_receipt_lin
 --
 
 CREATE INDEX index_goods_receipt_lines_on_purchase_order_line_id ON public.goods_receipt_lines USING btree (purchase_order_line_id);
+
+
+--
+-- Name: index_goods_receipts_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipts_on_account_id ON public.goods_receipts USING btree (account_id);
 
 
 --
@@ -4041,6 +4111,13 @@ CREATE INDEX index_goods_receipts_on_receiver_id ON public.goods_receipts USING 
 --
 
 CREATE INDEX index_goods_receipts_on_supplier_id ON public.goods_receipts USING btree (supplier_id);
+
+
+--
+-- Name: index_kit_components_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_kit_components_on_account_id ON public.kit_components USING btree (account_id);
 
 
 --
@@ -4097,6 +4174,13 @@ CREATE INDEX index_mpesa_shortcodes_on_branch_id ON public.mpesa_shortcodes USIN
 --
 
 CREATE UNIQUE INDEX index_mpesa_shortcodes_on_callback_token ON public.mpesa_shortcodes USING btree (callback_token);
+
+
+--
+-- Name: index_mpesa_stk_requests_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_stk_requests_on_account_id ON public.mpesa_stk_requests USING btree (account_id);
 
 
 --
@@ -4163,10 +4247,24 @@ CREATE INDEX index_mpesa_transactions_on_shortcode_id ON public.mpesa_transactio
 
 
 --
+-- Name: index_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payments_on_account_id ON public.payments USING btree (account_id);
+
+
+--
 -- Name: index_payments_on_sale_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_payments_on_sale_id ON public.payments USING btree (sale_id);
+
+
+--
+-- Name: index_price_list_items_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_price_list_items_on_account_id ON public.price_list_items USING btree (account_id);
 
 
 --
@@ -4202,6 +4300,13 @@ CREATE INDEX index_product_imports_on_branch_id ON public.product_imports USING 
 --
 
 CREATE INDEX index_product_imports_on_creator_id ON public.product_imports USING btree (creator_id);
+
+
+--
+-- Name: index_product_units_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_product_units_on_account_id ON public.product_units USING btree (account_id);
 
 
 --
@@ -4268,6 +4373,13 @@ CREATE INDEX index_products_on_unit_id ON public.products USING btree (unit_id);
 
 
 --
+-- Name: index_purchase_order_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_purchase_order_lines_on_account_id ON public.purchase_order_lines USING btree (account_id);
+
+
+--
 -- Name: index_purchase_order_lines_on_product_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4331,6 +4443,13 @@ CREATE UNIQUE INDEX index_registers_on_branch_id_and_name ON public.registers US
 
 
 --
+-- Name: index_sale_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sale_lines_on_account_id ON public.sale_lines USING btree (account_id);
+
+
+--
 -- Name: index_sale_lines_on_customer_order_line_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4356,6 +4475,13 @@ CREATE INDEX index_sale_lines_on_product_unit_id ON public.sale_lines USING btre
 --
 
 CREATE INDEX index_sale_lines_on_sale_id ON public.sale_lines USING btree (sale_id);
+
+
+--
+-- Name: index_sale_return_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sale_return_lines_on_account_id ON public.sale_return_lines USING btree (account_id);
 
 
 --
@@ -4506,6 +4632,13 @@ CREATE INDEX index_sessions_on_account_id ON public.sessions USING btree (accoun
 
 
 --
+-- Name: index_sessions_on_impersonator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sessions_on_impersonator_id ON public.sessions USING btree (impersonator_id);
+
+
+--
 -- Name: index_sessions_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4576,6 +4709,13 @@ CREATE INDEX index_sms_messages_on_source ON public.sms_messages USING btree (so
 
 
 --
+-- Name: index_stock_adjustments_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_adjustments_on_account_id ON public.stock_adjustments USING btree (account_id);
+
+
+--
 -- Name: index_stock_adjustments_on_branch_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4594,6 +4734,13 @@ CREATE INDEX index_stock_adjustments_on_creator_id ON public.stock_adjustments U
 --
 
 CREATE INDEX index_stock_adjustments_on_product_id ON public.stock_adjustments USING btree (product_id);
+
+
+--
+-- Name: index_stock_count_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_count_lines_on_account_id ON public.stock_count_lines USING btree (account_id);
 
 
 --
@@ -4674,6 +4821,13 @@ CREATE INDEX index_stock_movements_on_account_id_and_created_at ON public.stock_
 
 
 --
+-- Name: index_stock_movements_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_movements_on_branch_id ON public.stock_movements USING btree (branch_id);
+
+
+--
 -- Name: index_stock_movements_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4685,6 +4839,13 @@ CREATE INDEX index_stock_movements_on_creator_id ON public.stock_movements USING
 --
 
 CREATE INDEX index_stock_movements_on_source ON public.stock_movements USING btree (source_type, source_id);
+
+
+--
+-- Name: index_stock_transfer_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_transfer_lines_on_account_id ON public.stock_transfer_lines USING btree (account_id);
 
 
 --
@@ -4772,6 +4933,13 @@ CREATE UNIQUE INDEX index_supplier_invoices_on_supplier_id_and_number ON public.
 
 
 --
+-- Name: index_supplier_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_payments_on_account_id ON public.supplier_payments USING btree (account_id);
+
+
+--
 -- Name: index_supplier_payments_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4783,6 +4951,13 @@ CREATE INDEX index_supplier_payments_on_creator_id ON public.supplier_payments U
 --
 
 CREATE INDEX index_supplier_payments_on_supplier_id ON public.supplier_payments USING btree (supplier_id);
+
+
+--
+-- Name: index_supplier_products_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_products_on_account_id ON public.supplier_products USING btree (account_id);
 
 
 --
@@ -7007,6 +7182,7 @@ ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120500'),
 ('20260925120400'),
 ('20260925120300'),
 ('20260925120200'),

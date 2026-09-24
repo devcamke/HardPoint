@@ -194,6 +194,29 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Pricing](docs/screenshots/131-pricing.png)
 
+## Phase 10: hardening and launch readiness
+
+- **Tenant isolation checked route by route:** a test signs in as one shop's owner and requests every
+  one of the 136 routes that take a record id with another shop's record; all are refused
+- **Content security policy enforced** (scripts only from the app, no inline handlers, no framing, forms
+  only to the app, shop subdomains and Paystack), HSTS for every subdomain, a permissions policy, and
+  PINs, codes, phone numbers and KRA PINs filtered from logs
+- **Rate limits that suit shops:** a shop's tills share one public address, so sign-in is limited per login
+  (and loosely per address), PIN switching and offline sync per till
+- **Load tested** with k6: 40 cashiers ringing up sales flat out on 4 cores, 95% of scans under 280 ms
+  and payments under 640 ms, no errors ([perf/README.md](perf/README.md)); fixed the cart's per-line queries
+- **Database:** every foreign key indexed (checked by a test), PostgreSQL tuned for the VPS with a
+  connection budget, Puma workers per core, and an admin **Database** page (size, connections, cache hit
+  rates, slowest queries, unused indexes, vacuum)
+- **Backups and disaster recovery:** hourly encrypted dumps off-site, daily files, and a restore script,
+  drilled: the restored copy matched the original table for table, with row-level security intact
+  ([docs/RUNBOOK.md](docs/RUNBOOK.md)); RPO 1 hour, RTO 2 hours
+- **Launch:** security controls and the penetration test brief ([docs/SECURITY.md](docs/SECURITY.md)), the pilot
+  and go-live checklist ([docs/LAUNCH.md](docs/LAUNCH.md)), Dependabot for gems, Actions and the base image,
+  and CI security scans weekly
+
+![Database health](docs/screenshots/160-admin-database.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -263,6 +286,9 @@ bin/brakeman
 bin/bundler-audit
 ```
 
+Load testing (k6) is in [perf/README.md](perf/README.md); backups, restores and incidents in
+[docs/RUNBOOK.md](docs/RUNBOOK.md).
+
 `bin/ci` runs them all, as GitHub Actions does.
 
 ## Deployment
@@ -297,6 +323,9 @@ Kamal deploys to a single Contabo VPS (see `config/deploy.yml`):
 - Two-factor secrets are encrypted with Active Record Encryption. Run `bin/rails db:encryption:init` and add the
   printed `active_record_encryption` keys with `bin/rails credentials:edit`. Development and test use fixed,
   non-secret keys.
+- **Postgres** runs with `config/postgres/postgresql.conf` (tuned for a 6-core, 12 GB VPS); the app runs
+  `WEB_CONCURRENCY=6` Puma workers of 3 threads. **Backups** run from cron on the host
+  (`config/backup/backup.sh`, set up as in docs/RUNBOOK.md).
 - Secrets come from the environment (see `.kamal/secrets`): `POSTGRES_PASSWORD`, `HARDPOINT_DATABASE_PASSWORD`, and the Cloudflare origin certificate and key files.
 
 ```sh

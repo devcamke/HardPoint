@@ -2,7 +2,11 @@ class SessionsController < ApplicationController
   allow_while_locked
   allow_unauthenticated_access only: %i[ new create ]
   allow_without_two_factor
-  rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Try again later." }
+  # Per login against password guessing, and a looser limit per address: every till in a shop shares
+  # its router's public address, so a shift change can bring a dozen sign-ins at once.
+  rate_limit to: 10, within: 3.minutes, only: :create, name: "login", by: -> { params[:email_address].to_s.strip.downcase },
+    with: -> { redirect_to new_session_path, alert: "Try again later." }
+  rate_limit to: 60, within: 3.minutes, only: :create, name: "address", with: -> { redirect_to new_session_path, alert: "Try again later." }
 
   def new
   end

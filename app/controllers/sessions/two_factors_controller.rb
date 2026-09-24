@@ -5,7 +5,9 @@ class Sessions::TwoFactorsController < ApplicationController
 
   allow_unauthenticated_access
   allow_without_two_factor
-  rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Try again later." }
+  # Per person being challenged (a shop's tills share one public address).
+  rate_limit to: 10, within: 3.minutes, only: :create, by: -> { session.dig(:two_factor_challenge, "user_id") || request.remote_ip },
+    with: -> { redirect_to new_session_path, alert: "Try again later." }
   before_action :set_challenged_user
 
   def new

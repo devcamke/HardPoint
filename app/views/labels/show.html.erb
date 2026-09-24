@@ -1,7 +1,7 @@
 <div class="toolbar">
   <strong><%= pluralize(@labels.size, "label") %></strong>
   <span><%= LabelsController::FORMATS[@format] %></span>
-  <button type="button" onclick="window.print()">Print</button>
+  <button type="button" data-print>Print</button>
 </div>
 
 <div class="<%= @format %>">

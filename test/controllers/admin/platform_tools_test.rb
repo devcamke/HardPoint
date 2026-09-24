@@ -82,4 +82,11 @@ class Admin::PlatformToolsTest < ActionDispatch::IntegrationTest
     patch admin_support_request_path(request, status: "resolved")
     assert Account.without_isolation { request.reload.resolved? }
   end
+
+  test "the database page reads Postgres' own statistics" do
+    get admin_database_path
+    assert_response :success
+    assert_select "h2", "Largest tables"
+    assert_select "#slowest"
+  end
 end

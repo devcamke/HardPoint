@@ -28,6 +28,14 @@
 threads_count = ENV.fetch("RAILS_MAX_THREADS", 3)
 threads threads_count, threads_count
 
+# One worker process per CPU core in production (WEB_CONCURRENCY), sharing memory through preloading.
+# Keep workers × threads (+ Solid Queue's threads) under the database's connection limit; see
+# config/postgres/postgresql.conf.
+if (workers_count = Integer(ENV.fetch("WEB_CONCURRENCY", 1))) > 1
+  workers workers_count
+  preload_app!
+end
+
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 port ENV.fetch("PORT", 3000)
 

@@ -6,7 +6,7 @@ module Sale::Cart
   def add(product, product_unit: nil, quantity: 1)
     raise ArgumentError, "This sale can't be changed" unless open?
 
-    existing = lines.find { |line| line.product == product && line.product_unit == product_unit && !product.serialized? && line.discount_cents.zero? && line.customer_order_line_id.nil? }
+    existing = lines.find { |line| line.product_id == product.id && line.product_unit_id == product_unit&.id && !product.serialized? && line.discount_cents.zero? && line.customer_order_line_id.nil? }
     line = if existing
       existing.quantity += quantity.to_d
       existing
@@ -40,6 +40,13 @@ module Sale::Cart
     line_tax = lines.sum(&:tax_cents)
     self.tax_cents = subtotal_cents.zero? ? 0 : (line_tax * total_cents.to_r / subtotal_cents).round
     save!
+  end
+
+  # Reloaded with what the till's cart shows, so drawing it doesn't query line by line.
+  def reload_for_cart
+    reload
+    ActiveRecord::Associations::Preloader.new(records: [ self ], associations: { lines: [ :product, { product_unit: :unit } ] }).call
+    self
   end
 
   def item_count

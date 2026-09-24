@@ -55,8 +55,9 @@ env:
     # Set number of processes dedicated to Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
 
-    # Set number of cores available to the application on each server (default: 1).
-    # WEB_CONCURRENCY: 2
+    # One Puma worker per core, 3 threads each (see the connection budget in config/postgres/postgresql.conf).
+    WEB_CONCURRENCY: 6
+    RAILS_MAX_THREADS: 3
 
     # Match this to any external database server to configure Active Record correctly
     # Use hardpoint-db for a db accessory server on same machine via local kamal docker network.
@@ -114,9 +115,12 @@ accessories:
       secret:
         - POSTGRES_PASSWORD
         - HARDPOINT_DATABASE_PASSWORD
+    # Tuned settings (config/postgres/postgresql.conf); the data directory keeps its own pg_hba.conf.
+    cmd: postgres -c config_file=/etc/postgresql/postgresql.conf
     files:
       # Creates the non-superuser "hardpoint" role the app connects as, so row-level security applies.
       - config/postgres/create_app_role.sh:/docker-entrypoint-initdb.d/10-create-app-role.sh
+      - config/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
     directories:
       # postgres:18 keeps its data under /var/lib/postgresql/18/docker inside this volume.
       - data:/var/lib/postgresql
