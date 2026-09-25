@@ -4,6 +4,7 @@ class CustomerOrderLine < ApplicationRecord
   belongs_to :customer_order, inverse_of: :lines
   belongs_to :product
   belongs_to :product_unit, optional: true
+  belongs_to :promotion, optional: true
 
   attr_reader :product_code
 
@@ -49,6 +50,9 @@ class CustomerOrderLine < ApplicationRecord
       if unit_price_cents.to_i.zero?
         self.unit_price_cents = product_unit ? product_unit.effective_price_cents :
           product.price_cents_for(quantity: quantity || 1, price_list: customer_order&.price_list)
+        # A percentage-off promotion running at the order's branch holds for the quote like any price.
+        self.promotion, self.unit_price_cents = product.promotion_price(branch: customer_order&.branch, product_unit: product_unit, unit_price_cents: unit_price_cents) ||
+          [ nil, unit_price_cents ]
       end
     end
 end

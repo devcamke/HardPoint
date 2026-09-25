@@ -1,0 +1,38 @@
+<% content_for :title, @promotion.name %>
+
+<p class="text-sm"><%= link_to "← Promotions", promotions_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold"><%= @promotion.name %> <%= render "promotions/status", promotion: @promotion %></h1>
+    <p class="hint mt-1"><%= @promotion.offer %> · <%= l(@promotion.starts_on, format: :long) %> to <%= l(@promotion.ends_on, format: :long) %> ·
+      <%= @promotion.branch_ids.empty? ? "all branches" : Current.account.branches.where(id: @promotion.branch_ids).pluck(:name).to_sentence %></p>
+  </div>
+  <% if current_membership.approver? %>
+    <div class="flex gap-2">
+      <%= link_to "Edit", edit_promotion_path(@promotion), class: "btn-secondary" %>
+      <%= button_to @promotion.sale_lines.exists? ? "End now" : "Delete", @promotion, method: :delete, class: "btn-secondary",
+            form: { data: { turbo_confirm: "#{@promotion.sale_lines.exists? ? "End" : "Delete"} #{@promotion.name}?" } } unless @promotion.status == "ended" %>
+    </div>
+  <% end %>
+</div>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-4">
+  <div class="card"><p class="hint">Sales</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= @results.sales %></p></div>
+  <div class="card"><p class="hint">Units sold</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= quantity(@results.units) %></p></div>
+  <div class="card"><p class="hint">Given away</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@results.saving_cents) %></p></div>
+  <div class="card"><p class="hint">Takings on these lines</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@results.takings_cents) %></p></div>
+</div>
+
+<section class="card">
+  <h2 class="mb-3 text-lg font-semibold">On offer</h2>
+  <table class="table">
+    <thead><tr><th>Product</th><th class="text-right">Shelf price</th><th class="text-right"><%= @promotion.percent_off? ? "Promotion price" : "Deal" %></th></tr></thead>
+    <tbody>
+      <% @products.each do |product| %>
+        <tr><td><%= link_to product.name, product, class: "hover:text-safety-700" %> <span class="font-mono text-xs text-steel-600"><%= product.sku %></span></td>
+          <td class="text-right tabular-nums"><%= money(product.price_cents) %></td>
+          <td class="text-right font-semibold tabular-nums text-red-700"><%= @promotion.percent_off? ? money(@promotion.price_cents_for(product, product.price_cents)) : @promotion.offer %></td></tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>

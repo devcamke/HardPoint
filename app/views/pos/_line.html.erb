@@ -3,7 +3,8 @@
     <div class="min-w-0">
       <p class="truncate font-medium"><%= line.description %></p>
       <p class="text-xs text-steel-600"><%= money(line.unit_price_cents) %> / <%= line.unit.abbreviation %>
-        <%= "· −#{money(line.discount_cents)}" if line.discount_cents.positive? %></p>
+        <%= "· −#{money(line.discount_cents)}" if line.discount_cents.positive? %>
+        <%= tag.span("#{line.promotion.offer} −#{money(line.promotion_discount_cents)}", class: "badge ml-1 bg-red-50 text-red-800") if line.promotion && line.promotion_discount_cents.positive? %></p>
     </div>
     <p class="shrink-0 font-semibold tabular-nums"><%= money(line.total_cents) %></p>
   </div>

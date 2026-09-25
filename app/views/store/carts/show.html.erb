@@ -9,7 +9,7 @@
       <div id="<%= dom_id(line.product, :cart) %>" class="flex flex-wrap items-center gap-3 p-4">
         <div class="min-w-0 flex-1">
           <p class="font-semibold"><%= link_to line.product.name, store_product_path(line.product), class: "hover:text-safety-700" %></p>
-          <p class="text-sm text-steel-600"><%= money(line.product.price_cents) %> per <%= line.product.unit.name.downcase %></p>
+          <p class="text-sm text-steel-600"><%= money(line.unit_price_cents) %> per <%= line.product.unit.name.downcase %></p>
         </div>
         <%= form_with url: store_cart_item_path(line.product), method: :patch, class: "flex items-center gap-2" do |form| %>
           <%= form.number_field :quantity, value: line.quantity.to_s("F"), min: 0.001, step: "any", class: "input w-24", aria: { label: "Quantity of #{line.product.name}" } %>

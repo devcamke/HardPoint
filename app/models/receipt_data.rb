@@ -10,7 +10,8 @@ class ReceiptData
     { header: [ @account.name, @sale.branch.name, @sale.branch.address, (@sale.branch.phone && "Tel #{@sale.branch.phone}") ].compact_blank,
       receipt_number: @sale.receipt_number, time: I18n.l(@sale.completed_at || @sale.created_at, format: :short),
       register: @sale.register.name, cashier: @sale.cashier.name, customer: @sale.customer&.name, job: @sale.job&.label, voided: @sale.voided?,
-      lines: @sale.lines.includes(:product, product_unit: :unit).map { |line| line_json(line) },
+      lines: @sale.lines.includes(:product, :promotion, product_unit: :unit).map { |line| line_json(line) },
+      saved: (amount(saved_cents) if saved_cents.positive?),
       subtotal: (amount(@sale.subtotal_cents) if @sale.discount_cents.positive?), discount: (amount(@sale.discount_cents) if @sale.discount_cents.positive?),
       total: money(@sale.total_cents), tax: money(@sale.tax_cents),
       payments: @sale.payments.map { |payment| { label: [ payment.label, payment.reference ].compact.join(" "), amount: money(payment.cash? || payment.foreign_cash? ? payment.tendered_cents : payment.amount_cents) } },
@@ -22,7 +23,12 @@ class ReceiptData
   private
     def line_json(line)
       { description: line.description, detail: "#{ActiveSupport::NumberHelper.number_to_rounded(line.quantity, precision: 3, strip_insignificant_zeros: true)} #{line.unit.abbreviation} x #{amount(line.unit_price_cents)}",
-        total: amount(line.total_cents), discount: (amount(line.discount_cents) if line.discount_cents.positive?) }
+        total: amount(line.total_cents), discount: (amount(line.discount_cents) if line.discount_cents.positive?),
+        promotion: ([ line.promotion&.offer || "promotion", amount(line.promotion_discount_cents) ] if line.promotion_discount_cents.positive?) }
+    end
+
+    def saved_cents
+      @sale.lines.sum(&:promotion_discount_cents)
     end
 
     def etims_json

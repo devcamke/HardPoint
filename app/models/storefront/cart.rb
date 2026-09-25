@@ -2,7 +2,8 @@
 # Only products the store sells count; anything taken off sale since drops out.
 class Storefront::Cart
   Line = Data.define(:product, :quantity) do
-    def total_cents = (product.price_cents * quantity).round
+    def unit_price_cents = product.promotion_price&.last || product.price_cents
+    def total_cents = (unit_price_cents * quantity).round
   end
 
   MAX_LINES = 40

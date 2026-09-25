@@ -1,0 +1,38 @@
+<% content_for :title, "Promotions" %>
+
+<p class="text-sm"><%= link_to "← Products", products_path, class: "link" %></p>
+<div class="mt-2 mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Promotions</h1>
+  <%= link_to "New promotion", new_promotion_path, class: "btn-primary" if current_membership.approver? %>
+</div>
+
+<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter">
+  <% PromotionsController::FILTERS.each do |filter| %>
+    <%= link_to filter.humanize, promotions_path(filter: filter), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-navy-900 text-white" : "bg-white"}" %>
+  <% end %>
+</nav>
+
+<div class="card overflow-x-auto">
+  <% if @promotions.any? %>
+    <table class="table">
+      <thead><tr><th>Promotion</th><th>Offer</th><th>Dates</th><th>Status</th><th class="text-right">Sales</th><th class="text-right">Given away</th><th class="text-right">Takings</th></tr></thead>
+      <tbody>
+        <% @promotions.each do |promotion| %>
+          <% result = @results[promotion.id] %>
+          <tr id="<%= dom_id(promotion) %>">
+            <td><%= link_to promotion.name, promotion, class: "link font-semibold" %></td>
+            <td><%= promotion.offer %></td>
+            <td class="whitespace-nowrap text-sm"><%= l(promotion.starts_on, format: :short) %> – <%= l(promotion.ends_on, format: :short) %></td>
+            <td><%= render "promotions/status", promotion: promotion %></td>
+            <td class="text-right tabular-nums"><%= result.sales %></td>
+            <td class="text-right tabular-nums"><%= money(result.saving_cents) %></td>
+            <td class="text-right tabular-nums"><%= money(result.takings_cents) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <%= render "shared/pagination" %>
+  <% else %>
+    <p class="text-steel-600">No promotions here. A promotion takes a percentage off, or gives free items with a quantity, on chosen products or whole categories for a set time; the till applies it by itself.</p>
+  <% end %>
+</div>

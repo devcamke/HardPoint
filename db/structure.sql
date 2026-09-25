@@ -737,7 +737,8 @@ CREATE TABLE public.customer_order_lines (
     tax_cents bigint DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    detail character varying
+    detail character varying,
+    promotion_id bigint
 );
 
 ALTER TABLE ONLY public.customer_order_lines FORCE ROW LEVEL SECURITY;
@@ -1882,6 +1883,51 @@ ALTER SEQUENCE public.products_id_seq OWNED BY public.products.id;
 
 
 --
+-- Name: promotions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promotions (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    creator_id bigint,
+    name character varying NOT NULL,
+    kind character varying NOT NULL,
+    percent_off numeric(5,2),
+    buy_quantity numeric(14,3),
+    free_quantity numeric(14,3),
+    product_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    category_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    branch_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    starts_on date NOT NULL,
+    ends_on date NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.promotions FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: promotions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promotions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promotions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promotions_id_seq OWNED BY public.promotions.id;
+
+
+--
 -- Name: purchase_order_lines; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2022,7 +2068,9 @@ CREATE TABLE public.sale_lines (
     updated_at timestamp(6) without time zone NOT NULL,
     customer_order_line_id bigint,
     cost_cents bigint DEFAULT 0 NOT NULL,
-    detail character varying
+    detail character varying,
+    promotion_id bigint,
+    promotion_discount_cents bigint DEFAULT 0 NOT NULL
 );
 
 ALTER TABLE ONLY public.sale_lines FORCE ROW LEVEL SECURITY;
@@ -3392,6 +3440,13 @@ ALTER TABLE ONLY public.products ALTER COLUMN id SET DEFAULT nextval('public.pro
 
 
 --
+-- Name: promotions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promotions ALTER COLUMN id SET DEFAULT nextval('public.promotions_id_seq'::regclass);
+
+
+--
 -- Name: purchase_order_lines id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3971,6 +4026,14 @@ ALTER TABLE ONLY public.products
 
 
 --
+-- Name: promotions promotions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promotions
+    ADD CONSTRAINT promotions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: purchase_order_lines purchase_order_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4502,6 +4565,13 @@ CREATE INDEX index_customer_order_lines_on_product_id ON public.customer_order_l
 --
 
 CREATE INDEX index_customer_order_lines_on_product_unit_id ON public.customer_order_lines USING btree (product_unit_id);
+
+
+--
+-- Name: index_customer_order_lines_on_promotion_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_order_lines_on_promotion_id ON public.customer_order_lines USING btree (promotion_id);
 
 
 --
@@ -5198,6 +5268,20 @@ CREATE INDEX index_products_on_unit_id ON public.products USING btree (unit_id);
 
 
 --
+-- Name: index_promotions_on_account_id_and_ends_on_and_starts_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_promotions_on_account_id_and_ends_on_and_starts_on ON public.promotions USING btree (account_id, ends_on, starts_on);
+
+
+--
+-- Name: index_promotions_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_promotions_on_creator_id ON public.promotions USING btree (creator_id);
+
+
+--
 -- Name: index_purchase_order_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5293,6 +5377,13 @@ CREATE INDEX index_sale_lines_on_product_id ON public.sale_lines USING btree (pr
 --
 
 CREATE INDEX index_sale_lines_on_product_unit_id ON public.sale_lines USING btree (product_unit_id);
+
+
+--
+-- Name: index_sale_lines_on_promotion_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sale_lines_on_promotion_id ON public.sale_lines USING btree (promotion_id);
 
 
 --
@@ -6018,6 +6109,14 @@ ALTER TABLE ONLY public.mpesa_shortcodes
 
 ALTER TABLE ONLY public.billing_payments
     ADD CONSTRAINT fk_rails_0f049c1b1f FOREIGN KEY (user_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: customer_order_lines fk_rails_0f4f0d6207; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_order_lines
+    ADD CONSTRAINT fk_rails_0f4f0d6207 FOREIGN KEY (promotion_id) REFERENCES public.promotions(id) DEFERRABLE;
 
 
 --
@@ -7101,6 +7200,14 @@ ALTER TABLE ONLY public.sale_return_lines
 
 
 --
+-- Name: sale_lines fk_rails_b85cdd5ed6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sale_lines
+    ADD CONSTRAINT fk_rails_b85cdd5ed6 FOREIGN KEY (promotion_id) REFERENCES public.promotions(id) DEFERRABLE;
+
+
+--
 -- Name: supplier_invoices fk_rails_b87e804d59; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7469,6 +7576,14 @@ ALTER TABLE ONLY public.memberships
 
 
 --
+-- Name: promotions fk_rails_ede703d328; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promotions
+    ADD CONSTRAINT fk_rails_ede703d328 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: product_imports fk_rails_ee10a7fc5b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7586,6 +7701,14 @@ ALTER TABLE ONLY public.sale_lines
 
 ALTER TABLE ONLY public.products
     ADD CONSTRAINT fk_rails_fb915499a4 FOREIGN KEY (category_id) REFERENCES public.categories(id) DEFERRABLE;
+
+
+--
+-- Name: promotions fk_rails_fc30c0fce7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promotions
+    ADD CONSTRAINT fk_rails_fc30c0fce7 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -7873,6 +7996,13 @@ CREATE POLICY account_isolation ON public.product_units USING (((current_setting
 --
 
 CREATE POLICY account_isolation ON public.products USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: promotions account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.promotions USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -8300,6 +8430,12 @@ ALTER TABLE public.product_units ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: promotions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.promotions ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: purchase_order_lines; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8474,6 +8610,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925121200'),
 ('20260925121100'),
 ('20260925121000'),
 ('20260925120900'),

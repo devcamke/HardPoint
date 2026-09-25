@@ -1,0 +1,43 @@
+<%= form_with model: promotion, class: "card max-w-3xl" do |form| %>
+  <%= render "shared/errors", model: promotion %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field sm:col-span-2"><%= form.label :name, class: "label" %><%= form.text_field :name, required: true, class: "input", placeholder: "Cement week" %></div>
+
+    <fieldset class="field sm:col-span-2">
+      <legend class="label">Offer</legend>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="rounded-lg border border-concrete-300 p-3 has-checked:border-navy-900">
+          <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :kind, "percent_off", class: "accent-safety-500" %> A percentage off</span>
+          <span class="mt-2 flex items-center gap-2"><%= form.number_field :percent_off, value: (plain_number(promotion.percent_off) if promotion.percent_off), step: "any", min: 0, max: 100, class: "input w-24", "aria-label": "Percent off" %> % off the shelf price</span>
+        </label>
+        <label class="rounded-lg border border-concrete-300 p-3 has-checked:border-navy-900">
+          <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :kind, "buy_get", class: "accent-safety-500" %> Free items with a quantity</span>
+          <span class="mt-2 flex flex-wrap items-center gap-2">Buy <%= form.number_field :buy_quantity, value: (plain_number(promotion.buy_quantity) if promotion.buy_quantity), step: "any", min: 0, class: "input w-20", "aria-label": "Buy quantity" %>
+            get <%= form.number_field :free_quantity, value: (plain_number(promotion.free_quantity) if promotion.free_quantity), step: "any", min: 0, class: "input w-20", "aria-label": "Free quantity" %> free</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="field"><%= form.label :starts_on, "From", class: "label" %><%= form.date_field :starts_on, required: true, class: "input" %></div>
+    <div class="field"><%= form.label :ends_on, "Until (inclusive)", class: "label" %><%= form.date_field :ends_on, required: true, class: "input" %></div>
+
+    <div class="field sm:col-span-2"><%= form.label :product_codes, "Products (SKUs or barcodes)", class: "label" %>
+      <%= form.text_area :product_codes, value: Current.account.products.where(id: promotion.product_ids).pluck(:sku).join(" "), rows: 2, class: "input font-mono", placeholder: "CEM-BAM-50 STL-Y12" %></div>
+
+    <fieldset class="field">
+      <legend class="label">…or whole categories</legend>
+      <%= form.collection_check_boxes :category_ids, Current.account.categories.alphabetically, :id, :name do |box| %>
+        <label class="flex items-center gap-2 text-sm"><%= box.check_box(class: "size-4 accent-safety-500") %><%= box.text %></label>
+      <% end %>
+    </fieldset>
+    <fieldset class="field">
+      <legend class="label">Branches (none ticked: all)</legend>
+      <%= form.collection_check_boxes :branch_ids, Current.account.branches.alphabetically, :id, :name do |box| %>
+        <label class="flex items-center gap-2 text-sm"><%= box.check_box(class: "size-4 accent-safety-500") %><%= box.text %></label>
+      <% end %>
+      <label class="mt-3 flex items-center gap-2 text-sm"><%= form.check_box :active, class: "size-4 accent-safety-500" %> Active (untick to pause)</label>
+    </fieldset>
+  </div>
+  <p class="hint mb-4">The till gives each line the one promotion that saves most. A customer on a price list gets whichever is better, their price or the promotion. Percentages also apply to quotes and online orders; free items are given at the till.</p>
+  <div class="flex items-center gap-3"><%= form.submit "Save", class: "btn-primary" %><%= link_to "Cancel", promotion.persisted? ? promotion : promotions_path, class: "link" %></div>
+<% end %>

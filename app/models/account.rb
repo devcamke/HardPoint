@@ -54,6 +54,19 @@ class Account < ApplicationRecord
   has_many :hire_agreements, dependent: :destroy
   has_many :jobs, dependent: :destroy
   has_many :currencies, dependent: :delete_all
+  has_many :promotions, dependent: :delete_all
+
+  # Promotions running today, looked up once per request (the till, the store's product lists),
+  # and forgotten when one is saved.
+  def running_promotions
+    @running_promotions = nil unless @running_promotions_on == Date.current
+    @running_promotions_on = Date.current
+    @running_promotions ||= promotions.running(Date.current).to_a
+  end
+
+  def forget_running_promotions
+    @running_promotions = nil
+  end
   has_many :api_keys, dependent: :destroy
   has_many :webhook_endpoints, dependent: :destroy
   has_many :webhook_deliveries, dependent: :delete_all

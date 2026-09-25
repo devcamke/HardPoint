@@ -11,6 +11,16 @@ module Product::Pricing
     [ price_cents, *applicable.map(&:price_cents) ].min
   end
 
+  # The best percentage-off promotion running today, and the price with it, for quotes, online orders
+  # and the store's shelves: [ promotion, price ], or nil. With no branch, only promotions that run
+  # at every branch count (the store shows those).
+  def promotion_price(branch: nil, product_unit: nil, unit_price_cents: product_unit ? product_unit.effective_price_cents : price_cents)
+    offers = account.running_promotions.select { _1.percent_off? && _1.covers?(self) && (branch ? _1.available_at?(branch) : _1.branch_ids.empty?) }
+      .map { [ _1, _1.price_cents_for(self, unit_price_cents, product_unit: product_unit) ] }
+    best = offers.min_by(&:last)
+    best if best && best.last < unit_price_cents
+  end
+
   def effective_tax_rate
     tax_rate || account.tax_rates.find_by(default: true)
   end

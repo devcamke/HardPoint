@@ -4,8 +4,9 @@ class SaleLine < ApplicationRecord
   belongs_to :sale, inverse_of: :lines
   belongs_to :product
   belongs_to :product_unit, optional: true
+  belongs_to :promotion, optional: true
 
-  money_attribute :unit_price, :discount, :total, :tax
+  money_attribute :unit_price, :discount, :total, :tax, :promotion_discount
 
   validates :quantity, numericality: { greater_than: 0 }
   validates :discount_cents, numericality: { greater_than_or_equal_to: 0 }
@@ -36,6 +37,14 @@ class SaleLine < ApplicationRecord
   def reprice
     return if customer_order_line_id
     self.unit_price_cents = product_unit ? product_unit.effective_price_cents : product.price_cents_for(quantity: quantity, price_list: sale.price_list)
+    apply_best_promotion
+  end
+
+  # The running promotion that saves the customer most on this line, if any.
+  def apply_best_promotion
+    best = sale.running_promotions.map { [ _1, _1.saving_cents(product: product, quantity: quantity, unit_price_cents: unit_price_cents, product_unit: product_unit) ] }
+      .select { _2.positive? }.max_by(&:last)
+    self.promotion, self.promotion_discount_cents = best || [ nil, 0 ]
   end
 
   def description
@@ -86,7 +95,7 @@ class SaleLine < ApplicationRecord
     end
 
     def calculate_totals
-      self.total_cents = gross_cents - discount_cents
+      self.total_cents = gross_cents - discount_cents - promotion_discount_cents.to_i
       self.tax_cents = (total_cents * tax_rate / (100 + tax_rate)).round
     end
 
@@ -101,6 +110,6 @@ class SaleLine < ApplicationRecord
     end
 
     def discount_within_price
-      errors.add :discount, "can't be more than the line's price" if discount_cents.to_i > gross_cents
+      errors.add :discount, "can't be more than the line's price" if discount_cents.to_i + promotion_discount_cents.to_i > gross_cents
     end
 end

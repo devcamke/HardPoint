@@ -8,6 +8,7 @@
     <% end %>
     <%= link_to "Export CSV", products_path(request.query_parameters.merge(format: :csv)), class: "btn-secondary", data: { turbo: false } %>
     <%= link_to "Print labels", new_labels_path(query: params[:query], category_id: params[:category_id]), class: "btn-secondary" %>
+    <%= link_to "Promotions", promotions_path, class: "btn-secondary" %>
     <% if current_membership.can_manage_catalogue? %>
       <%= link_to "Add product", new_product_path, class: "btn-primary" %>
     <% end %>

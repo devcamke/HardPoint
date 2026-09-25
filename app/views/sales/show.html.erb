@@ -25,13 +25,14 @@
     <table class="table">
       <thead><tr><th>Item</th><th class="text-right">Qty</th><th class="text-right">Price</th><th class="text-right">Discount</th><th class="text-right">Total</th></tr></thead>
       <tbody>
-        <% @sale.lines.includes(:product, product_unit: :unit).each do |line| %>
+        <% @sale.lines.includes(:product, :promotion, product_unit: :unit).each do |line| %>
           <tr>
             <td><%= link_to line.description, line.product, class: "hover:text-safety-700" %><%= tag.span(" · SN #{line.serial_number}", class: "font-mono text-xs") if line.serial_number.present? %><%= tag.span(" · batch #{@batches[line.product_id].map { |number, amount| @batches[line.product_id].one? ? number : "#{number} ×#{quantity(amount)}" }.join(", ")}", class: "font-mono text-xs text-steel-600") if @batches.key?(line.product_id) %>
               <% returned = @sale.returned_quantity(line) %><%= tag.span(" · #{quantity(returned)} returned", class: "text-xs text-safety-700") if returned.positive? %></td>
             <td class="text-right tabular-nums"><%= quantity(line.quantity, line.unit) %></td>
             <td class="text-right tabular-nums"><%= money(line.unit_price_cents) %></td>
-            <td class="text-right tabular-nums"><%= money(line.discount_cents) if line.discount_cents.positive? %></td>
+            <td class="text-right tabular-nums"><%= money(line.discount_cents) if line.discount_cents.positive? %>
+              <% if line.promotion_discount_cents.positive? %><span class="block text-xs text-red-700"><%= link_to_if line.promotion, (line.promotion&.offer || "Promotion"), line.promotion, class: "link" %> −<%= money(line.promotion_discount_cents) %></span><% end %></td>
             <td class="text-right tabular-nums"><%= money(line.total_cents) %></td>
           </tr>
         <% end %>

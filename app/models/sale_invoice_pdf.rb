@@ -34,7 +34,7 @@ class SaleInvoicePdf < DocumentPdf
 
       table(@sale.lines.includes(product: :unit, product_unit: :unit).map do |line|
         [ line.description, "#{quantity(line.quantity)} #{line.unit.abbreviation}", money(line.unit_price_cents),
-          (line.discount_cents.positive? ? money(line.discount_cents) : ""), money(line.total_cents) ]
+          ((line.discount_cents + line.promotion_discount_cents).positive? ? money(line.discount_cents + line.promotion_discount_cents) : ""), money(line.total_cents) ]
       end)
       total "Discount", @sale.discount_cents, size: 10, style: :normal if @sale.discount_cents.positive?
       total "Total", @sale.total_cents

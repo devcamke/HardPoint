@@ -9,11 +9,12 @@
   <% if @sale.job %><p>Job: <%= @sale.job.label %></p><% end %>
   <% if @sale.voided? %><p class="center bold">*** VOIDED ***</p><% end %>
   <hr>
-  <% @sale.lines.includes(:product, product_unit: :unit).each do |line| %>
+  <% @sale.lines.includes(:product, :promotion, product_unit: :unit).each do |line| %>
     <div class="item">
       <div><%= line.description %></div>
       <div class="row muted"><span><%= quantity(line.quantity, line.unit) %> × <%= number_with_precision(line.unit_price_cents / 100.0, precision: 2, delimiter: ",") %></span><span><%= number_with_precision(line.total_cents / 100.0, precision: 2, delimiter: ",") %></span></div>
       <% if line.discount_cents.positive? %><div class="row muted"><span>  discount</span><span>−<%= number_with_precision(line.discount_cents / 100.0, precision: 2, delimiter: ",") %></span></div><% end %>
+      <% if line.promotion_discount_cents.positive? %><div class="row muted"><span>  <%= line.promotion&.offer || "promotion" %></span><span>−<%= number_with_precision(line.promotion_discount_cents / 100.0, precision: 2, delimiter: ",") %></span></div><% end %>
       <% if line.serial_number.present? %><div class="muted">  S/N <%= line.serial_number %></div><% end %>
     </div>
   <% end %>
@@ -24,6 +25,8 @@
   <% end %>
   <div class="row bold big"><span>TOTAL</span><span><%= money(@sale.total_cents) %></span></div>
   <div class="row muted"><span>Incl. tax</span><span><%= money(@sale.tax_cents) %></span></div>
+  <% saved = @sale.lines.sum(&:promotion_discount_cents) %>
+  <% if saved.positive? %><div class="row bold"><span>You saved</span><span><%= money(saved) %></span></div><% end %>
   <hr>
   <% @sale.payments.each do |payment| %>
     <div class="row"><span><%= payment.label %><%= " #{payment.reference}" if payment.reference %></span><span><%= money(payment.cash? || payment.foreign_cash? ? payment.tendered_cents : payment.amount_cents) %></span></div>

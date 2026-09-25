@@ -237,6 +237,7 @@ Rails.application.routes.draw do
     end
 
     resources :currencies, only: %i[ index create update destroy ]
+    resources :promotions
     resources :jobs, except: :destroy do
       scope module: :jobs do
         resource :closure, only: %i[ create destroy ]

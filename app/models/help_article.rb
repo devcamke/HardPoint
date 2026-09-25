@@ -17,6 +17,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section)
       new("foreign-currencies", "Dollars and other currencies", "Taking foreign notes at the till, counting them at close, and suppliers who invoice in dollars.", "Money and tax"),
       new("batches-and-expiry", "Batches and expiry dates", "Selling the oldest first, writing off expired stock, and finding who bought a recalled batch.", "Stock and purchasing"),
       new("stock-on-your-phone", "Stock on your phone", "Look up products, count stock takes and check deliveries in with your phone's camera.", "Stock and purchasing"),
+      new("promotions", "Promotions and offers", "Percentages off and \"buy 10, get 1 free\", applied by the till by itself.", "At the till"),
       new("contractor-jobs", "Jobs for contractors", "Tag what contractors buy to their projects, track it against a budget and print a cost summary.", "At the till"),
       new("tool-hire", "Hiring out tools", "Tools for hire, hire agreements, deposits, returns and settling up at the till.", "At the till"),
       new("connecting-apps", "Connecting a web shop or other apps", "API keys and webhooks, for the developer who connects your web shop or accounts.", "Your account"),

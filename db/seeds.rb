@@ -309,6 +309,19 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
       foreign_sale.pay(tender: "foreign_cash", currency: code, foreign_tendered_cents: notes)
     end
 
+    # Promotions: a cement deal and a paint sale running, roofing next month, and a sale already using the cement deal.
+    cement_week = account.promotions.create!(name: "Cement week", kind: "buy_get", buy_quantity: 10, free_quantity: 1,
+      product_ids: [ products["CEM-BAM-50"].id, products["CEM-SAV-50"].id ], starts_on: 2.days.ago.to_date, ends_on: 5.days.from_now.to_date)
+    account.promotions.create!(name: "Crown paint sale", kind: "percent_off", percent_off: 15, category_ids: [ account.categories.find_by!(name: "Paint").id ],
+      starts_on: Date.current, ends_on: 14.days.from_now.to_date)
+    account.promotions.create!(name: "Rainy season roofing", kind: "percent_off", percent_off: 8, category_ids: [ account.categories.find_by!(name: "Roofing").id ],
+      branch_ids: [ yard.id ], starts_on: 20.days.from_now.to_date, ends_on: 50.days.from_now.to_date)
+    promotion_sale = till_shift.current_sale
+    promotion_sale.add(products["CEM-BAM-50"], quantity: 22)
+    promotion_sale.add(products["PNT-CRN-W20"], quantity: 2)
+    promotion_sale.pay(tender: "mobile_money", reference: "SKP9RT2M4X")
+    cement_week.touch
+
     # The online store, collecting from both branches.
     account.create_storefront!(enabled: true, headline: "Order online, collect in 2 hours",
       intro: "Cement, steel, roofing, plumbing, paint and tools for your build, at the same prices as in our shops.",

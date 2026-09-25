@@ -343,6 +343,21 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Foreign notes at the till](docs/screenshots/251-till-foreign-cash.png)
 
+## Phase 19: promotions
+
+- **Products › Promotions:** a percentage off, or "buy 10, get 1 free", on chosen products (by SKU or barcode) or whole
+  categories, between two dates, at every branch or some; owners and managers set them up, everyone can see them
+- **At the till** nothing needs doing: each line gets the promotion that saves the customer most, shown on the line.
+  Promotions are kept apart from hand discounts, so they never need a manager's PIN, and a contractor on a price list
+  gets whichever is better, their price or the offer, not both
+- **Receipts** show each saving and "You saved" at the bottom (printed and ESC/POS); invoices, KRA eTIMS, returns and
+  reports all see the lower totals
+- **Quotes, orders and the online store** get percentages off, with the old price struck through in the store
+- Each promotion's page shows its sales, units, what it gave away and its takings; used promotions end rather than
+  disappear
+
+![Promotions at the till](docs/screenshots/263-till-promotions.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

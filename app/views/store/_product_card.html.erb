@@ -11,7 +11,7 @@
   <% end %>
   <div class="flex flex-1 flex-col p-3">
     <h2 class="text-sm font-semibold leading-snug"><%= link_to product.name, store_product_path(product), class: "hover:text-safety-700" %></h2>
-    <p class="mt-1 text-lg font-bold tabular-nums"><%= money(product.price_cents) %> <span class="text-xs font-normal text-steel-600">/ <%= product.unit.name.downcase %></span></p>
+    <p class="mt-1"><%= render "store/price", product: product %> <span class="text-xs font-normal text-steel-600">/ <%= product.unit.name.downcase %></span></p>
     <p class="mt-auto pt-2 text-xs"><%= render "store/availability", product: product, branch: branch %><%= " at #{branch.name}" if branches.many? && status.in?(%i[ in_stock low ]) %></p>
   </div>
 </article>

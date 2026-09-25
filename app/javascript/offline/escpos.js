@@ -86,6 +86,7 @@ export function receipt(data, { width = 48, openDrawer = data.open_drawer } = {}
     wrap(line.description, width).forEach(text)
     text(columns("  " + line.detail, line.total, width))
     if (line.discount) text(columns("  discount", "-" + line.discount, width))
+    if (line.promotion) text(columns("  " + line.promotion[0], "-" + line.promotion[1], width))
   }
   rule()
   if (data.subtotal) text(columns("Subtotal", data.subtotal, width))
@@ -94,6 +95,7 @@ export function receipt(data, { width = 48, openDrawer = data.open_drawer } = {}
   text(columns("TOTAL", data.total, width))
   add(commands.normalSize); add(commands.boldOff)
   text(columns("Incl. tax", data.tax, width))
+  if (data.saved) text(columns("You saved", data.saved, width))
   rule()
   for (const payment of data.payments || []) text(columns(payment.label, payment.amount, width))
   if (data.change) { add(commands.boldOn); text(columns("Change", data.change, width)); add(commands.boldOff) }

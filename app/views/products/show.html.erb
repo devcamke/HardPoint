@@ -40,6 +40,13 @@
   <div class="card"><p class="hint">Reorder at</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= quantity(@product.reorder_level, @product.unit) %></p></div>
 </div>
 
+<% promotions = Current.account.running_promotions.select { _1.covers?(@product) } %>
+<% if promotions.any? %>
+  <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+    On promotion: <%= safe_join(promotions.map { link_to("#{_1.name} (#{_1.offer}, until #{l(_1.ends_on, format: :short)})", _1, class: "link") }, ", ") %>
+  </div>
+<% end %>
+
 <div class="grid gap-6 lg:grid-cols-2">
   <section class="card">
     <div class="mb-3 flex items-center justify-between">

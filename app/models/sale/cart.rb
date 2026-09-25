@@ -43,10 +43,15 @@ module Sale::Cart
     save!
   end
 
+  # Promotions running today at this sale's branch, looked up once per sale.
+  def running_promotions
+    @running_promotions ||= account.running_promotions.select { _1.available_at?(branch) }
+  end
+
   # Reloaded with what the till's cart shows, so drawing it doesn't query line by line.
   def reload_for_cart
     reload
-    ActiveRecord::Associations::Preloader.new(records: [ self ], associations: { lines: [ :product, { product_unit: :unit } ] }).call
+    ActiveRecord::Associations::Preloader.new(records: [ self ], associations: { lines: [ :product, :promotion, { product_unit: :unit } ] }).call
     self
   end
 

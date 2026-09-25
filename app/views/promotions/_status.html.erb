@@ -1,0 +1,2 @@
+<% status = promotion.status %>
+<%= tag.span(status.humanize, class: class_names("badge", "bg-green-50 text-green-800" => status == "running", "bg-safety-100 text-safety-800" => status == "upcoming")) %>
