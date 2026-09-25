@@ -16,6 +16,7 @@ class ReceiptData
       total: money(@sale.total_cents), tax: money(@sale.tax_cents),
       payments: @sale.payments.map { |payment| { label: [ payment.label, payment.reference ].compact.join(" "), amount: money(payment.cash? || payment.foreign_cash? ? payment.tendered_cents : payment.amount_cents) } },
       change: (money(@sale.change_cents) if @sale.change_cents.positive?),
+      loyalty: loyalty_lines,
       etims: etims_json, footer: @account.receipt_footer.presence || "Thank you for shopping with us",
       open_drawer: @sale.payments.any? { _1.cash? || _1.foreign_cash? } }
   end
@@ -25,6 +26,12 @@ class ReceiptData
       { description: line.description, detail: "#{ActiveSupport::NumberHelper.number_to_rounded(line.quantity, precision: 3, strip_insignificant_zeros: true)} #{line.unit.abbreviation} x #{amount(line.unit_price_cents)}",
         total: amount(line.total_cents), discount: (amount(line.discount_cents) if line.discount_cents.positive?),
         promotion: ([ line.promotion&.offer || "promotion", amount(line.promotion_discount_cents) ] if line.promotion_discount_cents.positive?) }
+    end
+
+    def loyalty_lines
+      return unless @sale.completed? && @sale.loyalty_program
+
+      [ "Points earned: #{@sale.points_earned}", "Points balance: #{@sale.customer.points_balance}" ]
     end
 
     def saved_cents

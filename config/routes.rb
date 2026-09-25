@@ -215,6 +215,7 @@ Rails.application.routes.draw do
     # Customers, orders and accounts
     resources :customers, except: :destroy do
       scope module: :customers do
+        resources :loyalty_adjustments, path: "points", only: :create
         resources :payments, only: %i[ new create ]
         resource :statement, only: :show
         resource :statement_email, only: :create
@@ -238,6 +239,7 @@ Rails.application.routes.draw do
 
     resources :currencies, only: %i[ index create update destroy ]
     resources :promotions
+    resource :loyalty_program, path: "loyalty", only: %i[ edit update ]
     resources :jobs, except: :destroy do
       scope module: :jobs do
         resource :closure, only: %i[ create destroy ]

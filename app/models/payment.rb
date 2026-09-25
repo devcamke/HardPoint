@@ -1,9 +1,11 @@
 class Payment < ApplicationRecord
   include AccountOwned, Monetary
 
-  TENDERS = %w[ cash card mobile_money on_account deposit foreign_cash ].freeze
+  TENDERS = %w[ cash card mobile_money on_account deposit foreign_cash points ].freeze
 
   belongs_to :sale
+  # Points spent are taken off the customer's balance when the payment is taken, and put back if it's removed.
+  has_one :loyalty_entry, dependent: :delete
 
   enum :tender, TENDERS.index_by(&:itself)
 
@@ -17,6 +19,7 @@ class Payment < ApplicationRecord
 
   # A code typed at the till for money that already arrived on the Paybill claims it.
   after_create_commit :claim_mpesa_transaction, if: -> { mobile_money? && reference.present? }
+  after_create :spend_points, if: :points?
 
   # Change is always given in the shop's own currency, foreign notes included.
   def change_cents
@@ -25,12 +28,17 @@ class Payment < ApplicationRecord
 
   def label
     if deposit? then "Deposit used"
+    elsif points? then "#{points} points"
     elsif foreign_cash? then "#{Money.format(foreign_tendered_cents, currency: currency)} cash @ #{exchange_rate.to_d.round(4).to_s("F")}"
     else tender.humanize
     end
   end
 
   private
+    def spend_points
+      create_loyalty_entry!(account: account, customer: sale.customer, sale: sale, kind: "redeemed", points: -points)
+    end
+
     def claim_mpesa_transaction
       sale.account.mpesa_transactions.unmatched.find_by(trans_id: reference.strip.upcase)&.match(self)
     end

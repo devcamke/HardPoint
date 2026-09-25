@@ -32,6 +32,10 @@
     <div class="row"><span><%= payment.label %><%= " #{payment.reference}" if payment.reference %></span><span><%= money(payment.cash? || payment.foreign_cash? ? payment.tendered_cents : payment.amount_cents) %></span></div>
   <% end %>
   <% if @sale.change_cents.positive? %><div class="row bold"><span>Change</span><span><%= money(@sale.change_cents) %></span></div><% end %>
+  <% if @sale.completed? && @sale.loyalty_program %>
+    <div class="row"><span>Points earned</span><span><%= @sale.points_earned %></span></div>
+    <div class="row"><span>Points balance</span><span><%= number_with_delimiter(@sale.customer.points_balance) %></span></div>
+  <% end %>
   <% if (submission = @sale.etims_submission) %>
     <hr>
     <% if submission.sent? %>

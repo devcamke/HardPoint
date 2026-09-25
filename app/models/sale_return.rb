@@ -27,6 +27,7 @@ class SaleReturn < ApplicationRecord
   before_validation(on: :create) { self.branch ||= sale&.branch }
   before_create :number_and_total
   after_create :restock_and_record
+  after_create :take_back_points
 
   after_create_commit -> { account.refresh_dashboard_later }
   after_create_commit -> { sale.job&.touch }
@@ -44,6 +45,16 @@ class SaleReturn < ApplicationRecord
       lines.each(&:calculate_totals)
       self.total_cents = lines.sum(&:total_cents)
       self.tax_cents = lines.sum(&:tax_cents)
+    end
+
+    # The points the sale earned, in proportion to what came back.
+    def take_back_points
+      earned = sale.loyalty_entries.where(kind: "earned").sum(:points)
+      return unless earned.positive? && sale.customer && sale.total_cents.positive?
+
+      taken_back = -sale.loyalty_entries.where.not(sale_return_id: nil).sum(:points)
+      points = [ (earned * total_cents.to_r / sale.total_cents).floor, earned - taken_back ].min
+      sale.loyalty_entries.create!(account: account, customer: sale.customer, sale_return: self, kind: "reversed", points: -points, creator: creator) if points.positive?
     end
 
     def restock_and_record

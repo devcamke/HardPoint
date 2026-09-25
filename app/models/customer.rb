@@ -7,6 +7,11 @@ class Customer < ApplicationRecord
   has_many :sales, dependent: :restrict_with_error
   has_many :customer_orders, dependent: :restrict_with_error
   has_many :jobs, dependent: :restrict_with_error
+  has_many :loyalty_entries, dependent: :restrict_with_error
+
+  def points_balance
+    loyalty_entries.sum(:points)
+  end
 
   money_attribute :credit_limit
 

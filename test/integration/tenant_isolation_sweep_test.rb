@@ -123,6 +123,7 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
 
           acme.account_exports.create!
           acme.currencies.create!(code: "USD", rate: 129.5)
+          acme.create_loyalty_program!(enabled: true)
           acme.promotions.create!(name: "Sweep offer", kind: "percent_off", percent_off: 10, product_ids: [ products(:acme_nails).id ], starts_on: Date.current, ends_on: Date.current + 1)
           products(:acme_pipe).update!(tracks_batches: true)
           products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: 5, reason: "received", batch: { number: "SWEEP-1", expires_on: 1.month.from_now.to_date })

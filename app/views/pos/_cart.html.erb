@@ -9,6 +9,10 @@
       <p class="truncate font-semibold"><%= sale.customer&.name || "Walk-in" %>
         <%= tag.span(sale.customer.price_list.name, class: "badge ml-1") if sale.customer&.price_list %>
         <%= tag.span("Order #{sale.customer_order.reference}", class: "badge ml-1 bg-safety-100 text-safety-800") if sale.customer_order %></p>
+      <% if (program = sale.loyalty_program) %>
+        <% points = sale.customer.points_balance %>
+        <p class="text-xs text-steel-600"><%= number_with_delimiter(points) %> points<%= ", worth #{money(program.value_cents(points))}" if points.positive? %></p>
+      <% end %>
     </div>
     <details class="relative<%= " hidden" if sale.customer_order %>">
       <summary class="btn-secondary cursor-pointer list-none py-1.5">Change</summary>

@@ -358,6 +358,19 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Promotions at the till](docs/screenshots/263-till-promotions.png)
 
+## Phase 20: loyalty points
+
+- **Settings › Loyalty points:** points per KES 100 spent, what a point is worth, and the minimum to spend; the page
+  shows what the scheme gives back (1% by default), how many customers have points and what unspent points are worth
+- **Named customers earn** on every completed sale in their name, on what they paid for (not the part paid with points);
+  voids take the points back and give back any spent, and returns take back their share
+- **At the till** the customer's balance shows under their name, and a **Points** tender spends them like money, in whole
+  points and never more than the balance; the receipt prints points earned and the new balance
+- **The customer's page** lists every change with its sale or return; owners and managers can adjust with a reason
+  (logged in the activity log)
+
+![Spending points at the till](docs/screenshots/271-till-points.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

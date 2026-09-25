@@ -21,6 +21,8 @@
     <% tenders = [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], [ "card", "Card" ], [ "on_account", "Account" ] ]
        deposit = sale.deposit_available_cents
        tenders << [ "deposit", "Deposit" ] if deposit.positive?
+       program = sale.loyalty_program
+       tenders << [ "points", "Points" ] if program && sale.customer.points_balance >= [ program.min_redeem_points, 1 ].max
        foreign = Current.account.currencies.at_till.alphabetically.to_a
        tenders << [ "foreign_cash", "Foreign" ] if foreign.any?
        # After a refused payment (e.g. over the credit limit), the same tender stays chosen.
@@ -28,7 +30,7 @@
     <% if deposit.positive? %>
       <p class="mb-2 text-sm"><%= sale.customer_order.reference %> has a <strong><%= money(deposit) %></strong> deposit to use.</p>
     <% end %>
-    <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5" }.fetch(tenders.size, "grid-cols-3") %> gap-1 text-sm" data-action="change->payment#switchTender">
+    <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5", 6 => "grid-cols-3" }.fetch(tenders.size, "grid-cols-4") %> gap-1 text-sm" data-action="change->payment#switchTender">
       <legend class="sr-only">Payment method</legend>
       <% tenders.each do |value, label| %>
         <label class="cursor-pointer rounded-md border border-concrete-300 bg-white py-2 text-center font-semibold has-checked:border-navy-900 has-checked:bg-navy-900 has-checked:text-white">

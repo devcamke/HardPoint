@@ -132,6 +132,9 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
 
     # Customer accounts: past account sales (one overdue), a payment, a quote, an order with a deposit, and a delivery.
     front_counter = account.registers.find_by!(name: "Front counter")
+    # Loyalty points from the start: a point per KES 100, worth a shilling, spendable from 100 points.
+    account.create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 100, min_redeem_points: 100)
+
     # Contractors' jobs, with their account sales tagged to them.
     towers = account.jobs.create!(customer: mwangi, name: "Mwangi Towers", reference: "LPO 4471", site: "Ruaka, off Limuru Road", budget: 450_000,
       note: "Site foreman: Peter, 0722 000 999")
@@ -321,6 +324,14 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     promotion_sale.add(products["PNT-CRN-W20"], quantity: 2)
     promotion_sale.pay(tender: "mobile_money", reference: "SKP9RT2M4X")
     cement_week.touch
+
+    # A welcome bonus for a regular, then points spent on today's paint.
+    grace.loyalty_entries.create!(account: account, kind: "adjusted", points: 150, note: "Welcome to points", creator: owner)
+    points_sale = till_shift.current_sale
+    points_sale.change_customer(grace)
+    points_sale.add(products["PNT-CRN-B4"], quantity: 1)
+    points_sale.pay(tender: "points", amount_cents: 150_00)
+    points_sale.pay(tender: "mobile_money", reference: "SKQ1ZT8P3L")
 
     # The online store, collecting from both branches.
     account.create_storefront!(enabled: true, headline: "Order online, collect in 2 hours",

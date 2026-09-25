@@ -67,6 +67,37 @@
     <% end %>
   </section>
 
+  <% if @loyalty %>
+    <section class="card" id="loyalty_points">
+      <div class="mb-3 flex items-baseline justify-between">
+        <h2 class="text-lg font-semibold">Loyalty points</h2>
+        <p><strong class="text-xl tabular-nums"><%= number_with_delimiter(balance = @customer.points_balance) %></strong> <span class="hint">worth <%= money(@loyalty.value_cents(balance)) %></span></p>
+      </div>
+      <% if @points.any? %>
+        <table class="table text-sm">
+          <tbody>
+            <% @points.each do |entry| %>
+              <tr><td class="whitespace-nowrap"><%= l(entry.created_at, format: :short) %></td><td><%= entry.description %></td>
+                <td class="text-right tabular-nums <%= entry.points.negative? ? "text-red-700" : "text-green-700" %>"><%= "+" if entry.points.positive? %><%= entry.points %></td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="hint">No points yet. They're earned on sales in <%= @customer.name %>'s name.</p>
+      <% end %>
+      <% if current_membership.approver? %>
+        <details class="mt-3">
+          <summary class="link cursor-pointer text-sm">Adjust points</summary>
+          <%= form_with url: customer_loyalty_adjustments_path(@customer), class: "mt-2 flex flex-wrap items-end gap-2" do |form| %>
+            <div><%= form.label :points, "Points (+ or −)", class: "label" %><%= form.number_field :points, step: 1, required: true, class: "input w-28" %></div>
+            <div class="flex-1"><%= form.label :note, "Reason", class: "label" %><%= form.text_field :note, required: true, class: "input", placeholder: "e.g. apology for a late delivery" %></div>
+            <%= form.submit "Adjust", class: "btn-secondary" %>
+          <% end %>
+        </details>
+      <% end %>
+    </section>
+  <% end %>
+
   <% if @jobs.any? %>
     <section class="card">
       <h2 class="mb-3 text-lg font-semibold">Open jobs</h2>

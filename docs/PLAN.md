@@ -100,6 +100,7 @@ customers, staff, or reports.
 | Foreign cash | A tender of its own, converted at the till's rate and rounded down to the cent; change always in the shop's currency, out of the shilling float. Drawers are counted per currency (blind). No foreign refunds, and not on the offline till. eTIMS reports it as cash. |
 | Foreign suppliers | A supplier's currency is fixed once they have orders, invoices or payments. Orders, supplier invoices, payments and balances are in it; goods receipts convert at the day's rate (editable) so stock and landed cost are in the shop's currency. No exchange gain/loss accounting (there's no ledger); payables totals and input VAT convert at the recorded or current rate. |
 | Promotions | Two kinds: a percentage off the shelf price, and buy X get Y free on a line. Targets are products and/or categories, with optional branches and inclusive dates. One promotion per line, the one saving most; no stacking, and against a price list the better price wins. The saving is `promotion_discount_cents` on the line, apart from hand discounts, so it never needs approval. Percentages also price quotes, orders and the online store; free items only at the till. The offline till sells at shelf prices. |
+| Loyalty points | One scheme per shop: points per 100 spent (rounded down), a value per point, a minimum to spend. A ledger of entries (earned, redeemed, reversed, adjusted) per customer, never edited. Earned when a named customer's sale completes, including offline sales when they sync, on the total less points paid. Spent as a tender, taken off when the payment is made and given back if it's removed. Voids reverse the sale's net points; returns take back their share of the earned points. Points don't expire; eTIMS reports points as "other". |
 | Hire terms | Standard terms are printed on the A4 agreement with signature lines. Shop-editable terms are left for later. Tools are managed by catalogue managers, and anyone who sells can hire out, return and settle. |
 
 | Phase | Status |
@@ -114,6 +115,7 @@ customers, staff, or reports.
 | 7 — Payment & tax integrations | **Done (to be proven against the live sandboxes):** M-Pesa Daraja per shop (encrypted credentials, STK push from the till with automatic completion, C2B confirmations with automatic matching to orders, accounts and typed codes, reconciliation report, token-and-IP-checked idempotent callbacks), KRA eTIMS OSCU per branch (initialisation, item registration, sales and credit notes, signed receipts with QR code, retry queue, refusals to fix), SMS via Africa's Talking (receipts, order ready, balance reminders), simulators for all three. Card terminals stay manual; accounting sync skipped. |
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
+| 20 — Loyalty points | **Done:** points scheme in Settings with liability and top customers; earning on completed named sales (offline ones too); points tender at the till with balance shown; void and return reversals; receipts (and ESC/POS) with points earned and balance; customer points history with adjustments by managers. |
 | 19 — Promotions | **Done:** percentage-off and buy-get promotions by product or category, dates and branches; best offer per line at the till, kept apart from hand discounts; price lists get the better price; savings on receipts (and ESC/POS) and invoices; percentages on quotes, orders and the online store with was/now prices; results per promotion. |
 | 18 — Foreign currencies | **Done:** currencies with shop-set rates; foreign cash at the till with change in shillings and per-currency blind counts on X/Z reports; suppliers in another currency with orders, receipts at the day's rate, invoices, payments and converted totals; input VAT converted; rates kept on every document. |
 | 17 — Room to grow | **Done (to be rehearsed on real servers):** read replica for reports and exports with row-level security carried across (tested on a separate connection and against a real standby); scaled Kamal destination with db, replica, two web servers and a jobs server; replica bootstrap and replication settings; object storage and a copy task; replica status on the admin Database page; runbook section 6. |
@@ -650,13 +652,19 @@ set of books.
 - **Automatic at the till**, the best offer per line, apart from hand discounts; the better of an offer and a price list.
 - **Everywhere prices show:** receipts with savings, quotes, the online store; results per promotion.
 
+### Phase 20 — Loyalty points
+**Goal:** give regulars a reason to come back, without a card system.
+- **Points scheme** in Settings; earning on sales to named customers.
+- **Spending at the till** as a tender; reversals on voids and returns.
+- **Balances** on the till, receipts and the customer's page, with adjustments.
+
 ### Beyond v1 (backlog)
 - ~~Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).~~ Done as a web app in Phase 15; wrap with Hotwire Native if a store listing is wanted.
 - ~~E-commerce storefront / click-and-collect per tenant.~~ Done in Phase 12.
 - ~~Public REST API with per-tenant API keys and webhooks.~~ Done in Phase 11.
 - ~~Tool hire/rental module; job/project costing for contractors.~~ Done in Phases 13 and 14.
 - Job costing extras: invoicing a job's client with a markup, and tagging jobs on the offline till.
-- FIFO costing; loyalty points; promotions on the offline till and mix-and-match bundles. (~~Multi-currency~~ done in Phase 18; a daily rate feed and exchange gain/loss are possible extras.) (~~Batch/lot tracking~~ done in Phase 16; counting by batch is a possible extra.)
+- FIFO costing; points expiry and points by text message; promotions and points on the offline till; mix-and-match bundles. (~~Multi-currency~~ done in Phase 18; a daily rate feed and exchange gain/loss are possible extras.) (~~Batch/lot tracking~~ done in Phase 16; counting by batch is a possible extra.)
 - ~~Scaling out: move Postgres to its own VPS (or managed DB), add read replica, split
   job workers onto a second VPS — Kamal handles multi-host.~~ Ready in Phase 17; PgBouncer with `SET LOCAL` isolation when there are four or more web servers.
 

@@ -1,0 +1,37 @@
+<% content_for :title, "Loyalty points" %>
+<% currency = Current.account.currency %>
+
+<p class="text-sm"><%= link_to "← Settings", settings_path, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold">Loyalty points</h1>
+<p class="hint mb-6 max-w-2xl">Named customers earn points on what they pay for and spend them at the till like money. Points aren't earned
+  on the part of a sale paid with points, come off again if the sale is voided or returned, and never expire.</p>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <%= form_with model: @program, url: loyalty_program_path, method: :patch, class: "card lg:col-span-2" do |form| %>
+    <%= render "shared/errors", model: @program %>
+    <label class="mb-4 flex items-center gap-2 font-semibold"><%= form.check_box :enabled, class: "size-4 accent-safety-500" %> Customers earn and spend points</label>
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div class="field"><%= form.label :points_per_100, "Points per #{currency} 100", class: "label" %><%= form.number_field :points_per_100, value: plain_number(@program.points_per_100), step: "any", min: 0, class: "input" %></div>
+      <div class="field"><%= form.label :point_value, "A point is worth (#{currency})", class: "label" %><%= form.number_field :point_value, value: plain_number(@program.point_value), step: "0.01", min: 0, class: "input" %></div>
+      <div class="field"><%= form.label :min_redeem_points, "Spend from", class: "label" %><%= form.number_field :min_redeem_points, min: 0, class: "input" %>
+        <p class="hint mt-1">points</p></div>
+    </div>
+    <p class="mb-4 rounded-md bg-concrete-100 px-3 py-2 text-sm">That gives back <strong><%= @program.reward_percent.to_s("F").delete_suffix(".0") %>%</strong> of what customers spend:
+      <%= money(10_000_00) %> earns <%= @program.points_for(10_000_00) %> points, worth <%= money(@program.value_cents(@program.points_for(10_000_00))) %>.</p>
+    <%= form.submit "Save", class: "btn-primary" %>
+  <% end %>
+
+  <section class="card">
+    <p class="hint">Customers with points</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= @members %></p>
+    <p class="hint mt-4">Unspent points are worth</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@program.persisted? ? @program.liability_cents : 0) %></p>
+    <p class="hint">what the shop owes in points, if all were spent</p>
+    <% if @top.any? %>
+      <h2 class="mt-5 mb-2 text-sm font-semibold">Most points</h2>
+      <ul class="text-sm">
+        <% @top.each do |id, name, points| %>
+          <li class="flex justify-between border-b border-concrete-100 py-1"><%= link_to name, customer_path(id), class: "link" %><span class="tabular-nums"><%= number_with_delimiter(points) %></span></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </section>
+</div>

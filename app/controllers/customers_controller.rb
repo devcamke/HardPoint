@@ -12,6 +12,8 @@ class CustomersController < ApplicationController
     @orders = @customer.customer_orders.where.not(status: %w[ collected cancelled ]).chronologically.includes(:branch)
     @open_invoices = @customer.open_invoices
     @payments = @customer.customer_payments.chronologically.limit(10).includes(:creator)
+    @loyalty = Current.account.loyalty_program if Current.account.loyalty_program&.enabled? || @customer.loyalty_entries.exists?
+    @points = @customer.loyalty_entries.chronologically.includes(:sale, :sale_return).limit(10) if @loyalty
     @jobs = @customer.jobs.open.alphabetically
     @job_spend = Job.spent_cents_by_id(@jobs.map(&:id))
   end

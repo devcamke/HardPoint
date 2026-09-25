@@ -5,7 +5,7 @@ class Report::Payments < Report
   self.description = "Takings by day and method, refunds, deposits and payments on account"
   self.group = "Sales and money"
 
-  TENDER_LABELS = { "cash" => "Cash", "mobile_money" => "M-Pesa", "card" => "Card", "on_account" => "On account", "deposit" => "Deposits used", "foreign_cash" => "Foreign cash" }.freeze
+  TENDER_LABELS = { "cash" => "Cash", "mobile_money" => "M-Pesa", "card" => "Card", "on_account" => "On account", "deposit" => "Deposits used", "foreign_cash" => "Foreign cash", "points" => "Points" }.freeze
 
   def sections
     [ Section.new(title: "Takings by day", columns: day_columns, rows: day_rows, totals: day_totals,
@@ -17,7 +17,13 @@ class Report::Payments < Report
   private
     # Foreign cash only has a column for shops that take it.
     def tender_labels
-      @tender_labels ||= account.currencies.exists? || takings.keys.any? { _2 == "foreign_cash" } ? TENDER_LABELS : TENDER_LABELS.except("foreign_cash")
+      @tender_labels ||= TENDER_LABELS.select do |tender, _|
+        case tender
+        when "foreign_cash" then account.currencies.exists? || takings.keys.any? { _2 == tender }
+        when "points" then account.loyalty_program&.enabled? || takings.keys.any? { _2 == tender }
+        else true
+        end
+      end
     end
 
     def day_columns

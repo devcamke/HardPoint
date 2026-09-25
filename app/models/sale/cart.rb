@@ -21,6 +21,7 @@ module Sale::Cart
 
   def change_customer(customer)
     raise ArgumentError, "The customer of an order can't be changed" if customer_order && customer != customer_order.customer
+    raise ArgumentError, "Remove the points payment before changing the customer" if customer != self.customer && payments.any?(&:points?)
 
     self.customer = customer
     self.job = nil unless job&.customer_id == customer&.id

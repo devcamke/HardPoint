@@ -98,6 +98,7 @@ export function receipt(data, { width = 48, openDrawer = data.open_drawer } = {}
   if (data.saved) text(columns("You saved", data.saved, width))
   rule()
   for (const payment of data.payments || []) text(columns(payment.label, payment.amount, width))
+  for (const line of data.loyalty || []) text(line)
   if (data.change) { add(commands.boldOn); text(columns("Change", data.change, width)); add(commands.boldOff) }
   if (data.etims) {
     rule()

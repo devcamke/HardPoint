@@ -17,7 +17,8 @@
        [ "M-Pesa", mpesa_shortcodes_path, "Paybill or Till: prompts to pay from the till, payments received" ],
        [ "KRA eTIMS", etims_devices_path, "Send sales to KRA and print signed receipts" ],
        [ "SMS", edit_account_path(anchor: "sms"), "Text receipts, order updates and balance reminders" ]
-     ] if current_membership.can_manage_account?).to_a + ([ [ "Currencies", currencies_path, "Dollars and shillings at the till, suppliers who invoice in them, and today's rates" ] ] if current_membership.approver?).to_a,
+     ] if current_membership.can_manage_account?).to_a + ([ [ "Currencies", currencies_path, "Dollars and shillings at the till, suppliers who invoice in them, and today's rates" ],
+       [ "Loyalty points", edit_loyalty_program_path, "Points customers earn on what they buy and spend at the till" ] ] if current_membership.approver?).to_a,
      "Catalogue" => [
        [ "Categories", categories_path, "Group products, e.g. Plumbing › Pipes" ],
        [ "Brands", brands_path, "Makers and suppliers' brands" ],

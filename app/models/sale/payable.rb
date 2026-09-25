@@ -38,6 +38,8 @@ module Sale::Payable
     if tender.to_s == "cash"
       payment.tendered_cents = tendered_cents || amount_cents || due
       payment.amount_cents = [ payment.tendered_cents.to_i, due ].min
+    elsif tender.to_s == "points"
+      spend_points(payment, amount_cents || due, due)
     elsif tender.to_s == "foreign_cash"
       take_foreign_cash(payment, currency, foreign_tendered_cents, due)
     elsif tender.to_s == "deposit"
@@ -74,6 +76,22 @@ module Sale::Payable
   end
 
   private
+    # Points pay up to what's due and what the customer's balance is worth, in whole points.
+    def spend_points(payment, wanted_cents, due)
+      program = loyalty_program
+      balance = customer&.points_balance.to_i
+      if program.nil?
+        payment.errors.add :base, customer ? "Loyalty points aren't switched on" : "Choose the customer to use their points"
+      elsif balance < [ program.min_redeem_points, 1 ].max
+        payment.errors.add :base, "#{customer.name} has #{balance} points; at least #{program.min_redeem_points} are needed to spend them"
+      else
+        cents = [ wanted_cents, due, program.value_cents(balance) ].min
+        payment.points = [ program.points_to_pay(cents), balance ].min
+        payment.amount_cents = [ cents, program.value_cents(payment.points) ].min
+        payment.errors.add :base, "Nothing to pay with points" unless payment.amount_cents.positive?
+      end
+    end
+
     # Foreign notes are converted at the shop's rate for that currency, rounded down; the rate is kept.
     def take_foreign_cash(payment, code, foreign_cents, due)
       rate = account.currencies.at_till.find_by(code: code.to_s.upcase)

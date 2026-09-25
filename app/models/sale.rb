@@ -2,7 +2,7 @@
 # payments cover the total: it then gets its receipt number and its stock leaves the branch, in one
 # transaction. Prices include tax; tax is worked out from each line's rate.
 class Sale < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Cart, Payable, Voidable, Offline, PublishesWebhooks
+  include AccountOwned, Eventable, Monetary, Cart, Payable, Voidable, Offline, Loyalty, PublishesWebhooks
 
   after_update_commit if: -> { saved_change_to_status? && (completed? || voided?) } do
     publish_webhook(completed? ? "sale.completed" : "sale.voided")
