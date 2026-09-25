@@ -21,7 +21,8 @@
     <tbody>
       <% receipt.lines.includes(product: :unit).each do |line| %>
         <tr>
-          <td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %></td>
+          <td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %>
+            <%= tag.span("batch #{line.batch_number}#{", expires #{l(line.expires_on, format: :long)}" if line.expires_on}", class: "block text-xs text-steel-600") if line.batch_number %></td>
           <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
           <td class="text-right tabular-nums"><%= money(line.unit_cost_cents) %></td>
           <td class="text-right tabular-nums"><%= money(line.landed_unit_cost_cents) %></td>

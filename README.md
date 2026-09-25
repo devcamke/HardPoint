@@ -298,6 +298,20 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Counting on the phone](docs/screenshots/222-phone-count-item.png)
 
+## Phase 16: batches and expiry dates
+
+- **Per product:** tick **Batches and expiry dates** for things that go off or get recalled (tile adhesive, sealants,
+  paint, chemicals, fertiliser)
+- **Receiving** (on the desktop or the phone) asks for the batch number and expiry date printed on the goods
+- **Selling** needs nothing extra at the till: stock goes out first-expiring-first, skipping expired batches, and each
+  sale remembers which batches it took. Voids, returns and transfers put stock back into, or carry it to, the same
+  batches
+- **Stock › Expiry** lists what's expired or expiring in 30 days at a branch, with its value; a batch's page writes it
+  off (expired or damaged) and, for a recall, lists **who bought it** with their phone numbers
+- Stock that was on the shelf before batches were tracked is kept "not in a batch" and sold first
+
+![Expired and expiring batches](docs/screenshots/231-expiry.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

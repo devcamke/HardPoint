@@ -30,7 +30,7 @@ class StockTransfer < ApplicationRecord
     with_lock do
       return false unless in_transit?
 
-      lines.each { |line| line.product.move_stock(branch: to_branch, quantity: line.quantity, reason: "transfer_in", source: self, creator: user) }
+      lines.each { |line| line.product.move_stock(branch: to_branch, quantity: line.quantity, reason: "transfer_in", source: self, creator: user, reverses: { taken_by: self }) }
       update! status: :received, receiver: user, received_at: Time.current
       track_event "received"
     end
@@ -40,7 +40,7 @@ class StockTransfer < ApplicationRecord
     with_lock do
       return false unless in_transit?
 
-      lines.each { |line| line.product.move_stock(branch: from_branch, quantity: line.quantity, reason: "transfer_returned", source: self, creator: user) }
+      lines.each { |line| line.product.move_stock(branch: from_branch, quantity: line.quantity, reason: "transfer_returned", source: self, creator: user, reverses: { taken_by: self }) }
       update! status: :cancelled
       track_event "cancelled"
     end

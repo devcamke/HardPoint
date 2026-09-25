@@ -1,0 +1,9 @@
+<% if batch.expired? %>
+  <span class="badge bg-red-50 text-red-800">Expired <%= l(batch.expires_on, format: :long) %></span>
+<% elsif batch.expiring? %>
+  <span class="badge bg-safety-100 text-safety-800">Expires <%= l(batch.expires_on, format: :long) %></span>
+<% elsif batch.expires_on %>
+  <span class="text-sm"><%= l(batch.expires_on, format: :long) %></span>
+<% else %>
+  <span class="hint">No expiry date</span>
+<% end %>

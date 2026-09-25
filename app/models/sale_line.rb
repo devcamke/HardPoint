@@ -51,10 +51,12 @@ class SaleLine < ApplicationRecord
     end
   end
 
+  # Batch-tracked stock goes back into the batches the sale took it from.
   def restore_stock(quantity = self.quantity, reason: "returned", source: sale)
     share = quantity / self.quantity
     stock_items.each do |item, amount|
-      item.move_stock(branch: sale.branch, quantity: amount * share, reason: reason, source: source)
+      item.move_stock(branch: sale.branch, quantity: amount * share, reason: reason, source: source,
+        reverses: { taken_by: [ sale ], returned_by: [ sale, *sale.sale_returns ] })
     end
   end
 

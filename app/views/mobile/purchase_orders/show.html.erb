@@ -8,7 +8,7 @@
   <%= turbo_frame_tag "scan_result" %>
   <%= render "mobile/purchase_orders/lines", order: @order, draft: @draft %>
 
-  <%= button_to "Everything still to come has arrived", mobile_purchase_order_receipt_entries_path(@order), params: { everything: 1 }, class: "link mt-3 text-sm" %>
+  <%= button_to @order.outstanding_lines.any? { _1.product.tracks_batches? } ? "Everything else still to come has arrived" : "Everything still to come has arrived", mobile_purchase_order_receipt_entries_path(@order), params: { everything: 1 }, class: "link mt-3 text-sm" %>
 
   <%= form_with url: mobile_purchase_order_goods_receipt_path(@order), class: "card mt-6", data: { turbo_confirm: "Record this delivery? The goods go into stock at #{@order.branch.name}." } do |form| %>
     <h2 class="mb-2 font-semibold">Record the delivery</h2>

@@ -16,6 +16,9 @@ class GoodsReceiptLine < ApplicationRecord
   validate { errors.add :base, "#{product.name} doesn't track stock" if product && !product.track_stock? }
   validate { errors.add :quantity, "of #{product.name} must be a whole number" if product && quantity && !product.quantity_allowed?(quantity) }
   validate :within_what_was_ordered
+  validate { errors.add :base, "#{product.name} needs its batch number" if product&.tracks_batches? && batch_number.blank? }
+
+  normalizes :batch_number, with: ->(number) { number.squish.upcase.presence }
 
   before_validation { self.product ||= purchase_order_line&.product }
   before_validation(if: -> { unit_cost_cents.nil? }) { self.unit_cost_cents = purchase_order_line&.unit_cost_cents || product&.cost_cents }
@@ -23,6 +26,10 @@ class GoodsReceiptLine < ApplicationRecord
   def product_code=(code)
     @product_code = code
     self.product = Current.account.products.find_by_code(code) if code.present?
+  end
+
+  def batch
+    { number: batch_number, expires_on: expires_on } if batch_number
   end
 
   def line_value_cents

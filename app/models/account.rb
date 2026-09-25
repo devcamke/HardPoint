@@ -20,6 +20,7 @@ class Account < ApplicationRecord
   has_many :products, dependent: :destroy
   has_many :stock_levels, dependent: :delete_all
   has_many :stock_movements, dependent: :delete_all
+  has_many :stock_batches, dependent: :delete_all
   has_many :stock_adjustments, dependent: :delete_all
   has_many :stock_transfers, dependent: :destroy
   has_many :stock_counts, dependent: :destroy

@@ -9,7 +9,8 @@ class Mobile::GoodsReceiptsController < Mobile::BaseController
       supplier_reference: params[:supplier_reference], note: params[:note])
     @order.lines.each do |line|
       quantity = draft[line.id.to_s]
-      receipt.lines.build(account: Current.account, purchase_order_line: line, product: line.product, quantity: quantity) if quantity
+      batch_number, expires_on = draft_batches[line.id.to_s]
+      receipt.lines.build(account: Current.account, purchase_order_line: line, product: line.product, quantity: quantity, batch_number: batch_number, expires_on: expires_on) if quantity
     end
 
     if receipt.save

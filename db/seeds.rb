@@ -270,6 +270,25 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     back.customer_order.take_deposit(amount_cents: back.deposit_due_cents, tender: "mobile_money", reference: "SJV88LE23N")
     back.return_tools({ back.lines.first.id => { condition_note: "Clean, working" } }, at: 1.day.ago.change(hour: 9, min: 30))
 
+    # Products tracked by batch: tile adhesive and sealant with expiry dates, one batch already expired and two close,
+    # and a contractor's sale that took adhesive from a batch (for tracing a recall).
+    [ [ "Tile adhesive 20kg", "ADH-TILE20", "Bag", 1250, 980, 10 ], [ "Waterproof sealant 300ml", "SEAL-300", "Piece", 650, 420, 12 ] ].each do |name, sku, unit_name, price, cost, reorder|
+      products[sku] = account.products.create!(name: name, sku: sku, unit: unit.(unit_name), price: price, cost: ex_vat.(cost), reorder_level: reorder,
+        category: account.categories.find_or_create_by!(name: "Building materials"), tax_rate: account.default_tax_rate, tracks_batches: true)
+    end
+    { "ADH-TILE20" => [ [ "TA-2603", -5, 6 ], [ "TA-2609", 20, 30 ], [ "TA-2702", 150, 40 ] ],
+      "SEAL-300" => [ [ "SL-0311", 12, 18 ], [ "SL-0415", 200, 48 ] ] }.each do |sku, batches|
+      batches.each do |number, days, quantity|
+        products[sku].move_stock(branch: main, quantity: quantity, reason: "received", batch: { number: number, expires_on: days.days.from_now.to_date })
+      end
+    end
+    Current.user = owner
+    adhesive_sale = account.shifts.find_by!(register: front_counter, closed_at: nil).current_sale
+    adhesive_sale.change_customer(mwangi)
+    adhesive_sale.update!(job: maisonettes)
+    adhesive_sale.add(products["ADH-TILE20"], quantity: 12)
+    adhesive_sale.pay(tender: "on_account", credit_approver: owner)
+
     # The online store, collecting from both branches.
     account.create_storefront!(enabled: true, headline: "Order online, collect in 2 hours",
       intro: "Cement, steel, roofing, plumbing, paint and tools for your build, at the same prices as in our shops.",

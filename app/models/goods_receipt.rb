@@ -59,7 +59,7 @@ class GoodsReceipt < ApplicationRecord
 
     def put_into_stock
       lines.each do |line|
-        line.product.receive_into_stock(branch: branch, quantity: line.quantity, unit_cost_cents: line.landed_unit_cost_cents, source: self)
+        line.product.receive_into_stock(branch: branch, quantity: line.quantity, unit_cost_cents: line.landed_unit_cost_cents, source: self, batch: line.batch)
         line.purchase_order_line&.increment!(:received_quantity, line.quantity)
         remember_supplier_cost(line)
       end

@@ -7,7 +7,7 @@ class Mobile::ReceiptEntriesController < Mobile::BaseController
     lines = draft.dup
 
     if params[:everything]
-      @order.outstanding_lines.each { lines[_1.id.to_s] = _1.outstanding_quantity }
+      @order.outstanding_lines.reject { _1.product.tracks_batches? }.each { lines[_1.id.to_s] = _1.outstanding_quantity }
       save_draft(lines)
       return redirect_to mobile_purchase_order_path(@order), notice: "Everything still to come is checked in. Adjust anything short, then record the delivery."
     end
@@ -18,12 +18,29 @@ class Mobile::ReceiptEntriesController < Mobile::BaseController
 
     if amount.negative? || !@line.product.quantity_allowed?(total)
       @error = "Enter a whole number of #{@line.product.unit.name.pluralize.downcase}"
+    elsif (batch_error = batch_problem)
+      @error = batch_error
     elsif total > @line.outstanding_quantity
       @error = "Only #{helpers.quantity(@line.outstanding_quantity, @line.product.unit)} of #{@line.product.name} still to come on this order. Extra goes on a separate receipt in HardPoint."
     else
       lines[@line.id.to_s] = total
-      save_draft(lines)
+      batches = draft_batches.dup
+      batches[@line.id.to_s] = [ params[:batch_number].to_s.squish.upcase, params[:expires_on].presence ] if @line.product.tracks_batches?
+      save_draft(lines, batches)
     end
     render status: @error ? :unprocessable_entity : :ok
   end
+
+  private
+    def batch_problem
+      return unless @line.product.tracks_batches?
+
+      number = params[:batch_number].to_s.squish.upcase
+      recorded = draft_batches[@line.id.to_s]&.first
+      if number.blank?
+        "Enter the batch number printed on #{@line.product.name}"
+      elsif recorded && recorded != number && params[:mode] != "set"
+        "Batch #{recorded} is already checked in for #{@line.product.name}. Record this delivery first, then receive batch #{number} as another delivery."
+      end
+    end
 end

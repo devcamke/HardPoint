@@ -10,7 +10,7 @@
             <td class="whitespace-nowrap"><%= l(movement.created_at, format: :short) %></td>
             <% if show_product %><td><%= link_to movement.product.name, movement.product, class: "hover:text-safety-700" %></td><% end %>
             <td><%= movement.branch.name %></td>
-            <td><%= movement_reason(movement.reason) %><%= tag.span(" · #{movement.note}", class: "hint") if movement.note.present? %></td>
+            <td><%= movement_reason(movement.reason) %><%= link_to(" · batch #{movement.stock_batch.number}", movement.stock_batch, class: "link text-xs") if movement.stock_batch %><%= tag.span(" · #{movement.note}", class: "hint") if movement.note.present? %></td>
             <td class="text-right tabular-nums <%= movement.quantity.negative? ? "text-red-700" : "text-green-700" %>"><%= movement.quantity.positive? ? "+" : "" %><%= quantity(movement.quantity) %></td>
             <td class="text-right tabular-nums"><%= quantity(movement.balance) %></td>
             <td><%= movement.creator&.name %></td>

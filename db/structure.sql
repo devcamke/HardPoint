@@ -1151,7 +1151,9 @@ CREATE TABLE public.goods_receipt_lines (
     product_id bigint NOT NULL,
     quantity numeric(14,3) NOT NULL,
     unit_cost_cents bigint NOT NULL,
-    landed_unit_cost_cents bigint DEFAULT 0 NOT NULL
+    landed_unit_cost_cents bigint DEFAULT 0 NOT NULL,
+    batch_number character varying,
+    expires_on date
 );
 
 ALTER TABLE ONLY public.goods_receipt_lines FORCE ROW LEVEL SECURITY;
@@ -1812,7 +1814,8 @@ CREATE TABLE public.products (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     quick_pick boolean DEFAULT false NOT NULL,
-    online boolean DEFAULT true NOT NULL
+    online boolean DEFAULT true NOT NULL,
+    tracks_batches boolean DEFAULT false NOT NULL
 );
 
 ALTER TABLE ONLY public.products FORCE ROW LEVEL SECURITY;
@@ -2311,6 +2314,44 @@ ALTER SEQUENCE public.stock_adjustments_id_seq OWNED BY public.stock_adjustments
 
 
 --
+-- Name: stock_batches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_batches (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    number character varying NOT NULL,
+    expires_on date,
+    quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_batches FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_batches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_batches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_batches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_batches_id_seq OWNED BY public.stock_batches.id;
+
+
+--
 -- Name: stock_count_lines; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2441,7 +2482,8 @@ CREATE TABLE public.stock_movements (
     reason character varying NOT NULL,
     unit_cost_cents bigint,
     note character varying,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    stock_batch_id bigint
 );
 
 ALTER TABLE ONLY public.stock_movements FORCE ROW LEVEL SECURITY;
@@ -3375,6 +3417,13 @@ ALTER TABLE ONLY public.stock_adjustments ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: stock_batches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_batches ALTER COLUMN id SET DEFAULT nextval('public.stock_batches_id_seq'::regclass);
+
+
+--
 -- Name: stock_count_lines id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3955,6 +4004,14 @@ ALTER TABLE ONLY public.sms_messages
 
 ALTER TABLE ONLY public.stock_adjustments
     ADD CONSTRAINT stock_adjustments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_batches stock_batches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_batches
+    ADD CONSTRAINT stock_batches_pkey PRIMARY KEY (id);
 
 
 --
@@ -5438,6 +5495,34 @@ CREATE INDEX index_stock_adjustments_on_product_id ON public.stock_adjustments U
 
 
 --
+-- Name: index_stock_batches_in_stock_by_expiry; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_batches_in_stock_by_expiry ON public.stock_batches USING btree (account_id, expires_on) WHERE (quantity > (0)::numeric);
+
+
+--
+-- Name: index_stock_batches_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_batches_on_account_id ON public.stock_batches USING btree (account_id);
+
+
+--
+-- Name: index_stock_batches_on_branch_id_and_product_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_stock_batches_on_branch_id_and_product_id_and_number ON public.stock_batches USING btree (branch_id, product_id, number);
+
+
+--
+-- Name: index_stock_batches_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_batches_on_product_id ON public.stock_batches USING btree (product_id);
+
+
+--
 -- Name: index_stock_count_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5540,6 +5625,13 @@ CREATE INDEX index_stock_movements_on_creator_id ON public.stock_movements USING
 --
 
 CREATE INDEX index_stock_movements_on_source ON public.stock_movements USING btree (source_type, source_id);
+
+
+--
+-- Name: index_stock_movements_on_stock_batch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_movements_on_stock_batch_id ON public.stock_movements USING btree (stock_batch_id);
 
 
 --
@@ -5855,6 +5947,14 @@ ALTER TABLE ONLY public.billing_payments
 
 
 --
+-- Name: stock_movements fk_rails_0fc891cc67; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_movements
+    ADD CONSTRAINT fk_rails_0fc891cc67 FOREIGN KEY (stock_batch_id) REFERENCES public.stock_batches(id) DEFERRABLE;
+
+
+--
 -- Name: stock_transfer_lines fk_rails_100e940960; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6068,6 +6168,14 @@ ALTER TABLE ONLY public.goods_receipts
 
 ALTER TABLE ONLY public.account_exports
     ADD CONSTRAINT fk_rails_2f68196f1b FOREIGN KEY (requested_by_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: stock_batches fk_rails_30af726acb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_batches
+    ADD CONSTRAINT fk_rails_30af726acb FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
 
 
 --
@@ -6639,6 +6747,14 @@ ALTER TABLE ONLY public.deposits
 
 
 --
+-- Name: stock_batches fk_rails_87839d6120; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_batches
+    ADD CONSTRAINT fk_rails_87839d6120 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: supplier_payments fk_rails_89a9bab56d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6764,6 +6880,14 @@ ALTER TABLE ONLY public.document_sequences
 
 ALTER TABLE ONLY public.product_imports
     ADD CONSTRAINT fk_rails_9c4c03515c FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: stock_batches fk_rails_9df9a549bf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_batches
+    ADD CONSTRAINT fk_rails_9df9a549bf FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
 
 
 --
@@ -7732,6 +7856,13 @@ CREATE POLICY account_isolation ON public.stock_adjustments USING (((current_set
 
 
 --
+-- Name: stock_batches account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_batches USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: stock_count_lines account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -8132,6 +8263,12 @@ ALTER TABLE public.sms_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stock_adjustments ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: stock_batches; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_batches ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: stock_count_lines; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8234,6 +8371,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925121000'),
 ('20260925120900'),
 ('20260925120800'),
 ('20260925120700'),

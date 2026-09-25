@@ -12,7 +12,7 @@ module Product::Purchasing
 
   # Goods arriving: the product's cost becomes the weighted average of the stock already held
   # (at the old cost) and the new stock (at its landed cost). With nothing on hand, the new cost wins.
-  def receive_into_stock(branch:, quantity:, unit_cost_cents:, source:)
+  def receive_into_stock(branch:, quantity:, unit_cost_cents:, source:, batch: nil)
     with_lock do
       on_hand = stock_on_hand
       average = if on_hand.positive?
@@ -22,7 +22,7 @@ module Product::Purchasing
       end
 
       update!(cost_cents: average) if average != cost_cents
-      move_stock(branch: branch, quantity: quantity, reason: "received", source: source, unit_cost_cents: unit_cost_cents)
+      move_stock(branch: branch, quantity: quantity, reason: "received", source: source, unit_cost_cents: unit_cost_cents, batch: batch)
     end
   end
 end

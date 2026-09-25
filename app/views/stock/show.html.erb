@@ -6,7 +6,7 @@
 </div>
 <%= render "stock/tabs" %>
 
-<div class="mb-6 grid gap-4 sm:grid-cols-4">
+<div class="mb-6 grid gap-4 sm:grid-cols-2 <%= @expiring ? "lg:grid-cols-5" : "lg:grid-cols-4" %>">
   <% if current_membership.can_see_costs? %>
     <div class="card"><p class="hint">Stock value at cost</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@valuation.total_value_cents) %></p><p class="hint">all branches</p></div>
   <% end %>
@@ -18,6 +18,11 @@
   <% end %>
   <%= link_to stock_counts_path, class: "card block hover:border-safety-300" do %>
     <p class="hint">Open stock takes</p><p class="mt-1 text-2xl font-bold"><%= @open_counts %></p><p class="hint">counting or awaiting approval</p>
+  <% end %>
+  <% if @expiring %>
+    <%= link_to stock_batches_path, class: "card block hover:border-safety-300" do %>
+      <p class="hint">Expired or expiring</p><p class="mt-1 text-2xl font-bold <%= "text-safety-700" if @expiring.positive? %>"><%= @expiring %></p><p class="hint">batches at <%= selected_branch&.name %></p>
+    <% end %>
   <% end %>
 </div>
 

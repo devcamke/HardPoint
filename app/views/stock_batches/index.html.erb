@@ -1,0 +1,37 @@
+<% content_for :title, "Expiry" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-3xl font-bold">Stock</h1>
+  <%= render "shared/branch_picker" %>
+</div>
+<%= render "stock/tabs" %>
+
+<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter">
+  <% [ [ "expiring", "Expired or expiring in #{StockBatch::EXPIRING_WITHIN.in_days.to_i} days" ], [ "expired", "Expired" ], [ "all", "All batches in stock" ] ].each do |filter, label| %>
+    <%= link_to label, stock_batches_path(filter: filter), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-navy-900 text-white" : "bg-white"}" %>
+  <% end %>
+</nav>
+
+<div class="card overflow-x-auto">
+  <% if @batches.any? %>
+    <table class="table">
+      <thead><tr><th>Product</th><th>Batch</th><th>Expiry</th><th class="text-right">Quantity</th><% if current_membership.can_see_costs? %><th class="text-right">Value at cost</th><% end %></tr></thead>
+      <tbody>
+        <% @batches.each do |batch| %>
+          <tr id="<%= dom_id(batch) %>">
+            <td><%= link_to batch.product.name, batch.product, class: "hover:text-safety-700" %></td>
+            <td><%= link_to batch.number, batch, class: "link font-mono" %></td>
+            <td><%= render "stock_batches/expiry", batch: batch %></td>
+            <td class="text-right tabular-nums"><%= quantity(batch.quantity, batch.product.unit) %></td>
+            <% if current_membership.can_see_costs? %><td class="text-right tabular-nums"><%= money(batch.value_cents) %></td><% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <%= render "shared/pagination" %>
+  <% else %>
+    <p class="text-steel-600"><%= @filter == "all" ? "No batches in stock at #{selected_branch.name}." : "Nothing expired or expiring soon at #{selected_branch.name}." %>
+      Products are tracked by batch when <strong>Batches and expiry dates</strong> is ticked on the product.</p>
+  <% end %>
+</div>
+<p class="hint mt-3">Sales take stock first-expiring-first, skipping expired batches. Write expired stock off from its batch page so it isn't sold.</p>

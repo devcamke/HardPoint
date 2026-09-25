@@ -17,5 +17,8 @@ class SalesController < ApplicationController
 
   def show
     @sale = Current.account.sales.find(params[:id])
+    # Which batches the sale took, per product, for tracing a recall back.
+    @batches = StockMovement.where(source: @sale, reason: "sold").joins(:stock_batch).group(:product_id, "stock_batches.number")
+      .sum("-stock_movements.quantity").each_with_object(Hash.new { _1[_2] = [] }) { |((product_id, number), quantity), by_product| by_product[product_id] << [ number, quantity ] }
   end
 end

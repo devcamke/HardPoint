@@ -35,6 +35,18 @@
       </table>
       <p class="hint mt-1">Reorder at <%= quantity(@product.reorder_level, @product.unit) %></p>
 
+      <% if @product.tracks_batches? %>
+        <h3 class="mt-5 mb-1 text-sm font-semibold">Batches at <%= selected_branch.name %></h3>
+        <% batches = @product.stock_batches.in_stock.where(branch: selected_branch).by_expiry %>
+        <ul class="text-sm">
+          <% batches.each do |batch| %>
+            <li class="flex items-center justify-between gap-2 border-b border-concrete-100 py-1"><span class="font-mono"><%= batch.number %></span>
+              <%= render "stock_batches/expiry", batch: batch %><span class="tabular-nums"><%= quantity(batch.quantity) %></span></li>
+          <% end %>
+          <%= tag.li("None in stock.", class: "hint") if batches.none? %>
+        </ul>
+      <% end %>
+
       <% if @movements.any? %>
         <h3 class="mt-5 mb-1 text-sm font-semibold">Latest at <%= selected_branch.name %></h3>
         <ul class="text-sm">

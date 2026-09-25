@@ -150,6 +150,9 @@ Rails.application.routes.draw do
     resource :stock, only: :show, controller: :stock
     resources :stock_adjustments, only: %i[ new create ]
     resources :stock_movements, only: :index
+    resources :stock_batches, path: "batches", only: %i[ index show ] do
+      resource :write_off, only: :create, module: :stock_batches
+    end
     resources :stock_transfers, only: %i[ index new create show ] do
       scope module: :stock_transfers do
         resource :receipt, only: :create

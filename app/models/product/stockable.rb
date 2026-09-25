@@ -6,6 +6,7 @@ module Product::Stockable
   included do
     has_many :stock_levels, dependent: :destroy
     has_many :stock_movements, dependent: :restrict_with_error
+    has_many :stock_batches, dependent: :restrict_with_error
 
     # Products at or below their reorder level at a branch. A branch carries a product once it has
     # had stock of it; products never stocked anywhere yet count as low everywhere, so they get ordered.
@@ -31,17 +32,30 @@ module Product::Stockable
     reorder_level.positive? && stock_at(branch) <= reorder_level
   end
 
-  def move_stock(branch:, quantity:, reason:, source: nil, note: nil, unit_cost_cents: cost_cents, creator: Current.user)
+  # For products tracked by batch, stock in goes to the batch given (a delivery), or back to the
+  # batches it came from (a void, a return, a transfer arriving); stock out comes from the batch
+  # given (a write-off) or first-expiring-first. Each batch touched gets its own ledger line.
+  def move_stock(branch:, quantity:, reason:, source: nil, note: nil, unit_cost_cents: cost_cents, creator: Current.user, batch: nil, reverses: nil)
     raise ArgumentError, "#{name} doesn't track stock" unless track_stock?
 
     transaction do
       level = stock_levels.create_or_find_by!(account: account, branch: branch)
       level.lock!
-      level.update! quantity: level.quantity + quantity.to_d
 
-      stock_movements.create! account: account, branch: branch, quantity: quantity, balance: level.quantity,
-        reason: reason, source: source, note: note, unit_cost_cents: unit_cost_cents, creator: creator
+      portions = tracks_batches? ? Product::Batching.new(self, branch).portions(quantity.to_d, batch: batch, reverses: reverses) : [ [ nil, quantity.to_d ] ]
+      portions.map do |stock_batch, amount|
+        stock_batch&.update!(quantity: stock_batch.quantity + amount)
+        level.update! quantity: level.quantity + amount
+
+        stock_movements.create! account: account, branch: branch, quantity: amount, balance: level.quantity, stock_batch: stock_batch,
+          reason: reason, source: source, note: note, unit_cost_cents: unit_cost_cents, creator: creator
+      end.last
     end
+  end
+
+  # Stock at a branch that isn't in any batch: from before batches were tracked, or counted in.
+  def unbatched_stock_at(branch)
+    stock_at(branch) - stock_batches.where(branch: branch).sum(:quantity)
   end
 
   private

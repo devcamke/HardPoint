@@ -9,6 +9,7 @@ class StockMovement < ApplicationRecord
   belongs_to :product
   belongs_to :source, polymorphic: true, optional: true
   belongs_to :creator, class_name: "User", optional: true
+  belongs_to :stock_batch, optional: true
 
   validates :reason, inclusion: { in: REASONS }
   validates :quantity, numericality: { other_than: 0 }

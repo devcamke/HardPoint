@@ -21,7 +21,7 @@
   </div>
 
   <table class="table mb-4">
-    <thead><tr><th>Product</th><% if order %><th class="text-right">To come</th><% end %><th class="text-right">Received now</th><th class="text-right">Unit cost</th></tr></thead>
+    <thead><tr><th>Product</th><% if order %><th class="text-right">To come</th><% end %><th class="text-right">Received now</th><th class="text-right">Unit cost</th><th>Batch and expiry</th></tr></thead>
     <tbody>
       <%= form.fields_for :lines do |line| %>
         <tr>
@@ -35,6 +35,14 @@
           <% if order %><td class="text-right tabular-nums"><%= quantity(line.object.purchase_order_line&.outstanding_quantity) %></td><% end %>
           <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, class: "input w-24 py-1.5 text-right", "aria-label": "Quantity received" %></td>
           <td class="text-right"><%= line.number_field :unit_cost, value: plain_number(line.object.unit_cost), step: "0.01", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit cost" %></td>
+          <td>
+            <% if line.object.product.nil? || line.object.product.tracks_batches? %>
+              <div class="flex gap-1">
+                <%= line.text_field :batch_number, placeholder: "Batch", required: line.object.product&.tracks_batches?, class: "input w-28 py-1.5 font-mono uppercase", "aria-label": "Batch number" %>
+                <%= line.date_field :expires_on, class: "input w-36 py-1.5", "aria-label": "Expiry date" %>
+              </div>
+            <% end %>
+          </td>
         </tr>
       <% end %>
     </tbody>

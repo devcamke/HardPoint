@@ -20,7 +20,7 @@ class ProductsController < ApplicationController
 
   def show
     @levels = @product.stock_levels.includes(:branch).index_by(&:branch_id)
-    @movements = @product.stock_movements.chronologically.includes(:branch, :creator).limit(10)
+    @movements = @product.stock_movements.chronologically.includes(:branch, :creator, :stock_batch).limit(10)
   end
 
   def new
@@ -71,7 +71,7 @@ class ProductsController < ApplicationController
 
     def product_params
       permitted = %i[ name sku description category_id brand_id unit_id tax_rate_id price reorder_level
-                      track_stock serialized kit active online image ]
+                      track_stock tracks_batches serialized kit active online image ]
       permitted << :cost if current_membership.can_see_costs?
       params.expect(product: permitted)
     end

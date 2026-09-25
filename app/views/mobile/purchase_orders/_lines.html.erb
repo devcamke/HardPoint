@@ -5,7 +5,8 @@
       <% order.outstanding_lines.each do |line| %>
         <% arrived = draft[line.id.to_s] %>
         <tr class="<%= "bg-green-50" if arrived == line.outstanding_quantity %>">
-          <td><%= line.product.name %></td>
+          <td><%= line.product.name %><%= tag.span(" · batch #{session.dig(:receiving, "batches", line.id.to_s)&.first}", class: "font-mono text-xs text-steel-600") if session.dig(:receiving, "batches", line.id.to_s) %>
+            <%= tag.span("scan for batch", class: "block text-xs text-safety-700") if line.product.tracks_batches? && !arrived %></td>
           <td class="text-right tabular-nums"><%= quantity(line.outstanding_quantity, line.product.unit) %></td>
           <td class="text-right font-semibold tabular-nums <%= "text-safety-600" if arrived && arrived < line.outstanding_quantity %>"><%= arrived ? quantity(arrived) : "—" %></td>
         </tr>

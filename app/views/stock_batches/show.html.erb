@@ -1,0 +1,65 @@
+<% content_for :title, "Batch #{@batch.number}" %>
+<% product = @batch.product %>
+
+<p class="text-sm"><%= link_to "← Expiry", stock_batches_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold">Batch <span class="font-mono"><%= @batch.number %></span></h1>
+    <p class="hint mt-1"><%= link_to product.name, product, class: "link" %> · <%= @batch.branch.name %></p>
+  </div>
+</div>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-3">
+  <div class="card"><p class="hint">In stock</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= quantity(@batch.quantity, product.unit) %></p>
+    <% if current_membership.can_see_costs? %><p class="hint"><%= money(@batch.value_cents) %> at cost</p><% end %></div>
+  <div class="card"><p class="hint">Expiry</p><p class="mt-2"><%= render "stock_batches/expiry", batch: @batch %></p></div>
+  <div class="card"><p class="hint">Sold to</p><p class="mt-1 text-2xl font-bold"><%= pluralize(@sales.map(&:customer).compact.uniq.size, "named customer") %></p>
+    <p class="hint">in <%= pluralize(@sales.size, "sale") %>, all branches</p></div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <% if @batch.quantity.positive? && current_membership.can_manage_stock? %>
+    <section class="card">
+      <h2 class="mb-3 text-lg font-semibold">Write off</h2>
+      <%= form_with url: stock_batch_write_off_path(@batch), class: "grid gap-3 sm:grid-cols-3", data: { turbo_confirm: "Take this stock out of #{@batch.branch.name}?" } do |form| %>
+        <div class="field"><%= form.label :quantity, class: "label" %><%= form.number_field :quantity, value: plain_number(@batch.quantity), min: 0, max: plain_number(@batch.quantity), step: "any", class: "input" %></div>
+        <div class="field"><%= form.label :reason, class: "label" %><%= form.select :reason, [ [ "Expired", "expired" ], [ "Damaged", "damaged" ] ], { selected: (@batch.expired? ? "expired" : "damaged") }, class: "input" %></div>
+        <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. returned to supplier" %></div>
+        <div class="sm:col-span-3"><%= form.submit "Write off", class: "btn-danger" %></div>
+      <% end %>
+    </section>
+  <% end %>
+
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Who bought it</h2>
+    <% if @sales.any? %>
+      <table class="table">
+        <tbody>
+          <% @sales.each do |sale| %>
+            <tr><td><%= link_to sale.receipt_number, sale, class: "link font-mono" %></td><td class="whitespace-nowrap"><%= l(sale.completed_at, format: :short) %></td>
+              <td><%= sale.customer ? link_to(sale.customer.name, sale.customer, class: "link") : tag.span("Walk-in", class: "text-steel-600") %><%= tag.span(" · #{sale.customer.phone}", class: "hint") if sale.customer&.phone.present? %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+      <p class="hint mt-2">For a recall: named customers can be called or texted; walk-in sales have no contact.</p>
+    <% else %>
+      <p class="hint">Nothing sold from this batch yet.</p>
+    <% end %>
+  </section>
+
+  <% if @other_branches.any? %>
+    <section class="card">
+      <h2 class="mb-3 text-lg font-semibold">Same batch at other branches</h2>
+      <table class="table"><tbody>
+        <% @other_branches.each do |other| %>
+          <tr><td><%= link_to other.branch.name, other, class: "link" %></td><td class="text-right tabular-nums"><%= quantity(other.quantity, product.unit) %></td></tr>
+        <% end %>
+      </tbody></table>
+    </section>
+  <% end %>
+
+  <section class="card lg:col-span-2">
+    <h2 class="mb-3 text-lg font-semibold">History</h2>
+    <%= render "stock_movements/table", movements: @movements, show_product: false %>
+  </section>
+</div>

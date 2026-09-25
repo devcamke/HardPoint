@@ -1,0 +1,19 @@
+<section class="card">
+  <h2 class="mb-3 text-lg font-semibold">Batches in stock</h2>
+  <% batches = product.stock_batches.in_stock.by_expiry.includes(:branch) %>
+  <% if batches.any? %>
+    <table class="table">
+      <thead><tr><th>Batch</th><th>Branch</th><th>Expiry</th><th class="text-right">Quantity</th></tr></thead>
+      <tbody>
+        <% batches.each do |batch| %>
+          <tr><td><%= link_to batch.number, batch, class: "link font-mono" %></td><td><%= batch.branch.name %></td><td><%= render "stock_batches/expiry", batch: batch %></td>
+            <td class="text-right tabular-nums"><%= quantity(batch.quantity, product.unit) %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">No batches in stock. Batch numbers and expiry dates are recorded when deliveries are received.</p>
+  <% end %>
+  <% unbatched = Current.account.branches.sum { product.unbatched_stock_at(_1) } %>
+  <%= tag.p("#{quantity(unbatched, product.unit)} in stock isn't in a batch (from before batches were tracked, or counted in); it's sold first.", class: "hint mt-2") if unbatched.positive? %>
+</section>

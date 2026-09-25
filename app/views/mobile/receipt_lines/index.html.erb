@@ -12,6 +12,13 @@
       <%= form.label :quantity, pack ? "How many #{pack.unit.name.pluralize.downcase} (#{quantity(pack.quantity, product.unit)} each)?" : "How many #{product.unit.name.pluralize.downcase} came?", class: "label" %>
       <%= form.number_field :quantity, required: true, min: 0, step: (product.unit.fractional? ? "any" : 1), inputmode: (product.unit.fractional? ? "decimal" : "numeric"),
             value: (1 if pack), autofocus: true, class: "input text-2xl tabular-nums" %>
+      <% if product.tracks_batches? %>
+        <% number, expires_on = session.dig(:receiving, "batches", @line.id.to_s) %>
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <div><%= form.label :batch_number, "Batch number", class: "label" %><%= form.text_field :batch_number, value: number, required: true, autocapitalize: "characters", class: "input font-mono uppercase" %></div>
+          <div><%= form.label :expires_on, "Expires", class: "label" %><%= form.date_field :expires_on, value: expires_on, class: "input" %></div>
+        </div>
+      <% end %>
       <div class="mt-3 grid grid-cols-2 gap-2">
         <%= form.button "Add", name: "mode", value: "add", class: "btn-primary py-3" %>
         <%= form.button "Set total", name: "mode", value: "set", class: "btn-secondary py-3" %>

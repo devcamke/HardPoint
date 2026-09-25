@@ -1,6 +1,6 @@
 <nav class="mb-6 flex flex-wrap gap-x-6 gap-y-2 border-b border-concrete-200 text-sm">
   <% [ [ "Overview", stock_path ], [ "Transfers", stock_transfers_path ], [ "Stock takes", stock_counts_path ],
-       [ "Reorder list", reorder_list_path ], [ "Movements", stock_movements_path ] ].each do |name, path| %>
+       [ "Reorder list", reorder_list_path ], [ "Expiry", stock_batches_path ], [ "Movements", stock_movements_path ] ].each do |name, path| %>
     <% active = request.path == path || request.path.start_with?("#{path}/") %>
     <%= link_to name, path, class: class_names("-mb-px border-b-2 pb-2", "border-safety-500 font-semibold text-navy-900" => active, "border-transparent text-steel-600 hover:text-navy-900" => !active) %>
   <% end %>

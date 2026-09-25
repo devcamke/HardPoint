@@ -122,6 +122,8 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
           acme.product_imports.create!(csv: "sku,name,price\nSW-1,Sweep,1\n", branch: branches(:acme_main), filename: "sweep.csv")
 
           acme.account_exports.create!
+          products(:acme_pipe).update!(tracks_batches: true)
+          products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: 5, reason: "received", batch: { number: "SWEEP-1", expires_on: 1.month.from_now.to_date })
           tool = acme.hire_items.create!(branch: branches(:acme_main), name: "Mixer", asset_tag: "SWEEP-MIX", daily_rate: "1500")
           HireAgreement.hire_out(branch: branches(:acme_main), customer: customers(:acme_contractor), items: [ tool ], due_back_at: 2.days.from_now)
           acme.api_keys.create!(name: "Victim key")
