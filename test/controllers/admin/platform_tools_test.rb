@@ -88,5 +88,6 @@ class Admin::PlatformToolsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h2", "Largest tables"
     assert_select "#slowest"
+    assert_select "#replica", /read from the primary/
   end
 end

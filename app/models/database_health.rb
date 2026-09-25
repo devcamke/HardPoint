@@ -17,6 +17,29 @@ class DatabaseHealth
     rows("SELECT coalesce(state, 'background') AS state, count(*) FROM pg_stat_activity GROUP BY 1 ORDER BY 2 DESC").to_h
   end
 
+  Replica = Data.define(:separate, :streaming, :lag_seconds, :error) do
+    def behind? = lag_seconds.to_f > 30
+  end
+
+  # Where reports and exports read from: the primary itself (no replica configured), or a streaming
+  # replica and how far behind it is. Lag is measured from the last change replayed, so on a quiet
+  # database it grows even when the replica is fully caught up.
+  def replica
+    ApplicationRecord.connected_to(role: :reading) do
+      connection = ApplicationRecord.lease_connection
+      streaming = connection.select_value("SELECT pg_is_in_recovery()")
+      lag = connection.select_value("SELECT EXTRACT(EPOCH FROM now() - pg_last_xact_replay_timestamp())") if streaming
+      Replica.new(separate: address(connection) != address(@connection), streaming: streaming, lag_seconds: lag&.to_f, error: nil)
+    end
+  rescue ActiveRecord::ActiveRecordError, PG::Error => error
+    Replica.new(separate: true, streaming: false, lag_seconds: nil, error: error.message.lines.first)
+  end
+
+  # Replicas connected to this primary, from the primary's side.
+  def replication_clients
+    rows("SELECT coalesce(client_addr::text, 'this server'), state, coalesce(replay_lag::text, '') FROM pg_stat_replication ORDER BY client_addr")
+  end
+
   # Share of table and index reads served from memory; below ~99% the database wants more RAM.
   def cache_hit_rates
     rows(<<~SQL).first.then { |table, index| { tables: table&.to_f, indexes: index&.to_f } }
@@ -48,7 +71,8 @@ class DatabaseHealth
     rows(<<~SQL)
       SELECT pid, now() - query_start, state, left(query, 200)
       FROM pg_stat_activity
-      WHERE state <> 'idle' AND pid <> pg_backend_pid() AND query_start < now() - interval '#{Integer(seconds)} seconds'
+      WHERE state <> 'idle' AND pid <> pg_backend_pid() AND backend_type = 'client backend'
+        AND query_start < now() - interval '#{Integer(seconds)} seconds'
       ORDER BY query_start
     SQL
   end
@@ -78,6 +102,10 @@ class DatabaseHealth
   end
 
   private
+    def address(connection)
+      connection.pool.db_config.configuration_hash.values_at(:host, :port).map(&:to_s)
+    end
+
     def value(sql) = @connection.select_value(sql).to_s
     def rows(sql) = @connection.select_rows(sql)
 end

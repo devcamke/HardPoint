@@ -6,6 +6,18 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
+# S3-compatible object storage (Contabo Object Storage, Cloudflare R2, AWS S3), needed once uploads
+# are served by more than one web server. Chosen with ACTIVE_STORAGE_SERVICE=object_storage;
+# existing files move across with bin/rails storage:copy[local,object_storage].
+object_storage:
+  service: S3
+  endpoint: <%= ENV["OBJECT_STORAGE_ENDPOINT"] %>
+  region: <%= ENV.fetch("OBJECT_STORAGE_REGION", "default") %>
+  bucket: <%= ENV["OBJECT_STORAGE_BUCKET"] %>
+  access_key_id: <%= ENV["OBJECT_STORAGE_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["OBJECT_STORAGE_SECRET_ACCESS_KEY"] %>
+  force_path_style: true
+
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
 #   service: S3

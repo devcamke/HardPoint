@@ -25,9 +25,19 @@ default: &default
   password: <%= ENV.fetch("DATABASE_PASSWORD") { "hardpoint" } %>
 
 
+# Each environment has a read replica ("primary_replica"). In development and test it's the same
+# database, so the code that reads from a replica (Account.reading) runs everywhere; in production
+# it's a streaming replica on its own server once DATABASE_REPLICA_HOST is set (docs/RUNBOOK.md).
 development:
-  <<: *default
-  database: hardpoint_development
+  primary:
+    <<: *default
+    database: hardpoint_development
+  primary_replica:
+    <<: *default
+    database: hardpoint_development
+    # To try a real streaming replica locally (docs/RUNBOOK.md, "Scaling out").
+    port: <%= ENV.fetch("DATABASE_REPLICA_PORT") { 5432 } %>
+    replica: true
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
@@ -60,8 +70,13 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: hardpoint_test
+  primary:
+    <<: *default
+    database: hardpoint_test
+  primary_replica:
+    <<: *default
+    database: hardpoint_test
+    replica: true
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -95,6 +110,10 @@ production:
     database: hardpoint_production
     username: hardpoint
     password: <%= ENV["HARDPOINT_DATABASE_PASSWORD"] %>
+  primary_replica:
+    <<: *primary_production
+    host: <%= ENV.fetch("DATABASE_REPLICA_HOST") { ENV.fetch("DATABASE_HOST") { "localhost" } } %>
+    replica: true
   cache:
     <<: *primary_production
     database: hardpoint_production_cache

@@ -1,0 +1,72 @@
+# Growing past one server (docs/RUNBOOK.md, "Scaling out"). A Kamal destination merged over
+# config/deploy.yml: bin/kamal deploy -d scaled. Addresses are the servers' private network
+# (Contabo private networking); only the web servers are reachable from Cloudflare.
+#
+#   web-1, web-2   Puma behind kamal-proxy; Cloudflare load-balances between them
+#   jobs           Solid Queue workers (bin/jobs), so heavy jobs never slow the tills
+#   db             PostgreSQL primary: every write, and the live screens
+#   db-replica     streaming replica: reports and data exports (Account.reading)
+servers:
+  web:
+    hosts:
+      - 10.0.0.11
+      - 10.0.0.12
+  job:
+    hosts:
+      - 10.0.0.13
+    cmd: bin/jobs
+
+env:
+  secret:
+    - RAILS_MASTER_KEY
+    - HARDPOINT_DATABASE_PASSWORD
+    - OBJECT_STORAGE_ACCESS_KEY_ID
+    - OBJECT_STORAGE_SECRET_ACCESS_KEY
+  clear:
+    APP_HOST: hardpoint.app
+    DATABASE_HOST: 10.0.0.21
+    DATABASE_REPLICA_HOST: 10.0.0.22
+    # Jobs run on their own server, not inside Puma.
+    SOLID_QUEUE_IN_PUMA: false
+    JOB_CONCURRENCY: 3
+    WEB_CONCURRENCY: 6
+    RAILS_MAX_THREADS: 3
+    # Two web servers can't share a disk: uploads live in object storage.
+    ACTIVE_STORAGE_SERVICE: object_storage
+    OBJECT_STORAGE_ENDPOINT: https://eu2.contabostorage.com
+    OBJECT_STORAGE_REGION: default
+    OBJECT_STORAGE_BUCKET: hardpoint-uploads
+
+# Uploads are in object storage now; the volume stays only for Rails' own scratch files.
+volumes:
+  - "hardpoint_storage:/rails/storage"
+
+accessories:
+  db:
+    host: 10.0.0.21
+    # Reachable on the private network only (ufw allows 5432 from 10.0.0.0/24).
+    port: "10.0.0.21:5432:5432"
+    env:
+      clear:
+        POSTGRES_USER: postgres
+        PRIVATE_NETWORK: 10.0.0.0/24
+      secret:
+        - POSTGRES_PASSWORD
+        - HARDPOINT_DATABASE_PASSWORD
+        - REPLICATION_PASSWORD
+  db-replica:
+    image: postgres:18
+    host: 10.0.0.22
+    port: "10.0.0.22:5432:5432"
+    env:
+      clear:
+        PRIMARY_HOST: 10.0.0.21
+      secret:
+        - REPLICATION_PASSWORD
+    # Clones the primary on first start, then follows it (config/postgres/start_replica.sh).
+    cmd: bash /usr/local/bin/start_replica.sh
+    files:
+      - config/postgres/start_replica.sh:/usr/local/bin/start_replica.sh
+      - config/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    directories:
+      - data:/var/lib/postgresql

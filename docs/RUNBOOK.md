@@ -1,8 +1,9 @@
 # HardPoint runbook
 
 How to run HardPoint in production: first setup, backups, disaster recovery, routine care and the
-common incidents. Everything runs on one Contabo VPS behind Cloudflare, deployed with Kamal
-(`config/deploy.yml`); the database is the Kamal `db` accessory (PostgreSQL 18).
+common incidents. Everything starts on one Contabo VPS behind Cloudflare, deployed with Kamal
+(`config/deploy.yml`); the database is the Kamal `db` accessory (PostgreSQL 18). Section 6 covers
+growing onto several servers.
 
 ## Targets
 
@@ -126,3 +127,68 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 | eTIMS queue growing | Settings › KRA eTIMS › Submissions shows the errors; KRA outages retry by themselves |
 | A shop reports seeing another shop's data | Treat as a security incident (docs/SECURITY.md): take screenshots, suspend the affected shops from the admin, check the Activity logs, then fix |
 | Someone's account compromised | Reset their password (sessions end), turn off their access in Staff, check Activity for what they did |
+| Replica behind or unreachable | Admin Database page, "Read replica". Reports and exports read from it, so they fail or show old numbers; tills and everything else don't. `bin/kamal accessory logs db-replica -d scaled`. To take it out of service, remove `DATABASE_REPLICA_HOST` and redeploy: reads go back to the primary |
+
+## 6. Scaling out
+
+One VPS carries dozens of shops. Signs it's time to grow: CPU busy through trading hours, the admin
+Database page showing cache hits below 99% with no more memory to give, or reports and exports
+slowing the tills. Grow in this order, one step at a time, each with a quiet evening and a backup
+taken just before.
+
+**The target** (`config/deploy.scaled.yml`, a Kamal destination merged over `config/deploy.yml`):
+
+| Server | Runs | Reachable from |
+|---|---|---|
+| web-1, web-2 | Puma behind kamal-proxy | Cloudflare (80/443), private network |
+| jobs | Solid Queue (`bin/jobs`): webhooks, SMS, eTIMS, exports, billing | private network only |
+| db | PostgreSQL primary: every write, the tills, the live dashboard | private network only |
+| db-replica | streaming replica: reports and data exports | private network only |
+
+All on Contabo's private networking in one region (10.0.0.0/24 in the file; use your own addresses),
+`ufw` allowing 5432 only from that network. Uploads move to S3-compatible object storage (Contabo
+Object Storage in the same region), because two web servers can't share a disk.
+
+1. **Database on its own server.** Provision it like section 1, with more memory, and re-run pgtune
+   for its size into `config/postgres/postgresql.conf`. Add `REPLICATION_PASSWORD` to `.kamal/secrets`.
+   Then `bin/kamal accessory boot db -d scaled` (its first-boot script also creates the `replicator`
+   role and allows it in `pg_hba.conf`). Then, after closing time (tills keep selling offline if
+   anyone is still trading): `bin/kamal app stop`, take a final dump from the old server (section 2),
+   restore it on the new one (section 3), deploy with `-d scaled`, and check `/up` and a test sale.
+2. **Read replica.** `bin/kamal accessory boot db-replica -d scaled`. On first start
+   `config/postgres/start_replica.sh` clones the primary with `pg_basebackup` through a replication
+   slot and starts as a hot standby. The admin Database page shows it streaming with its lag. With
+   `DATABASE_REPLICA_HOST` set (it is in the scaled file), reports and exports read from it.
+   Row-level security applies there too: `Account.reading` sets the shop on the replica's own
+   connection, and a replica connection without one sees nothing.
+3. **Uploads to object storage.** Create the bucket (private) and an access key; add the key to
+   `.kamal/secrets` and the endpoint and bucket to `config/deploy.scaled.yml`. Deploy, then move the
+   existing files: `bin/kamal app exec -d scaled "bin/rails storage:copy[local,object_storage]"`
+   (safe to run again). Add the bucket to the off-site backup (section 2).
+4. **Jobs on their own server.** Already in the scaled file: `SOLID_QUEUE_IN_PUMA: false` on the web
+   servers and a `job` role running `bin/jobs`. Check the queue drains after deploying:
+   `bin/kamal console -d scaled`, then `SolidQueue::Job.where(finished_at: nil).count`.
+5. **A second web server.** Both run the same image; point Cloudflare at both (a Load Balancer
+   pool with the `/up` health check, or two proxied A records). Sessions live in cookies and rate
+   limits in the database's cache, so a till can land on either.
+
+**Connection budget:** each web server uses up to `WEB_CONCURRENCY × RAILS_MAX_THREADS` (6 × 3 = 18)
+connections, the job server `JOB_CONCURRENCY × 3` plus a few, against `max_connections = 150`. At
+four web servers, put PgBouncer (transaction pooling) in front of the primary, and move the
+row-level security settings to `SET LOCAL` inside each transaction first: session-level settings
+don't survive transaction pooling.
+
+**Going back:** every step reverses by deploying without `-d scaled` (or removing one setting):
+without `DATABASE_REPLICA_HOST` reads return to the primary; without `ACTIVE_STORAGE_SERVICE` uploads
+go to local disk again (copy them back with `storage:copy[object_storage,local]` first).
+
+**Trying a replica locally:** clone your development database into a standby and point the
+development replica at it:
+
+```sh
+sudo -u postgres pg_basebackup -D /var/lib/postgresql/hp_replica -R -X stream -c fast
+sudo -u postgres cp /etc/postgresql/16/main/pg_{hba,ident}.conf /var/lib/postgresql/hp_replica/
+echo "port = 5433" | sudo -u postgres tee /var/lib/postgresql/hp_replica/postgresql.conf
+sudo -u postgres /usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/hp_replica -l /tmp/replica.log start
+DATABASE_REPLICA_PORT=5433 bin/dev
+```

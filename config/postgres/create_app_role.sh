@@ -15,3 +15,12 @@ SQL
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname hardpoint_production <<'SQL'
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 SQL
+
+# For a streaming read replica (config/deploy.scaled.yml): a role that may only replicate, allowed
+# in from the private network. Skipped on a single server, where REPLICATION_PASSWORD isn't set.
+if [ -n "${REPLICATION_PASSWORD:-}" ]; then
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres -v password="$REPLICATION_PASSWORD" <<'SQL'
+CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD :'password';
+SQL
+  echo "host replication replicator ${PRIVATE_NETWORK:-10.0.0.0/24} scram-sha-256" >> "$PGDATA/pg_hba.conf"
+fi

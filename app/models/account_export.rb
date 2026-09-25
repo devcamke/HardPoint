@@ -15,7 +15,8 @@ class AccountExport < ApplicationRecord
 
   def build
     Tempfile.create([ "export", ".zip" ], binmode: true) do |zip_file|
-      AccountExport::Archive.new(account).write(zip_file.path)
+      # The heaviest read HardPoint does, so it comes from the replica when there is one.
+      Account.reading { AccountExport::Archive.new(account).write(zip_file.path) }
       file.attach(io: File.open(zip_file.path), filename: filename, content_type: "application/zip")
     end
     update!(status: :ready, expires_at: RETENTION.from_now)

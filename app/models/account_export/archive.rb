@@ -10,7 +10,7 @@ class AccountExport::Archive
 
   def initialize(account)
     @account = account
-    @connection = ActiveRecord::Base.connection
+    @connection = ApplicationRecord.lease_connection
   end
 
   def write(path)

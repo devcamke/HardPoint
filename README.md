@@ -312,6 +312,22 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Expired and expiring batches](docs/screenshots/231-expiry.png)
 
+## Phase 17: room to grow
+
+- **A read replica** for reports and data exports, so month-end reports never slow the tills. Row-level security
+  holds on the replica: `Account.reading` sets the shop on the replica's own connection, and a replica connection
+  without one sees nothing (checked against a real streaming standby, and by tests on a separate connection)
+- **Scaling out with Kamal:** `config/deploy.scaled.yml` puts the database, a streaming replica, two web servers and
+  a jobs server on their own machines (`bin/kamal deploy -d scaled`); the replica clones itself from the primary on
+  first start
+- **Uploads on object storage** (Contabo Object Storage, R2 or S3) once there are two web servers, with
+  `bin/rails storage:copy[local,object_storage]` to move existing files
+- The admin **Database** page shows whether reports read from a replica and how far behind it is
+- [docs/RUNBOOK.md](docs/RUNBOOK.md) section 6 is the step-by-step, including when to grow, the connection budget and
+  how to go back
+
+![The replica on the admin Database page](docs/screenshots/240-admin-database-replica.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

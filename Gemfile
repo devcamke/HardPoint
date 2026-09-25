@@ -9,6 +9,9 @@ gem "json", "~> 2.21"
 # TOTP codes for two-factor sign-in, and QR codes to enrol authenticator apps.
 gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 3.2"
+
+# Uploads on S3-compatible object storage once there's more than one web server [docs/RUNBOOK.md]
+gem "aws-sdk-s3", "~> 1.232", require: false
 # Barcode images for shelf labels.
 gem "barby", "~> 0.7"
 # Product spreadsheets. CSV is Ruby's own library but ships as a separate gem since Ruby 3.4.

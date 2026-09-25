@@ -1,5 +1,7 @@
 class ReportsController < ApplicationController
   before_action :ensure_can_view_reports
+  # Reports only read, and can be a few seconds behind, so they come from the replica.
+  around_action(only: :show) { |_, action| Account.reading(&action) }
 
   def index
     @reports = Report::KEYS.map { Report.find(_1) }.group_by(&:group)

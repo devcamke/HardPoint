@@ -12,6 +12,27 @@
   <div class="card"><p class="hint">Cache hits (indexes)</p><p class="text-2xl font-bold tabular-nums <%= "text-red-700" if rates[:indexes] && rates[:indexes] < 99 %>"><%= rates[:indexes] ? "#{rates[:indexes]}%" : "–" %></p></div>
 </div>
 
+<% replica = @health.replica %>
+<section id="replica" class="card mb-6 <%= "border-red-200" if replica.error || replica.behind? %>">
+  <h2 class="mb-1 text-lg font-semibold">Read replica</h2>
+  <% if replica.error %>
+    <p class="font-semibold text-red-800">Can't reach the replica: <%= replica.error %></p>
+    <p class="hint">Reports and exports fail until it's back, or DATABASE_REPLICA_HOST is removed so they read from the primary.</p>
+  <% elsif !replica.separate %>
+    <p>Reports and exports read from the primary. <span class="hint">Set DATABASE_REPLICA_HOST to move them to a replica (docs/RUNBOOK.md, Scaling out).</span></p>
+  <% elsif replica.streaming %>
+    <p>Streaming; last change replayed <strong class="<%= "text-red-700" if replica.behind? %>"><%= replica.lag_seconds ? "#{replica.lag_seconds.round(1)} s ago" : "not yet" %></strong>.
+      <span class="hint">Reports and exports read from it.</span></p>
+  <% else %>
+    <p class="font-semibold text-red-800">The replica host answers but isn't replicating (it's not in recovery).</p>
+  <% end %>
+  <% if (clients = @health.replication_clients).any? %>
+    <table class="table mt-3 text-sm"><thead><tr><th>Replica</th><th>State</th><th>Replay lag</th></tr></thead><tbody>
+      <% clients.each do |address, state, lag| %><tr><td class="font-mono"><%= address %></td><td><%= state %></td><td><%= lag.presence || "–" %></td></tr><% end %>
+    </tbody></table>
+  <% end %>
+</section>
+
 <% if (long = @health.long_running).any? %>
   <section class="card mb-6 border-red-200">
     <h2 class="mb-3 text-lg font-semibold text-red-800">Running for more than 30 seconds</h2>

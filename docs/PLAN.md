@@ -94,6 +94,8 @@ customers, staff, or reports.
 | Counting and receiving on the phone | Counts are blind and add atomically in SQL, so several people can count at once; "Set total" corrects. A pack barcode counts as the pack. Receiving is against a sent order only, held in the session until recorded, and can't exceed what's still to come; extras and extra costs are done on the desktop. |
 | Batches | Optional per product. A batch is (branch, product, manufacturer's number) with an expiry date and quantity. Stock levels stay the source of truth; batches split them, and stock not in any batch (from before tracking, or counted in) is allowed and sold first. |
 | Batch allocation | In `move_stock`, the one place stock changes: deliveries name their batch; sales and other stock out go first-expiring-first, skipping expired batches unless nothing else is left; voids, returns and transfers mirror the batches the original movement took, by number. One ledger line per batch touched. Stock takes stay per product (counts up aren't batched). Cashiers never pick batches. |
+| Read replica | Explicit, not automatic: `Account.reading` for reports and data exports only; tills, the live dashboard and everything that writes stay on the primary. Rails' automatic role switching is off because the row-level security settings are per connection. Development and test have a replica pointing at the same database so the code path always runs. |
+| Scaling out | A Kamal destination (`deploy.scaled.yml`) rather than a second deploy file: two web servers, a jobs server, a primary and a streaming replica (pg_basebackup through a slot, capped by `max_slot_wal_keep_size`), all on the private network. Uploads move to S3-compatible object storage. PgBouncer waits until four web servers and needs `SET LOCAL` first. |
 | Hire terms | Standard terms are printed on the A4 agreement with signature lines. Shop-editable terms are left for later. Tools are managed by catalogue managers, and anyone who sells can hire out, return and settle. |
 
 | Phase | Status |
@@ -108,6 +110,7 @@ customers, staff, or reports.
 | 7 — Payment & tax integrations | **Done (to be proven against the live sandboxes):** M-Pesa Daraja per shop (encrypted credentials, STK push from the till with automatic completion, C2B confirmations with automatic matching to orders, accounts and typed codes, reconciliation report, token-and-IP-checked idempotent callbacks), KRA eTIMS OSCU per branch (initialisation, item registration, sales and credit notes, signed receipts with QR code, retry queue, refusals to fix), SMS via Africa's Talking (receipts, order ready, balance reminders), simulators for all three. Card terminals stay manual; accounting sync skipped. |
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
+| 17 — Room to grow | **Done (to be rehearsed on real servers):** read replica for reports and exports with row-level security carried across (tested on a separate connection and against a real standby); scaled Kamal destination with db, replica, two web servers and a jobs server; replica bootstrap and replication settings; object storage and a copy task; replica status on the admin Database page; runbook section 6. |
 | 16 — Batches & expiry | **Done:** batch-tracked products; batch and expiry on goods received (desktop and phone); first-expiring-first stock out; batches followed through voids, returns and transfers; expiry list per branch with value; batch pages with write-off and a recall list of buyers; batches on sales, products, the phone look-up and the ledger. |
 | 15 — Stock on the phone | **Done:** HardPoint Stock at /m (installable, QR code on the Stock page); camera scanning with typed fallback; product look-up with prices, stock per branch, on order and latest movements; blind counting with add/set and pack barcodes; receiving deliveries against purchase orders into goods received notes. |
 | 14 — Contractor jobs | **Done:** jobs per customer with reference, site and budget; job picker at the till with budget left; quotes and orders for a job, carried to the till; job on receipts, invoices and order PDFs; job page with spend against budget, materials, sales, returns and open orders; cost summary PDF; closing and reopening; jobs in the API; cross-shop sweep. |
@@ -621,6 +624,13 @@ what's expiring, and can trace a batch to its buyers when a manufacturer recalls
 - **First-expiring-first** stock out, automatically at the till; returns, voids and transfers follow batches.
 - **Expiry list** per branch with value; **batch page** with write-off and a recall list of buyers.
 
+### Phase 17 — Room to grow
+**Goal:** move from one VPS to several without a rewrite, when the load asks for it.
+- **Read replica** for reports and exports, with row-level security on its connection.
+- **Kamal destination** for separate database, replica, web and job servers; replica bootstrap.
+- **Object storage** for uploads, with a task to move existing files.
+- **Runbook** for when and how to grow, the connection budget, and going back.
+
 ### Beyond v1 (backlog)
 - ~~Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).~~ Done as a web app in Phase 15; wrap with Hotwire Native if a store listing is wanted.
 - ~~E-commerce storefront / click-and-collect per tenant.~~ Done in Phase 12.
@@ -628,8 +638,8 @@ what's expiring, and can trace a batch to its buyers when a manufacturer recalls
 - ~~Tool hire/rental module; job/project costing for contractors.~~ Done in Phases 13 and 14.
 - Job costing extras: invoicing a job's client with a markup, and tagging jobs on the offline till.
 - Multi-currency; FIFO costing. (~~Batch/lot tracking~~ done in Phase 16; counting by batch is a possible extra.)
-- Scaling out: move Postgres to its own VPS (or managed DB), add read replica, split
-  job workers onto a second VPS — Kamal handles multi-host.
+- ~~Scaling out: move Postgres to its own VPS (or managed DB), add read replica, split
+  job workers onto a second VPS — Kamal handles multi-host.~~ Ready in Phase 17; PgBouncer with `SET LOCAL` isolation when there are four or more web servers.
 
 ---
 
