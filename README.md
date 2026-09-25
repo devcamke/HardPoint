@@ -371,6 +371,20 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Spending points at the till](docs/screenshots/271-till-points.png)
 
+## Phase 21: the offline till catches up
+
+- **Customers offline:** the offline till finds customers by name or phone from its snapshot; their price list applies,
+  the receipt carries their name, and their loyalty points are earned when the sale reaches HardPoint
+- **Promotions offline:** the snapshot carries promotions running now or starting in the next two weeks, and the till
+  checks the dates itself on the day it sells; the best offer per line, "You saved" on the receipt, exactly as online
+- **The same sums:** the offline arithmetic mirrors the server's rules for price lists and promotions, with shared test
+  cases in Ruby and JavaScript; checked end to end in a browser with the server stopped (KES 10,835.00 offline, KES
+  10,835.00 recorded, points earned, no warnings)
+- On sync, a promotion that wasn't running on the day of the sale is flagged in the sale's warnings; the snapshot's
+  version now changes with customers, price lists and promotions (to the microsecond)
+
+![Customer prices and promotions on the offline till](docs/screenshots/280-offline-customer-promotions.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

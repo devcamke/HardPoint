@@ -63,7 +63,7 @@ class Account < ApplicationRecord
   def running_promotions
     @running_promotions = nil unless @running_promotions_on == Date.current
     @running_promotions_on = Date.current
-    @running_promotions ||= promotions.running(Date.current).to_a
+    @running_promotions ||= promotions.running(Date.current).order(:id).to_a
   end
 
   def forget_running_promotions

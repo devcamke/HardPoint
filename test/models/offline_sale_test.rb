@@ -75,4 +75,49 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_equal "error", record(payload.merge(shift_id: Account.without_isolation { Shift.create!(account: accounts(:bolt),
       register: accounts(:bolt).registers.create!(account: accounts(:bolt), branch: branches(:bolt_main), name: "Counter")).id })).status
   end
+
+  test "offline sales can be in a customer's name, at their prices, with promotions; they earn points when recorded" do
+    accounts(:acme).create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 100)
+    deal = accounts(:acme).promotions.create!(name: "Cement week", kind: "buy_get", buy_quantity: 10, free_quantity: 1,
+      product_ids: [ products(:acme_cement).id ], starts_on: Date.yesterday, ends_on: Date.tomorrow)
+    contractor = customers(:acme_contractor) # 760.00 a bag on their price list
+    total = 11 * 760_00 - 760_00
+    data = payload(lines: [ { product_id: products(:acme_cement).id, quantity: "11", unit_price_cents: 760_00, promotion_id: deal.id, promotion_discount_cents: 760_00 } ],
+      payments: [ { tender: "cash", tendered_cents: total } ], total_cents: total).merge(customer_id: contractor.id)
+
+    result = record(data)
+    assert_equal [ "recorded", [] ], [ result.status, result.sale.offline_warnings ], "their price and the promotion aren't flagged"
+    line = result.sale.lines.sole
+    assert_equal [ deal, 760_00, total ], [ line.promotion, line.promotion_discount_cents, result.sale.total_cents ]
+    assert_equal contractor, result.sale.customer
+    assert_equal total / 100_00, contractor.points_balance
+  end
+
+  test "a promotion that wasn't running when the sale happened is flagged" do
+    ended = accounts(:acme).promotions.create!(name: "Last week", kind: "percent_off", percent_off: 50, product_ids: [ products(:acme_nails).id ],
+      starts_on: 10.days.ago.to_date, ends_on: 3.days.ago.to_date)
+    result = record(payload(lines: [ { product_id: products(:acme_nails).id, quantity: "4", unit_price_cents: 25000, promotion_id: ended.id, promotion_discount_cents: 50000 } ],
+      payments: [ { tender: "cash", tendered_cents: 50000 } ], total_cents: 50000))
+    assert_equal "recorded", result.status
+    assert_match "Last week wasn't running", result.sale.offline_warnings.to_sentence
+  end
+
+  test "the catalogue carries customers, their price lists and promotions coming up" do
+    accounts(:acme).promotions.create!(name: "Soon", kind: "percent_off", percent_off: 5, category_ids: [ categories(:acme_building).id ],
+      starts_on: Date.current + 3, ends_on: Date.current + 10)
+    accounts(:acme).promotions.create!(name: "Much later", kind: "percent_off", percent_off: 5, category_ids: [ categories(:acme_building).id ],
+      starts_on: Date.current + 30, ends_on: Date.current + 40)
+    catalogue = PosCatalogue.new(shift: @shift, user: users(:carl))
+    before = catalogue.version
+    json = catalogue.as_json
+
+    assert_includes json[:customers].map { _1[:name] }, customers(:acme_contractor).name
+    assert_equal 76000, json[:price_lists][price_lists(:acme_contractor).id][products(:acme_cement).id].sole.last
+    assert_equal [ "Soon" ], json[:promotions].map { _1[:name] }
+    assert_equal products(:acme_cement).category_id, json[:products].find { _1[:id] == products(:acme_cement).id }[:category_id]
+    assert_equal "Africa/Nairobi", json[:till][:time_zone]
+
+    customers(:acme_walk_in).touch
+    assert_not_equal before, PosCatalogue.new(shift: @shift, user: users(:carl)).version, "a changed customer means a new snapshot"
+  end
 end

@@ -15,7 +15,7 @@
     <div class="rounded-lg border-2 border-safety-500 bg-safety-50 px-4 py-3">
       <p class="font-semibold">Offline till <span class="font-normal" data-offline-till-target="till"></span></p>
       <p class="text-sm">Sales are kept on this device and sent as soon as it's back online; they get their receipt numbers then.
-        Cash, or a typed M-Pesa or card code. <span class="text-steel-600" data-offline-till-target="snapshot"></span></p>
+        Cash, or a typed M-Pesa or card code; customers' prices and promotions apply, and points are earned when the sale is sent. <span class="text-steel-600" data-offline-till-target="snapshot"></span></p>
     </div>
     <p hidden data-offline-till-target="message"></p>
 
@@ -38,7 +38,10 @@
   <aside class="flex min-h-0 flex-col border-l border-concrete-200 bg-white">
     <div class="border-b border-concrete-200 px-4 py-3">
       <p class="text-xs uppercase tracking-wide text-steel-600">Customer</p>
-      <p class="font-semibold">Walk-in <span class="hint font-normal">(customers need the till online)</span></p>
+      <p class="font-semibold" data-offline-till-target="customerName">Walk-in</p>
+      <input type="search" autocomplete="off" placeholder="Find a customer by name or phone" class="input mt-1 py-1 text-sm" aria-label="Find customer"
+             data-offline-till-target="customerSearch" data-action="input->offline-till#findCustomer">
+      <ul class="divide-y divide-concrete-100" data-offline-till-target="customerResults"></ul>
     </div>
     <ul class="min-h-0 flex-1 divide-y divide-concrete-100 overflow-y-auto" data-offline-till-target="cart"></ul>
     <div class="border-t border-concrete-200 px-4 py-3 text-sm">

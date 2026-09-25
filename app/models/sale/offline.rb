@@ -48,7 +48,8 @@ module Sale::Offline
         happened_at = Time.zone.parse(data["happened_at"].to_s) || Time.current
         happened_at = happened_at.clamp(shift.opened_at - CLOCK_TOLERANCE, Time.current + CLOCK_TOLERANCE)
 
-        sale = create!(account: account, branch: shift.branch, register: shift.register, shift: shift, cashier: cashier,
+        customer = account.customers.find(data["customer_id"]) if data["customer_id"].present?
+        sale = create!(account: account, branch: shift.branch, register: shift.register, shift: shift, cashier: cashier, customer: customer,
           offline_uuid: data["uuid"], offline_receipt_number: data["receipt_number"].to_s.first(30).presence, created_at: happened_at)
         sale.happened_at = happened_at
         sale.offline_payments = Array(data["payments"])
@@ -57,6 +58,8 @@ module Sale::Offline
           product = account.products.find(line["product_id"])
           sale.lines.create!(account: account, product: product, product_unit: (product.product_units.find(line["product_unit_id"]) if line["product_unit_id"].present?),
             quantity: line["quantity"], unit_price_cents: line["unit_price_cents"].to_i, discount_cents: line["discount_cents"].to_i,
+            promotion: (account.promotions.find_by(id: line["promotion_id"]) if line["promotion_id"].present?),
+            promotion_discount_cents: line["promotion_id"].present? ? line["promotion_discount_cents"].to_i : 0,
             serial_number: line["serial_number"].presence)
         end
         sale.discount_cents = data["discount_cents"].to_i
@@ -96,10 +99,14 @@ module Sale::Offline
       offline_warnings << "#{Money.format(balance_due_cents)} is still due, so the sale is parked at #{register.name} for someone to finish" unless completed?
       update!(status: :parked) if open?
 
-      lines.includes(:product, :product_unit).each do |line|
-        catalogue_price = line.product_unit ? line.product_unit.effective_price_cents : line.product.price_cents
+      lines.includes(:product, :product_unit, :promotion).each do |line|
+        # The price this customer would get (their price list included), before any promotion.
+        catalogue_price = line.product_unit ? line.product_unit.effective_price_cents : line.product.price_cents_for(quantity: line.quantity, price_list: price_list)
         if line.unit_price_cents < catalogue_price
           offline_warnings << "#{line.description} sold at #{Money.format(line.unit_price_cents)}; the price is now #{Money.format(catalogue_price)}"
+        end
+        if line.promotion && !line.promotion.status(happened_at.to_date).in?(%w[ running ])
+          offline_warnings << "#{line.description}: #{line.promotion.name} wasn't running on #{I18n.l(happened_at.to_date, format: :long)} (it's #{line.promotion.status})"
         end
         if completed? && line.product.track_stock? && (stock = line.product.stock_at(branch)).negative?
           offline_warnings << "#{line.product.name} now shows #{stock.to_s("F").delete_suffix(".0")} in stock at #{branch.name}"

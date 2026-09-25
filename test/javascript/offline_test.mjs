@@ -2,7 +2,7 @@
 //   node --test test/javascript/
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { unitPrice, lineTotals, saleTotals, thousandths } from "../../app/javascript/offline/arithmetic.js"
+import { unitPrice, lineTotals, saleTotals, thousandths, promotionSaving, bestPromotion, localDay } from "../../app/javascript/offline/arithmetic.js"
 import { receipt, columns, wrap, ascii, commands } from "../../app/javascript/offline/escpos.js"
 
 test("line and sale totals match the server's (SaleLine, Sale::Cart)", () => {
@@ -38,4 +38,37 @@ test("receipts in ESC/POS fit the paper, stay ASCII, cut, and open the drawer fo
   assert.ok(text.split("\n").every((line) => line.replace(/[\x00-\x1f]/g, "").length <= 32 + 8))
   assert.deepEqual(bytes.slice(-commands.openDrawer.length), commands.openDrawer)
   assert.ok(!String.fromCharCode(...receipt({ ...data, open_drawer: false })).includes(String.fromCharCode(...commands.openDrawer)))
+})
+
+// The same cases as test/models/promotion_test.rb, so the offline till and the server agree.
+test("price lists: the lowest of retail, retail breaks and the customer's list", () => {
+  const cement = { id: 1, price_cents: 80000, breaks: [ [ 100, 78000 ] ] }
+  assert.equal(unitPrice(cement, null, 2, [ [ 1, 76000 ] ]), 76000)
+  assert.equal(unitPrice(cement, null, 2, [ [ 50, 70000 ] ]), 80000, "a list break not reached yet")
+  assert.equal(unitPrice(cement, null, 100, [ [ 1, 79000 ] ]), 78000)
+})
+
+test("promotions: buy ten get one free, a percentage, the best one, and the dates", () => {
+  const cement = { id: 1, category_id: 7, price_cents: 80000 }
+  const nails = { id: 2, category_id: 8, price_cents: 25000 }
+  const deal = { id: 10, kind: "buy_get", buy_quantity: 10, free_quantity: 1, product_ids: [ 1 ], category_ids: [], starts_on: "2026-09-20", ends_on: "2026-09-30" }
+  assert.equal(promotionSaving(deal, cement, null, 10, 80000), 0, "ten bags: nothing free yet")
+  assert.equal(promotionSaving(deal, cement, null, 22, 80000), 2 * 80000)
+  assert.equal(promotionSaving(deal, nails, null, 22, 25000), 0, "not covered")
+
+  const tenOff = { id: 11, kind: "percent_off", percent_off: 10, product_ids: [], category_ids: [ 7 ], starts_on: "2026-09-20", ends_on: "2026-09-30" }
+  assert.equal(promotionSaving(tenOff, cement, null, 2, 80000), 2 * 8000)
+  assert.equal(promotionSaving(tenOff, cement, null, 2, 76000), 2 * 4000, "contractor price 760, offer 720: only the difference")
+  assert.equal(promotionSaving(tenOff, cement, null, 2, 70000), 0, "their own price is already better")
+  assert.equal(promotionSaving(tenOff, cement, null, 0.5, 80000), 4000, "decimal quantities")
+
+  const twenty = { ...tenOff, id: 12, percent_off: 20 }
+  assert.equal(bestPromotion([ tenOff, twenty ], "2026-09-25", cement, null, 1, 80000).promotion, twenty)
+  assert.equal(bestPromotion([ { ...tenOff, id: 13, percent_off: 5 }, deal ], "2026-09-25", cement, null, 22, 80000).promotion, deal, "22 bags: 2 free (1,600) beats 5% off (880)")
+  assert.equal(bestPromotion([ deal, twenty ], "2026-09-25", cement, null, 22, 80000).promotion, twenty, "but not 20% off (3,520)")
+  assert.equal(bestPromotion([ twenty ], "2026-10-01", cement, null, 1, 80000), null, "ended")
+  assert.equal(bestPromotion([ twenty ], "2026-09-19", cement, null, 1, 80000), null, "not started")
+
+  assert.deepEqual(lineTotals({ unit_price_cents: 80000, quantity: 22, tax_rate: 16, promotion_discount_cents: 160000 }), { gross: 1760000, total: 1600000, tax: 220690 })
+  assert.equal(localDay("Africa/Nairobi", new Date("2026-09-24T22:30:00Z")), "2026-09-25", "the shop's day, not UTC's")
 })

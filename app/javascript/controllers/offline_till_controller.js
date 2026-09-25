@@ -1,18 +1,22 @@
 import { Controller } from "@hotwired/stimulus"
 import * as store from "offline/store"
-import { unitPrice, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
+import { unitPrice, bestPromotion, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
 import { printReceipt } from "offline/printer"
 
 // The offline till: sells from the catalogue snapshot on this device while the network is down.
 // Sales are kept on the device and sent by the offline-sync controller when it's back; they get
 // their receipt numbers then. Cash, or a typed M-Pesa or card code (checked later against the
-// M-Pesa reconciliation); no customers, accounts or discounts until the till is online.
+// M-Pesa reconciliation). Customers can be chosen, for their price list and loyalty points
+// (earned when the sale is recorded); promotions apply as online. Accounts, spending points and
+// discounts need the till online.
 export default class extends Controller {
   static targets = [ "code", "results", "quickPicks", "cart", "total", "tax", "items", "tendered", "reference", "referenceField",
-                     "tenderedField", "change", "message", "queue", "completed", "receipt", "till", "snapshot", "payButton" ]
+                     "tenderedField", "change", "message", "queue", "completed", "receipt", "till", "snapshot", "payButton",
+                     "customerName", "customerSearch", "customerResults" ]
 
   connect() {
     this.cart = []
+    this.customer = null
     this.load()
     this.renderQueue = this.renderQueue.bind(this)
     document.addEventListener("offline-sync:sent", this.renderQueue)
@@ -107,6 +111,31 @@ export default class extends Controller {
 
   clear() {
     this.cart = []
+    this.customer = null
+    this.render()
+  }
+
+  // Customers by name or phone (the last digits are enough), from the snapshot.
+  findCustomer() {
+    const query = this.customerSearchTarget.value.trim().toLowerCase()
+    const digits = query.replace(/\D/g, "")
+    const matches = query ? (this.catalogue.customers || []).filter((customer) =>
+      customer.name.toLowerCase().includes(query) || (digits.length >= 4 && (customer.phone || "").replace(/\D/g, "").includes(digits.slice(-9)))).slice(0, 8) : []
+    this.customerResultsTarget.innerHTML = matches.map((customer) => `<li><button type="button" data-action="offline-till#chooseCustomer" data-customer-id="${customer.id}"
+      class="w-full py-2 text-left text-sm hover:bg-concrete-50"><span class="font-medium">${escape(customer.name)}</span>
+      <span class="block text-xs text-steel-600">${escape([ customer.phone, customer.price_list_name ].filter(Boolean).join(" · "))}</span></button></li>`).join("")
+  }
+
+  chooseCustomer(event) {
+    this.customer = this.catalogue.customers.find((customer) => customer.id === Number(event.currentTarget.dataset.customerId))
+    this.customerSearchTarget.value = ""
+    this.customerResultsTarget.innerHTML = ""
+    this.show(this.customer.price_list_name ? `${this.customer.name} · ${this.customer.price_list_name} prices` : this.customer.name)
+    this.render()
+  }
+
+  walkIn() {
+    this.customer = null
     this.render()
   }
 
@@ -145,9 +174,10 @@ export default class extends Controller {
     const sale = {
       uuid, status: "waiting", happened_at: happenedAt, receipt_number: null, offline_receipt_number: receiptNumber, total_cents: total,
       payload: { uuid, receipt_number: receiptNumber, happened_at: happenedAt, shift_id: till.shift_id, cashier_id: till.cashier_id,
-                 total_cents: total, discount_cents: 0, payments: [ payment ],
+                 customer_id: this.customer?.id ?? null, total_cents: total, discount_cents: 0, payments: [ payment ],
                  lines: lines.map((line) => ({ product_id: line.product.id, product_unit_id: line.pack?.id ?? null, quantity: String(line.quantity),
-                                               unit_price_cents: line.unit_price_cents, discount_cents: 0 })) },
+                                               unit_price_cents: line.unit_price_cents, discount_cents: 0,
+                                               promotion_id: line.promotion?.id ?? null, promotion_discount_cents: line.promotion_discount_cents })) },
       receipt: this.receiptData(receiptNumber, lines, payment)
     }
     await store.sales.put(sale)
@@ -155,6 +185,7 @@ export default class extends Controller {
 
     this.lastReceipt = sale.receipt
     this.cart = []
+    this.customer = null
     this.tenderedTarget.value = ""
     this.referenceTarget.value = ""
     this.codeTarget.value = ""
@@ -195,11 +226,16 @@ export default class extends Controller {
     return this.element.querySelector("input[name=tender]:checked")?.value || "cash"
   }
 
+  // Prices as the server works them out: the customer's price list, then the best promotion running today.
   pricedLines() {
+    const day = localDay(this.catalogue.till.time_zone)
+    const lists = this.customer?.price_list_id ? (this.catalogue.price_lists || {})[this.customer.price_list_id] || {} : {}
     return this.cart.map((line) => {
       const taxRate = line.product.tax_rate
-      const unitPriceCents = unitPrice(line.product, line.pack, line.quantity)
-      return { ...line, unit_price_cents: unitPriceCents, tax_rate: taxRate, ...lineTotals({ unit_price_cents: unitPriceCents, quantity: line.quantity, tax_rate: taxRate }) }
+      const unitPriceCents = unitPrice(line.product, line.pack, line.quantity, lists[line.product.id] || [])
+      const best = bestPromotion(this.catalogue.promotions, day, line.product, line.pack, line.quantity, unitPriceCents)
+      const priced = { unit_price_cents: unitPriceCents, quantity: line.quantity, tax_rate: taxRate, promotion_discount_cents: best?.saving || 0 }
+      return { ...line, ...priced, promotion: best?.promotion || null, ...lineTotals(priced) }
     })
   }
 
@@ -213,7 +249,8 @@ export default class extends Controller {
       <li class="px-4 py-3">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0"><p class="font-medium">${escape(line.product.name)}${line.pack ? ` <span class="text-steel-600">(${escape(line.pack.name)})</span>` : ""}</p>
-            <p class="text-xs text-steel-600">${formatMoney(line.unit_price_cents, currency)} / ${escape(line.pack?.unit || line.product.unit)}</p></div>
+            <p class="text-xs text-steel-600">${formatMoney(line.unit_price_cents, currency)} / ${escape(line.pack?.unit || line.product.unit)}
+              ${line.promotion ? `<span class="badge ml-1 bg-red-50 text-red-800">${escape(line.promotion.offer)} −${formatMoney(line.promotion_discount_cents, currency)}</span>` : ""}</p></div>
           <p class="whitespace-nowrap font-semibold tabular-nums">${formatMoney(line.total, currency)}</p>
         </div>
         <div class="mt-1 flex items-center justify-between">
@@ -223,6 +260,8 @@ export default class extends Controller {
         </div>
       </li>`).join("") : `<li class="p-8 text-center text-steel-600">Scan or tap products to start a sale.</li>`
 
+    this.customerNameTarget.innerHTML = this.customer ? `${escape(this.customer.name)}${this.customer.price_list_name ? ` <span class="badge ml-1">${escape(this.customer.price_list_name)}</span>` : ""}
+      <button type="button" class="link ml-2 text-xs font-normal" data-action="offline-till#walkIn">Walk-in</button>` : "Walk-in"
     this.itemsTarget.textContent = formatQuantity(lines.reduce((sum, line) => sum + thousandths(line.quantity), 0) / 1000)
     this.taxTarget.textContent = formatMoney(this.totals.tax, currency)
     this.totalTarget.textContent = formatMoney(this.totals.total, currency)
@@ -271,9 +310,11 @@ export default class extends Controller {
     return {
       header: [ till.account_name, till.branch_name, till.branch_address, till.branch_phone && `Tel ${till.branch_phone}` ].filter(Boolean),
       receipt_number: receiptNumber, time: new Date().toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" }), register: till.register_name,
-      cashier: till.cashier_name, offline: true,
+      cashier: till.cashier_name, customer: this.customer?.name || null, offline: true,
       lines: lines.map((line) => ({ description: line.product.name + (line.pack ? ` (${line.pack.name})` : ""),
-                                    detail: `${formatQuantity(line.quantity)} ${line.pack?.unit || line.product.unit} x ${formatMoney(line.unit_price_cents)}`, total: formatMoney(line.total) })),
+                                    detail: `${formatQuantity(line.quantity)} ${line.pack?.unit || line.product.unit} x ${formatMoney(line.unit_price_cents)}`, total: formatMoney(line.total),
+                                    promotion: line.promotion ? [ line.promotion.offer, formatMoney(line.promotion_discount_cents) ] : null })),
+      saved: (saved => saved > 0 ? formatMoney(saved) : null)(lines.reduce((sum, line) => sum + line.promotion_discount_cents, 0)),
       total: formatMoney(this.totals.total, till.currency), tax: formatMoney(this.totals.tax, till.currency),
       payments: [ { label: [ labels[payment.tender], payment.reference ].filter(Boolean).join(" "), amount: formatMoney(payment.tendered_cents ?? payment.amount_cents, till.currency) } ],
       change: change > 0 ? formatMoney(change, till.currency) : null,
@@ -285,10 +326,10 @@ export default class extends Controller {
     const row = (left, right, classes = "") => `<div class="row ${classes}"><span>${escape(left)}</span><span>${escape(right)}</span></div>`
     return `<div class="receipt">
       <p class="center bold big">${escape(data.header[0])}</p><p class="center">${data.header.slice(1).map(escape).join("<br>")}</p><hr>
-      ${row("Receipt", data.receipt_number, "bold")}${row(data.time, data.register)}${row("Served by", data.cashier)}
+      ${row("Receipt", data.receipt_number, "bold")}${row(data.time, data.register)}${row("Served by", data.cashier)}${data.customer ? row("Customer", data.customer) : ""}
       <p class="center">Recorded offline; sent when the till is back online.</p><hr>
-      ${data.lines.map((line) => `<div class="item"><div>${escape(line.description)}</div>${row(line.detail, line.total, "muted")}</div>`).join("")}<hr>
-      ${row("TOTAL", data.total, "bold big")}${row("Incl. tax", data.tax, "muted")}<hr>
+      ${data.lines.map((line) => `<div class="item"><div>${escape(line.description)}</div>${row(line.detail, line.total, "muted")}${line.promotion ? row(`  ${line.promotion[0]}`, `−${line.promotion[1]}`, "muted") : ""}</div>`).join("")}<hr>
+      ${row("TOTAL", data.total, "bold big")}${row("Incl. tax", data.tax, "muted")}${data.saved ? row("You saved", data.saved, "bold") : ""}<hr>
       ${data.payments.map((payment) => row(payment.label, payment.amount)).join("")}${data.change ? row("Change", data.change, "bold") : ""}<hr>
       <p class="center">${escape(data.footer)}</p></div>`
   }
