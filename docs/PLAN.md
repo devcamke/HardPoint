@@ -89,6 +89,9 @@ customers, staff, or reports.
 | Hire lines | Charges go on an inactive, untracked "Tool hire" service product (SKU HIRE), with the tool and days as line detail ("Tool hire · Concrete mixer MIX-01, 4 days"), so reports and tax work without a product per tool. |
 | Contractor jobs | A job belongs to one customer: name (unique per customer), their reference or LPO, site, optional materials budget, open or closed. Sales and quotes/orders carry an optional job, which must be the customer's and open when chosen. Changing the sale's customer drops the job. |
 | Job costs | Spend is completed sales less returns from them, worked out when asked rather than stored. Voided sales don't count. Materials are summed by product and pack, net of returns. Budgets warn (orange from 80%, red over) and never block a sale. The offline till doesn't tag jobs yet. |
+| Phone app | A phone-sized section of the web app at `/m` with its own install manifest, not a native app: nothing to publish or update in app stores, same sign-in and permissions. Hotwire Native can wrap it later if a store listing is wanted. |
+| Camera scanning | The browser's BarcodeDetector (Chrome on Android, most of Kenya's phones); no JavaScript barcode library. Elsewhere, typing or a Bluetooth scanner. Scanning pauses after each find until the item is saved or skipped, so nothing is counted twice. |
+| Counting and receiving on the phone | Counts are blind and add atomically in SQL, so several people can count at once; "Set total" corrects. A pack barcode counts as the pack. Receiving is against a sent order only, held in the session until recorded, and can't exceed what's still to come; extras and extra costs are done on the desktop. |
 | Hire terms | Standard terms are printed on the A4 agreement with signature lines. Shop-editable terms are left for later. Tools are managed by catalogue managers, and anyone who sells can hire out, return and settle. |
 
 | Phase | Status |
@@ -103,6 +106,7 @@ customers, staff, or reports.
 | 7 — Payment & tax integrations | **Done (to be proven against the live sandboxes):** M-Pesa Daraja per shop (encrypted credentials, STK push from the till with automatic completion, C2B confirmations with automatic matching to orders, accounts and typed codes, reconciliation report, token-and-IP-checked idempotent callbacks), KRA eTIMS OSCU per branch (initialisation, item registration, sales and credit notes, signed receipts with QR code, retry queue, refusals to fix), SMS via Africa's Talking (receipts, order ready, balance reminders), simulators for all three. Card terminals stay manual; accounting sync skipped. |
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
+| 15 — Stock on the phone | **Done:** HardPoint Stock at /m (installable, QR code on the Stock page); camera scanning with typed fallback; product look-up with prices, stock per branch, on order and latest movements; blind counting with add/set and pack barcodes; receiving deliveries against purchase orders into goods received notes. |
 | 14 — Contractor jobs | **Done:** jobs per customer with reference, site and budget; job picker at the till with budget left; quotes and orders for a job, carried to the till; job on receipts, invoices and order PDFs; job page with spend against budget, materials, sales, returns and open orders; cost summary PDF; closing and reopening; jobs in the API; cross-shop sweep. |
 | 13 — Tool hire | **Done:** hire tools with asset tags, rates, deposits and status; hire agreements with customer ID, site and due-back time, a printed A4 agreement, deposits through the order, extensions, overdue list and reminder texts (daily at most); returns tool by tool with condition and damage, sending tools to maintenance when needed; settling at the till with the deposit counted; hire in the cross-shop sweep. |
 | 12 — Online store | **Done:** Settings › Online store; public catalogue with categories, search, stock per collection branch and a session cart; checkout without accounts; online orders marked in Orders with staff emails, customer text and email, and an order-tracking page with Paybill instructions; closed while the shop is locked; spam limits. |
@@ -599,8 +603,16 @@ instead of a paper book.
   returns and open orders; an A4 cost summary for the contractor's own client.
 - **API:** jobs with spend; sales and orders carry `job_id`; sales filter by job.
 
+### Phase 15 — Stock on the phone
+**Goal:** stock clerks work at the shelf and the lorry, not at the counter PC.
+- **HardPoint Stock** (`/m`): phone layout with a bottom bar, its own install manifest, opened from a QR code.
+- **Camera scanning** with the BarcodeDetector API; typing or a Bluetooth scanner where that's missing.
+- **Look up:** prices, packs, cost, stock per branch, on order, latest movements.
+- **Count:** blind counting of open stock takes, adding from several places or setting totals.
+- **Receive:** checking a delivery in against its purchase order, then recording the goods received note.
+
 ### Beyond v1 (backlog)
-- Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).
+- ~~Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).~~ Done as a web app in Phase 15; wrap with Hotwire Native if a store listing is wanted.
 - ~~E-commerce storefront / click-and-collect per tenant.~~ Done in Phase 12.
 - ~~Public REST API with per-tenant API keys and webhooks.~~ Done in Phase 11.
 - ~~Tool hire/rental module; job/project costing for contractors.~~ Done in Phases 13 and 14.

@@ -1,0 +1,11 @@
+<%= turbo_stream.update "scan_result" do %>
+  <% if @error %>
+    <div class="card border-l-4 border-red-600"><p class="font-semibold"><%= @error %></p></div>
+  <% else %>
+    <div class="card border-l-4 border-green-600" role="status">
+      <p class="font-semibold"><%= @line.product.name %></p>
+      <p class="text-sm">Checked in <strong><%= quantity(@draft[@line.id.to_s], @line.product.unit) %></strong> of <%= quantity(@line.outstanding_quantity, @line.product.unit) %></p>
+    </div>
+  <% end %>
+<% end %>
+<%= turbo_stream.replace "receipt_lines", partial: "mobile/purchase_orders/lines", locals: { order: @order, draft: @draft } %>

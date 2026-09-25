@@ -1,0 +1,13 @@
+<% content_for :title, "Counting" %>
+<div data-controller="camera-scanner">
+  <p class="text-sm"><%= link_to "← Stock takes", mobile_stock_counts_path, class: "link" %></p>
+  <h1 class="mt-1 text-2xl font-bold"><%= @count.branch.name %> · <%= @count.category&.name || "All products" %></h1>
+  <% if @count.counting? %>
+    <%= render "mobile/stock_counts/progress", count: @count %>
+    <%= render "mobile/scanner", url: mobile_stock_count_count_lines_path(@count) %>
+    <%= turbo_frame_tag "scan_result" %>
+    <%= render "mobile/stock_counts/recent", recent: @recent %>
+  <% else %>
+    <div class="card mt-4"><p>This stock take is <%= @count.status.humanize.downcase %>, so nothing more can be counted.</p></div>
+  <% end %>
+</div>

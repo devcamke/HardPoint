@@ -1,0 +1,14 @@
+<%# The camera and the code field. Codes found by the camera, typed, or sent by a Bluetooth scanner all submit the same form. %>
+<div class="mb-4">
+  <video class="mb-3 aspect-[4/3] w-full rounded-lg bg-navy-900 object-cover" data-camera-scanner-target="video" playsinline muted hidden></video>
+  <%= form_with url: url, method: local_assigns.fetch(:method, :get), data: { camera_scanner_target: "form", turbo_frame: "scan_result" }, class: "flex gap-2" do |form| %>
+    <%= form.search_field :code, placeholder: local_assigns.fetch(:placeholder, "Barcode or SKU"), autocomplete: "off", inputmode: "search", required: true,
+          class: "input flex-1 font-mono", "aria-label": "Barcode or SKU", data: { camera_scanner_target: "input" } %>
+    <%= form.submit "Find", class: "btn-secondary" %>
+  <% end %>
+  <div class="mt-2 flex gap-2">
+    <button type="button" class="btn-primary flex-1 py-3" data-camera-scanner-target="start" data-action="camera-scanner#start" hidden>Scan with camera</button>
+    <button type="button" class="btn-secondary flex-1 py-3" data-camera-scanner-target="stop" data-action="camera-scanner#stop" hidden>Stop camera</button>
+  </div>
+  <p class="hint mt-2" data-camera-scanner-target="unsupported" hidden>This browser can't read barcodes with the camera. Type the code, or pair a Bluetooth scanner. Chrome on Android scans with the camera.</p>
+</div>

@@ -1,0 +1,53 @@
+<% content_for :title, @product.name %>
+<%= turbo_frame_tag "scan_result" do %>
+  <article class="card" id="<%= dom_id(@product) %>">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-bold"><%= @product.name %></h2>
+        <p class="font-mono text-xs text-steel-600"><%= @product.sku %><%= " · #{@product.category.name}" if @product.category %></p>
+      </div>
+      <%= tag.span("Inactive", class: "badge") unless @product.active? %>
+    </div>
+
+    <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+      <div><dt class="hint">Price</dt><dd class="text-lg font-bold tabular-nums"><%= money(@product.price_cents) %> <span class="text-sm font-normal">/ <%= @product.unit.abbreviation %></span></dd></div>
+      <% if current_membership.can_see_costs? %>
+        <div><dt class="hint">Cost</dt><dd class="text-lg font-bold tabular-nums"><%= money(@product.cost_cents) %></dd></div>
+      <% end %>
+      <% @product.product_units.includes(:unit).each do |pack| %>
+        <div><dt class="hint"><%= pack %></dt><dd class="font-semibold tabular-nums"><%= money(pack.effective_price_cents) %></dd></div>
+      <% end %>
+    </dl>
+
+    <% if @product.track_stock? %>
+      <h3 class="mt-5 mb-1 text-sm font-semibold">Stock</h3>
+      <table class="table text-sm">
+        <tbody>
+          <% @branches.each do |branch| %>
+            <% on_hand = @levels[branch.id]&.quantity || 0 %>
+            <tr class="<%= "font-semibold" if branch == selected_branch %>">
+              <td><%= branch.name %></td>
+              <td class="text-right tabular-nums <%= "text-red-700" if on_hand <= @product.reorder_level %>"><%= quantity(on_hand, @product.unit) %></td>
+              <td class="text-right text-xs text-steel-600"><%= "+#{quantity(@on_order[branch.id])} on order" if @on_order[branch.id].to_d.positive? %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <p class="hint mt-1">Reorder at <%= quantity(@product.reorder_level, @product.unit) %></p>
+
+      <% if @movements.any? %>
+        <h3 class="mt-5 mb-1 text-sm font-semibold">Latest at <%= selected_branch.name %></h3>
+        <ul class="text-sm">
+          <% @movements.each do |movement| %>
+            <li class="flex justify-between border-b border-concrete-100 py-1"><span><%= movement_reason(movement.reason) %> · <%= l(movement.created_at, format: :short) %></span>
+              <span class="tabular-nums <%= movement.quantity.negative? ? "text-red-700" : "text-green-700" %>"><%= "+" if movement.quantity.positive? %><%= quantity(movement.quantity) %></span></li>
+          <% end %>
+        </ul>
+      <% end %>
+    <% else %>
+      <p class="hint mt-4">Stock isn't tracked for this product.</p>
+    <% end %>
+
+    <button type="button" class="btn-primary mt-5 w-full py-3" data-action="camera-scanner#resume">Scan next</button>
+  </article>
+<% end %>

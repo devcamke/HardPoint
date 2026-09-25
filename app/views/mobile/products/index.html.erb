@@ -1,0 +1,22 @@
+<% content_for :title, "Look up" %>
+<div data-controller="camera-scanner">
+  <h1 class="mb-3 text-2xl font-bold">Look up</h1>
+  <%= render "mobile/scanner", url: mobile_product_path("scan") %>
+  <%= turbo_frame_tag "scan_result" %>
+
+  <%= form_with url: mobile_products_path, method: :get, class: "mt-6", data: { controller: "auto-submit" } do |form| %>
+    <%= form.search_field :query, value: params[:query], placeholder: "Or search by name", class: "input", "aria-label": "Search products",
+          data: { action: "input->auto-submit#debouncedSubmit" } %>
+  <% end %>
+  <% if @products %>
+    <ul class="mt-3 divide-y divide-concrete-200 rounded-lg bg-white">
+      <% @products.each do |product| %>
+        <li><%= link_to mobile_product_path(product), class: "flex justify-between gap-3 px-4 py-3" do %>
+          <span><%= product.name %><span class="block font-mono text-xs text-steel-600"><%= product.sku %></span></span>
+          <span class="tabular-nums"><%= money(product.price_cents) %></span>
+        <% end %></li>
+      <% end %>
+      <%= tag.li("Nothing matches.", class: "px-4 py-3 text-steel-600") if @products.empty? %>
+    </ul>
+  <% end %>
+</div>

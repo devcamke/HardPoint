@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= [ content_for(:title), "Stock", Current.account.name ].compact.join(" · ") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="application-name" content="HardPoint Stock">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="manifest" href="<%= pwa_stock_manifest_path(format: :json) %>">
+    <meta name="theme-color" content="#102A43">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="min-h-screen bg-concrete-100 pb-20 text-navy-900">
+    <header class="sticky top-0 z-10 flex items-center gap-3 bg-navy-900 px-4 py-3 text-sm text-navy-100">
+      <%= link_to root_path, title: "Back to HardPoint" do %><%= render "shared/logo", dark: true %><% end %>
+      <%= form_with url: request.path, method: :get, class: "ml-auto", data: { controller: "auto-submit" } do |form| %>
+        <%= form.select :branch_id, Current.account.branches.alphabetically.map { [ _1.name, _1.id ] }, { selected: selected_branch&.id },
+              class: "rounded-md border-0 bg-navy-800 py-1 pr-7 pl-2 text-sm text-white", "aria-label": "Branch", data: { action: "change->auto-submit#submit" } %>
+      <% end %>
+    </header>
+
+    <main class="mx-auto max-w-lg px-4 py-4">
+      <%= render "shared/flash" %>
+      <%= yield %>
+    </main>
+
+    <nav class="fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 border-t border-concrete-200 bg-white pb-[env(safe-area-inset-bottom)] text-xs font-semibold" aria-label="Stock app">
+      <% [ [ "Look up", mobile_root_path, %w[ products ] ], ([ "Count", mobile_stock_counts_path, %w[ stock_counts count_entries count_lines ] ] if current_membership.can_manage_stock?),
+           ([ "Receive", mobile_purchase_orders_path, %w[ purchase_orders receipt_lines receipt_entries goods_receipts ] ] if current_membership.can_purchase?) ].compact.each do |label, path, controllers| %>
+        <% active = controllers.include?(controller_name) %>
+        <%= link_to label, path, class: class_names("py-3 text-center", "text-safety-600 border-t-2 border-safety-500 -mt-px" => active, "text-steel-600" => !active) %>
+      <% end %>
+    </nav>
+  </body>
+</html>

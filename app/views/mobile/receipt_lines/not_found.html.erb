@@ -1,0 +1,7 @@
+<%= turbo_frame_tag "scan_result" do %>
+  <div class="card border-l-4 border-red-600">
+    <p class="font-semibold"><%= scanned.found? ? "#{scanned.product.name} isn't on this order." : "Nothing found for “#{params[:code]}”." %></p>
+    <p class="hint mt-1"><%= scanned.found? ? "Set it aside; goods that weren't ordered are received separately in HardPoint." : "Check the code and try again." %></p>
+    <button type="button" class="btn-secondary mt-3 w-full" data-action="camera-scanner#resume">Scan again</button>
+  </div>
+<% end %>

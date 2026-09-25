@@ -218,6 +218,21 @@ Rails.application.routes.draw do
         resource :balance_reminder, only: :create
       end
     end
+    # The stock app for phones.
+    namespace :mobile, path: "m" do
+      root "products#index"
+      resources :products, only: %i[ index show ]
+      resources :stock_counts, path: "counts", only: %i[ index show ] do
+        resources :count_lines, path: "lines", only: :index
+        resources :count_entries, path: "entries", only: :create
+      end
+      resources :purchase_orders, path: "receive", only: %i[ index show ] do
+        resources :receipt_lines, path: "lines", only: :index
+        resources :receipt_entries, path: "entries", only: :create
+        resource :goods_receipt, only: :create
+      end
+    end
+
     resources :jobs, except: :destroy do
       scope module: :jobs do
         resource :closure, only: %i[ create destroy ]
@@ -310,5 +325,6 @@ Rails.application.routes.draw do
 
   # The installable till (web app manifest) and its service worker, which must sit at the root to cover every page.
   get "manifest" => "pwa#manifest", as: :pwa_manifest
+  get "stock-manifest" => "pwa#stock_manifest", as: :pwa_stock_manifest
   get "service-worker" => "pwa#service_worker", as: :pwa_service_worker
 end

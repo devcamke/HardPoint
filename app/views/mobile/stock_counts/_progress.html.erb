@@ -1,0 +1,5 @@
+<% counted, total = count.progress %>
+<div id="count_progress" class="mb-4">
+  <div class="h-2 rounded-full bg-concrete-200"><div class="h-full rounded-full bg-navy-700" style="width: <%= total.positive? ? counted * 100 / total : 0 %>%"></div></div>
+  <p class="mt-1 text-sm"><strong><%= counted %></strong> of <%= total %> products counted</p>
+</div>

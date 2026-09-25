@@ -1,0 +1,15 @@
+<section id="receipt_lines" class="mt-4">
+  <table class="table rounded-lg bg-white text-sm">
+    <thead><tr><th>Item</th><th class="text-right">To come</th><th class="text-right">Arrived</th></tr></thead>
+    <tbody>
+      <% order.outstanding_lines.each do |line| %>
+        <% arrived = draft[line.id.to_s] %>
+        <tr class="<%= "bg-green-50" if arrived == line.outstanding_quantity %>">
+          <td><%= line.product.name %></td>
+          <td class="text-right tabular-nums"><%= quantity(line.outstanding_quantity, line.product.unit) %></td>
+          <td class="text-right font-semibold tabular-nums <%= "text-safety-600" if arrived && arrived < line.outstanding_quantity %>"><%= arrived ? quantity(arrived) : "—" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>

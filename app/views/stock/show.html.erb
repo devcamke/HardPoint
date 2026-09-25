@@ -53,3 +53,13 @@
     <%= render "stock_movements/table", movements: @movements, show_product: true %>
   </section>
 </div>
+
+<section class="card mt-6 flex flex-wrap items-center gap-6">
+  <%= qr_code_svg(mobile_root_url, class: "size-32 shrink-0", role: "img", "aria-label": "QR code for the stock app") %>
+  <div class="max-w-xl">
+    <h2 class="text-lg font-semibold">Stock on your phone</h2>
+    <p class="mt-1 text-sm">Scan this with a phone's camera to open <strong>HardPoint Stock</strong>: look up any product's price and stock by scanning
+      its barcode, count stock takes shelf by shelf, and check deliveries in against the order. Add it to the home screen to use it like an app.</p>
+    <p class="hint mt-1"><%= link_to mobile_root_url, mobile_root_path, class: "link" %> · camera scanning works in Chrome on Android; elsewhere type the code or use a Bluetooth scanner.</p>
+  </div>
+</section>

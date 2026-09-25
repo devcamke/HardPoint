@@ -1,0 +1,20 @@
+<% content_for :title, "Receiving #{@order.reference}" %>
+<div data-controller="camera-scanner">
+  <p class="text-sm"><%= link_to "← Deliveries", mobile_purchase_orders_path, class: "link" %></p>
+  <h1 class="mt-1 text-2xl font-bold"><%= @order.supplier.name %></h1>
+  <p class="hint mb-4"><%= @order.reference %> · to <%= @order.branch.name %></p>
+
+  <%= render "mobile/scanner", url: mobile_purchase_order_receipt_lines_path(@order), placeholder: "Scan what came off the lorry" %>
+  <%= turbo_frame_tag "scan_result" %>
+  <%= render "mobile/purchase_orders/lines", order: @order, draft: @draft %>
+
+  <%= button_to "Everything still to come has arrived", mobile_purchase_order_receipt_entries_path(@order), params: { everything: 1 }, class: "link mt-3 text-sm" %>
+
+  <%= form_with url: mobile_purchase_order_goods_receipt_path(@order), class: "card mt-6", data: { turbo_confirm: "Record this delivery? The goods go into stock at #{@order.branch.name}." } do |form| %>
+    <h2 class="mb-2 font-semibold">Record the delivery</h2>
+    <div class="field"><%= form.label :supplier_reference, "Supplier's delivery note number", class: "label" %><%= form.text_field :supplier_reference, class: "input" %></div>
+    <div class="field"><%= form.label :note, "Note (optional)", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. 2 bags torn, set aside" %></div>
+    <%= form.submit "Record delivery", class: "btn-primary w-full py-3" %>
+    <p class="hint mt-2">Transport and other costs can be added to the receipt in HardPoint.</p>
+  <% end %>
+</div>

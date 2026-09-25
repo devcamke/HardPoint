@@ -1,0 +1,22 @@
+<%= turbo_frame_tag "scan_result" do %>
+  <% product = @line.product %>
+  <% pack = scanned.product_unit %>
+  <article class="card border-l-4 border-safety-500">
+    <h2 class="text-lg font-bold"><%= product.name %></h2>
+    <p class="font-mono text-xs text-steel-600"><%= product.sku %></p>
+    <p class="mt-2 text-sm">Counted so far: <strong><%= @line.counted_quantity ? quantity(@line.counted_quantity, product.unit) : "nothing yet" %></strong></p>
+
+    <%= form_with url: mobile_stock_count_count_entries_path(@count), class: "mt-3", data: { turbo_frame: "_self", action: "turbo:submit-end->camera-scanner#resume" } do |form| %>
+      <%= form.hidden_field :line_id, value: @line.id %>
+      <%= form.hidden_field :product_unit_id, value: pack&.id %>
+      <%= form.label :quantity, pack ? "How many #{pack.unit.name.pluralize.downcase} (#{quantity(pack.quantity, product.unit)} each)?" : "How many #{product.unit.name.pluralize.downcase} here?", class: "label" %>
+      <%= form.number_field :quantity, required: true, min: 0, step: (product.unit.fractional? ? "any" : 1), inputmode: (product.unit.fractional? ? "decimal" : "numeric"),
+            autofocus: true, class: "input text-2xl tabular-nums" %>
+      <div class="mt-3 grid grid-cols-2 gap-2">
+        <%= form.button "Add to count", name: "mode", value: "add", class: "btn-primary py-3" %>
+        <%= form.button "Set total", name: "mode", value: "set", class: "btn-secondary py-3" %>
+      </div>
+    <% end %>
+    <button type="button" class="link mt-3 text-sm" data-action="camera-scanner#resume">Skip, scan something else</button>
+  </article>
+<% end %>

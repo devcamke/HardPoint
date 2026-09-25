@@ -1,0 +1,14 @@
+<% content_for :title, "Receive" %>
+<h1 class="mb-3 text-2xl font-bold">Deliveries expected</h1>
+<% if @orders.any? %>
+  <ul class="space-y-3">
+    <% @orders.each do |order| %>
+      <li><%= link_to mobile_purchase_order_path(order), class: "card block" do %>
+        <div class="flex justify-between gap-2"><p class="font-semibold"><%= order.supplier.name %></p><span class="font-mono text-xs text-steel-600"><%= order.reference %></span></div>
+        <p class="hint">To <%= order.branch.name %><%= " · expected #{l(order.expected_on, format: :long)}" if order.expected_on %><%= " · part received" if order.partially_received? %></p>
+      <% end %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <div class="card"><p>No deliveries expected.</p><p class="hint mt-1">Orders appear here once they're sent to the supplier.</p></div>
+<% end %>

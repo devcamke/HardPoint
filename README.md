@@ -284,6 +284,20 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![A job's costs against its budget](docs/screenshots/211-job.png)
 
+## Phase 15: stock on the phone
+
+- **HardPoint Stock** at `yourshop.hardpoint.app/m`: a phone-sized part of the app, opened from the QR code on the
+  Stock page and added to the home screen like an app. It scans barcodes with the phone's camera (Chrome on Android);
+  on other phones you type the code or pair a Bluetooth scanner
+- **Look up:** scan anything on the shelf for its price, pack prices, cost (for those who may see it), stock at every
+  branch with what's on order, and its latest movements
+- **Count:** scan through a stock take shelf by shelf. Counts are blind (the expected quantity isn't shown), a box's
+  barcode counts as the box, and **Add to count** lets two people count the same product in different places at once
+- **Receive:** check a delivery in against its purchase order by scanning, with what's still to come beside what
+  arrived, then record it with the supplier's delivery note number; it becomes a goods received note as on the desktop
+
+![Counting on the phone](docs/screenshots/222-phone-count-item.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

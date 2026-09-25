@@ -1,0 +1,17 @@
+<% content_for :title, "Count" %>
+<h1 class="mb-3 text-2xl font-bold">Stock takes</h1>
+<% if @counts.any? %>
+  <ul class="space-y-3">
+    <% @counts.each do |count| %>
+      <% counted, total = count.progress %>
+      <li><%= link_to mobile_stock_count_path(count), class: "card block" do %>
+        <p class="font-semibold"><%= count.branch.name %> · <%= count.category&.name || "All products" %></p>
+        <p class="hint">Started <%= l(count.created_at, format: :short) %></p>
+        <div class="mt-2 h-2 rounded-full bg-concrete-200"><div class="h-full rounded-full bg-navy-700" style="width: <%= total.positive? ? counted * 100 / total : 0 %>%"></div></div>
+        <p class="mt-1 text-sm"><%= counted %> of <%= total %> counted</p>
+      <% end %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <div class="card"><p>No stock take is being counted.</p><p class="hint mt-1">A manager or stock clerk starts one in HardPoint under Stock › Stock takes.</p></div>
+<% end %>

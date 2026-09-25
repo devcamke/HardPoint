@@ -1,0 +1,10 @@
+<section id="count_recent" class="mt-6">
+  <% if recent.any? %>
+    <h2 class="mb-2 text-sm font-semibold">Counted last</h2>
+    <ul class="divide-y divide-concrete-200 rounded-lg bg-white text-sm">
+      <% recent.each do |line| %>
+        <li class="flex justify-between gap-3 px-4 py-2"><span><%= line.product.name %></span><span class="tabular-nums font-semibold"><%= quantity(line.counted_quantity, line.product.unit) %></span></li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

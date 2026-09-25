@@ -1,0 +1,12 @@
+<%= turbo_stream.update "scan_result" do %>
+  <% if @error %>
+    <div class="card border-l-4 border-red-600"><p class="font-semibold"><%= @error %></p><p class="hint mt-1">Scan <%= @line.product.name %> again to retry.</p></div>
+  <% else %>
+    <div class="card border-l-4 border-green-600" role="status">
+      <p class="font-semibold"><%= @line.product.name %></p>
+      <p class="text-sm"><%= @added ? "+#{quantity(@added, @line.product.unit)} · " : "Set · " %>now <strong><%= quantity(@line.counted_quantity, @line.product.unit) %></strong></p>
+    </div>
+  <% end %>
+<% end %>
+<%= turbo_stream.replace "count_progress", partial: "mobile/stock_counts/progress", locals: { count: @count } %>
+<%= turbo_stream.replace "count_recent", partial: "mobile/stock_counts/recent", locals: { recent: @recent } %>
