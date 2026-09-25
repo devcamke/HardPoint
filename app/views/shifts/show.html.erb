@@ -57,6 +57,8 @@
   <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Cash drawer</p>
   <%= row.("Opening float", money(@shift.opening_float_cents)) %>
   <%= row.("Cash sales", money(@shift.cash_sales_cents)) %>
+  <% foreign_change = @shift.foreign_change_cents %>
+  <%= row.("Change given for foreign notes", "−#{money(foreign_change)}") if foreign_change.positive? %>
   <%= row.("Cash refunds", "−#{money(@shift.cash_refunds_cents)}") if @shift.cash_refunds_cents.positive? %>
   <%= row.("Cash deposits (net)", money(@shift.cash_deposits_cents)) if @shift.cash_deposits_cents.nonzero? %>
   <%= row.("Cash account payments", money(@shift.cash_account_payments_cents)) if @shift.cash_account_payments_cents.positive? %>
@@ -70,5 +72,20 @@
       <span><%= @shift.variance_cents.negative? ? "Short" : (@shift.variance_cents.positive? ? "Over" : "Balanced") %></span><span class="tabular-nums"><%= money(@shift.variance_cents) %></span>
     </div>
     <%= tag.p("Note: #{@shift.note}", class: "mt-2") if @shift.note.present? %>
+  <% end %>
+  <% foreign = @shift.closed? ? @shift.foreign_cash.transform_values { _1["expected"] } : @shift.expected_foreign_cents_now %>
+  <% if foreign.any? %>
+    <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Foreign notes</p>
+    <% foreign.each do |code, expected| %>
+      <%= row.("Expected #{code}", money(expected, currency: code), strong: true) %>
+      <% if @shift.closed? %>
+        <% counted = @shift.foreign_cash.dig(code, "counted").to_i %>
+        <%= row.("Counted #{code}", money(counted, currency: code)) %>
+        <% difference = counted - expected %>
+        <div class="flex justify-between font-bold <%= difference.negative? ? "text-red-700" : (difference.positive? ? "text-green-700" : "") %>">
+          <span><%= difference.negative? ? "Short" : (difference.positive? ? "Over" : "Balanced") %></span><span class="tabular-nums"><%= money(difference, currency: code) %></span>
+        </div>
+      <% end %>
+    <% end %>
   <% end %>
 </div>

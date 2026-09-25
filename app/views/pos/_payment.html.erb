@@ -21,12 +21,14 @@
     <% tenders = [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], [ "card", "Card" ], [ "on_account", "Account" ] ]
        deposit = sale.deposit_available_cents
        tenders << [ "deposit", "Deposit" ] if deposit.positive?
+       foreign = Current.account.currencies.at_till.alphabetically.to_a
+       tenders << [ "foreign_cash", "Foreign" ] if foreign.any?
        # After a refused payment (e.g. over the credit limit), the same tender stays chosen.
        chosen_tender = params[:tender].presence_in(tenders.map(&:first)) || "cash" %>
     <% if deposit.positive? %>
       <p class="mb-2 text-sm"><%= sale.customer_order.reference %> has a <strong><%= money(deposit) %></strong> deposit to use.</p>
     <% end %>
-    <fieldset class="mb-2 grid <%= tenders.size > 4 ? "grid-cols-5" : "grid-cols-4" %> gap-1 text-sm" data-action="change->payment#switchTender">
+    <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5" }.fetch(tenders.size, "grid-cols-3") %> gap-1 text-sm" data-action="change->payment#switchTender">
       <legend class="sr-only">Payment method</legend>
       <% tenders.each do |value, label| %>
         <label class="cursor-pointer rounded-md border border-concrete-300 bg-white py-2 text-center font-semibold has-checked:border-navy-900 has-checked:bg-navy-900 has-checked:text-white">
@@ -45,6 +47,17 @@
         <%= form.label :amount, "Amount", class: "label" %>
         <%= form.number_field :amount, step: "0.01", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount", deposit: (plain_number(BigDecimal([ deposit, due ].min) / 100) if deposit.positive?) } %>
       </div>
+      <% if foreign.any? %>
+        <div class="hidden flex-1" data-payment-target="foreignFields">
+          <%= form.label :foreign_tendered, "Notes received", class: "label" %>
+          <div class="flex gap-1">
+            <%= form.select :currency, foreign.map { [ _1.code, _1.code, { data: { rate: _1.rate.to_s, decimals: Currency.decimals(_1.code) } } ] }, {},
+                  class: "input w-24", "aria-label": "Currency", data: { payment_target: "currency", action: "change->payment#showChange" } %>
+            <%= form.number_field :foreign_tendered, step: "0.01", min: 0, class: "input text-lg tabular-nums", "aria-label": "Foreign amount received",
+                  data: { payment_target: "foreignTendered", action: "input->payment#showChange" } %>
+          </div>
+        </div>
+      <% end %>
       <div class="hidden flex-1" data-payment-target="referenceField">
         <%= form.label :reference, "Code", class: "label" %>
         <%= form.text_field :reference, autocomplete: "off", placeholder: "e.g. SJK4H7T2QP", class: "input font-mono uppercase" %>

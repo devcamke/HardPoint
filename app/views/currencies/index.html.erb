@@ -1,0 +1,65 @@
+<% content_for :title, "Currencies" %>
+<% base = Current.account.currency %>
+
+<p class="text-sm"><%= link_to "← Settings", settings_path, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold">Currencies</h1>
+<p class="hint mb-6 max-w-2xl">Other currencies you take at the till or buy in, and what one unit is worth in <%= base %>. Update the rate when your
+  bureau or bank's changes; each payment and order keeps the rate it used. Change for foreign notes is given in <%= base %>.</p>
+
+<div class="card mb-6 overflow-x-auto">
+  <% if @currencies.any? %>
+    <table class="table">
+      <thead><tr><th>Currency</th><th>Rate</th><th>At the till</th><th>Last changed</th><th></th></tr></thead>
+      <tbody>
+        <% @currencies.each do |currency| %>
+          <tr id="<%= dom_id(currency) %>">
+            <td class="font-semibold"><%= currency.name %></td>
+            <td>
+              <% if current_membership.approver? %>
+                <%= form_with model: currency, class: "flex flex-wrap items-center gap-2" do |form| %>
+                  <span class="text-sm">1 <%= currency.code %> =</span>
+                  <%= form.number_field :rate, value: currency.rate.to_d.round(6).to_s("F"), step: "any", min: 0, class: "input w-32 py-1 text-right tabular-nums", "aria-label": "#{base} per #{currency.code}" %>
+                  <span class="text-sm"><%= base %></span>
+                  <%= form.hidden_field :accepted_at_till, value: currency.accepted_at_till %>
+                  <%= form.submit "Save", class: "btn-secondary py-1" %>
+                <% end %>
+              <% else %>
+                1 <%= currency.code %> = <%= currency.rate.to_d.round(6).to_s("F") %> <%= base %>
+              <% end %>
+              <p class="hint mt-1">1 <%= base %> = <%= (1 / currency.rate.to_d).round(4).to_s("F") %> <%= currency.code %></p>
+            </td>
+            <td>
+              <% if current_membership.approver? %>
+                <%= form_with model: currency, data: { controller: "auto-submit" } do |form| %>
+                  <%= form.hidden_field :rate, value: currency.rate %>
+                  <%= form.check_box :accepted_at_till, class: "size-4 accent-safety-500", "aria-label": "Take #{currency.code} at the till", data: { action: "change->auto-submit#submit" } %>
+                <% end %>
+              <% else %>
+                <%= currency.accepted_at_till? ? "Yes" : "No" %>
+              <% end %>
+            </td>
+            <td class="text-sm text-steel-600"><%= l(currency.updated_at, format: :short) %><%= " by #{currency.updater.name}" if currency.updater %></td>
+            <td class="text-right"><%= button_to "Remove", currency, method: :delete, class: "link text-sm", form: { data: { turbo_confirm: "Stop using #{currency.code}? Past payments keep their rate." } } if current_membership.approver? %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-steel-600">Only <%= base %> so far.</p>
+  <% end %>
+</div>
+
+<% if current_membership.approver? %>
+  <%= form_with model: @currency, class: "card max-w-2xl" do |form| %>
+    <h2 class="mb-3 text-lg font-semibold">Add a currency</h2>
+    <%= render "shared/errors", model: @currency %>
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div class="field"><%= form.label :code, "Currency", class: "label" %>
+        <%= form.text_field :code, list: "currency_codes", required: true, maxlength: 3, placeholder: "USD", class: "input font-mono uppercase" %>
+        <datalist id="currency_codes"><% Currency::COMMON.except(base).each do |code, name| %><option value="<%= code %>"><%= name %></option><% end %></datalist></div>
+      <div class="field"><%= form.label :rate, "1 unit is worth (#{base})", class: "label" %><%= form.number_field :rate, step: "any", min: 0, required: true, class: "input", placeholder: "129.50" %></div>
+      <div class="field flex items-end gap-2 pb-2"><%= form.check_box :accepted_at_till, class: "size-4 accent-safety-500" %><%= form.label :accepted_at_till, "Take it at the till", class: "text-sm" %></div>
+    </div>
+    <%= form.submit "Add currency", class: "btn-primary" %>
+  <% end %>
+<% end %>

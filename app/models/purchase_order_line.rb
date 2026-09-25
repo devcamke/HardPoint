@@ -38,6 +38,7 @@ class PurchaseOrderLine < ApplicationRecord
   private
     # The supplier's price for it, else what the shop last paid.
     def default_unit_cost
-      self.unit_cost_cents = supplier_product&.cost_cents.to_i.nonzero? || product&.cost_cents || 0
+      rate = purchase_order&.exchange_rate
+      self.unit_cost_cents = supplier_product&.cost_cents.to_i.nonzero? || (rate ? (product&.cost_cents.to_i / rate).ceil : product&.cost_cents) || 0
     end
 end

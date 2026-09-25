@@ -17,7 +17,7 @@
   <section class="card mb-6">
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
       <h2 class="text-lg font-semibold"><%= supplier ? link_to(supplier.name, supplier, class: "hover:text-safety-700") : "No supplier set yet" %>
-        <span class="hint font-normal">· <%= pluralize(rows.size, "product") %> · about <%= money(rows.sum(&:cost_cents)) %></span></h2>
+        <span class="hint font-normal">· <%= pluralize(rows.size, "product") %> · about <%= money(rows.sum(&:cost_cents), currency: supplier&.currency_code || Current.account.currency) %></span></h2>
       <% if supplier %>
         <%= button_to "Draft an order for #{supplier.name}", purchase_orders_path, params: { from_suggestions: 1, supplier_id: supplier.id, branch_id: selected_branch.id }, class: "btn-primary" %>
       <% else %>
@@ -37,7 +37,7 @@
               <td class="text-right tabular-nums"><%= quantity(row.product.reorder_level) %></td>
               <td class="text-right"><%= row.lead_time %> days</td>
               <td class="text-right font-semibold tabular-nums"><%= quantity(row.quantity, row.product.unit) %></td>
-              <td class="text-right tabular-nums"><%= money(row.cost_cents) %></td>
+              <td class="text-right tabular-nums"><%= money(row.cost_cents, currency: supplier&.currency_code || Current.account.currency) %></td>
             </tr>
           <% end %>
         </tbody>

@@ -58,10 +58,29 @@ class Shift < ApplicationRecord
     cash_movements.group(:kind).sum(:amount_cents)
   end
 
+  def foreign_payments
+    Payment.foreign_cash.joins(:sale).where(sales: { shift_id: id, status: "completed" })
+  end
+
+  # Change for foreign notes is given from the shop's own cash.
+  def foreign_change_cents
+    foreign_payments.sum("payments.tendered_cents - payments.amount_cents")
+  end
+
+  # Foreign notes that should be in the drawer, by currency: { "USD" => cents }.
+  def expected_foreign_cents_now
+    foreign_payments.group(:currency).sum(:foreign_tendered_cents)
+  end
+
   def expected_cash_cents_now
     movements = cash_movement_totals
-    opening_float_cents + cash_sales_cents - cash_refunds_cents + cash_deposits_cents + cash_account_payments_cents +
+    opening_float_cents + cash_sales_cents - foreign_change_cents - cash_refunds_cents + cash_deposits_cents + cash_account_payments_cents +
       movements.fetch("pay_in", 0) - movements.fetch("payout", 0) - movements.fetch("drop", 0)
+  end
+
+  # The currencies to count at close: any taken at the till, and any taken in this shift.
+  def currencies_to_count
+    (account.currencies.at_till.pluck(:code) | expected_foreign_cents_now.keys).sort
   end
 
   def variance_cents
@@ -72,7 +91,7 @@ class Shift < ApplicationRecord
     sales.where(status: %w[ open parked ]).where(id: SaleLine.select(:sale_id))
   end
 
-  def close(counted_cash_cents:, by: Current.user, note: nil)
+  def close(counted_cash_cents:, by: Current.user, note: nil, counted_foreign_cents: {})
     with_lock do
       return false unless open?
 
@@ -82,9 +101,15 @@ class Shift < ApplicationRecord
       end
 
       sales.where(status: %w[ open parked ]).destroy_all
-      update! status: :closed, closed_by: by, closed_at: Time.current, note: note,
+      expected_foreign = expected_foreign_cents_now
+      foreign = (expected_foreign.keys | counted_foreign_cents.keys).sort.to_h do |code|
+        [ code, { "expected" => expected_foreign.fetch(code, 0), "counted" => counted_foreign_cents.fetch(code, 0).to_i } ]
+      end.reject { |_, count| count["expected"].zero? && count["counted"].zero? }
+
+      update! status: :closed, closed_by: by, closed_at: Time.current, note: note, foreign_cash: foreign,
         expected_cash_cents: expected_cash_cents_now, counted_cash_cents: counted_cash_cents
-      track_event "closed", expected: expected_cash_cents, counted: counted_cash_cents, variance: variance_cents
+      track_event "closed", expected: expected_cash_cents, counted: counted_cash_cents, variance: variance_cents,
+        foreign: foreign.transform_values { _1["counted"] - _1["expected"] }.presence
     end
   end
 

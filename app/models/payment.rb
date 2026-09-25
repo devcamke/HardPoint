@@ -1,7 +1,7 @@
 class Payment < ApplicationRecord
   include AccountOwned, Monetary
 
-  TENDERS = %w[ cash card mobile_money on_account deposit ].freeze
+  TENDERS = %w[ cash card mobile_money on_account deposit foreign_cash ].freeze
 
   belongs_to :sale
 
@@ -10,19 +10,24 @@ class Payment < ApplicationRecord
   money_attribute :amount, :tendered
 
   validates :amount_cents, numericality: { greater_than: 0 }
-  validates :tendered_cents, numericality: { greater_than_or_equal_to: :amount_cents }, if: :cash?
+  validates :tendered_cents, numericality: { greater_than_or_equal_to: :amount_cents }, if: -> { cash? || foreign_cash? }
+  validates :currency, :foreign_tendered_cents, :exchange_rate, presence: true, if: :foreign_cash?
   validates :reference, presence: { message: "is needed (the M-Pesa or other transaction code)" }, if: :mobile_money?
   validates_same_account :sale
 
   # A code typed at the till for money that already arrived on the Paybill claims it.
   after_create_commit :claim_mpesa_transaction, if: -> { mobile_money? && reference.present? }
 
+  # Change is always given in the shop's own currency, foreign notes included.
   def change_cents
-    cash? ? tendered_cents - amount_cents : 0
+    cash? || foreign_cash? ? tendered_cents - amount_cents : 0
   end
 
   def label
-    deposit? ? "Deposit used" : tender.humanize
+    if deposit? then "Deposit used"
+    elsif foreign_cash? then "#{Money.format(foreign_tendered_cents, currency: currency)} cash @ #{exchange_rate.to_d.round(4).to_s("F")}"
+    else tender.humanize
+    end
   end
 
   private

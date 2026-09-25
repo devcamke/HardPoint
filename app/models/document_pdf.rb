@@ -116,9 +116,9 @@ class DocumentPdf
       pdf.move_down height
     end
 
-    def total(label, cents, size: 12, style: :bold)
+    def total(label, cents, size: 12, style: :bold, currency: account.currency)
       pdf.fill_color NAVY
-      pdf.text "#{label}  #{Money.format(cents, currency: account.currency)}", size: size, style: style, align: :right
+      pdf.text "#{label}  #{Money.format(cents, currency: currency)}", size: size, style: style, align: :right
     end
 
     def note(text)

@@ -14,6 +14,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section)
       new("mpesa", "M-Pesa payments", "Payment prompts to the customer's phone, and money paid straight to your Paybill or Till.", "Money and tax"),
       new("etims", "KRA eTIMS", "Connecting your branch's control unit and what happens when KRA is unreachable.", "Money and tax"),
       new("online-store", "Selling online with click-and-collect", "Your catalogue online: switching it on, what customers see, and handling their orders.", "At the till"),
+      new("foreign-currencies", "Dollars and other currencies", "Taking foreign notes at the till, counting them at close, and suppliers who invoice in dollars.", "Money and tax"),
       new("batches-and-expiry", "Batches and expiry dates", "Selling the oldest first, writing off expired stock, and finding who bought a recalled batch.", "Stock and purchasing"),
       new("stock-on-your-phone", "Stock on your phone", "Look up products, count stock takes and check deliveries in with your phone's camera.", "Stock and purchasing"),
       new("contractor-jobs", "Jobs for contractors", "Tag what contractors buy to their projects, track it against a budget and print a cost summary.", "At the till"),

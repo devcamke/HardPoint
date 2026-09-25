@@ -24,15 +24,18 @@
           <td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %>
             <%= tag.span("batch #{line.batch_number}#{", expires #{l(line.expires_on, format: :long)}" if line.expires_on}", class: "block text-xs text-steel-600") if line.batch_number %></td>
           <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
-          <td class="text-right tabular-nums"><%= money(line.unit_cost_cents) %></td>
+          <td class="text-right tabular-nums"><%= money(line.unit_cost_cents, currency: receipt.currency) %></td>
           <td class="text-right tabular-nums"><%= money(line.landed_unit_cost_cents) %></td>
-          <td class="text-right tabular-nums"><%= money(line.line_value_cents) %></td>
+          <td class="text-right tabular-nums"><%= money(line.line_value_cents, currency: receipt.currency) %></td>
         </tr>
       <% end %>
     </tbody>
   </table>
   <div class="ml-auto mt-3 max-w-xs space-y-1 text-sm">
-    <div class="flex justify-between"><span>Goods</span><span class="tabular-nums"><%= money(receipt.goods_value_cents) %></span></div>
+    <div class="flex justify-between"><span>Goods</span><span class="tabular-nums"><%= money(receipt.goods_value_cents, currency: receipt.currency) %></span></div>
+    <% if receipt.exchange_rate %>
+      <div class="flex justify-between text-steel-600"><span>at <%= receipt.exchange_rate.to_d.round(4).to_s("F") %> <%= Current.account.currency %> per <%= receipt.currency %></span><span class="tabular-nums"><%= money(receipt.goods_value_base_cents) %></span></div>
+    <% end %>
     <div class="flex justify-between"><span>Transport, duty, other</span><span class="tabular-nums"><%= money(receipt.extra_costs_cents) %></span></div>
     <div class="flex justify-between text-lg font-bold"><span>Total</span><span class="tabular-nums"><%= money(receipt.total_cents) %></span></div>
   </div>

@@ -1,7 +1,7 @@
 <% content_for :title, "Record payment" %>
 <p class="text-sm"><%= link_to "← #{@supplier.name}", @supplier, class: "link" %></p>
 <h1 class="mt-2 mb-2 text-3xl font-bold">Pay <%= @supplier.name %></h1>
-<p class="hint mb-6">We owe <%= money(@supplier.balance_cents) %>. Payments settle the oldest invoices first.</p>
+<p class="hint mb-6">We owe <%= money(@supplier.balance_cents, currency: @supplier.currency_code) %>. Payments settle the oldest invoices first.</p>
 
 <%= form_with model: @payment, url: supplier_payments_path(@supplier), class: "card max-w-md" do |form| %>
   <%= render "shared/errors", model: @payment %>

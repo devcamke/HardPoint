@@ -20,7 +20,7 @@
             <td><%= link_to supplier.name, supplier, class: "link" %><%= tag.span("Inactive", class: "badge ml-1 bg-concrete-200 text-steel-600") unless supplier.active? %></td>
             <td><%= [ supplier.contact_name, supplier.phone ].compact_blank.join(" · ") %></td>
             <td><%= supplier.payment_terms_days.zero? ? "Cash" : "#{supplier.payment_terms_days} days" %></td>
-            <td class="text-right tabular-nums"><%= money(supplier.balance_cents) %></td>
+            <td class="text-right tabular-nums"><%= money(supplier.balance_cents, currency: supplier.currency_code) %></td>
           </tr>
         <% end %>
       </tbody>

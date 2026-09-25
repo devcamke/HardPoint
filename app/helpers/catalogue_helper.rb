@@ -2,7 +2,7 @@ module CatalogueHelper
   def money(cents, currency: Current.account&.currency)
     return "—" if cents.nil?
 
-    number_to_currency(cents / 100.0, unit: "#{currency} ", precision: 2, format: "%u%n", negative_format: "-%u%n")
+    number_to_currency(cents / 100.0, unit: "#{currency} ", precision: Currency.decimals(currency), format: "%u%n", negative_format: "-%u%n")
   end
 
   # 25.500 → "25.5", 1000.0 → "1,000"

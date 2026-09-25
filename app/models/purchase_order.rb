@@ -21,11 +21,15 @@ class PurchaseOrder < ApplicationRecord
   validate :no_duplicate_products
   validate(on: :update) { errors.add :base, "Only a draft can be changed" if lines.any?(&:changed_for_autosave?) && status_was != "draft" }
 
+  before_validation(on: :create) { self.exchange_rate ||= supplier&.current_rate }
   before_create { self.number = DocumentSequence.next_number(branch, "purchase_order") }
   before_save { self.total_cents = lines.reject(&:marked_for_destruction?).sum(&:line_total_cents) }
 
   scope :chronologically, -> { order(created_at: :desc, id: :desc) }
   scope :open, -> { where(status: %w[ sent partially_received ]) }
+
+  # Orders are in the supplier's currency; the rate on the day it was made is kept for reference.
+  def currency = supplier.currency_code
 
   def reference
     "#{branch.code}-PO#{number.to_s.rjust(5, "0")}"

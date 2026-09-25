@@ -4,7 +4,7 @@ module Etims
   # KRA's tax types: A exempt, B standard 16%, C zero-rated, D non-VAT, E 8%.
   TAX_TYPES = { "A" => "Exempt", "B" => "16% VAT", "C" => "Zero-rated", "D" => "Non-VAT", "E" => "8% VAT" }.freeze
 
-  PAYMENT_TYPES = { "cash" => "01", "on_account" => "02", "card" => "05", "mobile_money" => "06", "deposit" => "07" }.freeze
+  PAYMENT_TYPES = { "cash" => "01", "on_account" => "02", "card" => "05", "mobile_money" => "06", "deposit" => "07", "foreign_cash" => "01" }.freeze
 
   def self.table_name_prefix
     "etims_"

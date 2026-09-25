@@ -18,10 +18,19 @@
       <div class="field"><%= form.label :branch_id, "Into", class: "label" %><%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %></div>
     <% end %>
     <div class="field"><%= form.label :supplier_reference, "Delivery note number", class: "label" %><%= form.text_field :supplier_reference, class: "input" %></div>
+    <% if order&.supplier&.foreign? %>
+      <% supplier = order.supplier %>
+      <div class="field"><%= form.label :exchange_rate, "Rate today (#{Current.account.currency} per #{supplier.currency})", class: "label" %>
+        <%= form.number_field :exchange_rate, value: (@goods_receipt.exchange_rate || supplier.current_rate).to_d.round(6).to_s("F"), step: "any", min: 0, required: true, class: "input" %>
+        <p class="hint mt-1">Costs below are in <%= supplier.currency %>; stock is costed in <%= Current.account.currency %> at this rate.</p></div>
+    <% elsif order.nil? && Current.account.currencies.any? %>
+      <div class="field"><%= form.label :exchange_rate, "Rate, for a supplier in another currency", class: "label" %>
+        <%= form.number_field :exchange_rate, step: "any", min: 0, class: "input", placeholder: "Today's rate if left blank" %></div>
+    <% end %>
   </div>
 
   <table class="table mb-4">
-    <thead><tr><th>Product</th><% if order %><th class="text-right">To come</th><% end %><th class="text-right">Received now</th><th class="text-right">Unit cost</th><th>Batch and expiry</th></tr></thead>
+    <thead><tr><th>Product</th><% if order %><th class="text-right">To come</th><% end %><th class="text-right">Received now</th><th class="text-right">Unit cost<%= " (#{order.supplier.currency})" if order&.supplier&.foreign? %></th><th>Batch and expiry</th></tr></thead>
     <tbody>
       <%= form.fields_for :lines do |line| %>
         <tr>

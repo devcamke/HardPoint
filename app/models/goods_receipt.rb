@@ -21,6 +21,9 @@ class GoodsReceipt < ApplicationRecord
   validate { errors.add :base, "Add at least one item received" if lines.empty? }
   validate :matches_purchase_order
 
+  before_validation(on: :create) { self.exchange_rate ||= supplier&.current_rate if supplier&.foreign? }
+  validate { errors.add :exchange_rate, "is needed for #{supplier.name}'s #{supplier.currency}" if supplier&.foreign? && !exchange_rate.to_d.positive? }
+
   before_create :number_and_cost
   after_create :put_into_stock
 
@@ -31,8 +34,19 @@ class GoodsReceipt < ApplicationRecord
   end
   alias_method :name, :reference
 
+  # Unit costs are as on the supplier's invoice, in their currency; stock and totals are in the shop's.
+  def currency = supplier.currency_code
+
   def goods_value_cents
     lines.sum(&:line_value_cents)
+  end
+
+  def to_base(cents)
+    exchange_rate ? cents * exchange_rate.to_d : cents
+  end
+
+  def goods_value_base_cents
+    lines.sum { to_base(_1.line_value_cents) }.round
   end
 
   private
@@ -45,6 +59,8 @@ class GoodsReceipt < ApplicationRecord
     end
 
     # Extra costs are shared by value; if everything came free, by quantity.
+    # Goods from a supplier in another currency are converted at this receipt's rate; transport and
+    # duty are paid here, in the shop's currency.
     def number_and_cost
       self.number = DocumentSequence.next_number(branch, "goods_receipt")
       value = goods_value_cents
@@ -52,9 +68,9 @@ class GoodsReceipt < ApplicationRecord
 
       lines.each do |line|
         share = value.positive? ? line.line_value_cents.to_r / value : line.quantity / units
-        line.landed_unit_cost_cents = line.unit_cost_cents + (extra_costs_cents * share / line.quantity).round
+        line.landed_unit_cost_cents = (to_base(line.unit_cost_cents) + extra_costs_cents * share / line.quantity).round
       end
-      self.total_cents = value + extra_costs_cents
+      self.total_cents = goods_value_base_cents + extra_costs_cents
     end
 
     def put_into_stock

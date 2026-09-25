@@ -14,7 +14,8 @@ class Report::Tax < Report
   end
 
   def output_tax_cents = by_rate.values.sum { _1[:tax] }
-  def input_tax_cents = input_invoices.sum(:tax_cents)
+  # Invoices in another currency count at the rate recorded on them.
+  def input_tax_cents = input_invoices.sum("ROUND(supplier_invoices.tax_cents * COALESCE(supplier_invoices.exchange_rate, 1))").to_i
 
   private
     def output_columns
@@ -54,7 +55,7 @@ class Report::Tax < Report
     end
 
     def input_row
-      total = input_invoices.sum(:total_cents)
+      total = input_invoices.sum("ROUND(supplier_invoices.total_cents * COALESCE(supplier_invoices.exchange_rate, 1))").to_i
       [ "#{input_invoices.count} supplier invoices dated in the period", total, total - input_tax_cents, input_tax_cents ]
     end
 

@@ -45,6 +45,6 @@ class SuppliersController < ApplicationController
     end
 
     def supplier_params
-      params.expect(supplier: %i[ name contact_name phone email tax_pin address payment_terms_days active notes ])
+      params.expect(supplier: %i[ name contact_name phone email tax_pin address payment_terms_days currency active notes ])
     end
 end

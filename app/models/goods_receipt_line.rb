@@ -21,11 +21,16 @@ class GoodsReceiptLine < ApplicationRecord
   normalizes :batch_number, with: ->(number) { number.squish.upcase.presence }
 
   before_validation { self.product ||= purchase_order_line&.product }
-  before_validation(if: -> { unit_cost_cents.nil? }) { self.unit_cost_cents = purchase_order_line&.unit_cost_cents || product&.cost_cents }
+  before_validation(if: -> { unit_cost_cents.nil? }) { self.unit_cost_cents = purchase_order_line&.unit_cost_cents || cost_in_supplier_currency }
 
   def product_code=(code)
     @product_code = code
     self.product = Current.account.products.find_by_code(code) if code.present?
+  end
+
+  def cost_in_supplier_currency
+    rate = goods_receipt&.exchange_rate
+    product && (rate ? (product.cost_cents / rate.to_d).ceil : product.cost_cents)
   end
 
   def batch

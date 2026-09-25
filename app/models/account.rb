@@ -53,6 +53,7 @@ class Account < ApplicationRecord
   has_many :hire_items, dependent: :destroy
   has_many :hire_agreements, dependent: :destroy
   has_many :jobs, dependent: :destroy
+  has_many :currencies, dependent: :delete_all
   has_many :api_keys, dependent: :destroy
   has_many :webhook_endpoints, dependent: :destroy
   has_many :webhook_deliveries, dependent: :delete_all

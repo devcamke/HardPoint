@@ -5,7 +5,7 @@ class Report::Payments < Report
   self.description = "Takings by day and method, refunds, deposits and payments on account"
   self.group = "Sales and money"
 
-  TENDER_LABELS = { "cash" => "Cash", "mobile_money" => "M-Pesa", "card" => "Card", "on_account" => "On account", "deposit" => "Deposits used" }.freeze
+  TENDER_LABELS = { "cash" => "Cash", "mobile_money" => "M-Pesa", "card" => "Card", "on_account" => "On account", "deposit" => "Deposits used", "foreign_cash" => "Foreign cash" }.freeze
 
   def sections
     [ Section.new(title: "Takings by day", columns: day_columns, rows: day_rows, totals: day_totals,
@@ -15,8 +15,13 @@ class Report::Payments < Report
   end
 
   private
+    # Foreign cash only has a column for shops that take it.
+    def tender_labels
+      @tender_labels ||= account.currencies.exists? || takings.keys.any? { _2 == "foreign_cash" } ? TENDER_LABELS : TENDER_LABELS.except("foreign_cash")
+    end
+
     def day_columns
-      [ Column.new("Day", :date), *TENDER_LABELS.values.map { Column.new(_1, :money) }, Column.new("Total", :money), Column.new("Refunds", :money) ]
+      [ Column.new("Day", :date), *tender_labels.values.map { Column.new(_1, :money) }, Column.new("Total", :money), Column.new("Refunds", :money) ]
     end
 
     def day_rows
@@ -24,12 +29,12 @@ class Report::Payments < Report
     end
 
     def day_row(day)
-      amounts = TENDER_LABELS.keys.map { takings.fetch([ day, _1 ], 0) }
+      amounts = tender_labels.keys.map { takings.fetch([ day, _1 ], 0) }
       [ day, *amounts, amounts.sum, -refunds.fetch(day, 0) ]
     end
 
     def day_totals
-      amounts = TENDER_LABELS.keys.map { |tender| takings.sum { |(_, key), cents| key == tender ? cents : 0 } }
+      amounts = tender_labels.keys.map { |tender| takings.sum { |(_, key), cents| key == tender ? cents : 0 } }
       [ "Total", *amounts, amounts.sum, -refunds.values.sum ]
     end
 

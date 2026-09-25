@@ -328,6 +328,21 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![The replica on the admin Database page](docs/screenshots/240-admin-database-replica.png)
 
+## Phase 18: foreign currencies
+
+- **Settings › Currencies:** dollars, Ugandan and Tanzanian shillings and any other currency, with what one unit is
+  worth in shillings; owners and managers update the rate, and every change is in the activity log
+- **At the till**, a **Foreign** tender takes notes in any currency the shop accepts: the till shows what they're
+  worth and the change, which is given in shillings. The receipt shows the notes and the rate
+- **The drawer** is counted per currency at close (still blind); the X and Z reports show foreign notes expected,
+  counted and over or short, and the shilling change given for them
+- **Suppliers who invoice in dollars** (importers): their orders, invoices, payments and balance are in their currency;
+  goods are received at the day's rate, so stock is costed in shillings with transport added; input VAT and the
+  "what we owe" totals convert
+- Each payment, order, receipt and invoice keeps the rate it used, so changing a rate never rewrites history
+
+![Foreign notes at the till](docs/screenshots/251-till-foreign-cash.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

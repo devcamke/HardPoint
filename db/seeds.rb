@@ -289,6 +289,26 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     adhesive_sale.add(products["ADH-TILE20"], quantity: 12)
     adhesive_sale.pay(tender: "on_account", credit_approver: owner)
 
+    # Foreign currencies: dollars and Ugandan shillings at the till (a border-town trade), and an importer who invoices
+    # in dollars, with an order on its way.
+    account.currencies.create!(code: "USD", rate: 129.5)
+    account.currencies.create!(code: "UGX", rate: 0.0348)
+    account.currencies.create!(code: "CNY", rate: 18.1, accepted_at_till: false)
+    importer = account.suppliers.create!(name: "Guangzhou Hardware Export Co.", contact_name: "Lily Chen", email: "sales@gz-hardware.test",
+      currency: "USD", payment_terms_days: 60, address: "Baiyun District, Guangzhou")
+    import_order = account.purchase_orders.create!(supplier: importer, branch: main, expected_on: 21.days.from_now.to_date, note: "FOB Guangzhou, by sea to Mombasa",
+      lines_attributes: [ { product_code: "PT-AG115", quantity: 20, unit_cost: 38.5 }, { product_code: "PT-DR13", quantity: 12, unit_cost: 46 },
+                          { product_code: "SEC-PL50", quantity: 200, unit_cost: 2.2 } ])
+    import_order.mark_sent
+    importer.supplier_invoices.create!(account: account, number: "GZ-2026-0415", invoice_date: 40.days.ago.to_date, total: 2_320, tax: 0)
+    importer.supplier_payments.create!(account: account, paid_on: 30.days.ago.to_date, amount: 1_000, payment_method: "bank_transfer", reference: "SWIFT 7781")
+    till_shift = account.shifts.find_by!(register: front_counter, closed_at: nil)
+    { "USD" => [ [ "TL-WB", 1 ], 50_00 ], "UGX" => [ [ "NAIL-4", 4 ], 30_000_00 ] }.each do |code, ((sku, quantity), notes)|
+      foreign_sale = till_shift.current_sale
+      foreign_sale.add(products[sku], quantity: quantity)
+      foreign_sale.pay(tender: "foreign_cash", currency: code, foreign_tendered_cents: notes)
+    end
+
     # The online store, collecting from both branches.
     account.create_storefront!(enabled: true, headline: "Order online, collect in 2 hours",
       intro: "Cement, steel, roofing, plumbing, paint and tools for your build, at the same prices as in our shops.",

@@ -13,10 +13,10 @@ class ReceiptData
       lines: @sale.lines.includes(:product, product_unit: :unit).map { |line| line_json(line) },
       subtotal: (amount(@sale.subtotal_cents) if @sale.discount_cents.positive?), discount: (amount(@sale.discount_cents) if @sale.discount_cents.positive?),
       total: money(@sale.total_cents), tax: money(@sale.tax_cents),
-      payments: @sale.payments.map { |payment| { label: [ payment.label, payment.reference ].compact.join(" "), amount: money(payment.cash? ? payment.tendered_cents : payment.amount_cents) } },
+      payments: @sale.payments.map { |payment| { label: [ payment.label, payment.reference ].compact.join(" "), amount: money(payment.cash? || payment.foreign_cash? ? payment.tendered_cents : payment.amount_cents) } },
       change: (money(@sale.change_cents) if @sale.change_cents.positive?),
       etims: etims_json, footer: @account.receipt_footer.presence || "Thank you for shopping with us",
-      open_drawer: @sale.payments.any?(&:cash?) }
+      open_drawer: @sale.payments.any? { _1.cash? || _1.foreign_cash? } }
   end
 
   private

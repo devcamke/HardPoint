@@ -122,6 +122,7 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
           acme.product_imports.create!(csv: "sku,name,price\nSW-1,Sweep,1\n", branch: branches(:acme_main), filename: "sweep.csv")
 
           acme.account_exports.create!
+          acme.currencies.create!(code: "USD", rate: 129.5)
           products(:acme_pipe).update!(tracks_batches: true)
           products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: 5, reason: "received", batch: { number: "SWEEP-1", expires_on: 1.month.from_now.to_date })
           tool = acme.hire_items.create!(branch: branches(:acme_main), name: "Mixer", asset_tag: "SWEEP-MIX", daily_rate: "1500")

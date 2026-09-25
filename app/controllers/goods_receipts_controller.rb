@@ -37,7 +37,7 @@ class GoodsReceiptsController < ApplicationController
 
   private
     def goods_receipt_params
-      permitted = params.expect(goods_receipt: [ :supplier_id, :branch_id, :purchase_order_id, :supplier_reference, :extra_costs, :note,
+      permitted = params.expect(goods_receipt: [ :supplier_id, :branch_id, :purchase_order_id, :supplier_reference, :extra_costs, :note, :exchange_rate,
         lines_attributes: [ [ :purchase_order_line_id, :product_code, :quantity, :unit_cost, :batch_number, :expires_on ] ] ])
       order = Current.account.purchase_orders.find(permitted.delete(:purchase_order_id)) if permitted[:purchase_order_id].present?
 

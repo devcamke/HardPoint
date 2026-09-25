@@ -14,7 +14,7 @@ class PurchaseOrderPdf < DocumentPdf
     def columns = COLUMNS
 
     def details
-      [ "Date #{date(@order.sent_at || @order.created_at)}", ("Deliver by #{date(@order.expected_on)}" if @order.expected_on) ]
+      [ "Date #{date(@order.sent_at || @order.created_at)}", ("Deliver by #{date(@order.expected_on)}" if @order.expected_on), ("Prices in #{@order.currency}" if @order.supplier.foreign?) ]
     end
 
     def content
@@ -26,7 +26,7 @@ class PurchaseOrderPdf < DocumentPdf
         [ "#{line.product.name}\n#{line.product.sku}", line.supplier_product&.supplier_sku.to_s, quantity(line.quantity),
           line.product.unit.abbreviation, money(line.unit_cost_cents), money(line.line_total_cents) ]
       end)
-      total "Total", @order.total_cents
+      total "Total", @order.total_cents, currency: @order.currency
 
       pdf.move_down 20
       note "Note: #{@order.note}" if @order.note.present?

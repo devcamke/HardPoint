@@ -40,13 +40,13 @@
           <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
           <td class="text-right tabular-nums"><%= quantity(line.received_quantity) %></td>
           <td class="text-right tabular-nums <%= "font-semibold" if line.outstanding_quantity.positive? %>"><%= quantity([ line.outstanding_quantity, 0 ].max) %></td>
-          <td class="text-right tabular-nums"><%= money(line.unit_cost_cents) %></td>
-          <td class="text-right tabular-nums"><%= money(line.line_total_cents) %></td>
+          <td class="text-right tabular-nums"><%= money(line.unit_cost_cents, currency: order.currency) %></td>
+          <td class="text-right tabular-nums"><%= money(line.line_total_cents, currency: order.currency) %></td>
         </tr>
       <% end %>
     </tbody>
   </table>
-  <p class="mt-3 text-right text-lg font-bold">Total <%= money(order.total_cents) %></p>
+  <p class="mt-3 text-right text-lg font-bold">Total <%= money(order.total_cents, currency: order.currency) %><%= tag.span(" · at #{order.exchange_rate.to_d.round(4).to_s("F")} #{Current.account.currency} when ordered", class: "hint font-normal") if order.exchange_rate %></p>
 </div>
 
 <% if order.goods_receipts.any? %>

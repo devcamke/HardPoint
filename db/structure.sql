@@ -684,6 +684,43 @@ ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
 
 
 --
+-- Name: currencies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.currencies (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    code character varying NOT NULL,
+    rate numeric(18,8) NOT NULL,
+    accepted_at_till boolean DEFAULT true NOT NULL,
+    updater_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.currencies FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: currencies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.currencies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: currencies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.currencies_id_seq OWNED BY public.currencies.id;
+
+
+--
 -- Name: customer_order_lines; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1194,7 +1231,8 @@ CREATE TABLE public.goods_receipts (
     extra_costs_cents bigint DEFAULT 0 NOT NULL,
     total_cents bigint DEFAULT 0 NOT NULL,
     note character varying,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    exchange_rate numeric(18,8)
 );
 
 ALTER TABLE ONLY public.goods_receipts FORCE ROW LEVEL SECURITY;
@@ -1614,7 +1652,10 @@ CREATE TABLE public.payments (
     amount_cents bigint NOT NULL,
     tendered_cents bigint,
     reference character varying,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    currency character varying,
+    foreign_tendered_cents bigint,
+    exchange_rate numeric(18,8)
 );
 
 ALTER TABLE ONLY public.payments FORCE ROW LEVEL SECURITY;
@@ -1895,7 +1936,8 @@ CREATE TABLE public.purchase_orders (
     total_cents bigint DEFAULT 0 NOT NULL,
     sent_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    exchange_rate numeric(18,8)
 );
 
 ALTER TABLE ONLY public.purchase_orders FORCE ROW LEVEL SECURITY;
@@ -2207,7 +2249,8 @@ CREATE TABLE public.shifts (
     opened_at timestamp(6) without time zone NOT NULL,
     closed_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    foreign_cash jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 ALTER TABLE ONLY public.shifts FORCE ROW LEVEL SECURITY;
@@ -2642,7 +2685,8 @@ CREATE TABLE public.supplier_invoices (
     tax_cents bigint DEFAULT 0 NOT NULL,
     note character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    exchange_rate numeric(18,8)
 );
 
 ALTER TABLE ONLY public.supplier_invoices FORCE ROW LEVEL SECURITY;
@@ -2763,7 +2807,8 @@ CREATE TABLE public.suppliers (
     active boolean DEFAULT true NOT NULL,
     notes text,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    currency character varying
 );
 
 ALTER TABLE ONLY public.suppliers FORCE ROW LEVEL SECURITY;
@@ -3141,6 +3186,13 @@ ALTER TABLE ONLY public.cash_movements ALTER COLUMN id SET DEFAULT nextval('publ
 --
 
 ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.categories_id_seq'::regclass);
+
+
+--
+-- Name: currencies id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currencies ALTER COLUMN id SET DEFAULT nextval('public.currencies_id_seq'::regclass);
 
 
 --
@@ -3684,6 +3736,14 @@ ALTER TABLE ONLY public.cash_movements
 
 ALTER TABLE ONLY public.categories
     ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: currencies currencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currencies
+    ADD CONSTRAINT currencies_pkey PRIMARY KEY (id);
 
 
 --
@@ -4400,6 +4460,20 @@ CREATE UNIQUE INDEX index_categories_on_account_id_and_name ON public.categories
 --
 
 CREATE INDEX index_categories_on_parent_id ON public.categories USING btree (parent_id);
+
+
+--
+-- Name: index_currencies_on_account_id_and_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_currencies_on_account_id_and_code ON public.currencies USING btree (account_id, code);
+
+
+--
+-- Name: index_currencies_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_currencies_on_updater_id ON public.currencies USING btree (updater_id);
 
 
 --
@@ -6347,6 +6421,14 @@ ALTER TABLE ONLY public.etims_devices
 
 
 --
+-- Name: currencies fk_rails_4efba102cd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currencies
+    ADD CONSTRAINT fk_rails_4efba102cd FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: categories fk_rails_4fd3bba7e8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6720,6 +6802,14 @@ ALTER TABLE ONLY public.hire_agreements
 
 ALTER TABLE ONLY public.billing_payments
     ADD CONSTRAINT fk_rails_8500ce0f64 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: currencies fk_rails_85bb81fb7f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.currencies
+    ADD CONSTRAINT fk_rails_85bb81fb7f FOREIGN KEY (updater_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -7583,6 +7673,13 @@ CREATE POLICY account_isolation ON public.categories USING (((current_setting('a
 
 
 --
+-- Name: currencies account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.currencies USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: customer_order_lines account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -8029,6 +8126,12 @@ ALTER TABLE public.cash_movements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: currencies; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.currencies ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: customer_order_lines; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8371,6 +8474,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925121100'),
 ('20260925121000'),
 ('20260925120900'),
 ('20260925120800'),

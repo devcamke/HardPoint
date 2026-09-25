@@ -13,7 +13,7 @@
       <tbody>
         <% @invoices.each do |invoice| %>
           <tr><td><%= link_to invoice.number, invoice, class: "link font-mono" %></td><td><%= link_to invoice.supplier.name, invoice.supplier, class: "hover:text-safety-700" %></td>
-            <td><%= l(invoice.invoice_date, format: :short) %></td><td><%= l(invoice.due_date, format: :short) %></td><td class="text-right tabular-nums"><%= money(invoice.total_cents) %></td></tr>
+            <td><%= l(invoice.invoice_date, format: :short) %></td><td><%= l(invoice.due_date, format: :short) %></td><td class="text-right tabular-nums"><%= money(invoice.total_cents, currency: invoice.supplier.currency_code) %></td></tr>
         <% end %>
       </tbody>
     </table>

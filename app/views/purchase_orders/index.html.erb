@@ -24,7 +24,7 @@
             <td><%= order.branch.name %></td>
             <td><%= l(order.created_at.to_date, format: :short) %></td>
             <td class="<%= "text-red-700" if order.expected_on&.past? && order.receivable? %>"><%= order.expected_on ? l(order.expected_on, format: :short) : "—" %></td>
-            <td class="text-right tabular-nums"><%= money(order.total_cents) %></td>
+            <td class="text-right tabular-nums"><%= money(order.total_cents, currency: order.currency) %></td>
             <td><%= render "purchasing/status", order: order %></td>
           </tr>
         <% end %>

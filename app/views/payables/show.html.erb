@@ -6,7 +6,8 @@
 </div>
 <%= render "purchasing/tabs" %>
 
-<p class="hint mb-4">Unpaid supplier invoices by how late they are, as of <%= l(Date.current, format: :long) %>. Payments settle each supplier's oldest invoices first.</p>
+<p class="hint mb-4">Unpaid supplier invoices by how late they are, as of <%= l(Date.current, format: :long) %>. Payments settle each supplier's oldest invoices first.
+  <%= "Suppliers in other currencies are shown in them; totals are in #{Current.account.currency} at today's rates." if @rows.any? { _1.first.foreign? } %></p>
 
 <div class="card overflow-x-auto">
   <% if @rows.any? %>
@@ -17,16 +18,17 @@
           <tr>
             <td><%= link_to supplier.name, supplier, class: "link" %></td>
             <% Ageing::BUCKETS.each_key do |bucket| %>
-              <td class="text-right tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket]) if ageing[bucket].nonzero? %></td>
+              <td class="text-right tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket], currency: supplier.currency_code) if ageing[bucket].nonzero? %></td>
             <% end %>
-            <td class="text-right font-semibold tabular-nums"><%= money(balance) %></td>
+            <td class="text-right font-semibold tabular-nums"><%= money(balance, currency: supplier.currency_code) %>
+              <%= tag.span("≈ #{money(supplier.to_base_cents(balance))}", class: "block text-xs font-normal text-steel-600") if supplier.foreign? %></td>
             <td class="text-right"><%= link_to "Pay", new_supplier_payment_path(supplier), class: "link text-sm" %></td>
           </tr>
         <% end %>
         <tr class="font-bold">
           <td>Total</td>
           <% Ageing::BUCKETS.each_key do |bucket| %><td class="text-right tabular-nums"><%= money(@totals[bucket]) %></td><% end %>
-          <td class="text-right tabular-nums"><%= money(@rows.sum(&:last)) %></td><td></td>
+          <td class="text-right tabular-nums"><%= money(@total) %></td><td></td>
         </tr>
       </tbody>
     </table>

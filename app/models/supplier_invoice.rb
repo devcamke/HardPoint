@@ -17,6 +17,7 @@ class SupplierInvoice < ApplicationRecord
   validate { errors.add :goods_receipt, "is from another supplier" if goods_receipt && goods_receipt.supplier_id != supplier_id }
 
   before_validation { self.due_date ||= invoice_date + supplier.payment_terms_days.days if invoice_date && supplier }
+  before_validation(on: :create) { self.exchange_rate ||= goods_receipt&.exchange_rate || supplier&.current_rate }
   after_create { track_event "recorded", supplier: supplier.name, total: total_cents }
 
   scope :chronologically, -> { order(invoice_date: :desc, id: :desc) }

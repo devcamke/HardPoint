@@ -22,9 +22,9 @@
 <% if current_membership.can_manage_payables? %>
   <% ageing = @supplier.ageing %>
   <div class="mb-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
-    <div class="card"><p class="hint">We owe</p><p class="mt-1 text-lg font-bold tabular-nums"><%= money(@supplier.balance_cents) %></p></div>
+    <div class="card"><p class="hint">We owe</p><p class="mt-1 text-lg font-bold tabular-nums"><%= money(@supplier.balance_cents, currency: @supplier.currency_code) %></p></div>
     <% { "current" => "Not yet due", "1_30" => "1–30 days late", "31_60" => "31–60", "61_90" => "61–90", "over_90" => "Over 90" }.each do |bucket, label| %>
-      <div class="card"><p class="hint"><%= label %></p><p class="mt-1 text-lg font-bold tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket]) %></p></div>
+      <div class="card"><p class="hint"><%= label %></p><p class="mt-1 text-lg font-bold tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket], currency: @supplier.currency_code) %></p></div>
     <% end %>
   </div>
 <% end %>
@@ -50,7 +50,7 @@
                     <%= button_to "Remove", supplier_product_path(@supplier, supplier_product), method: :delete, class: "link ml-2 text-xs", form_class: "inline" %></td>
                 <% else %>
                   <td class="font-mono text-xs"><%= supplier_product.supplier_sku %></td>
-                  <td class="text-right tabular-nums"><%= money(supplier_product.cost_cents) %></td>
+                  <td class="text-right tabular-nums"><%= money(supplier_product.cost_cents, currency: @supplier.currency_code) %></td>
                   <td class="text-right"><%= supplier_product.lead_time_days %></td>
                   <td class="text-right"><%= quantity(supplier_product.min_order_quantity) %></td>
                   <td><%= "Yes" if supplier_product.preferred? %></td><td></td>
@@ -86,7 +86,7 @@
       <table class="table"><tbody>
         <% @purchase_orders.each do |order| %>
           <tr><td><%= current_membership.can_purchase? ? link_to(order.reference, order, class: "link font-mono") : tag.span(order.reference, class: "font-mono") %></td>
-            <td><%= l(order.created_at.to_date, format: :short) %></td><td class="text-right tabular-nums"><%= money(order.total_cents) %></td><td><%= render "purchasing/status", order: order %></td></tr>
+            <td><%= l(order.created_at.to_date, format: :short) %></td><td class="text-right tabular-nums"><%= money(order.total_cents, currency: @supplier.currency_code) %></td><td><%= render "purchasing/status", order: order %></td></tr>
         <% end %>
       </tbody></table>
     <% else %>
@@ -102,7 +102,7 @@
           <% @open_invoices.each do |open| %>
             <tr><td><%= link_to open.invoice.number, open.invoice, class: "link font-mono" %></td>
               <td class="<%= "text-red-700" if open.days_overdue.positive? %>">due <%= l(open.invoice.due_date, format: :short) %><%= " · #{open.days_overdue} days late" if open.days_overdue.positive? %></td>
-              <td class="text-right tabular-nums"><%= money(open.outstanding_cents) %></td></tr>
+              <td class="text-right tabular-nums"><%= money(open.outstanding_cents, currency: @supplier.currency_code) %></td></tr>
           <% end %>
         </tbody></table>
       <% else %>
@@ -111,7 +111,7 @@
       <% if @payments.any? %>
         <h3 class="mt-4 mb-2 text-sm font-semibold text-steel-600">Recent payments</h3>
         <% @payments.each do |payment| %>
-          <p class="flex justify-between text-sm"><span><%= l(payment.paid_on, format: :short) %> · <%= payment.payment_method.humanize %><%= " · #{payment.reference}" if payment.reference.present? %></span><span class="tabular-nums"><%= money(payment.amount_cents) %></span></p>
+          <p class="flex justify-between text-sm"><span><%= l(payment.paid_on, format: :short) %> · <%= payment.payment_method.humanize %><%= " · #{payment.reference}" if payment.reference.present? %></span><span class="tabular-nums"><%= money(payment.amount_cents, currency: @supplier.currency_code) %></span></p>
         <% end %>
       <% end %>
     </section>

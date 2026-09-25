@@ -26,7 +26,7 @@
   <div class="row muted"><span>Incl. tax</span><span><%= money(@sale.tax_cents) %></span></div>
   <hr>
   <% @sale.payments.each do |payment| %>
-    <div class="row"><span><%= payment.label %><%= " #{payment.reference}" if payment.reference %></span><span><%= money(payment.cash? ? payment.tendered_cents : payment.amount_cents) %></span></div>
+    <div class="row"><span><%= payment.label %><%= " #{payment.reference}" if payment.reference %></span><span><%= money(payment.cash? || payment.foreign_cash? ? payment.tendered_cents : payment.amount_cents) %></span></div>
   <% end %>
   <% if @sale.change_cents.positive? %><div class="row bold"><span>Change</span><span><%= money(@sale.change_cents) %></span></div><% end %>
   <% if (submission = @sale.etims_submission) %>

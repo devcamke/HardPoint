@@ -27,7 +27,7 @@ module Sale::Payable
   # Takes a payment. Cash can be more than what's due (the rest is change); other tenders can't.
   # Putting more on account than the customer's credit allows needs an owner's or manager's
   # approval (credit_approver). Once the total is covered the sale completes.
-  def pay(tender:, amount_cents: nil, tendered_cents: nil, reference: nil, credit_approver: nil)
+  def pay(tender:, amount_cents: nil, tendered_cents: nil, reference: nil, credit_approver: nil, currency: nil, foreign_tendered_cents: nil)
     raise ArgumentError, "This sale can't take payments" unless open?
 
     lines.reload
@@ -38,6 +38,8 @@ module Sale::Payable
     if tender.to_s == "cash"
       payment.tendered_cents = tendered_cents || amount_cents || due
       payment.amount_cents = [ payment.tendered_cents.to_i, due ].min
+    elsif tender.to_s == "foreign_cash"
+      take_foreign_cash(payment, currency, foreign_tendered_cents, due)
     elsif tender.to_s == "deposit"
       payment.amount_cents = [ amount_cents || due, due, deposit_available_cents ].min
       payment.errors.add :base, "There's no deposit to use on this sale" unless payment.amount_cents.positive?
@@ -72,6 +74,21 @@ module Sale::Payable
   end
 
   private
+    # Foreign notes are converted at the shop's rate for that currency, rounded down; the rate is kept.
+    def take_foreign_cash(payment, code, foreign_cents, due)
+      rate = account.currencies.at_till.find_by(code: code.to_s.upcase)
+      if rate.nil?
+        payment.errors.add :base, "#{code.presence || "That currency"} isn't taken at the till. Owners and managers add currencies in Settings"
+      elsif foreign_cents.to_i <= 0
+        payment.errors.add :base, "Enter how much #{rate.code} was handed over"
+      else
+        payment.assign_attributes(currency: rate.code, exchange_rate: rate.rate, foreign_tendered_cents: foreign_cents,
+          tendered_cents: rate.to_base_cents(foreign_cents))
+        payment.amount_cents = [ payment.tendered_cents, due ].min
+        payment.errors.add :base, "#{Money.format(foreign_cents, currency: rate.code)} is worth less than a cent here" unless payment.amount_cents.positive?
+      end
+    end
+
     def check_account_credit(payment, approver)
       if customer.nil?
         payment.errors.add :base, "Choose a customer to put this on account"
