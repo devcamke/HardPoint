@@ -1,4 +1,4 @@
-json.extract! sale, :id, :receipt_number, :status, :branch_id, :customer_id, :customer_order_id
+json.extract! sale, :id, :receipt_number, :status, :branch_id, :customer_id, :customer_order_id, :job_id
 json.register sale.register&.name
 json.cashier sale.cashier&.name
 json.extract! sale, :subtotal_cents, :discount_cents, :tax_cents, :total_cents, :completed_at, :voided_at

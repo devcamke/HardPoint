@@ -1,0 +1,21 @@
+<%= form_with model: job, class: "card max-w-2xl" do |form| %>
+  <%= render "shared/errors", model: job %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <% if job.new_record? %>
+      <div class="field sm:col-span-2"><%= form.label :customer_id, "Customer", class: "label" %>
+        <%= form.collection_select :customer_id, Current.account.customers.alphabetically, :id, :name, { prompt: "Choose…" }, required: true, class: "input" %>
+        <p class="hint mt-1">Not listed? <%= link_to "Add a customer", new_customer_path, class: "link" %> first.</p></div>
+    <% else %>
+      <div class="field sm:col-span-2"><p class="label">Customer</p><p><%= job.customer.name %></p></div>
+    <% end %>
+    <div class="field"><%= form.label :name, "Job name", class: "label" %><%= form.text_field :name, required: true, class: "input", placeholder: "Kamau residence" %></div>
+    <div class="field"><%= form.label :reference, "Their reference or LPO (optional)", class: "label" %><%= form.text_field :reference, class: "input", placeholder: "LPO 2291" %></div>
+    <div class="field"><%= form.label :site, "Site (optional)", class: "label" %><%= form.text_field :site, class: "input", placeholder: "Plot 14, Kitengela" %></div>
+    <div class="field"><%= form.label :budget, "Materials budget (optional)", class: "label" %><%= form.text_field :budget, value: (plain_number(job.budget) if job.budget_cents), inputmode: "decimal", class: "input" %></div>
+  </div>
+  <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "Foreman's name, delivery instructions…" %></div>
+  <div class="flex items-center gap-3">
+    <%= form.submit "Save", class: "btn-primary" %>
+    <%= link_to "Cancel", job.persisted? ? job : jobs_path, class: "link" %>
+  </div>
+<% end %>

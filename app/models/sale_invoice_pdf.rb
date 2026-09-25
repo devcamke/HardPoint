@@ -23,7 +23,8 @@ class SaleInvoicePdf < DocumentPdf
     def details
       [ "Date #{date(@sale.completed_at)}",
         ("Due #{date(@sale.customer.due_date_for(@sale))}" if on_account_cents.positive?),
-        ("Order #{@sale.customer_order.reference}" if @sale.customer_order) ]
+        ("Order #{@sale.customer_order.reference}" if @sale.customer_order),
+        ("Job: #{@sale.job.label}" if @sale.job) ]
     end
 
     def content

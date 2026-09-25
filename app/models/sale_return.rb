@@ -29,6 +29,7 @@ class SaleReturn < ApplicationRecord
   after_create :restock_and_record
 
   after_create_commit -> { account.refresh_dashboard_later }
+  after_create_commit -> { sale.job&.touch }
   after_create_commit -> { Etims::Submission.queue(self, kind: "credit_note") }
 
   scope :chronologically, -> { order(created_at: :desc, id: :desc) }

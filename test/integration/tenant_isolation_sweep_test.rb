@@ -67,7 +67,7 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
   test "no API key can reach another shop's records" do
     host! "api.localhost"
     key = Account.without_isolation { Current.set(account: accounts(:bolt)) { accounts(:bolt).api_keys.create!(name: "Sweep", scope: "write") } }
-    victims = { "products" => Product, "customers" => Customer, "sales" => Sale, "orders" => CustomerOrder, "order" => CustomerOrder }
+    victims = { "products" => Product, "customers" => Customer, "jobs" => Job, "sales" => Sale, "orders" => CustomerOrder, "order" => CustomerOrder }
     routes = Rails.application.routes.routes.filter_map do |route|
       path = route.path.spec.to_s.delete_suffix("(.:format)")
       [ route.verb, path ] if route.defaults[:controller].to_s.start_with?("api/") && path.include?(":")
@@ -82,7 +82,7 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
       assert_response :not_found, "#{verb} #{path} answered #{response.status}"
       path
     end
-    assert_operator checked.size, :>=, 7
+    assert_operator checked.size, :>=, 8
   end
 
   private
@@ -97,6 +97,7 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
 
           sale = shift.current_sale
           sale.change_customer(customers(:acme_contractor))
+          sale.update!(job: acme.jobs.create!(customer: customers(:acme_contractor), name: "Sweep job", budget: "100000"))
           sale.add(products(:acme_nails), quantity: 4)
           sale.pay(tender: "on_account", credit_approver: users(:amina))
           sale.reload

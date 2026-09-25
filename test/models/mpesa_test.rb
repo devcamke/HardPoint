@@ -22,7 +22,7 @@ class MpesaTest < ActiveSupport::TestCase
   end
 
   def c2b(trans_id: "SJQ82KD91L", amount: "500.00", bill_reference: "")
-    { "TransactionType" => "Pay Bill", "TransID" => trans_id, "TransTime" => "20260924101500", "TransAmount" => amount,
+    { "TransactionType" => "Pay Bill", "TransID" => trans_id, "TransTime" => Time.current.in_time_zone("Africa/Nairobi").strftime("%Y%m%d%H%M%S"), "TransAmount" => amount,
       "BusinessShortCode" => "174379", "BillRefNumber" => bill_reference, "MSISDN" => "254722000111", "FirstName" => "JOHN" }
   end
 

@@ -78,6 +78,7 @@ export function receipt(data, { width = 48, openDrawer = data.open_drawer } = {}
   text(columns(data.time || "", data.register || "", width))
   if (data.cashier) text(columns("Served by", data.cashier, width))
   if (data.customer) text(columns("Customer", data.customer, width))
+  if (data.job) wrap(`Job: ${data.job}`, width).forEach(text)
   if (data.offline) text("Recorded offline; sent when the till is back online.")
   if (data.voided) { add(commands.alignCenter); text("*** VOIDED ***"); add(commands.alignLeft) }
   rule()

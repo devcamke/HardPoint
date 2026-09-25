@@ -23,6 +23,18 @@
       </div>
     </details>
   </div>
+  <% jobs = sale.customer ? sale.customer.jobs.open.alphabetically.to_a : [] %>
+  <% if jobs.any? || sale.job %>
+    <%= form_with url: pos_job_path, method: :patch, class: "flex items-center gap-2 border-b border-concrete-200 bg-concrete-50 px-4 py-2", data: { controller: "auto-submit" } do |form| %>
+      <%= form.label :job_id, "Job", class: "text-xs uppercase tracking-wide text-steel-600" %>
+      <%= form.select :job_id, options_for_select(([ sale.job ] + jobs).compact.uniq.map { [ _1.label, _1.id ] }, sale.job_id), { include_blank: "Not for a job" },
+            class: "input py-1 text-sm", disabled: sale.customer_order&.job.present?, data: { action: "change->auto-submit#submit" } %>
+      <% if sale.job&.budget_cents %>
+        <% left = sale.job.budget_left_cents %>
+        <%= tag.span(left.negative? ? "#{money(-left)} over budget" : "#{money(left)} left", class: "whitespace-nowrap text-xs #{left.negative? ? "font-semibold text-red-700" : "text-steel-600"}") %>
+      <% end %>
+    <% end %>
+  <% end %>
 
   <div class="min-h-0 flex-1 overflow-y-auto">
     <% if sale.lines.any? %>

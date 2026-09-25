@@ -1,0 +1,42 @@
+<% content_for :title, "Jobs" %>
+
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Sales</h1>
+  <%= link_to "Add a job", new_job_path, class: "btn-primary" if current_membership.can_sell? %>
+</div>
+<%= render "sales/tabs" %>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <nav class="flex flex-wrap gap-2 text-sm" aria-label="Filter">
+    <% JobsController::FILTERS.each do |filter| %>
+      <%= link_to filter.humanize, jobs_path(filter: filter, query: params[:query]), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-navy-900 text-white" : "bg-white"}" %>
+    <% end %>
+  </nav>
+  <%= form_with url: jobs_path, method: :get, class: "flex gap-2", data: { controller: "auto-submit" } do |form| %>
+    <%= form.hidden_field :filter, value: @filter %>
+    <%= form.search_field :query, value: params[:query], placeholder: "Job, site or customer", class: "input", aria: { label: "Search jobs" }, data: { action: "input->auto-submit#debouncedSubmit" } %>
+  <% end %>
+</div>
+
+<div class="card overflow-x-auto">
+  <% if @jobs.any? %>
+    <table class="table">
+      <thead><tr><th>Job</th><th>Customer</th><th>Site</th><th class="text-right">Spent</th><th class="w-48">Budget</th></tr></thead>
+      <tbody>
+        <% @jobs.each do |job| %>
+          <tr id="<%= dom_id(job) %>">
+            <td><%= link_to job.name, job, class: "link font-semibold" %><%= tag.span(job.reference, class: "ml-1 font-mono text-xs text-steel-600") if job.reference %>
+              <%= tag.span("Closed", class: "badge ml-1") if job.closed? %></td>
+            <td><%= job.customer.name %></td>
+            <td class="text-sm"><%= job.site %></td>
+            <td class="text-right tabular-nums"><%= money(@spent[job.id]) %></td>
+            <td><%= render "jobs/budget", job: job, spent: @spent[job.id] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <%= render "shared/pagination" %>
+  <% else %>
+    <p class="text-steel-600">No jobs here. Add a job for a contractor's project, then choose it at the till when they buy for it.</p>
+  <% end %>
+</div>

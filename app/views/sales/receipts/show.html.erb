@@ -6,6 +6,7 @@
   <div class="row"><span><%= l(@sale.completed_at || @sale.created_at, format: :short) %></span><span><%= @sale.register.name %></span></div>
   <div class="row"><span>Served by</span><span><%= @sale.cashier.name %></span></div>
   <% if @sale.customer %><div class="row"><span>Customer</span><span><%= @sale.customer.name %></span></div><% end %>
+  <% if @sale.job %><p>Job: <%= @sale.job.label %></p><% end %>
   <% if @sale.voided? %><p class="center bold">*** VOIDED ***</p><% end %>
   <hr>
   <% @sale.lines.includes(:product, product_unit: :unit).each do |line| %>

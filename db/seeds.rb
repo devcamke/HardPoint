@@ -132,19 +132,30 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
 
     # Customer accounts: past account sales (one overdue), a payment, a quote, an order with a deposit, and a delivery.
     front_counter = account.registers.find_by!(name: "Front counter")
-    account_sale = ->(customer, days_ago, items) do
+    # Contractors' jobs, with their account sales tagged to them.
+    towers = account.jobs.create!(customer: mwangi, name: "Mwangi Towers", reference: "LPO 4471", site: "Ruaka, off Limuru Road", budget: 450_000,
+      note: "Site foreman: Peter, 0722 000 999")
+    maisonettes = account.jobs.create!(customer: mwangi, name: "Kahawa Sukari maisonettes", reference: "LPO 4502", site: "Kahawa Sukari", budget: 180_000)
+    ruiru = account.jobs.create!(customer: otieno, name: "Ruiru plumbing", site: "Ruiru, Kamakis", budget: 40_000)
+    account.jobs.create!(customer: otieno, name: "Thika Road offices", site: "Roysambu", status: "closed", closed_at: 60.days.ago)
+
+    account_sale = ->(customer, days_ago, items, job: nil) do
       shift = account.shifts.create!(register: front_counter, opening_float: 5000, opened_at: days_ago.days.ago)
       sale = shift.current_sale
       sale.change_customer(customer)
+      sale.update!(job: job)
       items.each { |sku, quantity| sale.add(products[sku], quantity: quantity) }
       sale.pay(tender: "on_account", credit_approver: owner)
       sale.update_columns(completed_at: days_ago.days.ago, created_at: days_ago.days.ago)
       shift.close(counted_cash_cents: 5000_00)
       sale
     end
-    account_sale.(mwangi, 50, { "CEM-BAM-50" => 60, "STL-Y12" => 40 })
-    delivered = account_sale.(mwangi, 12, { "STL-BRC142" => 6, "NAIL-4" => 10 })
-    account_sale.(otieno, 25, { "PVC-2" => 12, "PPR-20" => 30 })
+    account_sale.(mwangi, 50, { "CEM-BAM-50" => 60, "STL-Y12" => 40 }, job: towers)
+    delivered = account_sale.(mwangi, 12, { "STL-BRC142" => 6, "NAIL-4" => 10 }, job: towers)
+    account_sale.(mwangi, 6, { "CEM-BAM-50" => 40, "STL-Y10" => 30, "NAIL-4" => 5 }, job: towers)
+    account_sale.(mwangi, 3, { "ROOF-G30-3M" => 24, "ROOF-RIDGE" => 8, "NAIL-ROOF" => 4 }, job: maisonettes)
+    account_sale.(otieno, 25, { "PVC-2" => 12, "PPR-20" => 30 }, job: ruiru)
+    account_sale.(otieno, 8, { "PVC-4" => 6, "PLB-GV34" => 6, "PLB-TAP12" => 4 }, job: ruiru)
     mwangi.customer_payments.create!(account: account, paid_on: 20.days.ago.to_date, amount: 40_000, payment_method: "bank_transfer", reference: "EFT 77301")
 
     note = account.delivery_notes.create!(sale: delivered, contact_phone: "0722 000 111", note: "Ask for the site foreman")
@@ -154,7 +165,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
 
     account.customer_orders.create!(branch: main, customer: grace, note: "Delivery to Ridgeways can be arranged",
       lines_attributes: [ { product_code: "PNT-CRN-W20", quantity: 3 }, { product_code: "TL-TAPE5", quantity: 1 }, { product_code: "ELC-LED9", quantity: 12 } ])
-    order = account.customer_orders.create!(branch: main, customer: otieno, needed_by: 5.days.from_now.to_date, note: "Special order: 4-inch pipes for the Ruiru site",
+    order = account.customer_orders.create!(branch: main, customer: otieno, job: ruiru, needed_by: 5.days.from_now.to_date, note: "Special order: 4-inch pipes for the Ruiru site",
       lines_attributes: [ { product_code: "PVC-4", quantity: 20 }, { product_code: "PLB-GV34", quantity: 4 } ])
     order.take_deposit(amount_cents: 15_000_00, tender: "mobile_money", reference: "SJK4H7T2QP")
     order.mark_ready

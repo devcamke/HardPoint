@@ -1,0 +1,94 @@
+<% content_for :title, @job.name %>
+<% spent = @job.spent_cents %>
+
+<p class="text-sm"><%= link_to "← Jobs", jobs_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold"><%= @job.name %> <%= tag.span("Closed", class: "badge align-middle text-sm") if @job.closed? %></h1>
+    <p class="hint mt-1"><%= link_to @job.customer.name, @job.customer, class: "link" %><%= " · #{@job.site}" if @job.site %><%= " · their ref #{@job.reference}" if @job.reference %><%= " · #{@job.note}" if @job.note.present? %></p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Cost summary (PDF)", job_summary_path(@job), target: "_blank", class: "btn-secondary" %>
+    <% if current_membership.can_sell? %>
+      <%= link_to "Edit", edit_job_path(@job), class: "btn-secondary" %>
+      <% if @job.open? %>
+        <%= link_to "New quote for this job", new_customer_order_path(job_id: @job.id), class: "btn-secondary" %>
+        <%= button_to "Close job", job_closure_path(@job), class: "btn-secondary", form: { data: { turbo_confirm: "Close #{@job.name}? It stops showing at the till." } } %>
+      <% else %>
+        <%= button_to "Reopen", job_closure_path(@job), method: :delete, class: "btn-secondary" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-3">
+  <div class="card"><p class="hint">Spent</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(spent) %></p>
+    <p class="hint"><%= pluralize(@sales.count(&:completed?), "sale") %><%= ", #{pluralize(@returns.size, "return")}" if @returns.any? %></p></div>
+  <div class="card"><p class="hint">Budget</p>
+    <% if @job.budget_cents %>
+      <% left = @job.budget_cents - spent %>
+      <p class="mt-1 text-2xl font-bold tabular-nums <%= "text-red-700" if left.negative? %>"><%= left.negative? ? "#{money(-left)} over" : "#{money(left)} left" %></p>
+    <% else %>
+      <p class="mt-1 text-2xl font-bold">—</p>
+    <% end %>
+    <%= render "jobs/budget", job: @job, spent: spent, class: "mt-2" %></div>
+  <div class="card"><p class="hint">Open quotes and orders</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@orders.sum(&:total_cents)) %></p>
+    <p class="hint"><%= @orders.any? ? "not yet collected" : "none" %></p></div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="card lg:col-span-2">
+    <h2 class="mb-3 text-lg font-semibold">Materials</h2>
+    <% if @materials.any? %>
+      <table class="table">
+        <thead><tr><th>Item</th><th class="text-right">Quantity</th><th class="text-right">Cost</th><th class="w-40"><span class="sr-only">Share</span></th></tr></thead>
+        <tbody>
+          <% @materials.each do |material| %>
+            <tr><td><%= material.description %></td><td class="text-right tabular-nums"><%= quantity(material.quantity, material.unit) %></td>
+              <td class="text-right tabular-nums"><%= money(material.total_cents) %></td>
+              <td><div class="h-1.5 rounded-full bg-concrete-200"><div class="h-full rounded-full bg-navy-700" style="width: <%= spent.positive? ? (material.total_cents * 100.0 / spent).round.clamp(0, 100) : 0 %>%"></div></div></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint">Nothing bought for this job yet. At the till, pick the customer, then this job.</p>
+    <% end %>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Sales</h2>
+    <% if @sales.any? %>
+      <table class="table">
+        <tbody>
+          <% @sales.each do |sale| %>
+            <tr><td><%= link_to sale.receipt_number, sale, class: "link font-mono" %></td><td class="whitespace-nowrap"><%= l(sale.completed_at || sale.created_at, format: :short) %></td>
+              <td class="text-sm text-steel-600"><%= sale.payments.select(&:on_account?).any? ? "On account" : "Paid" if sale.completed? %><%= "Voided" if sale.voided? %></td>
+              <td class="text-right tabular-nums <%= "line-through" if sale.voided? %>"><%= money(sale.total_cents) %></td></tr>
+          <% end %>
+          <% @returns.each do |sale_return| %>
+            <tr><td class="font-mono"><%= sale_return.return_number %></td><td class="whitespace-nowrap"><%= l(sale_return.created_at, format: :short) %></td>
+              <td class="text-sm text-steel-600">Return from <%= sale_return.sale.receipt_number %></td><td class="text-right tabular-nums">−<%= money(sale_return.total_cents) %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint">No sales yet.</p>
+    <% end %>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-3 text-lg font-semibold">Quotes and orders</h2>
+    <% if @orders.any? %>
+      <table class="table">
+        <tbody>
+          <% @orders.each do |order| %>
+            <tr><td><%= link_to order.reference, order, class: "link font-mono" %></td><td><%= render "customer_orders/status", order: order %></td>
+              <td class="text-right tabular-nums"><%= money(order.total_cents) %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint">None open.</p>
+    <% end %>
+  </section>
+</div>

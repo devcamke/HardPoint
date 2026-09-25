@@ -10,6 +10,7 @@ class CustomerOrder < ApplicationRecord
 
   belongs_to :branch
   belongs_to :customer
+  belongs_to :job, optional: true
   belongs_to :creator, class_name: "User", default: -> { Current.user }, optional: true
   has_many :lines, -> { order(:id) }, class_name: "CustomerOrderLine", dependent: :destroy, inverse_of: :customer_order
   has_many :deposits, -> { order(:id) }, dependent: :restrict_with_error
@@ -25,7 +26,9 @@ class CustomerOrder < ApplicationRecord
     reject_if: ->(attributes) { attributes["id"].blank? && attributes["product_code"].blank? && attributes["quantity"].blank? }
 
   validates :source, inclusion: { in: SOURCES }
-  validates_same_account :branch, :customer
+  validates_same_account :branch, :customer, :job
+  validate(if: :job) { errors.add :job, "must be one of the customer's jobs" unless job.customer_id == customer_id }
+  validate(if: -> { job && will_save_change_to_job_id? }) { errors.add :job, "is closed" if job.closed? }
   validate { errors.add :base, "Add at least one product" if lines.reject(&:marked_for_destruction?).empty? }
   validate(on: :update) { errors.add :base, "A #{status_was} order can't be changed" if lines.any?(&:changed_for_autosave?) && !status_was.in?(%w[ quote ordered ]) }
 

@@ -1,0 +1,4 @@
+<% content_for :title, "Edit #{@job.name}" %>
+<p class="text-sm"><%= link_to "← #{@job.name}", @job, class: "link" %></p>
+<h1 class="mt-2 mb-6 text-3xl font-bold">Edit job</h1>
+<%= render "form", job: @job %>

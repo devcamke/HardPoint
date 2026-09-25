@@ -23,6 +23,7 @@ module Sale::Cart
     raise ArgumentError, "The customer of an order can't be changed" if customer_order && customer != customer_order.customer
 
     self.customer = customer
+    self.job = nil unless job&.customer_id == customer&.id
     lines.each(&:reprice)
     transaction do
       lines.each(&:save!)

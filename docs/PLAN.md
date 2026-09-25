@@ -87,6 +87,8 @@ customers, staff, or reports.
 | Tool hire model | A hire agreement owns a confirmed customer order with source "hire". Deposits, refunds, collection at the till, receipts, eTIMS, M-Pesa matching and reports all come from the order, with no separate hire ledger. The order's lines can't be edited by hand; returns rewrite them. |
 | Hire charges | A day is 24 hours from going out, with an hour's grace, and at least one day. With a weekly rate, each full week costs the weekly rate and the remaining days cost the daily rate up to one more week's rate. Damage is charged per tool at return. |
 | Hire lines | Charges go on an inactive, untracked "Tool hire" service product (SKU HIRE), with the tool and days as line detail ("Tool hire · Concrete mixer MIX-01, 4 days"), so reports and tax work without a product per tool. |
+| Contractor jobs | A job belongs to one customer: name (unique per customer), their reference or LPO, site, optional materials budget, open or closed. Sales and quotes/orders carry an optional job, which must be the customer's and open when chosen. Changing the sale's customer drops the job. |
+| Job costs | Spend is completed sales less returns from them, worked out when asked rather than stored. Voided sales don't count. Materials are summed by product and pack, net of returns. Budgets warn (orange from 80%, red over) and never block a sale. The offline till doesn't tag jobs yet. |
 | Hire terms | Standard terms are printed on the A4 agreement with signature lines. Shop-editable terms are left for later. Tools are managed by catalogue managers, and anyone who sells can hire out, return and settle. |
 
 | Phase | Status |
@@ -101,6 +103,7 @@ customers, staff, or reports.
 | 7 — Payment & tax integrations | **Done (to be proven against the live sandboxes):** M-Pesa Daraja per shop (encrypted credentials, STK push from the till with automatic completion, C2B confirmations with automatic matching to orders, accounts and typed codes, reconciliation report, token-and-IP-checked idempotent callbacks), KRA eTIMS OSCU per branch (initialisation, item registration, sales and credit notes, signed receipts with QR code, retry queue, refusals to fix), SMS via Africa's Talking (receipts, order ready, balance reminders), simulators for all three. Card terminals stay manual; accounting sync skipped. |
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
+| 14 — Contractor jobs | **Done:** jobs per customer with reference, site and budget; job picker at the till with budget left; quotes and orders for a job, carried to the till; job on receipts, invoices and order PDFs; job page with spend against budget, materials, sales, returns and open orders; cost summary PDF; closing and reopening; jobs in the API; cross-shop sweep. |
 | 13 — Tool hire | **Done:** hire tools with asset tags, rates, deposits and status; hire agreements with customer ID, site and due-back time, a printed A4 agreement, deposits through the order, extensions, overdue list and reminder texts (daily at most); returns tool by tool with condition and damage, sending tools to maintenance when needed; settling at the till with the deposit counted; hire in the cross-shop sweep. |
 | 12 — Online store | **Done:** Settings › Online store; public catalogue with categories, search, stock per collection branch and a session cart; checkout without accounts; online orders marked in Orders with staff emails, customer text and email, and an order-tracking page with Paybill instructions; closed while the shop is locked; spam limits. |
 | 11 — Public API & webhooks | **Done:** API keys in Settings › Developers, REST API v1 (shop, branches, products, stock levels, customers, sales, orders with click-and-collect ordering and cancelling) with cursor paging, sync filters, idempotency keys, rate limits and read-only enforcement; webhooks for nine events with signing, retries, auto-disable with an email, redelivery and test events, public-address-only delivery; developer docs; cross-shop sweep over the API. |
@@ -586,11 +589,22 @@ instead of a paper book.
   Concrete mixer MIX-01, 4 days") on the agreement's order, the deposit counts towards them, and the receipt, KRA
   eTIMS, M-Pesa and reports work as for any sale.
 
+### Phase 14 — Contractor jobs
+**Goal:** contractors buying for several projects see what each one has cost, and can pass it on.
+- **Jobs** per customer: name, their reference or LPO number, site, an optional materials budget; open or closed.
+- **Tagging:** at the till, after choosing the customer, pick one of their open jobs (with the budget left
+  shown). Quotes and orders can be for a job, and carry it to the till when collected. Receipts, tax invoices
+  and order PDFs name the job.
+- **Job costing:** spend to date (sales less returns) against the budget, materials product by product, sales,
+  returns and open orders; an A4 cost summary for the contractor's own client.
+- **API:** jobs with spend; sales and orders carry `job_id`; sales filter by job.
+
 ### Beyond v1 (backlog)
 - Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).
-- E-commerce storefront / click-and-collect per tenant.
-- Public REST API with per-tenant API keys and webhooks.
-- Tool hire/rental module; job/project costing for contractors.
+- ~~E-commerce storefront / click-and-collect per tenant.~~ Done in Phase 12.
+- ~~Public REST API with per-tenant API keys and webhooks.~~ Done in Phase 11.
+- ~~Tool hire/rental module; job/project costing for contractors.~~ Done in Phases 13 and 14.
+- Job costing extras: invoicing a job's client with a markup, and tagging jobs on the offline till.
 - Multi-currency; FIFO costing; batch/lot tracking.
 - Scaling out: move Postgres to its own VPS (or managed DB), add read replica, split
   job workers onto a second VPS — Kamal handles multi-host.

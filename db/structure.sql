@@ -747,7 +747,8 @@ CREATE TABLE public.customer_orders (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     source character varying DEFAULT 'shop'::character varying NOT NULL,
-    tracking_token character varying
+    tracking_token character varying,
+    job_id bigint
 );
 
 ALTER TABLE ONLY public.customer_orders FORCE ROW LEVEL SECURITY;
@@ -1345,6 +1346,48 @@ CREATE SEQUENCE public.hire_lines_id_seq
 --
 
 ALTER SEQUENCE public.hire_lines_id_seq OWNED BY public.hire_lines.id;
+
+
+--
+-- Name: jobs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.jobs (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    customer_id bigint NOT NULL,
+    creator_id bigint,
+    name character varying NOT NULL,
+    site character varying,
+    reference character varying,
+    budget_cents bigint,
+    status character varying DEFAULT 'open'::character varying NOT NULL,
+    note character varying,
+    closed_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.jobs FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.jobs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.jobs_id_seq OWNED BY public.jobs.id;
 
 
 --
@@ -2068,7 +2111,8 @@ CREATE TABLE public.sales (
     customer_order_id bigint,
     credit_approver_id bigint,
     offline_uuid uuid,
-    offline_receipt_number character varying
+    offline_receipt_number character varying,
+    job_id bigint
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -3170,6 +3214,13 @@ ALTER TABLE ONLY public.hire_lines ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
+-- Name: jobs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.jobs ALTER COLUMN id SET DEFAULT nextval('public.jobs_id_seq'::regclass);
+
+
+--
 -- Name: kit_components id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3712,6 +3763,14 @@ ALTER TABLE ONLY public.hire_items
 
 ALTER TABLE ONLY public.hire_lines
     ADD CONSTRAINT hire_lines_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: jobs jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.jobs
+    ADD CONSTRAINT jobs_pkey PRIMARY KEY (id);
 
 
 --
@@ -4350,6 +4409,13 @@ CREATE INDEX index_customer_orders_on_customer_id ON public.customer_orders USIN
 
 
 --
+-- Name: index_customer_orders_on_job_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_orders_on_job_id ON public.customer_orders USING btree (job_id);
+
+
+--
 -- Name: index_customer_orders_on_tracking_token; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4711,6 +4777,34 @@ CREATE INDEX index_hire_lines_on_hire_agreement_id ON public.hire_lines USING bt
 --
 
 CREATE INDEX index_hire_lines_on_hire_item_id ON public.hire_lines USING btree (hire_item_id);
+
+
+--
+-- Name: index_jobs_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_jobs_on_account_id ON public.jobs USING btree (account_id);
+
+
+--
+-- Name: index_jobs_on_account_id_and_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_jobs_on_account_id_and_status ON public.jobs USING btree (account_id, status);
+
+
+--
+-- Name: index_jobs_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_jobs_on_creator_id ON public.jobs USING btree (creator_id);
+
+
+--
+-- Name: index_jobs_on_customer_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_jobs_on_customer_id_and_name ON public.jobs USING btree (customer_id, name);
 
 
 --
@@ -5194,6 +5288,13 @@ CREATE INDEX index_sales_on_customer_order_id ON public.sales USING btree (custo
 --
 
 CREATE INDEX index_sales_on_discount_approver_id ON public.sales USING btree (discount_approver_id);
+
+
+--
+-- Name: index_sales_on_job_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sales_on_job_id ON public.sales USING btree (job_id);
 
 
 --
@@ -6346,6 +6447,14 @@ ALTER TABLE ONLY public.mpesa_transactions
 
 
 --
+-- Name: sales fk_rails_70791a9249; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sales
+    ADD CONSTRAINT fk_rails_70791a9249 FOREIGN KEY (job_id) REFERENCES public.jobs(id) DEFERRABLE;
+
+
+--
 -- Name: sale_returns fk_rails_71880e17ea; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6410,6 +6519,14 @@ ALTER TABLE ONLY public.sessions
 
 
 --
+-- Name: jobs fk_rails_7629e6466c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.jobs
+    ADD CONSTRAINT fk_rails_7629e6466c FOREIGN KEY (customer_id) REFERENCES public.customers(id) DEFERRABLE;
+
+
+--
 -- Name: shifts fk_rails_791f504d7e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6423,6 +6540,14 @@ ALTER TABLE ONLY public.shifts
 
 ALTER TABLE ONLY public.stock_counts
     ADD CONSTRAINT fk_rails_79e8c88cba FOREIGN KEY (category_id) REFERENCES public.categories(id) DEFERRABLE;
+
+
+--
+-- Name: customer_orders fk_rails_7b529e0995; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders
+    ADD CONSTRAINT fk_rails_7b529e0995 FOREIGN KEY (job_id) REFERENCES public.jobs(id) DEFERRABLE;
 
 
 --
@@ -6826,6 +6951,14 @@ ALTER TABLE ONLY public.stock_transfers
 
 
 --
+-- Name: jobs fk_rails_c31d0a1ae2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.jobs
+    ADD CONSTRAINT fk_rails_c31d0a1ae2 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: purchase_orders fk_rails_c3649bab02; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7146,6 +7279,14 @@ ALTER TABLE ONLY public.stock_counts
 
 
 --
+-- Name: jobs fk_rails_f251f165d2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.jobs
+    ADD CONSTRAINT fk_rails_f251f165d2 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: sale_lines fk_rails_f2b75ee91f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7427,6 +7568,13 @@ CREATE POLICY account_isolation ON public.hire_items USING (((current_setting('a
 --
 
 CREATE POLICY account_isolation ON public.hire_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: jobs account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.jobs USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -7846,6 +7994,12 @@ ALTER TABLE public.hire_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.hire_lines ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: jobs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: kit_components; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8080,6 +8234,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260925120900'),
 ('20260925120800'),
 ('20260925120700'),
 ('20260925120600'),

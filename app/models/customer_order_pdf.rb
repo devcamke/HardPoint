@@ -16,7 +16,8 @@ class CustomerOrderPdf < DocumentPdf
     def details
       [ "Date #{date(@order.ordered_at || @order.created_at)}",
         ("Valid until #{date(@order.valid_until)}" if @order.quote? && @order.valid_until),
-        ("Needed by #{date(@order.needed_by)}" if @order.needed_by) ]
+        ("Needed by #{date(@order.needed_by)}" if @order.needed_by),
+        ("Job: #{@order.job.label}" if @order.job) ]
     end
 
     def content

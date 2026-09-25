@@ -99,7 +99,7 @@ module CustomerOrder::Fulfilment
     return false if errors.any?
 
     sale.transaction do
-      sale.update!(customer_order: self, customer: customer)
+      sale.update!(customer_order: self, customer: customer, job: job&.open? ? job : nil)
       lines.each do |line|
         sale.lines.create!(account: account, product: line.product, product_unit: line.product_unit, quantity: line.quantity,
           unit_price_cents: line.unit_price_cents, detail: line.detail, customer_order_line_id: line.id)

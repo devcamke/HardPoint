@@ -2,6 +2,7 @@
   <% tabs = []
      tabs += [ [ "Sales", sales_path ], [ "Orders & quotes", customer_orders_path ], [ "Deliveries", delivery_notes_path ], [ "Returns", returns_path ], [ "Shifts", shifts_path ] ] if current_membership.can_sell?
      tabs << [ "Customers", customers_path ]
+     tabs << [ "Jobs", jobs_path ]
      tabs << [ "Who owes us", receivables_path ] if current_membership.can_manage_receivables? %>
   <% tabs.each do |name, path| %>
     <% active = request.path == path || request.path.start_with?("#{path}/") %>

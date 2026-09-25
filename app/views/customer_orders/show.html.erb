@@ -9,6 +9,7 @@
     <p class="hint mt-1"><%= link_to order.customer.name, order.customer, class: "link" %> · <%= order.branch.name %>
       · created <%= l(order.created_at, format: :short) %> <%= order.creator ? "by #{order.creator.name}" : { "online" => "in the online store", "api" => "through the API", "hire" => "for a tool hire" }[order.source] %>
       <%= link_to("· hire #{order.hire_agreement.reference}", order.hire_agreement, class: "link") if order.hire_agreement %>
+      <%= link_to("· job: #{order.job.label}", order.job, class: "link") if order.job %>
       <%= "· #{PhoneNumber.display(order.customer.phone)}" if order.source == "online" && order.customer.phone.present? %>
       <%= "· valid until #{l(order.valid_until, format: :long)}" if order.quote? && order.valid_until %>
       <%= "· needed by #{l(order.needed_by, format: :long)}" if order.needed_by %></p>

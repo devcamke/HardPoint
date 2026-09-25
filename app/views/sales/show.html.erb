@@ -49,6 +49,7 @@
     <section class="card">
       <h2 class="mb-2 font-semibold">Customer</h2>
       <p><%= @sale.customer ? link_to(@sale.customer.name, @sale.customer, class: "link") : "Walk-in" %></p>
+      <% if @sale.job %><p class="mt-1 text-sm">Job <%= link_to @sale.job.label, @sale.job, class: "link" %></p><% end %>
       <% if @sale.customer_order %><p class="mt-1 text-sm">Collected order <%= link_to @sale.customer_order.reference, @sale.customer_order, class: "link font-mono" %></p><% end %>
       <% if @sale.discount_approver %><p class="hint mt-1">Discount approved by <%= @sale.discount_approver.name %></p><% end %>
       <% if @sale.credit_approver %><p class="hint mt-1">Over the credit limit, approved by <%= @sale.credit_approver.name %></p><% end %>

@@ -10,6 +10,7 @@
     <% if current_membership.can_sell? %>
       <%= link_to "Edit", edit_customer_path(@customer), class: "btn-secondary" %>
       <%= link_to "New quote", new_customer_order_path(customer_id: @customer.id), class: "btn-secondary" %>
+      <%= link_to "Add a job", new_job_path(customer_id: @customer.id), class: "btn-secondary" %>
     <% end %>
     <%= link_to "Statement", customer_statement_path(@customer), class: "btn-secondary" if current_membership.can_manage_receivables? %>
     <% if current_membership.can_manage_receivables? && Current.account.sms_enabled? && @customer.phone.present? && @customer.balance_cents.positive? %>
@@ -65,6 +66,21 @@
       <p class="hint">No payments yet.</p>
     <% end %>
   </section>
+
+  <% if @jobs.any? %>
+    <section class="card">
+      <h2 class="mb-3 text-lg font-semibold">Open jobs</h2>
+      <table class="table">
+        <tbody>
+          <% @jobs.each do |job| %>
+            <tr><td><%= link_to job.label, job, class: "link" %><%= tag.p(job.site, class: "hint") if job.site %></td>
+              <td class="text-right tabular-nums"><%= money(@job_spend[job.id]) %></td>
+              <td class="w-40"><%= render "jobs/budget", job: job, spent: @job_spend[job.id] %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </section>
+  <% end %>
 
   <% if @orders.any? %>
     <section class="card">

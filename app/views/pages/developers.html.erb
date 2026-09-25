@@ -51,7 +51,8 @@
           [ "GET /customers", "Customers with their account balance. Filters: phone, email, updated_since" ],
           [ "GET /customers/:id", "One customer" ],
           [ "POST /customers, PATCH /customers/:id", "Add or change a customer (write keys): name, phone, email, tax_pin, address, notes" ],
-          [ "GET /sales, GET /sales/:id", "Completed and voided sales with lines and payments. Filters: branch_id, customer_id, updated_since" ],
+          [ "GET /jobs, GET /jobs/:id", "Contractors' jobs with budget and spend to date. Filters: customer_id, status, updated_since" ],
+          [ "GET /sales, GET /sales/:id", "Completed and voided sales with lines and payments. Filters: branch_id, customer_id, job_id, updated_since" ],
           [ "GET /orders, GET /orders/:id", "Quotes and orders. Filters: status, customer_id, updated_since" ],
           [ "POST /orders", "Place an order for collection (write keys); it appears in the shop's open orders" ],
           [ "POST /orders/:id/cancellation", "Cancel an order that has no deposit held (write keys)" ]

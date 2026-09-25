@@ -1,4 +1,4 @@
-json.extract! order, :id, :reference, :status, :branch_id, :customer_id
+json.extract! order, :id, :reference, :status, :branch_id, :customer_id, :job_id
 json.customer_name order.customer.name
 json.extract! order, :note, :needed_by, :valid_until, :total_cents, :tax_cents
 json.lines order.lines do |line|

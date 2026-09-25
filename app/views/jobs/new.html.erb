@@ -1,0 +1,5 @@
+<% content_for :title, "Add a job" %>
+<p class="text-sm"><%= link_to "← Jobs", jobs_path, class: "link" %></p>
+<h1 class="mt-2 mb-2 text-3xl font-bold">Add a job</h1>
+<p class="hint mb-6">A contractor's project. Sales and orders for it are tagged at the till, so you both see what it has cost.</p>
+<%= render "form", job: @job %>

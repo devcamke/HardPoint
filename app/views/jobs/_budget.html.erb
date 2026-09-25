@@ -1,0 +1,12 @@
+<%# Spend against budget as a bar: orange as it nears the budget, red over it. %>
+<% if job.budget_cents %>
+  <% percent = (spent * 100.0 / job.budget_cents).round %>
+  <div class="<%= local_assigns[:class] %>">
+    <div class="h-2 w-full overflow-hidden rounded-full bg-concrete-200" role="meter" aria-label="Budget used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= percent.clamp(0, 100) %>">
+      <div class="h-full rounded-full <%= percent > 100 ? "bg-red-600" : percent >= 80 ? "bg-safety-500" : "bg-navy-700" %>" style="width: <%= percent.clamp(0, 100) %>%"></div>
+    </div>
+    <p class="mt-1 text-xs <%= percent > 100 ? "font-semibold text-red-700" : "text-steel-600" %>"><%= percent %>% of <%= money(job.budget_cents) %></p>
+  </div>
+<% else %>
+  <p class="text-xs text-steel-600 <%= local_assigns[:class] %>">No budget set</p>
+<% end %>

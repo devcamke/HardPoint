@@ -14,6 +14,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section)
       new("mpesa", "M-Pesa payments", "Payment prompts to the customer's phone, and money paid straight to your Paybill or Till.", "Money and tax"),
       new("etims", "KRA eTIMS", "Connecting your branch's control unit and what happens when KRA is unreachable.", "Money and tax"),
       new("online-store", "Selling online with click-and-collect", "Your catalogue online: switching it on, what customers see, and handling their orders.", "At the till"),
+      new("contractor-jobs", "Jobs for contractors", "Tag what contractors buy to their projects, track it against a budget and print a cost summary.", "At the till"),
       new("tool-hire", "Hiring out tools", "Tools for hire, hire agreements, deposits, returns and settling up at the till.", "At the till"),
       new("connecting-apps", "Connecting a web shop or other apps", "API keys and webhooks, for the developer who connects your web shop or accounts.", "Your account"),
       new("billing", "Plans, billing and read-only mode", "Your free trial, paying HardPoint, changing plan and what happens if an invoice is late.", "Your account"),

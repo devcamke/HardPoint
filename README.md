@@ -269,6 +269,21 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Hire agreement on the till](docs/screenshots/206-hire-at-till.png)
 
+## Phase 14: contractor jobs
+
+- **Jobs** (Sales › Jobs, or **Add a job** on a customer): a contractor's project, with their reference or LPO number,
+  the site and an optional materials budget
+- **At the till**, once the customer is chosen, a **Job** list shows their open jobs, with the budget left; the sale
+  counts towards the job and the job is printed on the receipt and the A4 tax invoice. Quotes and orders can be for a
+  job too, and carry it to the till when collected
+- **The job page** shows what it has cost against its budget (sales less returns), every material that went into it
+  product by product, its sales and returns, and open quotes. The **cost summary** PDF lists the same for the
+  contractor to keep or pass on to their own client
+- Finished jobs are closed so they stop showing at the till; the API lists jobs with their spend and filters sales
+  by job
+
+![A job's costs against its budget](docs/screenshots/211-job.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

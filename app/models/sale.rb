@@ -17,6 +17,7 @@ class Sale < ApplicationRecord
   belongs_to :voided_by, class_name: "User", optional: true
   belongs_to :credit_approver, class_name: "User", optional: true
   belongs_to :customer_order, optional: true
+  belongs_to :job, optional: true
   has_many :delivery_notes, dependent: :restrict_with_error
   has_many :stk_requests, class_name: "Mpesa::StkRequest", dependent: :destroy
   has_one :etims_submission, -> { where(kind: "sale") }, class_name: "Etims::Submission", as: :document
@@ -27,8 +28,12 @@ class Sale < ApplicationRecord
 
   money_attribute :discount, :subtotal, :tax, :total
 
-  validates_same_account :branch, :register, :shift, :customer, :customer_order
+  validates_same_account :branch, :register, :shift, :customer, :customer_order, :job
+  validate(if: :job) { errors.add :job, "must be one of the customer's jobs" unless job.customer_id == customer_id }
+  validate(if: -> { job && will_save_change_to_job_id? }) { errors.add :job, "is closed" if job.closed? }
 
+  # A job's spend changes, so API clients syncing jobs by updated_since pick it up.
+  after_update_commit -> { job&.touch }, if: -> { saved_change_to_status? && (completed? || voided?) }
   after_update_commit -> { account.refresh_dashboard_later }, if: -> { saved_change_to_status? && (completed? || voided?) }
   after_update_commit -> { Etims::Submission.queue(self, kind: completed? ? "sale" : "credit_note") }, if: -> { saved_change_to_status? && (completed? || voided?) }
 

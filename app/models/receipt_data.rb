@@ -9,7 +9,7 @@ class ReceiptData
   def as_json(*)
     { header: [ @account.name, @sale.branch.name, @sale.branch.address, (@sale.branch.phone && "Tel #{@sale.branch.phone}") ].compact_blank,
       receipt_number: @sale.receipt_number, time: I18n.l(@sale.completed_at || @sale.created_at, format: :short),
-      register: @sale.register.name, cashier: @sale.cashier.name, customer: @sale.customer&.name, voided: @sale.voided?,
+      register: @sale.register.name, cashier: @sale.cashier.name, customer: @sale.customer&.name, job: @sale.job&.label, voided: @sale.voided?,
       lines: @sale.lines.includes(:product, product_unit: :unit).map { |line| line_json(line) },
       subtotal: (amount(@sale.subtotal_cents) if @sale.discount_cents.positive?), discount: (amount(@sale.discount_cents) if @sale.discount_cents.positive?),
       total: money(@sale.total_cents), tax: money(@sale.tax_cents),

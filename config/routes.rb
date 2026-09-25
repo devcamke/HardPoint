@@ -32,6 +32,7 @@ Rails.application.routes.draw do
       resources :products, only: %i[ index show create update ]
       resources :stock_levels, only: :index
       resources :customers, only: %i[ index show create update ]
+      resources :jobs, only: %i[ index show ]
       resources :sales, only: %i[ index show ]
       resources :orders, only: %i[ index show create ] do
         resource :cancellation, only: :create, module: :orders
@@ -173,6 +174,7 @@ Rails.application.routes.draw do
       resources :products, only: :index
       resources :customers, only: :index
       resource :customer, only: :update
+      resource :job, only: :update
       resources :lines, only: %i[ create update destroy ]
       resource :discount, only: :update
       resources :payments, only: %i[ create destroy ]
@@ -214,6 +216,12 @@ Rails.application.routes.draw do
         resource :statement, only: :show
         resource :statement_email, only: :create
         resource :balance_reminder, only: :create
+      end
+    end
+    resources :jobs, except: :destroy do
+      scope module: :jobs do
+        resource :closure, only: %i[ create destroy ]
+        resource :summary, only: :show
       end
     end
     resources :customer_orders, path: "orders", except: :destroy do

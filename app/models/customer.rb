@@ -6,6 +6,7 @@ class Customer < ApplicationRecord
   belongs_to :price_list, optional: true
   has_many :sales, dependent: :restrict_with_error
   has_many :customer_orders, dependent: :restrict_with_error
+  has_many :jobs, dependent: :restrict_with_error
 
   money_attribute :credit_limit
 
