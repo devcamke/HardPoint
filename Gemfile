@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.1.3", ">= 8.1.3.1"
+gem "rails", "~> 8.1.4"
 # json 3.0 changed JSON.parse's signature and Active Support 8.1.3.1 isn't compatible yet.
 gem "json", "~> 2.21"
 
