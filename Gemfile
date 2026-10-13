@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.1.3", ">= 8.1.3.1"
+gem "rails", "~> 8.1.4"
 # json 3.0 changed JSON.parse's signature and Active Support 8.1.3.1 isn't compatible yet.
 gem "json", "~> 2.21"
 
@@ -11,7 +11,7 @@ gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 3.2"
 
 # Uploads on S3-compatible object storage once there's more than one web server [docs/RUNBOOK.md]
-gem "aws-sdk-s3", "~> 1.232", require: false
+gem "aws-sdk-s3", "~> 1.233", require: false
 # Barcode images for shelf labels.
 gem "barby", "~> 0.7"
 # Product spreadsheets. CSV is Ruby's own library but ships as a separate gem since Ruby 3.4.
@@ -24,7 +24,7 @@ gem "rubyzip", "~> 3.2", require: "zip"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record
-gem "pg", "~> 1.1"
+gem "pg", "~> 1.7"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
