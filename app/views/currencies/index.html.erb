@@ -4,7 +4,8 @@
 <p class="text-sm"><%= link_to "← Settings", settings_path, class: "link" %></p>
 <h1 class="mt-2 mb-2 text-3xl font-bold">Currencies</h1>
 <p class="hint mb-6 max-w-2xl">Other currencies you take at the till or buy in, and what one unit is worth in <%= base %>. Update the rate when your
-  bureau or bank's changes; each payment and order keeps the rate it used. Change for foreign notes is given in <%= base %>.</p>
+  bureau or bank's changes, or let it follow the market rate HardPoint fetches each morning, less a margin for your risk. A move of more than
+  <%= ExchangeRates::HOLD_PERCENT %>% in a day waits for you to apply it. Each payment and order keeps the rate it used. Change for foreign notes is given in <%= base %>.</p>
 
 <div class="card mb-6 overflow-x-auto">
   <% if @currencies.any? %>
@@ -27,6 +28,27 @@
                 1 <%= currency.code %> = <%= currency.rate.to_d.round(6).to_s("F") %> <%= base %>
               <% end %>
               <p class="hint mt-1">1 <%= base %> = <%= (1 / currency.rate.to_d).round(4).to_s("F") %> <%= currency.code %></p>
+              <% if currency.market_rate %>
+                <p class="mt-2 text-sm">Market <%= currency.market_rate_on&.strftime("%-d %b") %>: <span class="tabular-nums"><%= currency.market_rate.to_d.round(4).to_s("F") %></span>
+                  <% if currency.held_rate %>
+                    <span class="mt-1 block rounded-md bg-amber-50 px-2 py-1 text-amber-900">Not applied: <%= currency.held_rate.to_d.round(4).to_s("F") %> is more than
+                      <%= ExchangeRates::HOLD_PERCENT %>% from your rate.
+                      <%= button_to "Use it", currency_market_rate_path(currency), class: "link", form_class: "inline" if current_membership.approver? %></span>
+                  <% elsif !currency.follows_market? && current_membership.approver? %>
+                    · <%= button_to "Use #{currency.followed_rate.round(4).to_s("F")}", currency_market_rate_path(currency), class: "link", form_class: "inline" %>
+                  <% end %></p>
+              <% end %>
+              <% if current_membership.approver? %>
+                <%= form_with model: currency, class: "mt-2 flex flex-wrap items-center gap-2 text-sm", data: { controller: "auto-submit" } do |form| %>
+                  <%= form.hidden_field :rate, value: currency.rate %>
+                  <%= form.hidden_field :accepted_at_till, value: currency.accepted_at_till %>
+                  <label class="flex items-center gap-1"><%= form.check_box :follows_market, class: "size-4 accent-safety-500", data: { action: "change->auto-submit#submit" } %> Follow the daily rate, less</label>
+                  <%= form.number_field :margin_percent, value: plain_number(currency.margin_percent), step: "any", min: 0, max: 49, class: "input w-16 py-0.5 text-right",
+                        "aria-label": "Margin below the market rate for #{currency.code}", data: { action: "change->auto-submit#submit" } %> %
+                <% end %>
+              <% elsif currency.follows_market? %>
+                <p class="hint mt-1">Follows the daily rate<%= ", less #{plain_number(currency.margin_percent)}%" if currency.margin_percent.positive? %></p>
+              <% end %>
             </td>
             <td>
               <% if current_membership.approver? %>
@@ -38,7 +60,7 @@
                 <%= currency.accepted_at_till? ? "Yes" : "No" %>
               <% end %>
             </td>
-            <td class="text-sm text-steel-600"><%= l(currency.updated_at, format: :short) %><%= " by #{currency.updater.name}" if currency.updater %></td>
+            <td class="text-sm text-steel-600"><%= l(currency.updated_at, format: :short) %><%= currency.updater ? " by #{currency.updater.name}" : (" by the daily rate" if currency.follows_market?) %></td>
             <td class="text-right"><%= button_to "Remove", currency, method: :delete, class: "link text-sm", form: { data: { turbo_confirm: "Stop using #{currency.code}? Past payments keep their rate." } } if current_membership.approver? %></td>
           </tr>
         <% end %>

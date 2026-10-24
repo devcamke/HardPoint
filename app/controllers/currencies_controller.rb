@@ -1,5 +1,6 @@
 # The other currencies a shop takes or buys in, and today's rates. Owners and managers keep the
-# rates up to date; every change is in the activity log, and past payments keep their own rate.
+# rates up to date, by hand or by following the daily market rate; every change is in the activity
+# log, and past payments keep their own rate.
 class CurrenciesController < ApplicationController
   before_action :ensure_approver, except: :index
   before_action :set_currency, only: %i[ update destroy ]
@@ -43,6 +44,6 @@ class CurrenciesController < ApplicationController
     end
 
     def currency_params
-      params.expect(currency: %i[ code rate accepted_at_till ]).tap { _1.delete(:code) if @currency&.persisted? }
+      params.expect(currency: %i[ code rate accepted_at_till follows_market margin_percent ]).tap { _1.delete(:code) if @currency&.persisted? }
     end
 end

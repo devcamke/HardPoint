@@ -240,7 +240,9 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :currencies, only: %i[ index create update destroy ]
+    resources :currencies, only: %i[ index create update destroy ] do
+      resource :market_rate, only: :create, module: :currencies
+    end
     resources :promotions
     resource :loyalty_program, path: "loyalty", only: %i[ edit update ]
     resources :jobs, except: :destroy do

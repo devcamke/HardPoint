@@ -29,6 +29,11 @@ production:
     class: Etims::RetryJob
     schedule: every 5 minutes
 
+  # The day's market exchange rates; 06:30 in Nairobi, after the feed's daily update.
+  exchange_rates:
+    class: ExchangeRatesJob
+    schedule: every day at 3:30am
+
   # Loyalty points that have run out, and texts warning of points about to; 06:00 in Nairobi.
   loyalty_expiry:
     class: LoyaltyExpiryJob

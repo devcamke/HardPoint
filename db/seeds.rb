@@ -302,9 +302,12 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
 
     # Foreign currencies: dollars and Ugandan shillings at the till (a border-town trade), and an importer who invoices
     # in dollars, with an order on its way.
-    account.currencies.create!(code: "USD", rate: 129.5)
-    account.currencies.create!(code: "UGX", rate: 0.0348)
-    account.currencies.create!(code: "CNY", rate: 18.1, accepted_at_till: false)
+    # This morning's market rates as the feed would give them: dollars follow it less 1.5%, shillings and
+    # yuan are set by hand, and the yuan's market rate is one click away.
+    today = Date.current
+    account.currencies.create!(code: "USD", rate: 129.5, market_rate: 129.38, market_rate_on: today, follows_market: true, margin_percent: 1.5)
+    account.currencies.create!(code: "UGX", rate: 0.0348, market_rate: 0.03512, market_rate_on: today)
+    account.currencies.create!(code: "CNY", rate: 18.1, accepted_at_till: false, market_rate: 18.21, market_rate_on: today)
     importer = account.suppliers.create!(name: "Guangzhou Hardware Export Co.", contact_name: "Lily Chen", email: "sales@gz-hardware.test",
       currency: "USD", payment_terms_days: 60, address: "Baiyun District, Guangzhou")
     import_order = account.purchase_orders.create!(supplier: importer, branch: main, expected_on: 21.days.from_now.to_date, note: "FOB Guangzhou, by sea to Mombasa",

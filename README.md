@@ -458,6 +458,16 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![A materials bill for the contractor's client](docs/screenshots/307-client-bill-pdf.png)
 
+## Phase 28: the daily exchange rate
+
+- **Each morning** a job fetches market rates from a public feed (open.er-api.com by default, one request per home
+  currency for all shops) and shows the market rate under each of the shop's currencies
+- **Following the market:** a currency can follow the daily rate less a margin (1.5% off the dollar, say), or take the
+  market rate once with a click; moves of more than 10% in a day are held until a manager applies them
+- A feed that's down or returns nonsense changes nothing
+
+![Currencies with the day's market rates](docs/screenshots/308-currencies-market-rates.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
@@ -548,6 +558,8 @@ Kamal deploys to a single Contabo VPS (see `config/deploy.yml`):
   before switching a device to production.
 - **SMS:** add `africas_talking: { username:, api_key:, sender_id: }` with `bin/rails credentials:edit` (username
   `sandbox` for their sandbox). Development and tests keep texts in `Sms::Outbox` and the log instead of sending them.
+- **Exchange rates:** nothing to set up; the morning job uses open.er-api.com's free feed. To use another feed with the
+  same JSON shape, add `exchange_rates_url: "https://…/%{base}"` with `bin/rails credentials:edit`.
 - **Tills:** open the till once while online on each device (that's when it keeps its offline copy). For silent browser
   printing, run Chrome with `--kiosk-printing`. For QZ Tray, install it on the till's computer, set the till to
   "Straight to the printer" with the printer's name, and (to skip QZ Tray's "allow" prompt) add a certificate and key

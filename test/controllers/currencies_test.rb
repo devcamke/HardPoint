@@ -36,6 +36,22 @@ class CurrenciesControllerTest < ActionDispatch::IntegrationTest
     assert_select "div", /Expected USD/
   end
 
+  test "managers follow the daily rate with a margin, and apply a held jump or the market rate by hand" do
+    usd = acme { Current.set(account: @account) { @account.currencies.create!(code: "USD", rate: 129.5, market_rate: 130, market_rate_on: Date.current) } }
+    sign_in_as users(:amina), account: @account
+    get currencies_path
+    assert_select "button", "Use 130.0"
+
+    patch currency_path(usd), params: { currency: { rate: "129.5", accepted_at_till: "1", follows_market: "1", margin_percent: "1.5" } }
+    assert_equal [ true, BigDecimal("128.05") ], acme { usd.reload.then { [ _1.follows_market, _1.rate ] } }
+
+    acme { usd.update_columns(held_rate: 150) }
+    get currencies_path
+    assert_select "span", /Not applied: 150.0 is more than 10%/
+    post currency_market_rate_path(usd)
+    assert_equal [ BigDecimal("150"), nil ], acme { usd.reload.then { [ _1.rate, _1.held_rate ] } }
+  end
+
   test "cashiers see rates but can't change them" do
     usd = acme { Current.set(account: @account) { @account.currencies.create!(code: "USD", rate: 129.5) } }
     sign_in_as users(:carl), account: @account

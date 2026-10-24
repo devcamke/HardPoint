@@ -695,7 +695,12 @@ CREATE TABLE public.currencies (
     accepted_at_till boolean DEFAULT true NOT NULL,
     updater_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    market_rate numeric(18,8),
+    market_rate_on date,
+    follows_market boolean DEFAULT false NOT NULL,
+    margin_percent numeric(5,2) DEFAULT 0.0 NOT NULL,
+    held_rate numeric(18,8)
 );
 
 ALTER TABLE ONLY public.currencies FORCE ROW LEVEL SECURITY;
@@ -9243,6 +9248,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261024120500'),
 ('20261024120400'),
 ('20261024120300'),
 ('20261024120200'),
