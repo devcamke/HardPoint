@@ -80,7 +80,7 @@ class PromotionsController < ApplicationController
     end
 
     def promotion_params
-      permitted = params.expect(promotion: [ :name, :kind, :percent_off, :buy_quantity, :free_quantity, :starts_on, :ends_on, :active, :product_codes,
+      permitted = params.expect(promotion: [ :name, :kind, :percent_off, :buy_quantity, :free_quantity, :bundle_quantity, :bundle_price, :starts_on, :ends_on, :active, :product_codes,
         category_ids: [], branch_ids: [] ])
       if (codes = permitted.delete(:product_codes))
         found = codes.split(/[\s,]+/).compact_blank.map { Current.account.products.find_by_code(_1) }

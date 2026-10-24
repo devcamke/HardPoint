@@ -412,6 +412,19 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Points about to expire on a customer's page](docs/screenshots/296-customer-points-expiring.png)
 
+## Phase 24: mix-and-match bundles
+
+- **A third kind of promotion:** any N of the chosen products and categories together for one price ("any 3 Stanley tools
+  for KES 3,000"), with dates and branches like the others
+- **Across the sale:** the till works bundles out over all the lines whenever the cart changes, filling them with the
+  dearest items first and sharing the saving across the lines in proportion to their cost; extra items pay full price
+- **No stacking:** a line is in one promotion at most, and a bundle only takes lines whose own promotions save less;
+  packs, hand-discounted lines and order lines stay out
+- **The offline till** works bundles out the same way (shared test cases in Ruby and JavaScript), and the server keeps
+  what it charged
+
+![A bundle across three lines at the till](docs/screenshots/300-till-bundle.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

@@ -2,7 +2,7 @@
 //   node --test test/javascript/
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { unitPrice, lineTotals, saleTotals, thousandths, promotionSaving, bestPromotion, localDay } from "../../app/javascript/offline/arithmetic.js"
+import { unitPrice, lineTotals, saleTotals, thousandths, promotionSaving, bestPromotion, bundleSavings, applyBundles, localDay } from "../../app/javascript/offline/arithmetic.js"
 import { receipt, columns, wrap, ascii, commands } from "../../app/javascript/offline/escpos.js"
 
 test("line and sale totals match the server's (SaleLine, Sale::Cart)", () => {
@@ -71,4 +71,30 @@ test("promotions: buy ten get one free, a percentage, the best one, and the date
 
   assert.deepEqual(lineTotals({ unit_price_cents: 80000, quantity: 22, tax_rate: 16, promotion_discount_cents: 160000 }), { gross: 1760000, total: 1600000, tax: 220690 })
   assert.equal(localDay("Africa/Nairobi", new Date("2026-09-24T22:30:00Z")), "2026-09-25", "the shop's day, not UTC's")
+})
+
+// The same cases as the mix-and-match tests in test/models/promotion_test.rb.
+test("bundles: any three for a price across lines, dearest first, shared by cost, only when it beats the lines' own", () => {
+  const pipe = { id: 4, category_id: 9, price_cents: 120000 }
+  const kit = { id: 5, category_id: 9, price_cents: 250000 }
+  const three = { id: 20, kind: "bundle", bundle_quantity: 3, bundle_price_cents: 400000, product_ids: [], category_ids: [ 9 ], starts_on: "2026-10-01", ends_on: "2026-10-31" }
+  const sorted = (shares) => [ ...shares ].sort((a, b) => a[0] - b[0])
+  const line = (product, quantity) => ({ product, pack: null, quantity, unit_price_cents: product.price_cents, promotion: null, promotion_discount_cents: 0 })
+
+  assert.equal(bundleSavings(three, [ line(pipe, 2) ]).size, 0, "two isn't a bundle")
+  assert.deepEqual(sorted(bundleSavings(three, [ line(pipe, 2), line(kit, 1) ])), [ [ 0, 44081 ], [ 1, 45919 ] ])
+  assert.deepEqual(sorted(bundleSavings(three, [ line(pipe, 4), line(kit, 1) ])), [ [ 0, 44081 ], [ 1, 45919 ] ], "five units: the kit and two pipes")
+  assert.equal([ ...bundleSavings(three, [ line(pipe, 5), line(kit, 1) ]).values() ].reduce((a, b) => a + b), 2 * 120000 + 250000 + 3 * 120000 - 800000)
+  assert.equal(bundleSavings(three, [ line(pipe, 5) ]).size, 0, "three pipes cost less than the bundle")
+  assert.equal(promotionSaving(three, pipe, null, 3, 120000), 0, "no saving line by line")
+
+  const lines = applyBundles([ three ], "2026-10-24", [ line(pipe, 2), line(kit, 1) ])
+  assert.deepEqual(lines.map((l) => [ l.promotion?.id, l.promotion_discount_cents ]), [ [ 20, 44081 ], [ 20, 45919 ] ])
+  assert.equal(saleTotals(lines.map((l) => ({ ...l, tax_rate: 16 }))).total, 400000)
+  assert.equal(applyBundles([ three ], "2026-11-01", [ line(pipe, 2), line(kit, 1) ])[0].promotion, null, "ended")
+
+  const thirty = { id: 21, kind: "percent_off", percent_off: 30 }
+  const own = [ { ...line(pipe, 2), promotion: thirty, promotion_discount_cents: 72000 }, { ...line(kit, 1), promotion: thirty, promotion_discount_cents: 75000 } ]
+  assert.deepEqual(applyBundles([ three ], "2026-10-24", own).map((l) => l.promotion.id), [ 21, 21 ], "1,470 off line by line beats 900")
+  assert.equal(applyBundles([ three ], "2026-10-24", [ line(pipe, 2), { ...line(kit, 1), pack: { price_cents: 250000 } } ])[0].promotion, null, "packs stay out")
 })

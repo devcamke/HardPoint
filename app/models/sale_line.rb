@@ -47,6 +47,11 @@ class SaleLine < ApplicationRecord
     self.promotion, self.promotion_discount_cents = best || [ nil, 0 ]
   end
 
+  # Whole units of a single product at the customer's price: what a mix-and-match bundle can take.
+  def bundleable?
+    product_unit_id.nil? && customer_order_line_id.nil? && discount_cents.to_i.zero? && quantity >= 1
+  end
+
   def description
     name = product_unit ? "#{product.name} (#{product_unit})" : product.name
     detail.present? ? "#{name} · #{detail}" : name

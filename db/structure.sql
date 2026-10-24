@@ -1983,7 +1983,9 @@ CREATE TABLE public.promotions (
     ends_on date NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    bundle_quantity integer,
+    bundle_price_cents bigint
 );
 
 ALTER TABLE ONLY public.promotions FORCE ROW LEVEL SECURITY;
@@ -9127,6 +9129,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261024120200'),
 ('20261024120100'),
 ('20261024120000'),
 ('20260925121300'),

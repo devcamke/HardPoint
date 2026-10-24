@@ -79,7 +79,8 @@ class PosCatalogue
       today = Date.current
       @account.promotions.where(active: true).where(ends_on: today..).where(starts_on: ..(today + PROMOTION_DAYS)).for_branch(@branch).order(:id).map do |promotion|
         promotion.slice(:id, :name, :kind, :product_ids, :category_ids).merge(offer: promotion.offer, starts_on: promotion.starts_on.iso8601, ends_on: promotion.ends_on.iso8601,
-          percent_off: promotion.percent_off&.to_f, buy_quantity: promotion.buy_quantity&.to_f, free_quantity: promotion.free_quantity&.to_f)
+          percent_off: promotion.percent_off&.to_f, buy_quantity: promotion.buy_quantity&.to_f, free_quantity: promotion.free_quantity&.to_f,
+          bundle_quantity: promotion.bundle_quantity, bundle_price_cents: promotion.bundle_price_cents)
       end
     end
 end

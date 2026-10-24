@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import * as store from "offline/store"
-import { unitPrice, bestPromotion, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
+import { unitPrice, bestPromotion, applyBundles, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
 import { printReceipt } from "offline/printer"
 
 // The offline till: sells from the catalogue snapshot on this device while the network is down.
@@ -226,17 +226,17 @@ export default class extends Controller {
     return this.element.querySelector("input[name=tender]:checked")?.value || "cash"
   }
 
-  // Prices as the server works them out: the customer's price list, then the best promotion running today.
+  // Prices as the server works them out: the customer's price list, then the best promotion running
+  // today on each line, then any mix-and-match bundle across the lines.
   pricedLines() {
     const day = localDay(this.catalogue.till.time_zone)
     const lists = this.customer?.price_list_id ? (this.catalogue.price_lists || {})[this.customer.price_list_id] || {} : {}
-    return this.cart.map((line) => {
-      const taxRate = line.product.tax_rate
+    const lines = this.cart.map((line) => {
       const unitPriceCents = unitPrice(line.product, line.pack, line.quantity, lists[line.product.id] || [])
       const best = bestPromotion(this.catalogue.promotions, day, line.product, line.pack, line.quantity, unitPriceCents)
-      const priced = { unit_price_cents: unitPriceCents, quantity: line.quantity, tax_rate: taxRate, promotion_discount_cents: best?.saving || 0 }
-      return { ...line, ...priced, promotion: best?.promotion || null, ...lineTotals(priced) }
+      return { ...line, unit_price_cents: unitPriceCents, tax_rate: line.product.tax_rate, promotion_discount_cents: best?.saving || 0, promotion: best?.promotion || null }
     })
+    return applyBundles(this.catalogue.promotions, day, lines).map((line) => ({ ...line, ...lineTotals(line) }))
   }
 
   render() {

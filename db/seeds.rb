@@ -332,6 +332,13 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     promotion_sale.pay(tender: "mobile_money", reference: "SKP9RT2M4X")
     cement_week.touch
 
+    # Mix and match: any three of the Stanley hand tools for KES 3,000, rung up with a hammer, a level and a tape.
+    account.promotions.create!(name: "Toolbox trio", kind: "bundle", bundle_quantity: 3, bundle_price_cents: 3000_00,
+      product_ids: products.values_at("TL-HAM16", "TL-TAPE5", "TL-LVL600").map(&:id), starts_on: Date.current - 3, ends_on: Date.current + 25)
+    trio_sale = till_shift.current_sale
+    %w[ TL-HAM16 TL-LVL600 TL-TAPE5 ].each { trio_sale.add(products[_1]) }
+    trio_sale.pay(tender: "cash", tendered_cents: 3000_00)
+
     # A welcome bonus for a regular, then points spent on today's paint.
     grace.loyalty_entries.create!(account: account, kind: "adjusted", points: 150, note: "Welcome to points", creator: owner)
     points_sale = till_shift.current_sale

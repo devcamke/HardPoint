@@ -36,6 +36,7 @@ module Sale::Cart
   # share of each line, scaled down by the cart discount.
   def recalculate
     lines.reload
+    apply_bundles
     self.subtotal_cents = lines.sum(&:total_cents)
     self.discount_cents = discount_cents.to_i.clamp(0, subtotal_cents)
     self.total_cents = subtotal_cents - discount_cents

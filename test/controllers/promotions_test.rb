@@ -36,6 +36,20 @@ class PromotionsControllerTest < ActionDispatch::IntegrationTest
     assert_not acme { promotion.reload.active? }, "used promotions end rather than disappear"
   end
 
+  test "a mix-and-match bundle set up by category comes off at the till across lines" do
+    sign_in_as users(:amina), account: @account
+    post promotions_path, params: { promotion: { name: "Plumbing three", kind: "bundle", bundle_quantity: "3", bundle_price: "4,000",
+      category_ids: [ categories(:acme_plumbing).id ], starts_on: Date.current, ends_on: Date.current + 7 } }
+    promotion = acme { @account.promotions.last }
+    assert_equal [ 3, 4000_00 ], [ promotion.bundle_quantity, promotion.bundle_price_cents ]
+
+    post pos_till_path, params: { register_id: registers(:acme_front).id }
+    post pos_lines_path, params: { code: "PVC-2", quantity: 2 }, as: :turbo_stream
+    post pos_lines_path, params: { code: "KIT-PLB" }, as: :turbo_stream
+    assert_equal 2, response.body.scan("Any 3 for KES 4,000.00").size
+    assert_equal 4000_00, acme { @account.sales.open.last.total_cents }
+  end
+
   test "cashiers see promotions but can't change them" do
     sign_in_as users(:carl), account: @account
     get promotions_path

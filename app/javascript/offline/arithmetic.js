@@ -17,9 +17,12 @@ export function unitPrice(product, pack, quantity, listPrices = []) {
 
 // What one promotion takes off a line (Promotion#saving_cents): a percentage comes off the shelf
 // price, so a customer whose own price is lower gets whichever is better; free items are at their price.
+function covers(promotion, product) {
+  return promotion.product_ids.includes(product.id) || (product.category_id != null && promotion.category_ids.includes(product.category_id))
+}
+
 export function promotionSaving(promotion, product, pack, quantity, unitPriceCents) {
-  const covered = promotion.product_ids.includes(product.id) || (product.category_id != null && promotion.category_ids.includes(product.category_id))
-  if (!covered || !(thousandths(quantity) > 0)) return 0
+  if (promotion.kind === "bundle" || !covers(promotion, product) || !(thousandths(quantity) > 0)) return 0
 
   if (promotion.kind === "percent_off") {
     const shelf = pack ? pack.price_cents : product.price_cents
@@ -39,6 +42,55 @@ export function bestPromotion(promotions, day, product, pack, quantity, unitPric
     if (saving > 0 && (!best || saving > best.saving)) best = { promotion, saving }
   }
   return best
+}
+
+// What a mix-and-match bundle takes off the lines given (Promotion#bundle_savings): a Map of line
+// index => cents, empty if no bundle is complete or it saves nothing. Dearest units fill the bundles;
+// the saving is shared by what each line's bundled units cost, odd cents to the biggest contributors.
+// Lines are { product, pack, quantity, unit_price_cents }.
+export function bundleSavings(promotion, lines, indexes = lines.map((_, index) => index)) {
+  const eligible = indexes.filter((index) => covers(promotion, lines[index].product))
+  const wholeUnits = (index) => Math.floor(thousandths(lines[index].quantity) / 1000)
+  const bundles = Math.floor(eligible.reduce((sum, index) => sum + wholeUnits(index), 0) / promotion.bundle_quantity)
+  const shares = new Map()
+  if (bundles === 0) return shares
+
+  let left = bundles * promotion.bundle_quantity
+  const taken = []
+  eligible.map((index, order) => ({ index, order })).sort((a, b) => lines[b.index].unit_price_cents - lines[a.index].unit_price_cents || a.order - b.order)
+    .forEach(({ index }) => {
+      const take = Math.min(wholeUnits(index), left)
+      left -= take
+      if (take > 0) taken.push({ index, cost: take * lines[index].unit_price_cents })
+    })
+  const value = taken.reduce((sum, { cost }) => sum + cost, 0)
+  const saving = value - bundles * promotion.bundle_price_cents
+  if (saving <= 0) return shares
+
+  taken.forEach(({ index, cost }) => shares.set(index, Math.floor(saving * cost / value)))
+  const odd = saving - [ ...shares.values() ].reduce((sum, cents) => sum + cents, 0)
+  taken.map((entry, order) => ({ ...entry, order })).sort((a, b) => b.cost - a.cost || a.order - b.order).slice(0, odd)
+    .forEach(({ index }) => shares.set(index, shares.get(index) + 1))
+  return shares
+}
+
+// Bundles running on this day, oldest first, over lines already given their own best promotion
+// ({ promotion, promotion_discount_cents }), as Sale::Bundles does: a bundle takes the lines it covers
+// when it saves more than their own promotions. Returns the lines with promotions changed.
+export function applyBundles(promotions, day, lines) {
+  const result = lines.map((line) => ({ ...line }))
+  const claimed = new Set()
+  const bundles = (promotions || []).filter((promotion) => promotion.kind === "bundle" && promotion.starts_on <= day && promotion.ends_on >= day)
+  bundles.sort((a, b) => a.id - b.id).forEach((promotion) => {
+    const open = result.map((line, index) => index).filter((index) => !claimed.has(index) && !result[index].pack && thousandths(result[index].quantity) >= 1000)
+    const shares = bundleSavings(promotion, result, open)
+    const bundled = [ ...shares.values() ].reduce((sum, cents) => sum + cents, 0)
+    const own = [ ...shares.keys() ].reduce((sum, index) => sum + (result[index].promotion_discount_cents || 0), 0)
+    if (shares.size === 0 || bundled <= own) return
+
+    shares.forEach((cents, index) => { result[index] = { ...result[index], promotion, promotion_discount_cents: cents }; claimed.add(index) })
+  })
+  return result
 }
 
 // Today's date where the shop is, as the server counts days.

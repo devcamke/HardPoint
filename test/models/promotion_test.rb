@@ -71,4 +71,57 @@ class PromotionTest < ActiveSupport::TestCase
     assert_includes invalid.errors.attribute_names, :buy_quantity
     assert_not accounts(:acme).promotions.new(name: "X", kind: "percent_off", percent_off: 10, product_ids: [ bolt.id ], starts_on: Date.current, ends_on: Date.current).valid?
   end
+
+  # The same cases as the bundle test in test/javascript/offline_test.mjs.
+  test "mix and match: any three for a price, across lines, dearest units first, saving shared by cost" do
+    @pipe, @kit = products(:acme_pipe), products(:acme_plumbing_kit) # 1,200.00 and 2,500.00
+    bundle = promote(name: "Plumbing three", kind: "bundle", bundle_quantity: 3, bundle_price: "4000", category_ids: [ @pipe.category_id ])
+    assert_equal "Any 3 for KES 4,000.00", bundle.offer
+    sale = @shift.current_sale
+
+    pipes = sale.add(@pipe, quantity: 2)
+    assert_equal 0, pipes.reload.promotion_discount_cents, "two isn't a bundle"
+
+    kit = sale.add(@kit)
+    pipes.reload
+    assert_equal [ bundle, bundle ], [ pipes.promotion, kit.reload.promotion ]
+    assert_equal [ 440_81, 459_19 ], [ pipes.promotion_discount_cents, kit.promotion_discount_cents ], "900.00 shared 2,400 : 2,500, the odd cent to the kit"
+    assert_equal 4000_00, sale.reload.total_cents
+
+    sale.add(@pipe, quantity: 2) # five units: one bundle, of the kit and two pipes; two pipes at full price
+    assert_equal [ 440_81, 459_19 ], [ pipes.reload.promotion_discount_cents, kit.reload.promotion_discount_cents ]
+    assert_equal 4000_00 + 2 * 1200_00, sale.reload.total_cents
+
+    sale.add(@pipe) # six units: two bundles
+    assert_equal 8000_00, sale.reload.total_cents
+
+    sale.lines.find_by(product: @kit).destroy
+    sale.recalculate
+    assert_equal [ nil, 0 ], [ pipes.reload.promotion, pipes.promotion_discount_cents ], "three pipes cost less than the bundle: nothing off"
+  end
+
+  test "a bundle only takes lines from their own promotions when it saves more; hand discounts and packs stay out" do
+    @pipe, @kit = products(:acme_pipe), products(:acme_plumbing_kit)
+    bundle = promote(kind: "bundle", bundle_quantity: 3, bundle_price: "4000", category_ids: [ @pipe.category_id ])
+    sale = @shift.current_sale
+    pipes = sale.add(@pipe, quantity: 2)
+    kit = sale.add(@kit)
+
+    thirty = promote(name: "Thirty off", kind: "percent_off", percent_off: 30, category_ids: [ @pipe.category_id ])
+    accounts(:acme).forget_running_promotions
+    sale = Sale.find(sale.id)
+    sale.lines.each(&:reprice).each(&:save!)
+    sale.recalculate
+    assert_equal [ thirty, thirty ], [ pipes.reload.promotion, kit.reload.promotion ], "1,470 off line by line beats 900 off as a bundle"
+
+    thirty.update!(active: false)
+    sale = Sale.find(sale.id)
+    sale.lines.each(&:reprice).each(&:save!)
+    sale.recalculate
+    assert_equal bundle, kit.reload.promotion
+
+    kit.update!(discount_cents: 100_00)
+    sale.recalculate
+    assert_equal [ nil, nil ], [ pipes.reload.promotion, kit.reload.promotion ], "with a hand discount the kit is out, and two pipes aren't a bundle"
+  end
 end

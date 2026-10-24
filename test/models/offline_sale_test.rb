@@ -102,6 +102,20 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_match "Last week wasn't running", result.sale.offline_warnings.to_sentence
   end
 
+  test "a bundle the offline till worked out is kept as the till charged it" do
+    bundle = accounts(:acme).promotions.create!(name: "Plumbing three", kind: "bundle", bundle_quantity: 3, bundle_price_cents: 4000_00,
+      category_ids: [ categories(:acme_plumbing).id ], starts_on: Date.yesterday, ends_on: Date.tomorrow)
+    result = record(payload(lines: [
+      { product_id: products(:acme_pipe).id, quantity: "2", unit_price_cents: 1200_00, promotion_id: bundle.id, promotion_discount_cents: 440_81 },
+      { product_id: products(:acme_plumbing_kit).id, quantity: "1", unit_price_cents: 2500_00, promotion_id: bundle.id, promotion_discount_cents: 459_19 } ],
+      payments: [ { tender: "cash", tendered_cents: 4000_00 } ], total_cents: 4000_00))
+    assert_equal "recorded", result.status
+    assert_no_match "Plumbing three", result.sale.offline_warnings.to_sentence
+    assert_equal [ 440_81, 459_19 ], result.sale.lines.order(:id).map(&:promotion_discount_cents)
+    assert_includes PosCatalogue.new(shift: @shift, user: users(:carl)).as_json[:promotions].map { _1.slice(:kind, :bundle_quantity, :bundle_price_cents) },
+      { "kind" => "bundle", "bundle_quantity" => 3, "bundle_price_cents" => 4000_00 }
+  end
+
   test "the catalogue carries customers, their price lists and promotions coming up" do
     accounts(:acme).promotions.create!(name: "Soon", kind: "percent_off", percent_off: 5, category_ids: [ categories(:acme_building).id ],
       starts_on: Date.current + 3, ends_on: Date.current + 10)
