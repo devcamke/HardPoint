@@ -13,6 +13,7 @@
       <%= link_to "Record payment", new_supplier_payment_path(@supplier), class: "btn-secondary" %>
     <% end %>
     <% if current_membership.can_purchase? %>
+      <%= link_to "Return goods", new_supplier_return_path(supplier_id: @supplier.id), class: "btn-secondary" %>
       <%= link_to "Edit", edit_supplier_path(@supplier), class: "btn-secondary" %>
       <%= link_to "New order", new_purchase_order_path(supplier_id: @supplier.id), class: "btn-primary" %>
     <% end %>
@@ -112,6 +113,13 @@
         <h3 class="mt-4 mb-2 text-sm font-semibold text-steel-600">Recent payments</h3>
         <% @payments.each do |payment| %>
           <p class="flex justify-between text-sm"><span><%= l(payment.paid_on, format: :short) %> · <%= payment.payment_method.humanize %><%= " · #{payment.reference}" if payment.reference.present? %></span><span class="tabular-nums"><%= money(payment.amount_cents, currency: @supplier.currency_code) %></span></p>
+        <% end %>
+      <% end %>
+      <% if @returns.any? %>
+        <h3 class="mt-4 mb-2 text-sm font-semibold text-steel-600">Goods sent back</h3>
+        <% @returns.each do |supplier_return| %>
+          <p class="flex justify-between text-sm"><span><%= link_to supplier_return.reference, supplier_return, class: "link font-mono" %> · <%= l(supplier_return.created_at.to_date, format: :short) %> · <%= supplier_return.reason.humanize %>
+            <%= tag.span("· credited", class: "text-green-700") if supplier_return.credited? %></span><span class="tabular-nums">−<%= money(supplier_return.total_cents, currency: @supplier.currency_code) %></span></p>
         <% end %>
       <% end %>
     </section>

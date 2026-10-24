@@ -1,0 +1,12 @@
+Hello <%= @return.supplier.contact_name.presence || @return.supplier.name %>,
+
+<%= @account.name %> (<%= @return.branch.name %>) has returned the goods below<%= " from delivery #{@return.goods_receipt.reference}" if @return.goods_receipt %>, because they were <%= @return.reason.humanize.downcase %>. The debit note is attached as a PDF.
+
+<% @return.lines.includes(product: :unit).each do |line| %>
+- <%= line.product.name %>: <%= quantity(line.quantity, line.product.unit) %>, <%= money(line.total_cents, currency: @return.currency) %>
+<% end %>
+
+To be credited, incl. VAT: <%= money(@return.total_cents, currency: @return.currency) %>
+<% if @return.note.present? %>Note: <%= @return.note %><% end %>
+
+Please send a credit note quoting <%= @return.reference %>. Reply to this email with any questions.

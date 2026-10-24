@@ -2917,6 +2917,90 @@ ALTER SEQUENCE public.supplier_products_id_seq OWNED BY public.supplier_products
 
 
 --
+-- Name: supplier_return_lines; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.supplier_return_lines (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    supplier_return_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    stock_batch_id bigint,
+    quantity numeric(14,3) NOT NULL,
+    unit_cost_cents bigint NOT NULL,
+    tax_rate numeric(5,2) DEFAULT 0.0 NOT NULL,
+    total_cents bigint DEFAULT 0 NOT NULL,
+    tax_cents bigint DEFAULT 0 NOT NULL
+);
+
+ALTER TABLE ONLY public.supplier_return_lines FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: supplier_return_lines_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.supplier_return_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: supplier_return_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.supplier_return_lines_id_seq OWNED BY public.supplier_return_lines.id;
+
+
+--
+-- Name: supplier_returns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.supplier_returns (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    supplier_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    goods_receipt_id bigint,
+    creator_id bigint,
+    number integer NOT NULL,
+    reason character varying NOT NULL,
+    note character varying,
+    total_cents bigint DEFAULT 0 NOT NULL,
+    tax_cents bigint DEFAULT 0 NOT NULL,
+    exchange_rate numeric(18,8),
+    credit_note_number character varying,
+    credited_on date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.supplier_returns FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: supplier_returns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.supplier_returns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: supplier_returns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.supplier_returns_id_seq OWNED BY public.supplier_returns.id;
+
+
+--
 -- Name: suppliers; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3693,6 +3777,20 @@ ALTER TABLE ONLY public.supplier_products ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: supplier_return_lines id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_return_lines ALTER COLUMN id SET DEFAULT nextval('public.supplier_return_lines_id_seq'::regclass);
+
+
+--
+-- Name: supplier_returns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_returns ALTER COLUMN id SET DEFAULT nextval('public.supplier_returns_id_seq'::regclass);
+
+
+--
 -- Name: suppliers id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4323,6 +4421,22 @@ ALTER TABLE ONLY public.supplier_payments
 
 ALTER TABLE ONLY public.supplier_products
     ADD CONSTRAINT supplier_products_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: supplier_return_lines supplier_return_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_return_lines
+    ADD CONSTRAINT supplier_return_lines_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: supplier_returns supplier_returns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_returns
+    ADD CONSTRAINT supplier_returns_pkey PRIMARY KEY (id);
 
 
 --
@@ -6097,6 +6211,69 @@ CREATE UNIQUE INDEX index_supplier_products_on_supplier_id_and_product_id ON pub
 
 
 --
+-- Name: index_supplier_return_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_return_lines_on_account_id ON public.supplier_return_lines USING btree (account_id);
+
+
+--
+-- Name: index_supplier_return_lines_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_return_lines_on_product_id ON public.supplier_return_lines USING btree (product_id);
+
+
+--
+-- Name: index_supplier_return_lines_on_stock_batch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_return_lines_on_stock_batch_id ON public.supplier_return_lines USING btree (stock_batch_id);
+
+
+--
+-- Name: index_supplier_return_lines_on_supplier_return_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_return_lines_on_supplier_return_id ON public.supplier_return_lines USING btree (supplier_return_id);
+
+
+--
+-- Name: index_supplier_returns_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_returns_on_account_id_and_created_at ON public.supplier_returns USING btree (account_id, created_at);
+
+
+--
+-- Name: index_supplier_returns_on_branch_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_supplier_returns_on_branch_id_and_number ON public.supplier_returns USING btree (branch_id, number);
+
+
+--
+-- Name: index_supplier_returns_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_returns_on_creator_id ON public.supplier_returns USING btree (creator_id);
+
+
+--
+-- Name: index_supplier_returns_on_goods_receipt_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_returns_on_goods_receipt_id ON public.supplier_returns USING btree (goods_receipt_id);
+
+
+--
+-- Name: index_supplier_returns_on_supplier_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_supplier_returns_on_supplier_id ON public.supplier_returns USING btree (supplier_id);
+
+
+--
 -- Name: index_suppliers_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6186,6 +6363,14 @@ CREATE INDEX index_webhook_endpoints_on_creator_id ON public.webhook_endpoints U
 
 ALTER TABLE ONLY public.webhook_deliveries
     ADD CONSTRAINT fk_rails_001f6484db FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_return_lines fk_rails_016feda90d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_return_lines
+    ADD CONSTRAINT fk_rails_016feda90d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -6293,6 +6478,14 @@ ALTER TABLE ONLY public.stock_transfer_lines
 
 
 --
+-- Name: supplier_returns fk_rails_13b907b733; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_returns
+    ADD CONSTRAINT fk_rails_13b907b733 FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
 -- Name: billing_payments fk_rails_13e984c3e1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6338,6 +6531,14 @@ ALTER TABLE ONLY public.shifts
 
 ALTER TABLE ONLY public.events
     ADD CONSTRAINT fk_rails_15c34a9137 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_returns fk_rails_163d8fe89d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_returns
+    ADD CONSTRAINT fk_rails_163d8fe89d FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
 
 
 --
@@ -6661,11 +6862,27 @@ ALTER TABLE ONLY public.stock_adjustments
 
 
 --
+-- Name: supplier_returns fk_rails_4c004e53ce; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_returns
+    ADD CONSTRAINT fk_rails_4c004e53ce FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: kit_components fk_rails_4c258499d2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.kit_components
     ADD CONSTRAINT fk_rails_4c258499d2 FOREIGN KEY (component_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_return_lines fk_rails_4c3aa4fab1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_return_lines
+    ADD CONSTRAINT fk_rails_4c3aa4fab1 FOREIGN KEY (supplier_return_id) REFERENCES public.supplier_returns(id) DEFERRABLE;
 
 
 --
@@ -6826,6 +7043,14 @@ ALTER TABLE ONLY public.delivery_notes
 
 ALTER TABLE ONLY public.sale_returns
     ADD CONSTRAINT fk_rails_5d56732d50 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_returns fk_rails_5d8d57d505; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_returns
+    ADD CONSTRAINT fk_rails_5d8d57d505 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -7157,6 +7382,14 @@ ALTER TABLE ONLY public.supplier_products
 
 
 --
+-- Name: supplier_return_lines fk_rails_9215d8852f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_return_lines
+    ADD CONSTRAINT fk_rails_9215d8852f FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
 -- Name: sale_returns fk_rails_94137afb72; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7261,6 +7494,14 @@ ALTER TABLE ONLY public.document_sequences
 
 
 --
+-- Name: supplier_return_lines fk_rails_9b83686bae; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_return_lines
+    ADD CONSTRAINT fk_rails_9b83686bae FOREIGN KEY (stock_batch_id) REFERENCES public.stock_batches(id) DEFERRABLE;
+
+
+--
 -- Name: product_imports fk_rails_9c4c03515c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7290,6 +7531,14 @@ ALTER TABLE ONLY public.goods_receipt_lines
 
 ALTER TABLE ONLY public.units
     ADD CONSTRAINT fk_rails_a04853fc0a FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: supplier_returns fk_rails_a07fee7e1a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.supplier_returns
+    ADD CONSTRAINT fk_rails_a07fee7e1a FOREIGN KEY (goods_receipt_id) REFERENCES public.goods_receipts(id) DEFERRABLE;
 
 
 --
@@ -8387,6 +8636,20 @@ CREATE POLICY account_isolation ON public.supplier_products USING (((current_set
 
 
 --
+-- Name: supplier_return_lines account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.supplier_return_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: supplier_returns account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.supplier_returns USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: suppliers account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -8807,6 +9070,18 @@ ALTER TABLE public.supplier_payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.supplier_products ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: supplier_return_lines; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.supplier_return_lines ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: supplier_returns; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.supplier_returns ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: suppliers; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8849,6 +9124,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261024120000'),
 ('20260925121300'),
 ('20260925121200'),
 ('20260925121100'),

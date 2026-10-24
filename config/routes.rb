@@ -322,6 +322,12 @@ Rails.application.routes.draw do
     resources :goods_receipts, only: %i[ index new create show ]
     resource :reorder_suggestions, only: :show
     resources :supplier_invoices, only: %i[ index new create show ]
+    resources :supplier_returns, only: %i[ index new create show ] do
+      scope module: :supplier_returns do
+        resource :credit_note, only: :create
+        resource :email, only: :create
+      end
+    end
     resource :payables, only: :show
     root "dashboards#show"
   end

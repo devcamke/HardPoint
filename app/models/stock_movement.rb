@@ -3,7 +3,7 @@ class StockMovement < ApplicationRecord
   include AccountOwned
 
   REASONS = %w[ opening received sold returned found damaged stolen expired internal_use correction
-                transfer_out transfer_in transfer_returned count ].freeze
+                transfer_out transfer_in transfer_returned count returned_to_supplier ].freeze
 
   belongs_to :branch
   belongs_to :product

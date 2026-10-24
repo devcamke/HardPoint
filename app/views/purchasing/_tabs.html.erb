@@ -1,6 +1,6 @@
 <nav class="mb-6 flex flex-wrap gap-x-6 gap-y-2 border-b border-concrete-200 text-sm">
   <% tabs = []
-     tabs += [ [ "Orders", purchase_orders_path ], [ "Receiving", goods_receipts_path ], [ "Reorder suggestions", reorder_suggestions_path ] ] if current_membership.can_purchase?
+     tabs += [ [ "Orders", purchase_orders_path ], [ "Receiving", goods_receipts_path ], [ "Returns", supplier_returns_path ], [ "Reorder suggestions", reorder_suggestions_path ] ] if current_membership.can_purchase?
      tabs << [ "Suppliers", suppliers_path ]
      tabs += [ [ "Invoices", supplier_invoices_path ], [ "What we owe", payables_path ] ] if current_membership.can_manage_payables? %>
   <% tabs.each do |name, path| %>

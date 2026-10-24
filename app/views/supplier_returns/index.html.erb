@@ -1,0 +1,37 @@
+<% content_for :title, "Returns to suppliers" %>
+
+<div class="mb-4 flex items-center justify-between">
+  <h1 class="text-3xl font-bold">Purchasing</h1>
+  <%= link_to "Return goods", new_supplier_return_path, class: "btn-primary" if current_membership.can_purchase? %>
+</div>
+<%= render "purchasing/tabs" %>
+
+<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter">
+  <%= link_to "Waiting for a credit note", supplier_returns_path, class: "rounded-full px-3 py-1 #{@filter == "awaiting" ? "bg-navy-900 text-white" : "bg-white"}" %>
+  <%= link_to "All", supplier_returns_path(filter: "all"), class: "rounded-full px-3 py-1 #{@filter == "all" ? "bg-navy-900 text-white" : "bg-white"}" %>
+</nav>
+
+<div class="card overflow-x-auto">
+  <% if @supplier_returns.any? %>
+    <table class="table">
+      <thead><tr><th>Debit note</th><th>Supplier</th><th>From</th><th>Date</th><th>Reason</th><th class="text-right">Amount</th><th>Credit note</th></tr></thead>
+      <tbody>
+        <% @supplier_returns.each do |supplier_return| %>
+          <tr id="<%= dom_id(supplier_return) %>">
+            <td><%= link_to supplier_return.reference, supplier_return, class: "link font-mono" %></td>
+            <td><%= supplier_return.supplier.name %></td>
+            <td><%= supplier_return.branch.name %></td>
+            <td class="whitespace-nowrap"><%= l(supplier_return.created_at.to_date, format: :short) %></td>
+            <td><%= supplier_return.reason.humanize %></td>
+            <td class="text-right tabular-nums"><%= money(supplier_return.total_cents, currency: supplier_return.currency) %></td>
+            <td><%= supplier_return.credited? ? tag.span(supplier_return.credit_note_number, class: "font-mono text-sm") : tag.span("Waiting", class: "badge bg-safety-100 text-safety-800") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <%= render "shared/pagination" %>
+  <% else %>
+    <p class="text-steel-600"><%= @filter == "awaiting" ? "Every return has its credit note." : "Nothing sent back to suppliers yet." %>
+      Damaged or wrong goods go back with a debit note, from the delivery they came on or by scanning them.</p>
+  <% end %>
+</div>

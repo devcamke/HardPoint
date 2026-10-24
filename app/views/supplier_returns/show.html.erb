@@ -1,0 +1,53 @@
+<% content_for :title, @supplier_return.reference %>
+<% supplier_return = @supplier_return %>
+<% currency = supplier_return.currency %>
+
+<p class="text-sm"><%= link_to "← Returns", supplier_returns_path, class: "link" %></p>
+<div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-bold">Debit note <%= supplier_return.reference %>
+      <%= supplier_return.credited? ? tag.span("Credited", class: "badge align-middle bg-green-50 text-green-800") : tag.span("Waiting for credit note", class: "badge align-middle bg-safety-100 text-safety-800") %></h1>
+    <p class="hint mt-1"><%= link_to supplier_return.supplier.name, supplier_return.supplier, class: "link" %> · from <%= supplier_return.branch.name %> ·
+      <%= l(supplier_return.created_at, format: :long) %> · <%= supplier_return.creator&.name %> · <%= supplier_return.reason.humanize %>
+      <%= tag.span("· delivery ") + link_to(supplier_return.goods_receipt.reference, supplier_return.goods_receipt, class: "link") if supplier_return.goods_receipt %></p>
+    <%= tag.p(supplier_return.note, class: "mt-1 text-sm") if supplier_return.note.present? %>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "PDF", supplier_return_path(supplier_return, format: :pdf), target: "_blank", class: "btn-secondary" %>
+    <%= button_to "Email to supplier", supplier_return_email_path(supplier_return), class: "btn-secondary" if current_membership.can_purchase? && supplier_return.supplier.email.present? %>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="card lg:col-span-2">
+    <table class="table">
+      <thead><tr><th>Item</th><th class="text-right">Quantity</th><th class="text-right">Unit cost</th><th class="text-right">VAT</th><th class="text-right">Total</th></tr></thead>
+      <tbody>
+        <% supplier_return.lines.includes(:stock_batch, product: :unit).each do |line| %>
+          <tr><td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %><%= tag.span(" · batch #{line.stock_batch.number}", class: "font-mono text-xs text-steel-600") if line.stock_batch %></td>
+            <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
+            <td class="text-right tabular-nums"><%= money(line.unit_cost_cents, currency: currency) %></td>
+            <td class="text-right tabular-nums"><%= money(line.tax_cents, currency: currency) %></td>
+            <td class="text-right tabular-nums"><%= money(line.total_cents, currency: currency) %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p class="mt-3 text-right text-lg font-bold">To be credited <%= money(supplier_return.total_cents, currency: currency) %></p>
+    <p class="hint text-right">including VAT <%= money(supplier_return.tax_cents, currency: currency) %>; already off what we owe <%= supplier_return.supplier.name %></p>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-2 text-lg font-semibold">Supplier's credit note</h2>
+    <% if supplier_return.credited? %>
+      <p><span class="font-mono"><%= supplier_return.credit_note_number %></span> · <%= l(supplier_return.credited_on, format: :long) %></p>
+    <% elsif current_membership.can_purchase? || current_membership.can_manage_payables? %>
+      <%= form_with url: supplier_return_credit_note_path(supplier_return), class: "space-y-3" do |form| %>
+        <div class="field"><%= form.label :credit_note_number, "Their credit note number", class: "label" %><%= form.text_field :credit_note_number, required: true, class: "input font-mono" %></div>
+        <div class="field"><%= form.label :credited_on, "Dated", class: "label" %><%= form.date_field :credited_on, value: Date.current, class: "input" %></div>
+        <%= form.submit "Note it", class: "btn-primary" %>
+      <% end %>
+    <% else %>
+      <p class="hint">Not received yet.</p>
+    <% end %>
+  </section>
+</div>

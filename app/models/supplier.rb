@@ -37,7 +37,7 @@ class Supplier < ApplicationRecord
   end
 
   def trading?
-    purchase_orders.exists? || supplier_invoices.exists? || supplier_payments.exists?
+    purchase_orders.exists? || supplier_invoices.exists? || supplier_payments.exists? || supplier_returns.exists?
   end
 
   scope :active, -> { where(active: true) }

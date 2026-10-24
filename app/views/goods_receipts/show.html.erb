@@ -10,9 +10,12 @@
       <%= tag.span("· for ") + link_to(receipt.purchase_order.reference, receipt.purchase_order, class: "link") if receipt.purchase_order %></p>
     <%= tag.p(receipt.note, class: "mt-1 text-sm") if receipt.note.present? %>
   </div>
-  <% if current_membership.can_manage_payables? && receipt.supplier_invoices.none? %>
-    <%= link_to "Record the supplier's invoice", new_supplier_invoice_path(goods_receipt_id: receipt.id), class: "btn-primary" %>
-  <% end %>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Return goods to #{receipt.supplier.name}", new_supplier_return_path(goods_receipt_id: receipt.id), class: "btn-secondary" if current_membership.can_purchase? %>
+    <% if current_membership.can_manage_payables? && receipt.supplier_invoices.none? %>
+      <%= link_to "Record the supplier's invoice", new_supplier_invoice_path(goods_receipt_id: receipt.id), class: "btn-primary" %>
+    <% end %>
+  </div>
 </div>
 
 <div class="card max-w-4xl">

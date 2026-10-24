@@ -12,6 +12,7 @@ class SuppliersController < ApplicationController
     @purchase_orders = @supplier.purchase_orders.chronologically.includes(:branch).limit(10)
     @open_invoices = @supplier.open_invoices
     @payments = @supplier.supplier_payments.chronologically.limit(10)
+    @returns = @supplier.supplier_returns.chronologically.includes(:branch).limit(10)
   end
 
   def new

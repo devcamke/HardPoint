@@ -1,0 +1,12 @@
+<p style="margin-top:0;">Hello <%= @return.supplier.contact_name.presence || @return.supplier.name %>,</p>
+<p><strong><%= @account.name %></strong> (<%= @return.branch.name %>) has returned the goods below<%= " from delivery #{@return.goods_receipt.reference}" if @return.goods_receipt %>,
+  because they were <%= @return.reason.humanize.downcase %>. The debit note is attached as a PDF.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="font-size:14px; border-collapse:collapse;">
+  <tr style="color:#5B6573; text-align:left;"><th>Item</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Total</th></tr>
+  <% @return.lines.includes(product: :unit).each do |line| %>
+    <tr style="border-top:1px solid #E7E5E0;"><td><%= line.product.name %></td><td style="text-align:right;"><%= quantity(line.quantity, line.product.unit) %></td><td style="text-align:right;"><%= money(line.total_cents, currency: @return.currency) %></td></tr>
+  <% end %>
+  <tr style="border-top:2px solid #102A43; font-weight:700;"><td colspan="2">To be credited, incl. VAT</td><td style="text-align:right;"><%= money(@return.total_cents, currency: @return.currency) %></td></tr>
+</table>
+<% if @return.note.present? %><p>Note: <%= @return.note %></p><% end %>
+<p>Please send a credit note quoting <strong><%= @return.reference %></strong>. Reply to this email with any questions.</p>

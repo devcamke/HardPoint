@@ -130,6 +130,13 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     suppliers["Devki Steel Mills"].supplier_payments.create!(account: account, paid_on: 20.days.ago.to_date, amount: 50_000,
       payment_method: "bank_transfer", reference: "EFT 55120")
 
+    # Goods sent back: split bags from the Bamburi delivery (credit note not in yet), and faulty sockets credited by Kentube.
+    account.supplier_returns.create!(supplier: delivery.supplier, branch: main, goods_receipt: delivery, reason: "damaged",
+      note: "Bags split in the lorry; photos sent on WhatsApp", lines_attributes: [ { account: account, product: products["CEM-SAV-50"], quantity: 4 } ])
+      .update_columns(created_at: 38.days.ago)
+    account.supplier_returns.create!(supplier: suppliers["Kentube Plumbing Supplies"], branch: main, reason: "faulty",
+      lines_attributes: [ { account: account, product_code: "PPR-20", quantity: 5 } ]).tap { _1.record_credit_note(number: "KT-CN-118", on: 2.days.ago.to_date) }
+
     # Customer accounts: past account sales (one overdue), a payment, a quote, an order with a deposit, and a delivery.
     front_counter = account.registers.find_by!(name: "Front counter")
     # Loyalty points from the start: a point per KES 100, worth a shilling, spendable from 100 points.

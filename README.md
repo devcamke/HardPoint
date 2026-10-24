@@ -385,6 +385,20 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Customer prices and promotions on the offline till](docs/screenshots/280-offline-customer-promotions.png)
 
+## Phase 22: returns to suppliers
+
+- **Purchasing › Returns:** damaged, wrong, faulty or unordered goods go back to the supplier, from the delivery they
+  came on (its products listed, at what was paid) or by scanning; batch-tracked goods can come out of a chosen batch
+- **Recording a return** takes the goods out of stock ("returned to supplier" in the ledger) and raises a **debit note**
+  for what they cost plus VAT, which comes straight off what the shop owes the supplier (settling the oldest invoice
+  first) and off the period's input VAT on the VAT report
+- **The debit note** is an A4 PDF on the shop's letterhead, emailed to the supplier when it's recorded (or later);
+  suppliers in dollars get it in dollars
+- When the supplier's **credit note** arrives, its number and date are noted; the list shows what's still waiting
+- Also fixed: purchase-order emails to suppliers in another currency showed amounts in shillings
+
+![A debit note](docs/screenshots/292-debit-note.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions
