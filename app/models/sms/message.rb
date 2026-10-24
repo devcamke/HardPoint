@@ -3,7 +3,7 @@
 class Sms::Message < ApplicationRecord
   include AccountOwned, Texts
 
-  PURPOSES = %w[ receipt order_ready order_received balance_reminder hire_overdue ].freeze
+  PURPOSES = %w[ receipt order_ready order_received balance_reminder hire_overdue points_earned points_balance points_expiring ].freeze
   DAILY_LIMIT = 500
   # Three SMS parts; longer texts cost more than they're worth.
   MAX_LENGTH = 459

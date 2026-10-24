@@ -1519,7 +1519,10 @@ CREATE TABLE public.loyalty_programs (
     point_value_cents bigint DEFAULT 100 NOT NULL,
     min_redeem_points integer DEFAULT 100 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    expiry_months integer,
+    expiry_starts_on date,
+    text_points boolean DEFAULT false NOT NULL
 );
 
 ALTER TABLE ONLY public.loyalty_programs FORCE ROW LEVEL SECURITY;
@@ -9124,6 +9127,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261024120100'),
 ('20261024120000'),
 ('20260925121300'),
 ('20260925121200'),

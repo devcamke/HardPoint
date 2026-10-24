@@ -4,7 +4,7 @@
 <p class="text-sm"><%= link_to "← Settings", settings_path, class: "link" %></p>
 <h1 class="mt-2 mb-2 text-3xl font-bold">Loyalty points</h1>
 <p class="hint mb-6 max-w-2xl">Named customers earn points on what they pay for and spend them at the till like money. Points aren't earned
-  on the part of a sale paid with points, come off again if the sale is voided or returned, and never expire.</p>
+  on the part of a sale paid with points, and come off again if the sale is voided or returned.</p>
 
 <div class="grid gap-6 lg:grid-cols-3">
   <%= form_with model: @program, url: loyalty_program_path, method: :patch, class: "card lg:col-span-2" do |form| %>
@@ -18,6 +18,15 @@
     </div>
     <p class="mb-4 rounded-md bg-concrete-100 px-3 py-2 text-sm">That gives back <strong><%= @program.reward_percent.to_s("F").delete_suffix(".0") %>%</strong> of what customers spend:
       <%= money(10_000_00) %> earns <%= @program.points_for(10_000_00) %> points, worth <%= money(@program.value_cents(@program.points_for(10_000_00))) %>.</p>
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div class="field"><%= form.label :expiry_months, "Points expire", class: "label" %>
+        <%= form.select :expiry_months, [ [ "Never", nil ] ] + LoyaltyProgram::EXPIRY_CHOICES.map { [ "After #{_1} months", _1 ] }, {}, class: "input" %></div>
+      <p class="hint sm:col-span-2 sm:pt-6">Oldest points are spent first. Points customers already have when you turn this on or shorten it
+        count from that day<%= ", #{@program.expiry_starts_on.strftime("%-d %B %Y")}" if @program.expiry_starts_on %>, so no one loses points on the day. Points earned in a month run out at the end of the month that many months later.</p>
+    </div>
+    <label class="mb-1 flex items-center gap-2 font-semibold"><%= form.check_box :text_points, class: "size-4 accent-safety-500" %> Text customers about their points</label>
+    <p class="hint mb-4">A text with the points earned after each sale, and a warning in the last <%= LoyaltyProgram::WARNING_DAYS %> days of a month when points run out at its end.
+      <% unless Current.account.sms_enabled? %><strong>SMS is off for this shop</strong>; turn it on in <%= link_to "Settings › SMS", edit_account_path(anchor: "sms"), class: "link" %>.<% end %></p>
     <%= form.submit "Save", class: "btn-primary" %>
   <% end %>
 
@@ -25,6 +34,14 @@
     <p class="hint">Customers with points</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= @members %></p>
     <p class="hint mt-4">Unspent points are worth</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@program.persisted? ? @program.liability_cents : 0) %></p>
     <p class="hint">what the shop owes in points, if all were spent</p>
+    <% if @program.expires? %>
+      <p class="hint mt-4">Running out at the end of this month</p>
+      <p class="mt-1 text-xl font-bold tabular-nums"><%= number_with_delimiter(@expiring) %> points</p>
+      <p class="hint">worth <%= money(@program.value_cents(@expiring)) %></p>
+    <% end %>
+    <% if @expired.positive? %>
+      <p class="hint mt-4">Expired in the last year</p><p class="mt-1 text-xl font-bold tabular-nums"><%= number_with_delimiter(@expired) %> points</p>
+    <% end %>
     <% if @top.any? %>
       <h2 class="mt-5 mb-2 text-sm font-semibold">Most points</h2>
       <ul class="text-sm">

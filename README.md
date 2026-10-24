@@ -399,6 +399,19 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![A debit note](docs/screenshots/292-debit-note.png)
 
+## Phase 23: points that expire, and texts about them
+
+- **Settings › Loyalty points** can make points expire 6 to 36 months after the month they're earned in; oldest points
+  are spent first, and points customers already hold count from the day the rule is turned on or shortened
+- A nightly job expires what has run out (an "expired" entry in the customer's points history, safe to run twice) and,
+  in the last 14 days of a month, texts each customer whose points run out at its end, once
+- With **Text customers about their points** ticked, a named sale texts the points earned, the balance and when the next
+  points run out; anyone can text a customer their balance from the customer page
+- The customer page and the till show when points next run out; the settings page shows what runs out this month and
+  what expired in the last year
+
+![Points about to expire on a customer's page](docs/screenshots/296-customer-points-expiring.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

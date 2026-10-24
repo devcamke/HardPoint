@@ -35,6 +35,23 @@ class LoyaltyControllerTest < ActionDispatch::IntegrationTest
     assert_select "#loyalty_points", /Adjusted: Sorry for the wait/
   end
 
+  test "expiry and texts are set in the scheme, and a customer's balance can be texted" do
+    acme { @account.update!(sms_enabled: true) }
+    patch loyalty_program_path, params: { loyalty_program: { enabled: "1", points_per_100: "1", point_value: "1", min_redeem_points: "10",
+      expiry_months: "12", text_points: "1" } }
+    program = acme { @account.loyalty_program.reload }
+    assert_equal [ 12, true, acme { program.local_today } ], [ program.expiry_months, program.text_points, program.expiry_starts_on ]
+    get edit_loyalty_program_path
+    assert_select "p", /Running out at the end of this month/
+
+    post customer_loyalty_adjustments_path(customers(:acme_contractor)), params: { points: "40", note: "Welcome" }
+    get customer_path(customers(:acme_contractor))
+    assert_select "#loyalty_points", /40 points\s+expire on/
+    post customer_points_text_path(customers(:acme_contractor))
+    assert_redirected_to customer_path(customers(:acme_contractor), anchor: "loyalty_points")
+    assert_match "You have 40 points", acme { @account.sms_messages.sole.body }
+  end
+
   test "cashiers can't change the scheme or adjust points" do
     sign_in_as users(:carl), account: @account
     get edit_loyalty_program_path

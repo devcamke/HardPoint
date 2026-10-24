@@ -216,6 +216,7 @@ Rails.application.routes.draw do
     resources :customers, except: :destroy do
       scope module: :customers do
         resources :loyalty_adjustments, path: "points", only: :create
+        resource :points_text, only: :create
         resources :payments, only: %i[ new create ]
         resource :statement, only: :show
         resource :statement_email, only: :create

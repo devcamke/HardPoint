@@ -1,5 +1,6 @@
 # Points on a sale to a named customer: earned when it completes (on what wasn't paid with points),
 # spent through the points tender, and handed back or taken back when it's voided or returned.
+# Where the shop texts about points, the customer gets a text of what they earned.
 module Sale::Loyalty
   extend ActiveSupport::Concern
 
@@ -25,7 +26,10 @@ module Sale::Loyalty
 
       earnable = total_cents - payments.select(&:points?).sum(&:amount_cents)
       points = program.points_for(earnable)
-      loyalty_entries.create!(account: account, customer: customer, kind: "earned", points: points, creator: cashier) if points.positive?
+      return unless points.positive?
+
+      entry = loyalty_entries.create!(account: account, customer: customer, kind: "earned", points: points, creator: cashier)
+      Sms::Message.points_earned(entry) if program.text_points? && account.sms_enabled? && customer.phone.present?
     end
 
     # Earned points come off; points spent on it go back.

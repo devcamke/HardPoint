@@ -1,7 +1,8 @@
 # A shop's points scheme. Named customers earn points on what they pay for (points_per_100 for
 # every 100 of the shop's currency) and spend them at the till, each point worth point_value.
+# Points can expire (LoyaltyProgram::Expiry), and customers can be texted about them.
 class LoyaltyProgram < ApplicationRecord
-  include AccountOwned, Eventable, Monetary
+  include AccountOwned, Eventable, Monetary, Expiry
   tracks_lifecycle only: :update
 
   money_attribute :point_value

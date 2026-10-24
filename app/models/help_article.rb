@@ -18,7 +18,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section)
       new("batches-and-expiry", "Batches and expiry dates", "Selling the oldest first, writing off expired stock, and finding who bought a recalled batch.", "Stock and purchasing"),
       new("supplier-returns", "Sending goods back to a supplier", "Damaged or wrong deliveries: taking them out of stock, the debit note, and the supplier's credit note.", "Stock and purchasing"),
       new("stock-on-your-phone", "Stock on your phone", "Look up products, count stock takes and check deliveries in with your phone's camera.", "Stock and purchasing"),
-      new("loyalty-points", "Loyalty points", "Customers earn points on what they buy and spend them at the till.", "At the till"),
+      new("loyalty-points", "Loyalty points", "Customers earn points on what they buy, spend them at the till, and are texted before they expire.", "At the till"),
       new("promotions", "Promotions and offers", "Percentages off and \"buy 10, get 1 free\", applied by the till by itself.", "At the till"),
       new("contractor-jobs", "Jobs for contractors", "Tag what contractors buy to their projects, track it against a budget and print a cost summary.", "At the till"),
       new("tool-hire", "Hiring out tools", "Tools for hire, hire agreements, deposits, returns and settling up at the till.", "At the till"),

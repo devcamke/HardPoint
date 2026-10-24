@@ -73,6 +73,9 @@
         <h2 class="text-lg font-semibold">Loyalty points</h2>
         <p><strong class="text-xl tabular-nums"><%= number_with_delimiter(balance = @customer.points_balance) %></strong> <span class="hint">worth <%= money(@loyalty.value_cents(balance)) %></span></p>
       </div>
+      <% if (expiry = @loyalty.next_expiry(@customer)) %>
+        <p class="mb-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900"><strong><%= number_with_delimiter(expiry.last) %> points</strong> expire on <%= expiry.first.strftime("%-d %B %Y") %>.</p>
+      <% end %>
       <% if @points.any? %>
         <table class="table text-sm">
           <tbody>
@@ -84,6 +87,9 @@
         </table>
       <% else %>
         <p class="hint">No points yet. They're earned on sales in <%= @customer.name %>'s name.</p>
+      <% end %>
+      <% if Current.account.sms_enabled? && @customer.phone.present? %>
+        <%= button_to "Text points balance", customer_points_text_path(@customer), class: "btn-secondary mt-3 text-sm", form_class: "inline" %>
       <% end %>
       <% if current_membership.approver? %>
         <details class="mt-3">

@@ -340,6 +340,18 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     points_sale.pay(tender: "points", amount_cents: 150_00)
     points_sale.pay(tender: "mobile_money", reference: "SKQ1ZT8P3L")
 
+    # Points run out 12 months after the month they're earned, and customers are texted about them.
+    # Backdated as though the rule had been on for two years: Otieno's points from the old stamp card
+    # mostly expired at the start of the month, and the rest run out at the end of it.
+    program = account.loyalty_program
+    program.update!(expiry_months: 12, text_points: true)
+    program.update_column(:expiry_starts_on, 2.years.ago.to_date)
+    { 13.months.ago => [ "adjusted", 420 ], 12.months.ago.beginning_of_month + 9.days => [ "adjusted", 260 ], 8.months.ago => [ "redeemed", -100 ] }.each do |at, (kind, points)|
+      otieno.loyalty_entries.create!(account: account, kind: kind, points: points, note: ("Points from the old stamp card" if kind == "adjusted"), created_at: at, creator: owner)
+    end
+    program.expire_points
+    program.warn_of_expiry
+
     # The online store, collecting from both branches.
     account.create_storefront!(enabled: true, headline: "Order online, collect in 2 hours",
       intro: "Cement, steel, roofing, plumbing, paint and tools for your build, at the same prices as in our shops.",

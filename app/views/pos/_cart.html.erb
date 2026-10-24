@@ -11,7 +11,10 @@
         <%= tag.span("Order #{sale.customer_order.reference}", class: "badge ml-1 bg-safety-100 text-safety-800") if sale.customer_order %></p>
       <% if (program = sale.loyalty_program) %>
         <% points = sale.customer.points_balance %>
-        <p class="text-xs text-steel-600"><%= number_with_delimiter(points) %> points<%= ", worth #{money(program.value_cents(points))}" if points.positive? %></p>
+        <p class="text-xs text-steel-600"><%= number_with_delimiter(points) %> points<%= ", worth #{money(program.value_cents(points))}" if points.positive? %>
+          <% if points.positive? && (expiry = program.next_expiry(sale.customer)) && expiry.first <= 1.month.from_now.to_date %>
+            <span class="text-amber-700">· <%= number_with_delimiter(expiry.last) %> expire <%= expiry.first.strftime("%-d %b") %></span>
+          <% end %></p>
       <% end %>
     </div>
     <details class="relative<%= " hidden" if sale.customer_order %>">

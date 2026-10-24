@@ -37,5 +37,33 @@ module Sms::Message::Texts
               "#{", #{Money.format(overdue)} overdue" if overdue.positive?}. " \
               "#{"Pay to #{paybill.label}, account #{PhoneNumber.display(customer.phone).delete(" ")}. " if paybill}Thank you."
     end
+
+    def points_earned(entry)
+      customer = entry.customer
+      compose to: customer.phone, purpose: "points_earned", source: customer,
+        body: "#{customer.account.name}: you earned #{entry.points} points on receipt #{entry.sale.receipt_number}. #{points_summary(customer)}"
+    end
+
+    def points_balance(customer)
+      compose to: customer.phone, purpose: "points_balance", source: customer,
+        body: "#{customer.account.name}: #{points_summary(customer)} Spend them at the till like cash."
+    end
+
+    def points_expiring(customer, points:, on:)
+      program = customer.account.loyalty_program
+      compose to: customer.phone, purpose: "points_expiring", source: customer,
+        body: "#{customer.account.name}: #{points} of your points (worth #{Money.format(program.value_cents(points))}) expire on " \
+              "#{on.strftime("%-d %B %Y")}. Spend them at the till before then."
+    end
+
+    private
+      # "You have 450 points, worth KES 450.00. 120 expire on 31 October 2026."
+      def points_summary(customer)
+        program = customer.account.loyalty_program
+        balance = customer.points_balance
+        date, expiring = program.next_expiry(customer)
+        "You have #{ActiveSupport::NumberHelper.number_to_delimited(balance)} points, worth #{Money.format(program.value_cents(balance))}." \
+          "#{" #{expiring} expire on #{date.strftime("%-d %B %Y")}." if date}"
+      end
   end
 end

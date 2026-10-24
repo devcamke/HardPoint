@@ -1,9 +1,10 @@
 # One change to a customer's points. Entries are never edited: a void or return adds a reversal,
-# a manager's correction is an adjustment with a note, so every balance can be explained.
+# a manager's correction is an adjustment with a note, and points that run out are expired with
+# a note of when they were earned, so every balance can be explained.
 class LoyaltyEntry < ApplicationRecord
   include AccountOwned
 
-  KINDS = %w[ earned redeemed reversed adjusted ].freeze
+  KINDS = %w[ earned redeemed reversed adjusted expired ].freeze
 
   belongs_to :customer
   belongs_to :sale, optional: true
@@ -23,6 +24,7 @@ class LoyaltyEntry < ApplicationRecord
     when "earned" then "Earned on #{sale&.receipt_number}"
     when "redeemed" then "Spent on #{sale&.receipt_number || "a sale"}"
     when "reversed" then sale_return ? "Return #{sale_return.return_number}" : "Sale #{sale&.receipt_number} voided"
+    when "expired" then "Expired, #{note}"
     else "Adjusted: #{note}"
     end
   end
