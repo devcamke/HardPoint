@@ -1406,7 +1406,9 @@ CREATE TABLE public.jobs (
     note character varying,
     closed_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    client_name character varying,
+    markup_percent numeric(5,2)
 );
 
 ALTER TABLE ONLY public.jobs FORCE ROW LEVEL SECURITY;
@@ -9241,6 +9243,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261024120400'),
 ('20261024120300'),
 ('20261024120200'),
 ('20261024120100'),

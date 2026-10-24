@@ -50,6 +50,14 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
     assert acme { job.reload.open? }
   end
 
+  test "the materials bill for the contractor's client opens as a PDF" do
+    job = Account.without_isolation { accounts(:acme).jobs.create!(customer: customers(:acme_contractor), name: "Borehole", client_name: "Kiambu Primary", markup_percent: 10) }
+    get job_path(job)
+    assert_select "a[href=?]", job_client_bill_path(job), text: "Bill for Kiambu Primary (PDF)"
+    get job_client_bill_path(job)
+    assert_equal "application/pdf", response.media_type
+  end
+
   test "a quote made from a job is for that job" do
     job = acme { Current.set(account: @account) { @account.jobs.create!(customer: customers(:acme_contractor), name: "Borehole") } }
     get new_customer_order_path(job_id: job.id)

@@ -49,9 +49,11 @@ module Sale::Offline
         happened_at = happened_at.clamp(shift.opened_at - CLOCK_TOLERANCE, Time.current + CLOCK_TOLERANCE)
 
         customer = account.customers.find(data["customer_id"]) if data["customer_id"].present?
+        job = customer.jobs.find_by(id: data["job_id"]) if customer && data["job_id"].present?
         sale = create!(account: account, branch: shift.branch, register: shift.register, shift: shift, cashier: cashier, customer: customer,
-          offline_uuid: data["uuid"], offline_receipt_number: data["receipt_number"].to_s.first(30).presence, created_at: happened_at)
+          job: (job if job&.open?), offline_uuid: data["uuid"], offline_receipt_number: data["receipt_number"].to_s.first(30).presence, created_at: happened_at)
         sale.happened_at = happened_at
+        sale.offline_warnings << "#{job.label} had been closed, so the sale isn't tagged to it" if job&.closed?
         sale.offline_payments = Array(data["payments"])
 
         Array(data["lines"]).each do |line|

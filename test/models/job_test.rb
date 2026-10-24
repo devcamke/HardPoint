@@ -84,4 +84,19 @@ class JobTest < ActiveSupport::TestCase
     assert pdf.render.start_with?("%PDF")
     assert_equal "mwangi-builders-ltd-kamau-residence-costs.pdf", pdf.filename
   end
+
+  test "the materials bill for the contractor's client: their letterhead, the shop's prices plus the markup" do
+    sell
+    @job.update!(client_name: "Mr & Mrs Kamau", markup_percent: 12.5)
+    assert_equal 1125_00, @job.client_cents(1000_00)
+    assert_equal 33, @job.client_cents(29), "rounded to the cent"
+    @job.update!(markup_percent: nil)
+    assert_equal 1000_00, @job.client_cents(1000_00), "no markup: the shop's prices"
+    assert_not @job.update(markup_percent: -5)
+
+    pdf = JobClientBillPdf.new(@job.reload)
+    assert pdf.render.start_with?("%PDF")
+    assert_equal "mwangi-builders-ltd-kamau-residence-materials-bill.pdf", pdf.filename
+    assert_equal "LPO 2291", pdf.reference
+  end
 end

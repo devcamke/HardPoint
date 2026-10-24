@@ -9,11 +9,12 @@ import { printReceipt } from "offline/printer"
 // M-Pesa reconciliation). Customers can be chosen, for their price list and loyalty points
 // (earned when the sale is recorded); promotions apply as online. Points can be spent from the
 // customer's balance in the snapshot, less what sales on this device have spent since; the rest is
-// paid as usual. Accounts and discounts need the till online.
+// paid as usual. A contractor's sale can be tagged to one of their open jobs. Accounts and
+// discounts need the till online.
 export default class extends Controller {
   static targets = [ "code", "results", "quickPicks", "cart", "total", "tax", "items", "tendered", "reference", "referenceField",
                      "tenderedField", "change", "message", "queue", "completed", "receipt", "till", "snapshot", "payButton",
-                     "customerName", "customerSearch", "customerResults", "pointsField", "usePoints", "pointsLabel", "due" ]
+                     "customerName", "customerSearch", "customerResults", "pointsField", "usePoints", "pointsLabel", "due", "jobField", "job" ]
 
   connect() {
     this.cart = []
@@ -130,6 +131,8 @@ export default class extends Controller {
   async chooseCustomer(event) {
     this.customer = this.catalogue.customers.find((customer) => customer.id === Number(event.currentTarget.dataset.customerId))
     this.pointsAvailable = await this.availablePoints(this.customer)
+    this.jobTarget.innerHTML = `<option value="">No job</option>` +
+      (this.customer.jobs || []).map((job) => `<option value="${job.id}">${escape(job.label)}</option>`).join("")
     this.customerSearchTarget.value = ""
     this.customerResultsTarget.innerHTML = ""
     this.show(this.customer.price_list_name ? `${this.customer.name} · ${this.customer.price_list_name} prices` : this.customer.name)
@@ -149,6 +152,10 @@ export default class extends Controller {
     const spent = (await store.sales.all()).filter((sale) => sale.points_spent?.customer_id === customer.id && sale.happened_at > this.catalogue.generated_at)
       .reduce((sum, sale) => sum + sale.points_spent.points, 0)
     return Math.max((customer.points || 0) - spent, 0)
+  }
+
+  get selectedJob() {
+    return (this.customer?.jobs || []).find((job) => job.id === Number(this.jobTarget.value)) || null
   }
 
   get pointsTaken() {
@@ -201,7 +208,7 @@ export default class extends Controller {
     const sale = {
       uuid, status: "waiting", happened_at: happenedAt, receipt_number: null, offline_receipt_number: receiptNumber, total_cents: total,
       payload: { uuid, receipt_number: receiptNumber, happened_at: happenedAt, shift_id: till.shift_id, cashier_id: till.cashier_id,
-                 customer_id: this.customer?.id ?? null, total_cents: total, discount_cents: 0, payments,
+                 customer_id: this.customer?.id ?? null, job_id: this.selectedJob?.id ?? null, total_cents: total, discount_cents: 0, payments,
                  lines: lines.map((line) => ({ product_id: line.product.id, product_unit_id: line.pack?.id ?? null, quantity: String(line.quantity),
                                                unit_price_cents: line.unit_price_cents, discount_cents: 0,
                                                promotion_id: line.promotion?.id ?? null, promotion_discount_cents: line.promotion_discount_cents })) },
@@ -295,10 +302,17 @@ export default class extends Controller {
     this.taxTarget.textContent = formatMoney(this.totals.tax, currency)
     this.totalTarget.textContent = formatMoney(this.totals.total, currency)
     this.renderPoints(currency)
+    this.renderJobs()
     this.tenderedTarget.placeholder = (this.due / 100).toFixed(2)
     this.showChange()
     this.channel?.postMessage({ status: lines.length ? "cart" : "idle", total: formatMoney(this.totals.total, currency), paybill: this.catalogue.till.paybill,
       lines: lines.map((line) => ({ description: line.product.name + (line.pack ? ` (${line.pack.name})` : ""), quantity: formatQuantity(line.quantity), total: formatMoney(line.total) })) })
+  }
+
+  renderJobs() {
+    const jobs = this.customer?.jobs || []
+    this.jobFieldTarget.hidden = jobs.length === 0
+    if (jobs.length === 0) this.jobTarget.value = ""
   }
 
   renderPoints(currency) {
@@ -355,7 +369,7 @@ export default class extends Controller {
     return {
       header: [ till.account_name, till.branch_name, till.branch_address, till.branch_phone && `Tel ${till.branch_phone}` ].filter(Boolean),
       receipt_number: receiptNumber, time: new Date().toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" }), register: till.register_name,
-      cashier: till.cashier_name, customer: this.customer?.name || null, offline: true,
+      cashier: till.cashier_name, customer: this.customer?.name || null, job: this.selectedJob?.label || null, offline: true,
       lines: lines.map((line) => ({ description: line.product.name + (line.pack ? ` (${line.pack.name})` : ""),
                                     detail: `${formatQuantity(line.quantity)} ${line.pack?.unit || line.product.unit} x ${formatMoney(line.unit_price_cents)}`, total: formatMoney(line.total),
                                     promotion: line.promotion ? [ line.promotion.offer, formatMoney(line.promotion_discount_cents) ] : null })),
@@ -371,7 +385,7 @@ export default class extends Controller {
     const row = (left, right, classes = "") => `<div class="row ${classes}"><span>${escape(left)}</span><span>${escape(right)}</span></div>`
     return `<div class="receipt">
       <p class="center bold big">${escape(data.header[0])}</p><p class="center">${data.header.slice(1).map(escape).join("<br>")}</p><hr>
-      ${row("Receipt", data.receipt_number, "bold")}${row(data.time, data.register)}${row("Served by", data.cashier)}${data.customer ? row("Customer", data.customer) : ""}
+      ${row("Receipt", data.receipt_number, "bold")}${row(data.time, data.register)}${row("Served by", data.cashier)}${data.customer ? row("Customer", data.customer) : ""}${data.job ? row("Job", data.job) : ""}
       <p class="center">Recorded offline; sent when the till is back online.</p><hr>
       ${data.lines.map((line) => `<div class="item"><div>${escape(line.description)}</div>${row(line.detail, line.total, "muted")}${line.promotion ? row(`  ${line.promotion[0]}`, `−${line.promotion[1]}`, "muted") : ""}</div>`).join("")}<hr>
       ${row("TOTAL", data.total, "bold big")}${row("Incl. tax", data.tax, "muted")}${data.saved ? row("You saved", data.saved, "bold") : ""}<hr>

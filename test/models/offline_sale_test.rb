@@ -131,6 +131,23 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_equal 0, grace.points_balance
   end
 
+  test "offline sales can go on one of the customer's open jobs; a job closed meanwhile is left off with a warning" do
+    contractor = customers(:acme_contractor)
+    job = accounts(:acme).jobs.create!(customer: contractor, name: "Kamau residence")
+    result = record(payload.merge(customer_id: contractor.id, job_id: job.id))
+    assert_equal job, result.sale.job
+    assert_includes PosCatalogue.new(shift: @shift, user: users(:carl)).as_json[:customers].find { _1[:id] == contractor.id }[:jobs], { id: job.id, label: "Kamau residence" }
+
+    job.close
+    result = record(payload.merge(customer_id: contractor.id, job_id: job.id))
+    assert_equal "recorded", result.status
+    assert_nil result.sale.job
+    assert_includes result.sale.offline_warnings, "Kamau residence had been closed, so the sale isn't tagged to it"
+
+    other = accounts(:acme).jobs.create!(customer: customers(:acme_walk_in), name: "Someone else's")
+    assert_nil record(payload.merge(customer_id: contractor.id, job_id: other.id)).sale.job, "only the customer's own jobs"
+  end
+
   test "a bundle the offline till worked out is kept as the till charged it" do
     bundle = accounts(:acme).promotions.create!(name: "Plumbing three", kind: "bundle", bundle_quantity: 3, bundle_price_cents: 4000_00,
       category_ids: [ categories(:acme_plumbing).id ], starts_on: Date.yesterday, ends_on: Date.tomorrow)

@@ -145,7 +145,8 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     # Contractors' jobs, with their account sales tagged to them.
     towers = account.jobs.create!(customer: mwangi, name: "Mwangi Towers", reference: "LPO 4471", site: "Ruaka, off Limuru Road", budget: 450_000,
       note: "Site foreman: Peter, 0722 000 999")
-    maisonettes = account.jobs.create!(customer: mwangi, name: "Kahawa Sukari maisonettes", reference: "LPO 4502", site: "Kahawa Sukari", budget: 180_000)
+    maisonettes = account.jobs.create!(customer: mwangi, name: "Kahawa Sukari maisonettes", reference: "LPO 4502", site: "Kahawa Sukari", budget: 180_000,
+      client_name: "Kahawa Sukari Homes Ltd", markup_percent: 15)
     ruiru = account.jobs.create!(customer: otieno, name: "Ruiru plumbing", site: "Ruiru, Kamakis", budget: 40_000)
     account.jobs.create!(customer: otieno, name: "Thika Road offices", site: "Roysambu", status: "closed", closed_at: 60.days.ago)
 

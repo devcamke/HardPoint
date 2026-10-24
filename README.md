@@ -448,6 +448,16 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Counting tile adhesive batch by batch](docs/screenshots/303-count-by-batch.png)
 
+## Phase 27: jobs for contractors, continued
+
+- **A bill for the contractor's client:** each job can name the client and a markup on materials; the job page then
+  gives a materials bill as an A4 PDF on the contractor's own letterhead, every material (net of returns) at the shop's
+  price plus the markup, without printing the percentage
+- **Jobs on the offline till:** the till's snapshot carries each customer's open jobs, the offline till shows the same
+  Job list as online, and the job is on the receipt; a job closed before the sale is sent is left off with a warning
+
+![A materials bill for the contractor's client](docs/screenshots/307-client-bill-pdf.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

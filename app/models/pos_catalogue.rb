@@ -19,6 +19,7 @@ class PosCatalogue
                @account.customers.maximum(:updated_at), @account.customers.count, @account.price_list_items.maximum(:updated_at), @account.price_list_items.count,
                @account.promotions.maximum(:updated_at), @account.promotions.count, Date.current,
                @account.loyalty_program&.updated_at, @account.loyalty_entries.maximum(:id), @account.loyalty_entries.count,
+               @account.jobs.maximum(:updated_at), @account.jobs.count,
                @account.updated_at, @shift.id, @shift.status, @user.id ]
     # Times to the microsecond, so two changes within the same second still make a new version.
     Digest::SHA256.hexdigest(stamps.map { _1.respond_to?(:iso8601) && !_1.is_a?(Date) ? _1.iso8601(6) : _1.to_s }.join("|")).first(20)
@@ -67,12 +68,15 @@ class PosCatalogue
     end
 
     # Named customers, so sales can be in their name (for their prices and loyalty points) offline,
-    # with their points balance as of now; the till takes off what it has spent since.
+    # with their points balance as of now (the till takes off what it has spent since) and their open
+    # jobs, so contractors' purchases can be tagged offline too.
     def customers
       price_list_names = @account.price_lists.pluck(:id, :name).to_h
       points = loyalty ? @account.loyalty_entries.group(:customer_id).sum(:points) : {}
+      jobs = @account.jobs.open.alphabetically.group_by(&:customer_id)
       @account.customers.order(:name).pluck(:id, :name, :phone, :price_list_id).map do |id, name, phone, price_list_id|
-        { id: id, name: name, phone: phone, price_list_id: price_list_id, price_list_name: price_list_names[price_list_id], points: points.fetch(id, 0) }
+        { id: id, name: name, phone: phone, price_list_id: price_list_id, price_list_name: price_list_names[price_list_id], points: points.fetch(id, 0),
+          jobs: jobs.fetch(id, []).map { { id: _1.id, label: _1.label } } }
       end
     end
 

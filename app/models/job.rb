@@ -1,6 +1,7 @@
 # A contractor's job or project: "Kamau residence, Kitengela". Sales and orders for the customer can
 # be tagged with one of their open jobs, so the job shows what it has cost against its budget and
-# what went into it, and the contractor can hand their own client a cost summary.
+# what went into it, and the contractor can hand their own client a cost summary, or a materials
+# bill on their own letterhead with their markup (JobClientBillPdf).
 class Job < ApplicationRecord
   include AccountOwned, Eventable, Monetary
   tracks_lifecycle only: %i[ create update ]
@@ -20,10 +21,11 @@ class Job < ApplicationRecord
   money_attribute :budget
 
   normalizes :name, with: ->(name) { name.squish }
-  normalizes :reference, :site, with: ->(value) { value.squish.presence }
+  normalizes :reference, :site, :client_name, with: ->(value) { value.squish.presence }
 
   validates :name, presence: true, length: { maximum: 100 }, uniqueness: { scope: :customer_id }
   validates :budget_cents, numericality: { greater_than: 0 }, allow_nil: true
+  validates :markup_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 500 }, allow_nil: true
   validates_same_account :customer
 
   scope :alphabetically, -> { order(:name) }
@@ -83,6 +85,11 @@ class Job < ApplicationRecord
       next unless quantity - returned_quantity > 0
       Material.new(products[product_id], units[unit_id], quantity - returned_quantity, total - returned_total)
     end.sort_by { -_1.total_cents }
+  end
+
+  # What a material costs the contractor's client: the shop's price plus the job's markup, to the cent.
+  def client_cents(cents)
+    (cents * (100 + markup_percent.to_d) / 100).round
   end
 
   def close

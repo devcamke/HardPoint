@@ -20,7 +20,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section)
       new("stock-on-your-phone", "Stock on your phone", "Look up products, count stock takes and check deliveries in with your phone's camera.", "Stock and purchasing"),
       new("loyalty-points", "Loyalty points", "Customers earn points on what they buy, spend them at the till, and are texted before they expire.", "At the till"),
       new("promotions", "Promotions and offers", "Percentages off, \"buy 10, get 1 free\" and mix-and-match bundles, applied by the till by itself.", "At the till"),
-      new("contractor-jobs", "Jobs for contractors", "Tag what contractors buy to their projects, track it against a budget and print a cost summary.", "At the till"),
+      new("contractor-jobs", "Jobs for contractors", "Tag what contractors buy to their projects (online or offline), track it against a budget, and print a cost summary or a bill for their client.", "At the till"),
       new("tool-hire", "Hiring out tools", "Tools for hire, hire agreements, deposits, returns and settling up at the till.", "At the till"),
       new("connecting-apps", "Connecting a web shop or other apps", "API keys and webhooks, for the developer who connects your web shop or accounts.", "Your account"),
       new("billing", "Plans, billing and read-only mode", "Your free trial, paying HardPoint, changing plan and what happens if an invoice is late.", "Your account"),

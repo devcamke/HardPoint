@@ -247,6 +247,7 @@ Rails.application.routes.draw do
       scope module: :jobs do
         resource :closure, only: %i[ create destroy ]
         resource :summary, only: :show
+        resource :client_bill, only: :show
       end
     end
     resources :customer_orders, path: "orders", except: :destroy do

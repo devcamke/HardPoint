@@ -13,6 +13,14 @@
     <div class="field"><%= form.label :site, "Site (optional)", class: "label" %><%= form.text_field :site, class: "input", placeholder: "Plot 14, Kitengela" %></div>
     <div class="field"><%= form.label :budget, "Materials budget (optional)", class: "label" %><%= form.text_field :budget, value: (plain_number(job.budget) if job.budget_cents), inputmode: "decimal", class: "input" %></div>
   </div>
+  <fieldset class="field rounded-lg border border-concrete-300 p-3">
+    <legend class="label px-1">Billing their client (optional)</legend>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div><%= form.label :client_name, "Client", class: "label" %><%= form.text_field :client_name, class: "input", placeholder: "Mr & Mrs Kamau" %></div>
+      <div><%= form.label :markup_percent, "Markup on materials (%)", class: "label" %><%= form.number_field :markup_percent, value: (plain_number(job.markup_percent) if job.markup_percent), step: "any", min: 0, max: 500, class: "input" %></div>
+    </div>
+    <p class="hint mt-2">For the materials bill: a PDF on <%= job.customer&.name || "the customer" %>'s own letterhead listing the materials at the shop's prices plus this markup, to hand to their client.</p>
+  </fieldset>
   <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "Foreman's name, delivery instructions…" %></div>
   <div class="flex items-center gap-3">
     <%= form.submit "Save", class: "btn-primary" %>

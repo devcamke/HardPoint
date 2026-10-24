@@ -5,10 +5,12 @@
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="text-3xl font-bold"><%= @job.name %> <%= tag.span("Closed", class: "badge align-middle text-sm") if @job.closed? %></h1>
-    <p class="hint mt-1"><%= link_to @job.customer.name, @job.customer, class: "link" %><%= " · #{@job.site}" if @job.site %><%= " · their ref #{@job.reference}" if @job.reference %><%= " · #{@job.note}" if @job.note.present? %></p>
+    <p class="hint mt-1"><%= link_to @job.customer.name, @job.customer, class: "link" %><%= " · #{@job.site}" if @job.site %><%= " · their ref #{@job.reference}" if @job.reference %><%= " · for #{@job.client_name}" if @job.client_name %><%= " · materials billed at +#{plain_number(@job.markup_percent)}%" if @job.markup_percent %><%= " · #{@job.note}" if @job.note.present? %></p>
   </div>
   <div class="flex flex-wrap gap-2">
     <%= link_to "Cost summary (PDF)", job_summary_path(@job), target: "_blank", class: "btn-secondary" %>
+    <%= link_to "Bill for #{@job.client_name || "their client"} (PDF)", job_client_bill_path(@job), target: "_blank", class: "btn-secondary",
+          title: "On #{@job.customer.name}'s letterhead#{", materials plus #{plain_number(@job.markup_percent)}%" if @job.markup_percent}" %>
     <% if current_membership.can_sell? %>
       <%= link_to "Edit", edit_job_path(@job), class: "btn-secondary" %>
       <% if @job.open? %>

@@ -57,7 +57,7 @@ class JobsController < ApplicationController
 
     # The customer is chosen when the job is added and stays: its sales are theirs.
     def job_params
-      permitted = params.expect(job: %i[ customer_id name site reference budget note ])
+      permitted = params.expect(job: %i[ customer_id name site reference budget note client_name markup_percent ])
       customer_id = permitted.delete(:customer_id)
       permitted[:customer] = Current.account.customers.find(customer_id) if @job.nil? && customer_id.present?
       permitted
