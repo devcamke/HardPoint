@@ -19,9 +19,12 @@ module LoyaltyProgram::Expiry
     # already expired count as used, so they aren't expired twice.
     def expire_points
       where(enabled: true).where.not(expiry_months: nil).includes(:account).find_each do |program|
+        # Locked, so two runs at once (a retry overlapping the schedule) can't both expire the same points.
         Current.set(account: program.account) do
-          program.expire_points
-          program.warn_of_expiry
+          program.with_lock do
+            program.expire_points
+            program.warn_of_expiry
+          end
         end
       end
     end

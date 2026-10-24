@@ -76,8 +76,10 @@ class HireAgreement < ApplicationRecord
   # Tools brought back. `returns` maps hire line ids to what came back: { condition_note:, damage:,
   # damage_note:, needs_repair: }. When the last one is back, the order gets the actual charges and is
   # ready to settle at the till.
+  # Locked and reloaded first, so a double-submitted return doesn't charge for the tools twice.
   def return_tools(returns, at: Time.current)
-    transaction do
+    with_lock do
+      lines.reset
       lines.reject(&:returned?).each do |line|
         details = returns[line.id] || returns[line.id.to_s] or next
         line.return(at: at, condition_note: details[:condition_note], damage_cents: Monetary.to_cents(details[:damage]).to_i,

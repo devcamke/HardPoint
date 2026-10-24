@@ -17,7 +17,9 @@ default: &default
   encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # Per process: enough for every Puma thread, or every Solid Queue worker thread plus the worker's
+  # heartbeat and polling (Solid Queue needs threads + 2), whichever the process is running.
+  max_connections: <%= ENV.fetch("DB_POOL") { [ ENV.fetch("RAILS_MAX_THREADS", 5).to_i, ENV.fetch("JOB_THREADS", 3).to_i + 2 ].max } %>
   # Row-level security only applies to roles that are neither superusers nor BYPASSRLS,
   # so development and test connect as a regular role (see bin/setup and docs/PLAN.md §2).
   host: <%= ENV.fetch("DATABASE_HOST") { "localhost" } %>

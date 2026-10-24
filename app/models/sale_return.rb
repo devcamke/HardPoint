@@ -25,6 +25,9 @@ class SaleReturn < ApplicationRecord
   validate { errors.add :refund_method, "on account needs the sale to have a customer" if refund_method == "on_account" && sale&.customer.nil? }
 
   before_validation(on: :create) { self.branch ||= sale&.branch }
+  # Saving validates inside the save's transaction; holding the sale's row until it commits means a
+  # second return (or a void) of the same sale waits, then counts what this one took back.
+  before_validation(on: :create) { Sale.where(id: sale_id).lock.pick(:id) if sale_id }
   before_create :number_and_total
   after_create :restock_and_record
   after_create :take_back_points

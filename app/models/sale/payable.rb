@@ -28,10 +28,27 @@ module Sale::Payable
   # cash_limit_cents caps what cash pays, for an offline sale whose till already gave the change.
   # Putting more on account than the customer's credit allows needs an owner's or manager's
   # approval (credit_approver). Once the total is covered the sale completes.
+  #
+  # The sale is locked and reloaded first, so two payments arriving at once (a double tap, an M-Pesa
+  # callback as the cashier takes a card) are taken one after the other, and the second sees what the
+  # first did. Points and account payments also lock the customer, and deposits the order, so two
+  # tills can't both spend the same balance.
   def pay(tender:, amount_cents: nil, tendered_cents: nil, reference: nil, credit_approver: nil, currency: nil, foreign_tendered_cents: nil, cash_limit_cents: nil)
     raise ArgumentError, "This sale can't take payments" unless open?
 
+    transaction do
+      lock!
+      raise ArgumentError, "This sale can't take payments" unless open?
+
+      take_payment(tender:, amount_cents:, tendered_cents:, reference:, credit_approver:, currency:, foreign_tendered_cents:, cash_limit_cents:)
+    end
+  end
+
+  def take_payment(tender:, amount_cents:, tendered_cents:, reference:, credit_approver:, currency:, foreign_tendered_cents:, cash_limit_cents:)
     lines.reload
+    payments.reset
+    customer&.lock! if tender.to_s.in?(%w[ points on_account ])
+    customer_order&.lock! if tender.to_s == "deposit"
     due = balance_due_cents
     # Built outside the association so a refused payment never counts towards what's paid.
     payment = Payment.new(account: account, sale: self, tender: tender, reference: reference.presence)
@@ -55,7 +72,7 @@ module Sale::Payable
     check_ready_to_complete(payment) if payment.amount_cents.to_i >= due
     return payment if payment.errors.any?
 
-    transaction do
+    transaction(requires_new: true) do
       approve_credit(payment, credit_approver) if payment.on_account? && over_credit_limit?(payment)
       payment.save!
       payments.reset
@@ -66,6 +83,7 @@ module Sale::Payable
     payments.reset
     payment
   end
+  private :take_payment
 
   def remove_payment(payment)
     raise ArgumentError, "This sale can't be changed" unless open?
@@ -136,6 +154,7 @@ module Sale::Payable
     # Numbering and stock happen together, so a completed sale always has both.
     def complete
       lock!
+      raise ArgumentError, "This sale has already been #{status}" unless open?
       # Whoever takes the final payment served the customer (the till may have switched users).
       self.cashier = Current.user if Current.user
       self.number = DocumentSequence.next_number(branch, "sale")

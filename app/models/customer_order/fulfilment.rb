@@ -62,18 +62,22 @@ module CustomerOrder::Fulfilment
     deposit
   end
 
+  # The order is locked first, so two refunds (or a refund and the deposit paying at the till) can't
+  # both spend the same deposit.
   def refund_deposit(amount_cents:, tender:, reference: nil, shift: nil)
-    deposit = deposits.build(account: account, amount_cents: -amount_cents.to_i, tender: tender, reference: reference.presence, shift: shift)
-    if amount_cents.to_i > deposit_balance_cents
-      deposit.errors.add :amount, "is more than the #{Money.format(deposit_balance_cents)} deposit held"
-    end
-    return deposit if deposit.errors.any?
-
+    deposit = nil
     transaction do
+      lock!
+      deposit = deposits.build(account: account, amount_cents: -amount_cents.to_i, tender: tender, reference: reference.presence, shift: shift)
+      if amount_cents.to_i > deposit_balance_cents
+        deposit.errors.add :amount, "is more than the #{Money.format(deposit_balance_cents)} deposit held"
+      end
+      next deposit if deposit.errors.any?
+
       deposit.save!
       track_event "deposit_refunded", amount: amount_cents, tender: tender
+      deposit
     end
-    deposit
   rescue ActiveRecord::RecordInvalid
     deposits.reset
     deposit
@@ -90,15 +94,20 @@ module CustomerOrder::Fulfilment
 
   # Puts the order into an empty cart at the prices agreed. Anything else the customer picks
   # up can be scanned in on top as usual.
+  # The order is locked, so two tills can't both load it and sell it twice.
   def load_into(sale)
-    if !collectable?
-      errors.add :base, "This #{kind.downcase} can't be collected"
-    elsif sale.lines.any?
-      errors.add :base, "Finish or park the sale on the till first"
-    end
-    return false if errors.any?
-
+    errors.clear
     sale.transaction do
+      lock!
+      if !collectable?
+        errors.add :base, "This #{kind.downcase} can't be collected"
+      elsif sale.lines.any?
+        errors.add :base, "Finish or park the sale on the till first"
+      elsif (elsewhere = Sale.where(customer_order_id: id, status: %w[ open parked ]).where.not(id: sale.id).first)
+        errors.add :base, "This #{kind.downcase} is already on #{elsewhere.register.name}'s till"
+      end
+      next if errors.any?
+
       sale.update!(customer_order: self, customer: customer, job: job&.open? ? job : nil)
       lines.each do |line|
         sale.lines.create!(account: account, product: line.product, product_unit: line.product_unit, quantity: line.quantity,
@@ -106,7 +115,7 @@ module CustomerOrder::Fulfilment
       end
       sale.recalculate
     end
-    true
+    errors.none?
   end
 
   def mark_collected(sale)

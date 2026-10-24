@@ -120,6 +120,7 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 | Symptom | First steps |
 |---|---|
 | Site down | `bin/kamal app details`, `bin/kamal logs`; `curl -I https://hardpoint.app/up`. Tills keep selling offline meanwhile. |
+| "could not obtain a connection" / "too many connections" | Pool too small for its threads, or Postgres' `max_connections` spent: see the connection budget in section 6 before raising either |
 | Slow | Admin Database page: long-running queries and connections; `bin/kamal accessory logs db` for slow-query lines (over 500 ms are logged); raise `WEB_CONCURRENCY` if CPU is spare |
 | Database full or disk full | `df -h`; old local backups are in `/var/backups/hardpoint`; `docker system prune` for old images |
 | Emails not arriving | SES sending statistics and suppression list; bounces |
@@ -172,8 +173,14 @@ Object Storage in the same region), because two web servers can't share a disk.
    pool with the `/up` health check, or two proxied A records). Sessions live in cookies and rate
    limits in the database's cache, so a till can land on either.
 
-**Connection budget:** each web server uses up to `WEB_CONCURRENCY × RAILS_MAX_THREADS` (6 × 3 = 18)
-connections, the job server `JOB_CONCURRENCY × 3` plus a few, against `max_connections = 150`. At
+**Connection budget:** a Puma thread holds at most one connection per database, so each web server
+uses up to `WEB_CONCURRENCY × RAILS_MAX_THREADS × 4` (app, cache, queue, cable: 6 × 3 × 4 = 72), and
+the job server `JOB_CONCURRENCY × (JOB_THREADS + 2) × 3` plus a few (about 50). Two web servers and a
+job server come to about 195, against `max_connections = 250` (the sums are in
+`config/postgres/postgresql.conf`). Each process's pool is sized in `config/database.yml` to the larger
+of its Puma threads and its job threads + 2 (Solid Queue's heartbeat and poller need their own);
+`DB_POOL` overrides it. A "could not obtain a connection from the pool" error means a pool is short
+for its threads; "too many connections" means the server's budget is spent. At
 four web servers, put PgBouncer (transaction pooling) in front of the primary, and move the
 row-level security settings to `SET LOCAL` inside each transaction first: session-level settings
 don't survive transaction pooling.

@@ -49,9 +49,18 @@ class WebhookDelivery < ApplicationRecord
   end
 
   # Every minute: deliveries whose retry time has come, across shops.
+  # Each delivery is claimed (its next attempt pushed back) before it's sent, so a delivery job and
+  # a retry running at once can't both send it; one that dies mid-send is tried again after CLAIM.
+  CLAIM = 10.minutes
+  RETRY_BATCH = 500
+
   def self.retry_due
-    Account.without_isolation { due.where("attempts > 0").includes(:account).to_a }.each do |delivery|
-      Current.set(account: delivery.account) { delivery.deliver }
+    due_ids = Account.without_isolation { due.where("attempts > 0").order(:next_attempt_at).limit(RETRY_BATCH).pluck(:id, :account_id) }
+    due_ids.each do |id, account_id|
+      claimed = Account.without_isolation { due.where(id: id).update_all(next_attempt_at: CLAIM.from_now) }
+      next unless claimed == 1
+
+      Current.set(account: Account.find(account_id)) { find(id).deliver }
     end
   end
 
