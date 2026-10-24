@@ -1,6 +1,6 @@
 # Everything a till needs to keep selling offline: its own details, the active catalogue with
-# retail prices, pack sizes, barcodes and stock at its branch, customers with their price lists,
-# and promotions running now or starting within PROMOTION_DAYS (the till checks the dates on the
+# retail prices, pack sizes, barcodes and stock at its branch, customers with their price lists
+# and points balances (when the shop has loyalty points), and promotions running now or starting within PROMOTION_DAYS (the till checks the dates on the
 # day it sells, so a snapshot taken before a promotion starts still applies it). In as few queries
 # as possible.
 class PosCatalogue
@@ -18,6 +18,7 @@ class PosCatalogue
                @account.barcodes.maximum(:id), @account.barcodes.count, @account.stock_levels.where(branch: @branch).maximum(:updated_at),
                @account.customers.maximum(:updated_at), @account.customers.count, @account.price_list_items.maximum(:updated_at), @account.price_list_items.count,
                @account.promotions.maximum(:updated_at), @account.promotions.count, Date.current,
+               @account.loyalty_program&.updated_at, @account.loyalty_entries.maximum(:id), @account.loyalty_entries.count,
                @account.updated_at, @shift.id, @shift.status, @user.id ]
     # Times to the microsecond, so two changes within the same second still make a new version.
     Digest::SHA256.hexdigest(stamps.map { _1.respond_to?(:iso8601) && !_1.is_a?(Date) ? _1.iso8601(6) : _1.to_s }.join("|")).first(20)
@@ -34,7 +35,7 @@ class PosCatalogue
         branch_id: @branch.id, branch_name: @branch.name, branch_code: @branch.code, branch_address: @branch.address, branch_phone: @branch.phone,
         register_id: register.id, register_name: register.name, print_mode: register.print_mode, printer_name: register.printer_name, receipt_width: register.receipt_width,
         shift_id: @shift.id, cashier_id: @user.id, cashier_name: @user.name,
-        paybill: @account.mpesa_shortcodes.for_branch(@branch)&.label }
+        paybill: @account.mpesa_shortcodes.for_branch(@branch)&.label, loyalty: loyalty }
     end
 
     def products
@@ -59,11 +60,19 @@ class PosCatalogue
       end
     end
 
-    # Named customers, so sales can be in their name (for their prices and loyalty points) offline.
+    # What a point is worth and the fewest that can be spent, when the shop's points scheme is on.
+    def loyalty
+      program = @account.loyalty_program
+      { point_value_cents: program.point_value_cents, min_redeem_points: program.min_redeem_points } if program&.enabled?
+    end
+
+    # Named customers, so sales can be in their name (for their prices and loyalty points) offline,
+    # with their points balance as of now; the till takes off what it has spent since.
     def customers
       price_list_names = @account.price_lists.pluck(:id, :name).to_h
+      points = loyalty ? @account.loyalty_entries.group(:customer_id).sum(:points) : {}
       @account.customers.order(:name).pluck(:id, :name, :phone, :price_list_id).map do |id, name, phone, price_list_id|
-        { id: id, name: name, phone: phone, price_list_id: price_list_id, price_list_name: price_list_names[price_list_id] }
+        { id: id, name: name, phone: phone, price_list_id: price_list_id, price_list_name: price_list_names[price_list_id], points: points.fetch(id, 0) }
       end
     end
 

@@ -93,6 +93,17 @@ export function applyBundles(promotions, day, lines) {
   return result
 }
 
+// What points pay towards what's due (Sale::Payable#spend_points): whole points, rounded up so a
+// point is never worth more than it should, capped by what's due and what the customer has; null
+// below the scheme's minimum. loyalty is { point_value_cents, min_redeem_points }.
+export function pointsPayment(loyalty, available, dueCents) {
+  if (!loyalty || available < Math.max(loyalty.min_redeem_points, 1) || dueCents <= 0) return null
+  const cents = Math.min(dueCents, available * loyalty.point_value_cents)
+  const points = Math.min(Math.ceil(cents / loyalty.point_value_cents), available)
+  const amount = Math.min(cents, points * loyalty.point_value_cents)
+  return amount > 0 ? { points, amount_cents: amount } : null
+}
+
 // Today's date where the shop is, as the server counts days.
 export function localDay(timeZone, now = new Date()) {
   return now.toLocaleDateString("en-CA", { timeZone })

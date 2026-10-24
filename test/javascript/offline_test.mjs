@@ -2,7 +2,7 @@
 //   node --test test/javascript/
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { unitPrice, lineTotals, saleTotals, thousandths, promotionSaving, bestPromotion, bundleSavings, applyBundles, localDay } from "../../app/javascript/offline/arithmetic.js"
+import { unitPrice, lineTotals, saleTotals, thousandths, promotionSaving, bestPromotion, bundleSavings, applyBundles, pointsPayment, localDay } from "../../app/javascript/offline/arithmetic.js"
 import { receipt, columns, wrap, ascii, commands } from "../../app/javascript/offline/escpos.js"
 
 test("line and sale totals match the server's (SaleLine, Sale::Cart)", () => {
@@ -97,4 +97,14 @@ test("bundles: any three for a price across lines, dearest first, shared by cost
   const own = [ { ...line(pipe, 2), promotion: thirty, promotion_discount_cents: 72000 }, { ...line(kit, 1), promotion: thirty, promotion_discount_cents: 75000 } ]
   assert.deepEqual(applyBundles([ three ], "2026-10-24", own).map((l) => l.promotion.id), [ 21, 21 ], "1,470 off line by line beats 900")
   assert.equal(applyBundles([ three ], "2026-10-24", [ line(pipe, 2), { ...line(kit, 1), pack: { price_cents: 250000 } } ])[0].promotion, null, "packs stay out")
+})
+
+// The same rules as Sale::Payable#spend_points (test/models/loyalty_test.rb).
+test("points: whole points, rounded up, capped by what's due and the balance, from the minimum", () => {
+  const loyalty = { point_value_cents: 50, min_redeem_points: 20 }
+  assert.equal(pointsPayment(loyalty, 19, 100000), null, "below the minimum")
+  assert.equal(pointsPayment(null, 500, 100000), null, "no scheme")
+  assert.deepEqual(pointsPayment(loyalty, 32, 100000), { points: 32, amount_cents: 1600 }, "all 32 points, worth 16.00")
+  assert.deepEqual(pointsPayment(loyalty, 5000, 1025), { points: 21, amount_cents: 1025 }, "10.25 due: 21 points, never more than due")
+  assert.equal(pointsPayment(loyalty, 500, 0), null, "nothing due")
 })

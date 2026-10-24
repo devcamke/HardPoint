@@ -102,6 +102,35 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_match "Last week wasn't running", result.sale.offline_warnings.to_sentence
   end
 
+  test "points spent offline come off the balance; cash pays the rest and gives change" do
+    accounts(:acme).create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 100, min_redeem_points: 20)
+    grace = customers(:acme_walk_in)
+    grace.loyalty_entries.create!(account: accounts(:acme), kind: "adjusted", points: 300, note: "Welcome")
+
+    result = record(payload(payments: [ { tender: "points", amount_cents: 300_00, points: 300 }, { tender: "cash", amount_cents: 700_00, tendered_cents: 1000_00 } ])
+      .merge(customer_id: grace.id))
+    assert_equal [ "recorded", [] ], [ result.status, result.sale.offline_warnings.reject { _1.include?("in stock") } ]
+    assert_equal [ [ "points", 300_00, 300 ], [ "cash", 700_00, nil ] ], result.sale.payments.map { [ _1.tender, _1.amount_cents, _1.points ] }
+    assert_equal 300_00, result.sale.change_cents
+    assert_equal 7, grace.points_balance, "earned on the 700.00 not paid in points"
+  end
+
+  test "points already spent on another till leave the shortfall owed, not taken from the change" do
+    accounts(:acme).create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 100, min_redeem_points: 20)
+    grace = customers(:acme_walk_in)
+    grace.loyalty_entries.create!(account: accounts(:acme), kind: "adjusted", points: 300, note: "Welcome")
+    grace.loyalty_entries.create!(account: accounts(:acme), kind: "adjusted", points: -200, note: "Spent at the yard")
+
+    result = record(payload(payments: [ { tender: "points", amount_cents: 300_00, points: 300 }, { tender: "cash", amount_cents: 700_00, tendered_cents: 1000_00 } ])
+      .merge(customer_id: grace.id))
+    sale = result.sale
+    assert_equal [ "needs_attention", "parked" ], [ result.status, sale.status ]
+    assert_equal [ 100_00, 700_00 ], sale.payments.map(&:amount_cents)
+    assert_equal 200_00, sale.balance_due_cents
+    assert_match "The till took KES 300.00 in points but Grace Wambui had only 100 left", sale.offline_warnings.to_sentence
+    assert_equal 0, grace.points_balance
+  end
+
   test "a bundle the offline till worked out is kept as the till charged it" do
     bundle = accounts(:acme).promotions.create!(name: "Plumbing three", kind: "bundle", bundle_quantity: 3, bundle_price_cents: 4000_00,
       category_ids: [ categories(:acme_plumbing).id ], starts_on: Date.yesterday, ends_on: Date.tomorrow)
@@ -133,5 +162,20 @@ class OfflineSaleTest < ActiveSupport::TestCase
 
     customers(:acme_walk_in).touch
     assert_not_equal before, PosCatalogue.new(shift: @shift, user: users(:carl)).version, "a changed customer means a new snapshot"
+    assert_nil json[:till][:loyalty]
+  end
+
+  test "with points on, the catalogue carries each customer's balance and the scheme's terms" do
+    accounts(:acme).create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 50, min_redeem_points: 20)
+    customers(:acme_walk_in).loyalty_entries.create!(account: accounts(:acme), kind: "adjusted", points: 120, note: "Welcome")
+    before = PosCatalogue.new(shift: @shift, user: users(:carl)).version
+    json = PosCatalogue.new(shift: @shift, user: users(:carl)).as_json
+
+    assert_equal({ point_value_cents: 50, min_redeem_points: 20 }, json[:till][:loyalty])
+    assert_equal 120, json[:customers].find { _1[:id] == customers(:acme_walk_in).id }[:points]
+    assert_equal 0, json[:customers].find { _1[:id] == customers(:acme_contractor).id }[:points]
+
+    customers(:acme_walk_in).loyalty_entries.create!(account: accounts(:acme), kind: "adjusted", points: 5, note: "More")
+    assert_not_equal before, PosCatalogue.new(shift: @shift, user: users(:carl)).version, "a points change means a new snapshot"
   end
 end

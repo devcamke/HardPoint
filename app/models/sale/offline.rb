@@ -1,8 +1,8 @@
 # Sales rung up while a till was offline, recorded when it's back. Each carries the ID the till
 # gave it, so sending it again records nothing new, and the time it really happened. The till
 # charged what its catalogue said; anything worth a second look (a price that has since gone
-# up, stock taken below zero, a shift already closed) comes back as a warning and goes in
-# Activity, rather than refusing a sale the customer has already paid for.
+# up, stock taken below zero, a shift already closed, points already spent on another till) comes
+# back as a warning and goes in Activity, rather than refusing a sale the customer has already paid for.
 module Sale::Offline
   extend ActiveSupport::Concern
 
@@ -80,9 +80,16 @@ module Sale::Offline
       offline_payments.each do |payment|
         break unless open?
 
-        taken = pay(tender: payment["tender"].to_s, amount_cents: payment["amount_cents"]&.to_i, tendered_cents: payment["tendered_cents"]&.to_i,
-          reference: payment["reference"].presence || (payment["tender"] == "mobile_money" ? "OFFLINE" : nil))
-        offline_warnings << "#{taken.label} payment not recorded: #{taken.errors.full_messages.to_sentence}" if taken.errors.any?
+        tender, intended = payment["tender"].to_s, payment["amount_cents"]&.to_i
+        # Cash pays what the till charged it with; if points fell short, the rest is owed, not taken from the change.
+        taken = pay(tender: tender, amount_cents: intended, tendered_cents: payment["tendered_cents"]&.to_i,
+          reference: payment["reference"].presence || (tender == "mobile_money" ? "OFFLINE" : nil), cash_limit_cents: (intended if tender == "cash"))
+        if taken.errors.any?
+          offline_warnings << "#{taken.label} payment not recorded: #{taken.errors.full_messages.to_sentence}"
+        elsif tender == "points" && intended && taken.amount_cents < intended
+          offline_warnings << "The till took #{Money.format(intended)} in points but #{customer.name} had only #{taken.points} left " \
+            "(spent elsewhere since the till's catalogue was loaded)"
+        end
       end
     end
 

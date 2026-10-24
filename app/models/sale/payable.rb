@@ -25,9 +25,10 @@ module Sale::Payable
   end
 
   # Takes a payment. Cash can be more than what's due (the rest is change); other tenders can't.
+  # cash_limit_cents caps what cash pays, for an offline sale whose till already gave the change.
   # Putting more on account than the customer's credit allows needs an owner's or manager's
   # approval (credit_approver). Once the total is covered the sale completes.
-  def pay(tender:, amount_cents: nil, tendered_cents: nil, reference: nil, credit_approver: nil, currency: nil, foreign_tendered_cents: nil)
+  def pay(tender:, amount_cents: nil, tendered_cents: nil, reference: nil, credit_approver: nil, currency: nil, foreign_tendered_cents: nil, cash_limit_cents: nil)
     raise ArgumentError, "This sale can't take payments" unless open?
 
     lines.reload
@@ -37,7 +38,7 @@ module Sale::Payable
 
     if tender.to_s == "cash"
       payment.tendered_cents = tendered_cents || amount_cents || due
-      payment.amount_cents = [ payment.tendered_cents.to_i, due ].min
+      payment.amount_cents = [ payment.tendered_cents.to_i, due, cash_limit_cents ].compact.min
     elsif tender.to_s == "points"
       spend_points(payment, amount_cents || due, due)
     elsif tender.to_s == "foreign_cash"

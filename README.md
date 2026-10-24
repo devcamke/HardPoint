@@ -425,6 +425,17 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![A bundle across three lines at the till](docs/screenshots/300-till-bundle.png)
 
+## Phase 25: spending points on the offline till
+
+- The till's snapshot carries each customer's **points balance** and the scheme's terms; the offline till takes off
+  what sales on that device have spent since, and offers "Use 2,513 points (KES 2,513.00)" with the rest paid as usual
+- The same arithmetic as the server (whole points, rounded up, capped by what's due and the balance; shared test cases)
+- When the sale is sent, points are spent as at the till; if the customer spent them on another till meanwhile, the
+  shortfall stays owed (cash pays only what the till charged it with, so the change given stays right) and the sale is
+  parked with a warning for a manager
+
+![Points on the offline till](docs/screenshots/301-offline-points.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

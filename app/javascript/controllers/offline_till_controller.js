@@ -1,18 +1,19 @@
 import { Controller } from "@hotwired/stimulus"
 import * as store from "offline/store"
-import { unitPrice, bestPromotion, applyBundles, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
+import { unitPrice, bestPromotion, applyBundles, pointsPayment, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
 import { printReceipt } from "offline/printer"
 
 // The offline till: sells from the catalogue snapshot on this device while the network is down.
 // Sales are kept on the device and sent by the offline-sync controller when it's back; they get
 // their receipt numbers then. Cash, or a typed M-Pesa or card code (checked later against the
 // M-Pesa reconciliation). Customers can be chosen, for their price list and loyalty points
-// (earned when the sale is recorded); promotions apply as online. Accounts, spending points and
-// discounts need the till online.
+// (earned when the sale is recorded); promotions apply as online. Points can be spent from the
+// customer's balance in the snapshot, less what sales on this device have spent since; the rest is
+// paid as usual. Accounts and discounts need the till online.
 export default class extends Controller {
   static targets = [ "code", "results", "quickPicks", "cart", "total", "tax", "items", "tendered", "reference", "referenceField",
                      "tenderedField", "change", "message", "queue", "completed", "receipt", "till", "snapshot", "payButton",
-                     "customerName", "customerSearch", "customerResults" ]
+                     "customerName", "customerSearch", "customerResults", "pointsField", "usePoints", "pointsLabel", "due" ]
 
   connect() {
     this.cart = []
@@ -126,8 +127,9 @@ export default class extends Controller {
       <span class="block text-xs text-steel-600">${escape([ customer.phone, customer.price_list_name ].filter(Boolean).join(" · "))}</span></button></li>`).join("")
   }
 
-  chooseCustomer(event) {
+  async chooseCustomer(event) {
     this.customer = this.catalogue.customers.find((customer) => customer.id === Number(event.currentTarget.dataset.customerId))
+    this.pointsAvailable = await this.availablePoints(this.customer)
     this.customerSearchTarget.value = ""
     this.customerResultsTarget.innerHTML = ""
     this.show(this.customer.price_list_name ? `${this.customer.name} · ${this.customer.price_list_name} prices` : this.customer.name)
@@ -139,6 +141,25 @@ export default class extends Controller {
     this.render()
   }
 
+  // The snapshot's balance less points spent by sales on this device since the snapshot was taken
+  // (sent or not: the snapshot doesn't know about either). Points earned since aren't counted
+  // until the next snapshot, so the till never offers more than the customer has.
+  async availablePoints(customer) {
+    if (!customer || !this.catalogue.till.loyalty) return 0
+    const spent = (await store.sales.all()).filter((sale) => sale.points_spent?.customer_id === customer.id && sale.happened_at > this.catalogue.generated_at)
+      .reduce((sum, sale) => sum + sale.points_spent.points, 0)
+    return Math.max((customer.points || 0) - spent, 0)
+  }
+
+  get pointsTaken() {
+    return this.customer && this.hasUsePointsTarget && this.usePointsTarget.checked ? pointsPayment(this.catalogue.till.loyalty, this.pointsAvailable, this.totals.total) : null
+  }
+
+  // What's left to pay after any points.
+  get due() {
+    return this.totals.total - (this.pointsTaken?.amount_cents || 0)
+  }
+
   switchTender() {
     const tender = this.tender
     this.tenderedFieldTarget.hidden = tender !== "cash"
@@ -148,7 +169,7 @@ export default class extends Controller {
 
   showChange() {
     const tendered = Math.round(Number(this.tenderedTarget.value || 0) * 100)
-    const change = tendered - this.totals.total
+    const change = tendered - this.due
     this.changeTarget.textContent = this.tender === "cash" && tendered > 0 && change >= 0 ? `Change ${formatMoney(change, this.catalogue.till.currency)}` : ""
   }
 
@@ -158,27 +179,34 @@ export default class extends Controller {
 
     const till = this.catalogue.till
     const total = this.totals.total
+    const points = this.pointsTaken
+    const due = this.due
     const tender = this.tender
-    const tendered = tender === "cash" ? Math.round(Number(this.tenderedTarget.value || total / 100) * 100) : null
+    const tendered = due > 0 && tender === "cash" ? Math.round(Number(this.tenderedTarget.value || due / 100) * 100) : null
     const reference = this.referenceTarget.value.trim().toUpperCase()
-    if (tender === "cash" && tendered < total) return this.show(`Cash received is less than the ${formatMoney(total, till.currency)} due`, "alert")
-    if (tender !== "cash" && !reference) return this.show(`Enter the ${tender === "mobile_money" ? "M-Pesa" : "card"} code; it's checked once the till is back online`, "alert")
+    if (due > 0 && tender === "cash" && tendered < due) return this.show(`Cash received is less than the ${formatMoney(due, till.currency)} due`, "alert")
+    if (due > 0 && tender !== "cash" && !reference) return this.show(`Enter the ${tender === "mobile_money" ? "M-Pesa" : "card"} code; it's checked once the till is back online`, "alert")
 
     const counter = await store.meta.next(`receipt-counter-${till.register_id}`)
     const receiptNumber = `${till.branch_code}-OFF${till.register_id}-${String(counter).padStart(4, "0")}`
     const happenedAt = new Date().toISOString()
     const uuid = crypto.randomUUID()
     const lines = this.pricedLines()
-    const payment = { tender, amount_cents: tender === "cash" ? null : total, tendered_cents: tendered, reference: reference || null }
+    // With points, cash is sent with what it paid, so a shortfall in points stays owed rather than coming out of the change.
+    const payments = [
+      ...(points ? [ { tender: "points", amount_cents: points.amount_cents, points: points.points } ] : []),
+      ...(due > 0 ? [ { tender, amount_cents: tender === "cash" && !points ? null : due, tendered_cents: tendered, reference: reference || null } ] : [])
+    ]
 
     const sale = {
       uuid, status: "waiting", happened_at: happenedAt, receipt_number: null, offline_receipt_number: receiptNumber, total_cents: total,
       payload: { uuid, receipt_number: receiptNumber, happened_at: happenedAt, shift_id: till.shift_id, cashier_id: till.cashier_id,
-                 customer_id: this.customer?.id ?? null, total_cents: total, discount_cents: 0, payments: [ payment ],
+                 customer_id: this.customer?.id ?? null, total_cents: total, discount_cents: 0, payments,
                  lines: lines.map((line) => ({ product_id: line.product.id, product_unit_id: line.pack?.id ?? null, quantity: String(line.quantity),
                                                unit_price_cents: line.unit_price_cents, discount_cents: 0,
                                                promotion_id: line.promotion?.id ?? null, promotion_discount_cents: line.promotion_discount_cents })) },
-      receipt: this.receiptData(receiptNumber, lines, payment)
+      points_spent: points ? { customer_id: this.customer.id, points: points.points } : null,
+      receipt: this.receiptData(receiptNumber, lines, payments)
     }
     await store.sales.put(sale)
     document.dispatchEvent(new CustomEvent("offline-till:queued"))
@@ -186,6 +214,7 @@ export default class extends Controller {
     this.lastReceipt = sale.receipt
     this.cart = []
     this.customer = null
+    if (this.hasUsePointsTarget) this.usePointsTarget.checked = false
     this.tenderedTarget.value = ""
     this.referenceTarget.value = ""
     this.codeTarget.value = ""
@@ -196,8 +225,8 @@ export default class extends Controller {
     this.renderQueue()
     this.completedTarget.hidden = false
     this.completedTarget.querySelector("[data-role=summary]").textContent =
-      `Sale ${receiptNumber} saved on this till · ${formatMoney(total, till.currency)}` + (tendered > total ? ` · Change ${formatMoney(tendered - total, till.currency)}` : "")
-    this.channel?.postMessage({ status: "complete", total: formatMoney(total, till.currency), change: tendered > total ? formatMoney(tendered - total, till.currency) : null })
+      `Sale ${receiptNumber} saved on this till · ${formatMoney(total, till.currency)}` + (points ? ` · ${formatQuantity(points.points)} points used` : "") + (tendered > due ? ` · Change ${formatMoney(tendered - due, till.currency)}` : "")
+    this.channel?.postMessage({ status: "complete", total: formatMoney(total, till.currency), change: tendered > due ? formatMoney(tendered - due, till.currency) : null })
     this.print()
   }
 
@@ -265,10 +294,24 @@ export default class extends Controller {
     this.itemsTarget.textContent = formatQuantity(lines.reduce((sum, line) => sum + thousandths(line.quantity), 0) / 1000)
     this.taxTarget.textContent = formatMoney(this.totals.tax, currency)
     this.totalTarget.textContent = formatMoney(this.totals.total, currency)
-    this.tenderedTarget.placeholder = (this.totals.total / 100).toFixed(2)
+    this.renderPoints(currency)
+    this.tenderedTarget.placeholder = (this.due / 100).toFixed(2)
     this.showChange()
     this.channel?.postMessage({ status: lines.length ? "cart" : "idle", total: formatMoney(this.totals.total, currency), paybill: this.catalogue.till.paybill,
       lines: lines.map((line) => ({ description: line.product.name + (line.pack ? ` (${line.pack.name})` : ""), quantity: formatQuantity(line.quantity), total: formatMoney(line.total) })) })
+  }
+
+  renderPoints(currency) {
+    const loyalty = this.catalogue.till.loyalty
+    const offer = this.customer ? pointsPayment(loyalty, this.pointsAvailable, this.totals.total) : null
+    this.pointsFieldTarget.hidden = !this.customer || !loyalty
+    if (!offer) this.usePointsTarget.checked = false
+    this.usePointsTarget.disabled = !offer
+    this.pointsLabelTarget.textContent = !this.customer || !loyalty ? "" : offer
+      ? `Use ${formatQuantity(offer.points)} points (${formatMoney(offer.amount_cents, currency)}) · ${formatQuantity(this.pointsAvailable)} available`
+      : `${formatQuantity(this.pointsAvailable)} points; ${formatQuantity(loyalty.min_redeem_points)} needed to spend them`
+    const points = this.pointsTaken
+    this.dueTarget.textContent = points ? `${formatMoney(this.due, currency)} to pay after points` : ""
   }
 
   renderQuickPicks() {
@@ -303,10 +346,12 @@ export default class extends Controller {
       </li>`).join("") : `<li class="py-2 text-sm text-steel-600">No offline sales on this till.</li>`
   }
 
-  receiptData(receiptNumber, lines, payment) {
+  receiptData(receiptNumber, lines, payments) {
     const till = this.catalogue.till
-    const change = payment.tender === "cash" ? payment.tendered_cents - this.totals.total : 0
+    const cash = payments.find((payment) => payment.tender === "cash")
+    const change = cash ? cash.tendered_cents - this.due : 0
     const labels = { cash: "Cash", mobile_money: "M-Pesa", card: "Card" }
+    const label = (payment) => payment.tender === "points" ? `${formatQuantity(payment.points)} points` : [ labels[payment.tender], payment.reference ].filter(Boolean).join(" ")
     return {
       header: [ till.account_name, till.branch_name, till.branch_address, till.branch_phone && `Tel ${till.branch_phone}` ].filter(Boolean),
       receipt_number: receiptNumber, time: new Date().toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" }), register: till.register_name,
@@ -316,9 +361,9 @@ export default class extends Controller {
                                     promotion: line.promotion ? [ line.promotion.offer, formatMoney(line.promotion_discount_cents) ] : null })),
       saved: (saved => saved > 0 ? formatMoney(saved) : null)(lines.reduce((sum, line) => sum + line.promotion_discount_cents, 0)),
       total: formatMoney(this.totals.total, till.currency), tax: formatMoney(this.totals.tax, till.currency),
-      payments: [ { label: [ labels[payment.tender], payment.reference ].filter(Boolean).join(" "), amount: formatMoney(payment.tendered_cents ?? payment.amount_cents, till.currency) } ],
+      payments: payments.map((payment) => ({ label: label(payment), amount: formatMoney(payment.tendered_cents ?? payment.amount_cents, till.currency) })),
       change: change > 0 ? formatMoney(change, till.currency) : null,
-      footer: till.receipt_footer || "Thank you for shopping with us", open_drawer: payment.tender === "cash"
+      footer: till.receipt_footer || "Thank you for shopping with us", open_drawer: !!cash
     }
   }
 
