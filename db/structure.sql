@@ -2526,6 +2526,45 @@ ALTER SEQUENCE public.stock_batches_id_seq OWNED BY public.stock_batches.id;
 
 
 --
+-- Name: stock_count_batches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_count_batches (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    stock_count_line_id bigint NOT NULL,
+    stock_batch_id bigint,
+    number character varying,
+    expires_on date,
+    expected_quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
+    counted_quantity numeric(14,3),
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_count_batches FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_count_batches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_count_batches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_count_batches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_count_batches_id_seq OWNED BY public.stock_count_batches.id;
+
+
+--
 -- Name: stock_count_lines; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3712,6 +3751,13 @@ ALTER TABLE ONLY public.stock_batches ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: stock_count_batches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_batches ALTER COLUMN id SET DEFAULT nextval('public.stock_count_batches_id_seq'::regclass);
+
+
+--
 -- Name: stock_count_lines id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4346,6 +4392,14 @@ ALTER TABLE ONLY public.stock_adjustments
 
 ALTER TABLE ONLY public.stock_batches
     ADD CONSTRAINT stock_batches_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_count_batches stock_count_batches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_batches
+    ADD CONSTRAINT stock_count_batches_pkey PRIMARY KEY (id);
 
 
 --
@@ -5964,6 +6018,27 @@ CREATE INDEX index_stock_batches_on_product_id ON public.stock_batches USING btr
 
 
 --
+-- Name: index_stock_count_batches_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_count_batches_on_account_id ON public.stock_count_batches USING btree (account_id);
+
+
+--
+-- Name: index_stock_count_batches_on_stock_batch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_count_batches_on_stock_batch_id ON public.stock_count_batches USING btree (stock_batch_id);
+
+
+--
+-- Name: index_stock_count_batches_on_stock_count_line_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_stock_count_batches_on_stock_count_line_id_and_number ON public.stock_count_batches USING btree (stock_count_line_id, number) NULLS NOT DISTINCT;
+
+
+--
 -- Name: index_stock_count_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6995,6 +7070,14 @@ ALTER TABLE ONLY public.webhook_endpoints
 
 
 --
+-- Name: stock_count_batches fk_rails_5997e323cc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_batches
+    ADD CONSTRAINT fk_rails_5997e323cc FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: delivery_notes fk_rails_5a5cb24495; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7379,6 +7462,14 @@ ALTER TABLE ONLY public.goods_receipts
 
 
 --
+-- Name: stock_count_batches fk_rails_8cf91a6b58; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_batches
+    ADD CONSTRAINT fk_rails_8cf91a6b58 FOREIGN KEY (stock_count_line_id) REFERENCES public.stock_count_lines(id) DEFERRABLE;
+
+
+--
 -- Name: supplier_products fk_rails_8e1c65b71a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7728,6 +7819,14 @@ ALTER TABLE ONLY public.etims_item_registrations
 
 ALTER TABLE ONLY public.stock_transfers
     ADD CONSTRAINT fk_rails_bfe016d5ae FOREIGN KEY (to_branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: stock_count_batches fk_rails_c2c70f5754; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_count_batches
+    ADD CONSTRAINT fk_rails_c2c70f5754 FOREIGN KEY (stock_batch_id) REFERENCES public.stock_batches(id) DEFERRABLE;
 
 
 --
@@ -8571,6 +8670,13 @@ CREATE POLICY account_isolation ON public.stock_batches USING (((current_setting
 
 
 --
+-- Name: stock_count_batches account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_count_batches USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: stock_count_lines account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -9015,6 +9121,12 @@ ALTER TABLE public.stock_adjustments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stock_batches ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: stock_count_batches; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_count_batches ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: stock_count_lines; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9129,6 +9241,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261024120300'),
 ('20261024120200'),
 ('20261024120100'),
 ('20261024120000'),

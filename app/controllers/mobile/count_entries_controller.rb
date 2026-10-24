@@ -1,5 +1,6 @@
 # A quantity counted. "Add" suits counting the same product in several places (the shelf, the
 # store room, the yard), and two people can add to one product at once; "Set" corrects a total.
+# Batch-tracked products are counted against the batch chosen (or a number typed off the pack).
 class Mobile::CountEntriesController < Mobile::BaseController
   include StockCountScoped
   before_action :ensure_can_manage_stock
@@ -12,6 +13,10 @@ class Mobile::CountEntriesController < Mobile::BaseController
     if amount.negative? || !@line.product.quantity_allowed?(amount)
       @error = "#{@line.product.unit.name.capitalize} can only be counted in whole numbers" if amount >= 0
       @error ||= "Enter a quantity of 0 or more"
+    elsif @line.by_batch?
+      batch = @line.count_batch(number: params[:new_batch_number].presence || params[:batch_number], quantity: amount, mode: params[:mode])
+      @error = batch.errors.full_messages.to_sentence if batch.errors.any?
+      @batch_label = batch.label
     elsif params[:mode] == "set"
       @line.update!(counted_quantity: amount)
     else

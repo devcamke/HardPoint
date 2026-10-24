@@ -436,6 +436,18 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ![Points on the offline till](docs/screenshots/301-offline-points.png)
 
+## Phase 26: counting by batch
+
+- **Stock takes** list batch-tracked products batch by batch: every batch in stock when the count started (with its
+  expiry date), plus stock not in a batch; the product's line totals its batches
+- Batches found on the shelf that never came in on a delivery are added with their number and expiry, on the page,
+  by scanning with the batch number, or on the phone ("Which batch?")
+- **Approving** corrects each batch to what was counted (one ledger line per batch); new batches join first-expiring-
+  first selling, and a batch sold from during the count never goes below nothing
+- Uncounted batches are left as they are, as uncounted products are
+
+![Counting tile adhesive batch by batch](docs/screenshots/303-count-by-batch.png)
+
 Screenshots of every screen are in [docs/screenshots](docs/screenshots).
 
 ## Versions

@@ -161,7 +161,9 @@ Rails.application.routes.draw do
     end
     resources :stock_counts, only: %i[ index new create show ] do
       scope module: :stock_counts do
-        resources :lines, only: :update
+        resources :lines, only: :update do
+          resources :batch_counts, only: :create
+        end
         resource :scan, only: :create
         resource :submission, only: :create
         resource :approval, only: :create

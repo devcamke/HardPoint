@@ -14,7 +14,7 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
     "stock_counts/lines" => "StockCountLine", "deliveries" => "DeliveryNote", "returns" => "SaleReturn", "sale_returns" => "SaleReturn"
   }.freeze
   MODEL_FOR_PARAM = { "mpesa_shortcode_id" => "Mpesa::Shortcode", "etims_device_id" => "Etims::Device", "etims_submission_id" => "Etims::Submission",
-    "delivery_id" => "WebhookDelivery" }.freeze
+    "delivery_id" => "WebhookDelivery", "line_id" => "StockCountLine" }.freeze
 
   setup { build_victim_records }
 

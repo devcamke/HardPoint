@@ -9,6 +9,20 @@
     <%= form_with url: mobile_stock_count_count_entries_path(@count), class: "mt-3", data: { turbo_frame: "_self", action: "turbo:submit-end->camera-scanner#resume" } do |form| %>
       <%= form.hidden_field :line_id, value: @line.id %>
       <%= form.hidden_field :product_unit_id, value: pack&.id %>
+      <% if (batches = @line.batch_counts.in_order.to_a).any? %>
+        <fieldset class="mb-3">
+          <legend class="label">Which batch?</legend>
+          <% batches.each_with_index do |batch, index| %>
+            <label class="flex items-center gap-2 border-b border-concrete-100 py-2 text-sm">
+              <%= form.radio_button :batch_number, batch.number.to_s, checked: index.zero?, class: "size-4 accent-safety-500" %>
+              <span class="flex-1"><%= batch.label %><%= " · expires #{l(batch.expires_on, format: :long)}" if batch.expires_on %></span>
+              <span class="tabular-nums text-steel-600"><%= batch.counted_quantity ? quantity(batch.counted_quantity, product.unit) : "—" %></span>
+            </label>
+          <% end %>
+          <label class="mt-2 block text-sm">Or another batch number
+            <%= form.text_field :new_batch_number, autocomplete: "off", class: "input mt-1 font-mono uppercase", placeholder: "printed on the pack" %></label>
+        </fieldset>
+      <% end %>
       <%= form.label :quantity, pack ? "How many #{pack.unit.name.pluralize.downcase} (#{quantity(pack.quantity, product.unit)} each)?" : "How many #{product.unit.name.pluralize.downcase} here?", class: "label" %>
       <%= form.number_field :quantity, required: true, min: 0, step: (product.unit.fractional? ? "any" : 1), inputmode: (product.unit.fractional? ? "decimal" : "numeric"),
             autofocus: true, class: "input text-2xl tabular-nums" %>

@@ -1,7 +1,7 @@
 # A stock take. Starting one snapshots what the system expects at the branch (for everything,
 # or one category for a cycle count). Staff record what they actually count; a manager approves,
 # and the differences are posted to the ledger. Differences are measured against the snapshot,
-# so sales during the count don't distort them.
+# so sales during the count don't distort them. Batch-tracked products are counted batch by batch.
 class StockCount < ApplicationRecord
   include AccountOwned, Eventable
 
@@ -30,9 +30,12 @@ class StockCount < ApplicationRecord
     with_lock do
       return false unless submitted?
 
-      lines.counted.includes(:product).each do |line|
-        next if line.variance.zero?
-        line.product.move_stock(branch: branch, quantity: line.variance, reason: "count", source: self, creator: user)
+      lines.counted.includes(:product, batch_counts: :stock_batch).each do |line|
+        if line.by_batch?
+          line.batch_counts.each { _1.post_variance(self, user) }
+        elsif line.variance.nonzero?
+          line.product.move_stock(branch: branch, quantity: line.variance, reason: "count", source: self, creator: user)
+        end
       end
 
       update! status: :approved, approver: user, approved_at: Time.current
@@ -63,7 +66,24 @@ class StockCount < ApplicationRecord
         { account_id: account_id, stock_count_id: id, product_id: product_id, expected_quantity: levels.fetch(product_id, 0), created_at: now, updated_at: now }
       end
       StockCountLine.insert_all(rows) if rows.any?
+      snapshot_batches(products.where(tracks_batches: true), levels, now)
 
       track_event "started"
+    end
+
+    # A row for each batch in stock, and one for stock not in a batch (what the level holds beyond the batches).
+    def snapshot_batches(products, levels, now)
+      line_ids = lines.where(product_id: products.select(:id)).pluck(:product_id, :id).to_h
+      return if line_ids.empty?
+
+      batches = StockBatch.where(branch: branch, product_id: line_ids.keys).in_stock.group_by(&:product_id)
+      rows = line_ids.flat_map do |product_id, line_id|
+        in_batches = batches.fetch(product_id, [])
+        unbatched = levels.fetch(product_id, 0) - in_batches.sum(&:quantity)
+        [ *in_batches.map { { stock_batch_id: _1.id, number: _1.number, expires_on: _1.expires_on, expected_quantity: _1.quantity } },
+          { stock_batch_id: nil, number: nil, expires_on: nil, expected_quantity: unbatched } ]
+          .map { _1.merge(account_id: account_id, stock_count_line_id: line_id, created_at: now, updated_at: now) }
+      end
+      StockCountBatch.insert_all(rows)
     end
 end

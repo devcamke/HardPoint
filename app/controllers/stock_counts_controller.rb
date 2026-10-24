@@ -7,7 +7,7 @@ class StockCountsController < ApplicationController
 
   def show
     @count = Current.account.stock_counts.find(params[:id])
-    lines = @count.lines.includes(product: :unit).joins(:product).order("products.name")
+    lines = @count.lines.includes({ product: :unit }, :batch_counts).joins(:product).order("products.name")
     lines = case params[:filter]
     when "uncounted" then lines.uncounted
     when "variances" then lines.with_variance

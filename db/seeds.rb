@@ -375,6 +375,14 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     account.stock_counts.create!(branch: main, category: account.categories.find_by!(name: "Hand tools")).tap do |count|
       count.lines.joins(:product).where(products: { sku: %w[ TL-HAM16 TL-TAPE5 ] }).each { |line| line.update!(counted_quantity: [ line.expected_quantity - 1, 0 ].max) }
     end
+    # Building materials being counted, the adhesive and sealant batch by batch: two bags of an expired batch
+    # gone, and a batch on the shelf that never came in on a delivery.
+    account.stock_counts.create!(branch: main, category: account.categories.find_by!(name: "Building materials")).tap do |count|
+      adhesive = count.lines.find_by!(product: products["ADH-TILE20"])
+      { "TA-2603" => 4, "TA-2609" => 18, "TA-2702" => 40 }.each { |number, quantity| adhesive.count_batch(number: number, quantity: quantity) }
+      adhesive.count_batch(number: "TA-2611", quantity: 5, expires_on: 75.days.from_now.to_date)
+      count.lines.find_by!(product: products["SEAL-300"]).count_batch(number: "SL-0311", quantity: 17)
+    end
   ensure
     Current.reset
   end

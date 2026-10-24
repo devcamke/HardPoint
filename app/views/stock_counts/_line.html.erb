@@ -1,19 +1,61 @@
-<tr id="<%= dom_id(line) %>">
-  <td><%= line.product.name %><br><span class="font-mono text-xs text-steel-600"><%= line.product.sku %></span></td>
-  <td class="text-right tabular-nums"><%= quantity(line.expected_quantity, line.product.unit) %></td>
-  <td class="text-right">
-    <% if count.counting? && current_membership.can_manage_stock? %>
-      <%= form_with model: line, url: stock_count_line_path(count, line), class: "inline-flex gap-1", data: { controller: "auto-submit" } do |form| %>
-        <%= form.number_field :counted_quantity, value: plain_number(line.counted_quantity), step: "any", min: 0, class: "input w-24 py-1 text-right", "aria-label": "Counted #{line.product.name}",
-              data: { action: "change->auto-submit#submit" } %>
-        <noscript><%= form.submit "Save", class: "btn-secondary py-1" %></noscript>
+<% editable = count.counting? && current_membership.can_manage_stock? %>
+<% unit = line.product.unit %>
+<tbody id="<%= dom_id(line) %>" class="border-b border-concrete-100">
+  <tr>
+    <td><%= line.product.name %><br><span class="font-mono text-xs text-steel-600"><%= line.product.sku %></span>
+      <% if line.batch_counts.any? %><span class="badge ml-1">By batch</span><% end %></td>
+    <td class="text-right tabular-nums"><%= quantity(line.expected_quantity, unit) %></td>
+    <td class="text-right">
+      <% if editable && line.batch_counts.none? %>
+        <%= form_with model: line, url: stock_count_line_path(count, line), class: "inline-flex gap-1", data: { controller: "auto-submit" } do |form| %>
+          <%= form.number_field :counted_quantity, value: plain_number(line.counted_quantity), step: "any", min: 0, class: "input w-24 py-1 text-right", "aria-label": "Counted #{line.product.name}",
+                data: { action: "change->auto-submit#submit" } %>
+          <noscript><%= form.submit "Save", class: "btn-secondary py-1" %></noscript>
+        <% end %>
+      <% else %>
+        <span class="tabular-nums <%= "font-semibold" if line.batch_counts.any? %>"><%= line.counted_quantity ? quantity(line.counted_quantity, unit) : "—" %></span>
       <% end %>
-      <% if line.errors.any? %><p class="text-xs text-red-700"><%= line.errors.full_messages.to_sentence %></p><% end %>
-    <% else %>
-      <span class="tabular-nums"><%= line.counted_quantity ? quantity(line.counted_quantity, line.product.unit) : "—" %></span>
-    <% end %>
-  </td>
-  <td class="text-right tabular-nums font-semibold <%= line.variance.negative? ? "text-red-700" : ("text-green-700" if line.variance.positive?) %>">
-    <%= line.counted_quantity ? "#{"+" if line.variance.positive?}#{quantity(line.variance)}" : "" %>
-  </td>
-</tr>
+      <% if line.errors.any? || local_assigns[:error] %><p class="text-xs text-red-700"><%= local_assigns[:error] || line.errors.full_messages.to_sentence %></p><% end %>
+    </td>
+    <td class="text-right tabular-nums font-semibold <%= line.variance.negative? ? "text-red-700" : ("text-green-700" if line.variance.positive?) %>">
+      <%= line.counted_quantity ? "#{"+" if line.variance.positive?}#{quantity(line.variance)}" : "" %>
+    </td>
+  </tr>
+  <% line.batch_counts.in_order.each do |batch| %>
+    <% next if batch.number.nil? && batch.expected_quantity.zero? && batch.counted_quantity.nil? && !editable %>
+    <tr class="text-sm">
+      <td class="pl-8 text-steel-700"><%= batch.label %><%= tag.span(" · found", class: "text-green-700") if batch.found? %>
+        <% if batch.expires_on %><span class="block text-xs <%= batch.expires_on < Date.current ? "text-red-700" : "text-steel-600" %>">expires <%= l(batch.expires_on, format: :long) %></span><% end %></td>
+      <td class="text-right tabular-nums text-steel-700"><%= quantity(batch.expected_quantity, unit) %></td>
+      <td class="text-right">
+        <% if editable %>
+          <%= form_with url: stock_count_line_batch_counts_path(count, line), class: "inline-flex gap-1", data: { controller: "auto-submit" } do |form| %>
+            <%= form.hidden_field :number, value: batch.number, id: nil %>
+            <%= form.number_field :counted_quantity, value: plain_number(batch.counted_quantity), id: nil, step: "any", min: 0, class: "input w-24 py-1 text-right",
+                  "aria-label": "Counted #{line.product.name}, #{batch.label.downcase_first}", data: { action: "change->auto-submit#submit" } %>
+          <% end %>
+        <% else %>
+          <span class="tabular-nums"><%= batch.counted_quantity ? quantity(batch.counted_quantity, unit) : "—" %></span>
+        <% end %>
+      </td>
+      <td class="text-right tabular-nums <%= batch.variance.negative? ? "text-red-700" : ("text-green-700" if batch.variance.positive?) %>">
+        <%= batch.counted_quantity ? "#{"+" if batch.variance.positive?}#{quantity(batch.variance)}" : "" %>
+      </td>
+    </tr>
+  <% end %>
+  <% if editable && line.batch_counts.any? %>
+    <tr class="text-sm">
+      <td colspan="4" class="pl-8">
+        <details>
+          <summary class="link cursor-pointer text-xs">A batch not listed</summary>
+          <%= form_with url: stock_count_line_batch_counts_path(count, line), namespace: dom_id(line), class: "mt-2 flex flex-wrap items-end gap-2" do |form| %>
+            <div><%= form.label :number, "Batch number", class: "label" %><%= form.text_field :number, required: true, class: "input w-36 py-1 font-mono uppercase" %></div>
+            <div><%= form.label :expires_on, "Expires", class: "label" %><%= form.date_field :expires_on, class: "input py-1" %></div>
+            <div><%= form.label :counted_quantity, "Counted", class: "label" %><%= form.number_field :counted_quantity, required: true, step: "any", min: 0, class: "input w-24 py-1" %></div>
+            <%= form.submit "Add", class: "btn-secondary py-1" %>
+          <% end %>
+        </details>
+      </td>
+    </tr>
+  <% end %>
+</tbody>

@@ -27,6 +27,7 @@
 <% if @count.counting? && current_membership.can_manage_stock? %>
   <%= form_with url: stock_count_scan_path(@count), class: "card mb-4 flex flex-wrap items-end gap-3 p-4" do |form| %>
     <div class="flex-1"><%= form.label :code, "Scan a barcode or type a SKU", class: "label" %><%= form.text_field :code, required: true, autofocus: true, class: "input font-mono" %></div>
+    <div class="w-40"><%= form.label :batch_number, "Batch (if tracked)", class: "label" %><%= form.text_field :batch_number, class: "input font-mono uppercase" %></div>
     <div class="w-32"><%= form.label :counted_quantity, "Counted", class: "label" %><%= form.number_field :counted_quantity, required: true, step: "any", min: 0, class: "input" %></div>
     <%= form.submit "Record", class: "btn-primary" %>
   <% end %>
@@ -45,11 +46,9 @@
 <div class="card overflow-x-auto">
   <table class="table">
     <thead><tr><th>Product</th><th class="text-right">Expected</th><th class="text-right">Counted</th><th class="text-right">Difference</th></tr></thead>
-    <tbody>
-      <% @lines.each do |line| %>
-        <%= render "stock_counts/line", line: line, count: @count %>
-      <% end %>
-    </tbody>
+    <% @lines.each do |line| %>
+      <%= render "stock_counts/line", line: line, count: @count %>
+    <% end %>
   </table>
 </div>
 <%= render "shared/pagination" %>

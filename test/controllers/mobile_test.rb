@@ -56,6 +56,22 @@ class MobileTest < ActionDispatch::IntegrationTest
     assert_response :conflict
   end
 
+  test "counting a batch-tracked product on the phone: choose the batch, or type one off the pack" do
+    as_acme do
+      products(:acme_cement).update!(tracks_batches: true)
+      products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: 5, reason: "received", batch: { number: "A1", expires_on: 30.days.from_now.to_date })
+    end
+    count = as_acme { @account.stock_counts.create!(branch: branches(:acme_main)) }
+    line = acme { count.lines.find_by(product: products(:acme_cement)) }
+
+    get mobile_stock_count_count_lines_path(count, code: "CEM-50"), headers: { "Turbo-Frame" => "scan_result" }
+    assert_select "input[name=batch_number][value=A1][checked]"
+    post mobile_stock_count_count_entries_path(count), params: { line_id: line.id, quantity: "3", mode: "add", batch_number: "A1" }, as: :turbo_stream
+    post mobile_stock_count_count_entries_path(count), params: { line_id: line.id, quantity: "1", mode: "add", batch_number: "A1", new_batch_number: "q4" }, as: :turbo_stream
+    assert_match "Batch Q4", response.body
+    assert_equal [ [ "A1", 3 ], [ "Q4", 1 ] ], acme { line.batch_counts.counted.order(:number).map { [ _1.number, _1.counted_quantity.to_i ] } }
+  end
+
   test "receiving a delivery by scanning, then recording it" do
     order = as_acme do
       @account.purchase_orders.create!(supplier: suppliers(:acme_cement_distributor), branch: branches(:acme_main),
