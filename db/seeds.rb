@@ -191,7 +191,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     { front_counter => [ counter_skus, 6..11 ], account.registers.find_by!(name: "Yard gate") => [ yard_skus, 2..5 ] }.each do |register, (skus, per_day)|
       29.downto(0) do |days_ago|
         day = days_ago.days.ago.to_date
-        next if day.sunday?
+        next if day.sunday? && !days_ago.zero? # today's shift is always open, even on a Sunday
 
         opens = day.in_time_zone.change(hour: 8)
         shift = account.shifts.create!(register: register, opening_float: 5000, opened_at: opens, opened_by: days_ago.even? ? cashier : owner)
