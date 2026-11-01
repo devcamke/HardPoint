@@ -6,7 +6,7 @@ class HelpController < ApplicationController
 
   def index
     @query = params[:q].to_s.strip
-    @articles = @query.present? ? HelpArticle.all.select { [ _1.title, _1.summary ].join(" ").downcase.include?(@query.downcase) } : HelpArticle.all
+    @articles = HelpArticle.search(@query)
   end
 
   def show
