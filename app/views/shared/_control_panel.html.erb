@@ -54,7 +54,7 @@
             <span class="flex-1 p-0.5 text-sm text-gray-400"><%= "Filter" if facets.empty? %></span>
           <% end %>
         </div>
-        <% if filters.any? %>
+        <% if filters.any?(&:menu) %>
           <button type="button" class="flex cursor-pointer items-center border-l border-gray-200 px-2.5 text-gray-500 hover:bg-gray-50 hover:text-gray-800"
                   data-action="search-panel#toggle" aria-label="Filters" aria-expanded="false" data-search-panel-target="toggle">
             <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
@@ -62,8 +62,8 @@
         <% end %>
       </div>
 
-      <% if filters.any? %>
-        <% sections = filters.group_by(&:section) %>
+      <% if (menu_filters = filters.select(&:menu)).any? %>
+        <% sections = menu_filters.group_by(&:section) %>
         <div hidden data-search-panel-target="dropdown"
              class="<%= class_names("absolute top-full right-0 left-0 z-30 mt-1 grid rounded border border-gray-200 bg-white py-2 text-sm shadow-lg sm:left-auto",
                        "sm:w-80" => sections.size == 1, "sm:w-[36rem] sm:grid-cols-2 sm:divide-x sm:divide-gray-100" => sections.size > 1) %>">

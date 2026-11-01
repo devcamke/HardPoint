@@ -56,6 +56,16 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     assert_select "td a", text: reference, count: 0
   end
 
+  test "purchase orders grouped by supplier and by status, with totals in the supplier's currency" do
+    new_order
+
+    get purchase_orders_path(group_by: "supplier")
+    assert_select "details summary", text: /Nairobi Cement Distributors\s*\(1\)\s*KES 68,000.00/
+
+    get purchase_orders_path(group_by: "status")
+    assert_select "details summary", text: /Draft\s*\(1\)\s*KES 68,000.00/
+  end
+
   test "sent orders can't be edited" do
     order = new_order
     post purchase_order_sending_path(order)

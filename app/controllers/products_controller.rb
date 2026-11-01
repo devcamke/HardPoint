@@ -1,4 +1,8 @@
 class ProductsController < ApplicationController
+  include ListGrouping
+
+  GROUPINGS = { "category" => "Category", "brand" => "Brand" }.freeze
+
   before_action :ensure_can_manage_catalogue, except: %i[ index show ]
   before_action :set_product, only: %i[ show edit update destroy ]
 
@@ -7,8 +11,12 @@ class ProductsController < ApplicationController
 
     respond_to do |format|
       format.html do
-        @products = paginate(@products.includes(:category, :unit))
-        @stock = StockLevel.where(branch: selected_branch, product_id: @products.map(&:id)).pluck(:product_id, :quantity).to_h
+        if (@group_by = params[:group_by].presence_in(GROUPINGS.keys))
+          @groups = product_groups(@products)
+        else
+          @products = paginate(@products.includes(:category, :unit))
+          @stock = StockLevel.where(branch: selected_branch, product_id: @products.map(&:id)).pluck(:product_id, :quantity).to_h
+        end
       end
 
       format.csv do
@@ -64,7 +72,8 @@ class ProductsController < ApplicationController
     def filtered_products
       products = Current.account.products.search(params[:query])
       products = products.alphabetically if params[:query].blank?
-      products = products.where(category: Current.account.categories.find(params[:category_id])) if params[:category_id].present?
+      products = products.where(category_id: none_or_id(Current.account.categories, params[:category_id])) if params[:category_id].present?
+      products = products.where(brand_id: none_or_id(Current.account.brands, params[:brand_id])) if params[:brand_id].present?
       products = products.active unless params[:include_inactive] == "1"
       products
     end
@@ -85,5 +94,20 @@ class ProductsController < ApplicationController
         product.save or raise ActiveRecord::Rollback
       end
       product.persisted?
+    end
+
+    # "none" picks the products without one, e.g. the "No category" group.
+    def none_or_id(records, id)
+      id == "none" ? nil : records.find(id).id
+    end
+
+    def product_groups(products)
+      if @group_by == "category"
+        names = Current.account.categories.to_h { [ _1.id, _1.full_name ] }
+        list_groups(products, :category_id, labels: ->(id) { names[id] || "No category" })
+      else
+        names = Current.account.brands.pluck(:id, :name).to_h
+        list_groups(products, :brand_id, labels: ->(id) { names[id] || "No brand" })
+      end
     end
 end

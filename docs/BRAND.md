@@ -14,6 +14,10 @@ The back office follows Odoo's layout, so it looks familiar to anyone who has us
   Active filters show in the search bar as facets ("Status: Open orders ×"); the ▾ opens the filters. Enter
   searches, and Backspace in an empty box removes the last facet. Filters are declared per page with
   `search_filter` (`app/helpers/control_panel_helper.rb`).
+- **Group By** is on Products (category, brand), Purchase orders (supplier, status) and Orders & quotes
+  (status, customer), and on the reports. Each group shows its count and totals over the whole list (totals in
+  each currency for suppliers who invoice in dollars) and opens to load its records. It's left off the other
+  lists on purpose: the reports already give those breakdowns. See `ListGrouping` and `shared/_list_groups`.
 - **Page titles:** one line, with the parent page as a breadcrumb: `Products / New product`.
 - **Lists** are flat white tables with a grey header line; **forms** use underlined fields.
 - **Settings** are grouped into sections, with a section index on the left.

@@ -1,4 +1,7 @@
 class PurchaseOrdersController < ApplicationController
+  include ListGrouping
+
+  GROUPINGS = { "supplier" => "Supplier", "status" => "Status" }.freeze
   BLANK_LINES = 6
 
   before_action :ensure_can_purchase
@@ -9,7 +12,12 @@ class PurchaseOrdersController < ApplicationController
     orders = orders.where(status: params[:status]) if params[:status].in?(PurchaseOrder.statuses.keys)
     orders = orders.open if params[:status] == "open"
     orders = orders.where(supplier_id: Current.account.suppliers.search(params[:query]).select(:id)) if params[:query].present?
-    @purchase_orders = paginate(orders)
+    orders = orders.where(supplier: Current.account.suppliers.find(params[:supplier_id])) if params[:supplier_id].present?
+    if (@group_by = params[:group_by].presence_in(GROUPINGS.keys))
+      @groups = order_groups(orders.joins(:supplier))
+    else
+      @purchase_orders = paginate(orders)
+    end
 
     respond_to do |format|
       format.html
@@ -59,6 +67,17 @@ class PurchaseOrdersController < ApplicationController
   end
 
   private
+    # Orders are in their supplier's currency, so each currency is added up on its own.
+    def order_groups(orders)
+      if @group_by == "supplier"
+        names = Current.account.suppliers.pluck(:id, :name).to_h
+        list_groups(orders, :supplier_id, labels: names.method(:[]), total: :total_cents, currency: Current.account.currency, currency_column: "suppliers.currency")
+      else
+        list_groups(orders, :status, labels: ->(status) { status.humanize }, total: :total_cents, currency: Current.account.currency, currency_column: "suppliers.currency",
+          order: PurchaseOrder.statuses.keys)
+      end
+    end
+
     def set_purchase_order
       @purchase_order = Current.account.purchase_orders.find(params[:id])
     end

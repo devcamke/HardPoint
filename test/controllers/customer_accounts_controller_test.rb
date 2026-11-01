@@ -48,6 +48,21 @@ class CustomerAccountsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "deposit", "card" ], without_isolation { order.sales.sole.payments.map(&:tender) }
   end
 
+  test "orders and quotes grouped by status and by customer" do
+    create_quote
+
+    get customer_orders_path(status: "all", group_by: "status")
+    assert_select "details summary", text: /Quote\s*\(1\)/
+
+    get customer_orders_path(status: "all", group_by: "customer")
+    assert_select "details summary", text: /Mwangi Builders Ltd\s*\(1\)/
+
+    customer = customers(:acme_contractor)
+    get customer_orders_path(status: "all", customer_id: customer.id)
+    assert_select "form[role=search] span", text: "Customer: Mwangi Builders Ltd"
+    assert_select "td", "Mwangi Builders Ltd"
+  end
+
   test "a cashier needs a manager's PIN to go over a customer's credit limit" do
     post pos_lines_path, params: { code: "CEM-50", quantity: "70" }, as: :turbo_stream # 70 × 760.00 = 53,200.00 > 50,000.00
     patch pos_customer_path, params: { customer_id: customers(:acme_contractor).id }, as: :turbo_stream
