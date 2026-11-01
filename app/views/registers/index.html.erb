@@ -2,7 +2,7 @@
 
 <div class="mb-6 flex items-center justify-between">
   <div>
-    <h1 class="text-3xl font-bold">Tills</h1>
+    <h1 class="text-xl font-medium">Tills</h1>
     <p class="hint mt-1">Each till is a point of sale in one of your branches.</p>
   </div>
   <% if current_membership.can_manage_branches? %>
@@ -21,7 +21,7 @@
           <tr id="<%= dom_id(register) %>">
             <td class="font-medium"><%= register.name %></td>
             <td><%= register.branch.name %></td>
-            <td><span class="badge <%= "bg-concrete-200 text-steel-600" unless register.active? %>"><%= register.active? ? "Active" : "Inactive" %></span></td>
+            <td><span class="badge <%= "bg-gray-200 text-gray-500" unless register.active? %>"><%= register.active? ? "Active" : "Inactive" %></span></td>
             <td class="text-right">
               <% if current_membership.can_manage_branches? %>
                 <%= link_to "Edit", edit_register_path(register), class: "link" %>

@@ -1,10 +1,9 @@
 <% content_for :title, "Stock take" %>
 
-<p class="text-sm"><%= link_to "← Stock takes", stock_counts_path, class: "link" %></p>
 <% counted, total = @count.progress %>
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold">Stock take <%= render "stock_counts/status", count: @count %></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Stock takes", stock_counts_path, class: "link" %> <span class="text-gray-400">/</span> Stock take <%= render "stock_counts/status", count: @count %></h1>
     <p class="hint mt-1"><%= @count.name %> · started by <%= @count.creator&.name %><%= " · approved by #{@count.approver.name}" if @count.approved? %></p>
     <p class="mt-2 text-sm"><strong><%= counted %></strong> of <%= total %> counted
       <% if current_membership.can_see_costs? && counted.positive? %> · difference at cost <strong class="<%= @count.variance_value_cents.negative? ? "text-red-700" : "" %>"><%= money(@count.variance_value_cents) %></strong><% end %></p>
@@ -35,7 +34,7 @@
 
 <div class="mb-3 flex flex-wrap items-center gap-4 text-sm">
   <% [ [ "All", nil ], [ "Not counted", "uncounted" ], [ "Differences", "variances" ] ].each do |label, filter| %>
-    <%= link_to label, stock_count_path(@count, filter: filter, query: params[:query]), class: params[:filter] == filter ? "font-semibold text-navy-900" : "link" %>
+    <%= link_to label, stock_count_path(@count, filter: filter, query: params[:query]), class: params[:filter] == filter ? "font-semibold text-gray-900" : "link" %>
   <% end %>
   <%= form_with url: stock_count_path(@count), method: :get, class: "ml-auto", data: { controller: "auto-submit" } do |form| %>
     <%= form.hidden_field :filter, value: params[:filter] %>

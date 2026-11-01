@@ -1,6 +1,5 @@
 <% content_for :title, "Edit #{@hire_item.label}" %>
-<p class="text-sm"><%= link_to "← Tools for hire", hire_items_path, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold"><%= @hire_item.label %></h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Tools for hire", hire_items_path, class: "link" %> <span class="text-gray-400">/</span> <%= @hire_item.label %></h1>
 <%= render "form", hire_item: @hire_item %>
 <% unless @hire_item.on_hire? %>
   <%= button_to (@hire_item.hire_lines.exists? ? "Retire this tool" : "Remove this tool"), @hire_item, method: :delete, class: "btn-secondary mt-4",

@@ -1,16 +1,15 @@
 <% content_for :title, "Developers" %>
-<%= render "settings/back" %>
 
 <div class="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
   <div>
-    <h1 class="text-3xl font-bold">Developers</h1>
-    <p class="mt-1 text-steel-600">Connect a web shop, an accounting tool or your own scripts to <%= Current.account.name %>.
+    <h1 class="text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> Developers</h1>
+    <p class="mt-1 text-gray-500">Connect a web shop, an accounting tool or your own scripts to <%= Current.account.name %>.
       <%= link_to "API and webhook documentation", developer_docs_url(subdomain: false), class: "link", target: "_blank", rel: "noopener" %></p>
   </div>
 </div>
 
 <% unless Current.account.subscription_plan.api? %>
-  <div class="mb-6 rounded-lg border border-safety-200 bg-safety-50 px-4 py-3 text-sm">
+  <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
     The API and webhooks are on the Business and Enterprise plans. <%= link_to "Change plan", billing_path, class: "link font-semibold" %>
   </div>
 <% end %>
@@ -41,7 +40,7 @@
       </tbody>
     </table>
   <% else %>
-    <p class="text-sm text-steel-600">No keys yet.</p>
+    <p class="text-sm text-gray-500">No keys yet.</p>
   <% end %>
 </section>
 
@@ -69,6 +68,6 @@
       </tbody>
     </table>
   <% else %>
-    <p class="text-sm text-steel-600">No endpoints yet.</p>
+    <p class="text-sm text-gray-500">No endpoints yet.</p>
   <% end %>
 </section>

@@ -1,7 +1,8 @@
 <% content_for :title, "Returns" %>
 
-<h1 class="mb-4 text-3xl font-bold">Sales</h1>
-<%= render "sales/tabs" %>
+<%= render "shared/control_panel",
+      title: "Returns",
+      records: @returns %>
 
 <div class="card">
   <% if @returns.any? %>
@@ -11,7 +12,7 @@
         <% @returns.each do |sale_return| %>
           <tr>
             <td><%= link_to sale_return.return_number, return_path(sale_return), class: "link font-mono" %></td>
-            <td><%= link_to sale_return.sale.receipt_number, sale_return.sale, class: "font-mono hover:text-safety-700" %></td>
+            <td><%= link_to sale_return.sale.receipt_number, sale_return.sale, class: "font-mono hover:text-primary-700" %></td>
             <td><%= l(sale_return.created_at, format: :short) %></td>
             <td><%= sale_return.creator.name %></td>
             <td><%= sale_return.refund_method.humanize %></td>
@@ -24,4 +25,3 @@
     <p class="hint">No returns yet.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

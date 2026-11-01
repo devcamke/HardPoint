@@ -1,7 +1,6 @@
 <% content_for :title, "Record supplier invoice" %>
 
-<p class="text-sm"><%= link_to "← Invoices", supplier_invoices_path, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Record a supplier invoice</h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Invoices", supplier_invoices_path, class: "link" %> <span class="text-gray-400">/</span> Record a supplier invoice</h1>
 
 <%= form_with model: @invoice, class: "card max-w-xl" do |form| %>
   <%= render "shared/errors", model: @invoice %>

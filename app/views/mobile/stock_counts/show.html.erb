@@ -1,7 +1,6 @@
 <% content_for :title, "Counting" %>
 <div data-controller="camera-scanner">
-  <p class="text-sm"><%= link_to "← Stock takes", mobile_stock_counts_path, class: "link" %></p>
-  <h1 class="mt-1 text-2xl font-bold"><%= @count.branch.name %> · <%= @count.category&.name || "All products" %></h1>
+  <h1 class="mt-1 text-xl font-medium"><%= link_to "Stock takes", mobile_stock_counts_path, class: "link" %> <span class="text-gray-400">/</span> <%= @count.branch.name %> · <%= @count.category&.name || "All products" %></h1>
   <% if @count.counting? %>
     <%= render "mobile/stock_counts/progress", count: @count %>
     <%= render "mobile/scanner", url: mobile_stock_count_count_lines_path(@count) %>

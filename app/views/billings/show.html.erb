@@ -1,10 +1,9 @@
 <% content_for :title, "Billing" %>
 <% plan = @account.subscription_plan %>
 <% usage = @account.usage %>
-<%= render "settings/back" %>
 
 <div class="mt-2 mb-6">
-  <h1 class="text-3xl font-bold">Billing</h1>
+  <h1 class="text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> Billing</h1>
   <p class="hint mt-1">
     <% if @account.trialing? && @account.trial_ends_at %>
       Free trial of the <%= plan.name %> plan: <strong><%= pluralize(@account.trial_days_left, "day") %> left</strong>, until <%= l(@account.trial_ends_at.to_date, format: :long) %>. The first invoice comes then, due a week later.
@@ -19,17 +18,17 @@
 </div>
 
 <% if @invoice %>
-  <section class="card mb-6 border-2 <%= @invoice.overdue? ? "border-red-300" : "border-safety-300" %>">
+  <section class="card mb-6 border-2 <%= @invoice.overdue? ? "border-red-300" : "border-primary-300" %>">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p class="hint">Invoice <%= link_to @invoice.number, billing_invoice_path(@invoice), target: "_blank", class: "link font-mono" %> · <%= @invoice.description %></p>
         <p class="mt-1 text-3xl font-bold tabular-nums"><%= money(@invoice.amount_cents, currency: @invoice.currency) %></p>
-        <p class="<%= @invoice.overdue? ? "font-semibold text-red-700" : "text-steel-600" %>"><%= @invoice.overdue? ? "Was due" : "Due" %> <%= l(@invoice.due_on, format: :long) %></p>
+        <p class="<%= @invoice.overdue? ? "font-semibold text-red-700" : "text-gray-500" %>"><%= @invoice.overdue? ? "Was due" : "Due" %> <%= l(@invoice.due_on, format: :long) %></p>
       </div>
       <div class="w-full max-w-md space-y-3">
         <% if @pending_mpesa %>
-          <div class="rounded-lg border-2 border-safety-500 bg-safety-50 p-3" data-controller="mpesa-poll" data-mpesa-poll-url-value="<%= billing_mpesa_payment_path(@pending_mpesa, format: :json) %>">
-            <p class="flex items-center gap-2 font-semibold"><span class="size-3 animate-pulse rounded-full bg-safety-500"></span>Waiting for <%= PhoneNumber.display(@pending_mpesa.phone) %> to enter their M-Pesa PIN</p>
+          <div class="rounded-lg border-2 border-primary-500 bg-primary-50 p-3" data-controller="mpesa-poll" data-mpesa-poll-url-value="<%= billing_mpesa_payment_path(@pending_mpesa, format: :json) %>">
+            <p class="flex items-center gap-2 font-semibold"><span class="size-3 animate-pulse rounded-full bg-primary-500"></span>Waiting for <%= PhoneNumber.display(@pending_mpesa.phone) %> to enter their M-Pesa PIN</p>
           </div>
         <% elsif Billing::MpesaShortcode.new.available? %>
           <%= form_with url: billing_mpesa_payments_path, class: "flex items-end gap-2" do |form| %>
@@ -56,10 +55,10 @@
 <div class="mb-8 grid gap-4 md:grid-cols-3">
   <% Plan.all.each do |option| %>
     <% current = option == plan %>
-    <section class="card flex flex-col <%= "border-2 border-safety-500" if current %>">
-      <p class="text-lg font-semibold"><%= option.name %> <%= tag.span("Your plan", class: "badge bg-safety-100 text-safety-800") if current %></p>
+    <section class="card flex flex-col <%= "border-2 border-primary-500" if current %>">
+      <p class="text-lg font-semibold"><%= option.name %> <%= tag.span("Your plan", class: "badge bg-amber-100 text-amber-800") if current %></p>
       <p class="hint"><%= option.blurb %></p>
-      <p class="my-3 text-2xl font-bold"><%= option.price %><span class="text-sm font-normal text-steel-600"> / month</span></p>
+      <p class="my-3 text-2xl font-bold"><%= option.price %><span class="text-sm font-normal text-gray-500"> / month</span></p>
       <ul class="mb-4 space-y-1 text-sm">
         <% Plan::RESOURCES.each do |resource| %>
           <% limit = option.limit(resource) %>
@@ -85,7 +84,7 @@
         <p class="flex justify-between text-sm"><span><%= { branches: "Branches", registers: "Active tills", users: "Staff", products: "Active products" }[resource] %></span>
           <span class="tabular-nums"><%= number_with_delimiter(usage[resource]) %><%= " of #{number_with_delimiter(limit)}" if limit %></span></p>
         <% if limit %>
-          <div class="mt-1 h-2 rounded-full bg-concrete-200"><div class="h-2 rounded-full <%= usage[resource] >= limit ? "bg-red-600" : "bg-safety-500" %>" style="width: <%= [ usage[resource] * 100 / [ limit, 1 ].max, 100 ].min %>%"></div></div>
+          <div class="mt-1 h-2 rounded-full bg-gray-200"><div class="h-2 rounded-full <%= usage[resource] >= limit ? "bg-red-600" : "bg-primary-500" %>" style="width: <%= [ usage[resource] * 100 / [ limit, 1 ].max, 100 ].min %>%"></div></div>
         <% end %>
       </div>
     <% end %>
@@ -100,7 +99,7 @@
             <tr><td><%= link_to invoice.number, billing_invoice_path(invoice), target: "_blank", class: "link font-mono" %></td>
               <td class="text-sm"><%= invoice.period_start.strftime("%-d %b") %> – <%= (invoice.period_end - 1).strftime("%-d %b %Y") %></td>
               <td class="tabular-nums"><%= money(invoice.amount_cents, currency: invoice.currency) %></td>
-              <td><span class="badge <%= invoice.paid? ? "bg-green-50 text-green-800" : (invoice.overdue? ? "bg-red-50 text-red-800" : "bg-safety-100 text-safety-800") %>"><%= invoice.paid? ? "Paid" : (invoice.overdue? ? "Overdue" : "Due") %></span></td></tr>
+              <td><span class="badge <%= invoice.paid? ? "bg-green-50 text-green-800" : (invoice.overdue? ? "bg-red-50 text-red-800" : "bg-amber-100 text-amber-800") %>"><%= invoice.paid? ? "Paid" : (invoice.overdue? ? "Overdue" : "Due") %></span></td></tr>
           <% end %>
         </tbody>
       </table>

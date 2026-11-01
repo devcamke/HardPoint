@@ -2,7 +2,7 @@
   <% product = @line.product %>
   <% pack = scanned.product_unit %>
   <% so_far = @draft[@line.id.to_s] %>
-  <article class="card border-l-4 border-safety-500">
+  <article class="card border-l-4 border-primary-500">
     <h2 class="text-lg font-bold"><%= product.name %></h2>
     <p class="text-sm">Still to come: <strong><%= quantity(@line.outstanding_quantity, product.unit) %></strong><%= " · checked in #{quantity(so_far, product.unit)}" if so_far %></p>
 

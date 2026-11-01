@@ -1,7 +1,6 @@
 <% content_for :title, "Edit #{resource_title.singularize.downcase}" %>
 
-<p class="text-sm"><%= link_to "← #{resource_title}", { action: :index }, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Edit <%= resource_title.singularize.downcase %></h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "#{resource_title}", { action: :index }, class: "link" %> <span class="text-gray-400">/</span> Edit <%= resource_title.singularize.downcase %></h1>
 
 <div class="card max-w-xl">
   <%= form_with model: @record, url: { action: :update, id: @record } do |form| %>

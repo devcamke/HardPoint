@@ -1,7 +1,6 @@
 <% content_for :title, "Receiving #{@order.reference}" %>
 <div data-controller="camera-scanner">
-  <p class="text-sm"><%= link_to "← Deliveries", mobile_purchase_orders_path, class: "link" %></p>
-  <h1 class="mt-1 text-2xl font-bold"><%= @order.supplier.name %></h1>
+  <h1 class="mt-1 text-xl font-medium"><%= link_to "Deliveries", mobile_purchase_orders_path, class: "link" %> <span class="text-gray-400">/</span> <%= @order.supplier.name %></h1>
   <p class="hint mb-4"><%= @order.reference %> · to <%= @order.branch.name %></p>
 
   <%= render "mobile/scanner", url: mobile_purchase_order_receipt_lines_path(@order), placeholder: "Scan what came off the lorry" %>

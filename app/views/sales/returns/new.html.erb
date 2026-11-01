@@ -1,7 +1,6 @@
 <% content_for :title, "Return items" %>
 
-<p class="text-sm"><%= link_to "← #{@sale.receipt_number}", @sale, class: "link" %></p>
-<h1 class="mt-2 mb-2 text-3xl font-bold">Return items from <%= @sale.receipt_number %></h1>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "#{@sale.receipt_number}", @sale, class: "link" %> <span class="text-gray-400">/</span> Return items from <%= @sale.receipt_number %></h1>
 <p class="hint mb-6">Refunds are what the customer paid for the items, including their share of any discount. Refunding at <%= current_till.name %>.</p>
 
 <%= form_with model: @return, url: sale_returns_path(@sale), class: "card max-w-3xl" do |form| %>
@@ -23,7 +22,7 @@
           </td>
           <td class="text-center">
             <%= hidden_field_tag "sale_return[lines_attributes][#{index}][restock]", "0", id: nil %>
-            <%= check_box_tag "sale_return[lines_attributes][#{index}][restock]", "1", true, class: "size-4 accent-safety-500", "aria-label": "Restock #{line.description}" %>
+            <%= check_box_tag "sale_return[lines_attributes][#{index}][restock]", "1", true, class: "size-4 accent-primary-500", "aria-label": "Restock #{line.description}" %>
           </td>
         </tr>
       <% end %>

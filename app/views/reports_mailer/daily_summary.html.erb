@@ -4,12 +4,12 @@
 
 <table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="border-collapse:collapse; font-size:14px;">
   <tr>
-    <td style="background:#F5F4F1;"><div style="color:#5B6573;">Takings</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= money(@totals[:takings], currency: currency) %></div>
+    <td style="background:#F9FAFB;"><div style="color:#6B7280;">Takings</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= money(@totals[:takings], currency: currency) %></div>
       <% if change %><div style="color:<%= change.negative? ? "#B91C1C" : "#15803D" %>;"><%= change.positive? ? "+" : "" %><%= change %>% on the same day last week</div><% end %></td>
-    <td style="background:#F5F4F1;"><div style="color:#5B6573;">Sales</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= @totals[:receipts] %></div>
-      <div style="color:#5B6573;">average <%= money(@dashboard.average_sale_cents, currency: currency) %></div></td>
-    <td style="background:#F5F4F1;"><div style="color:#5B6573;">Gross margin</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= money(@totals[:margin], currency: currency) %></div>
-      <div style="color:#5B6573;"><%= @totals[:margin_percent] ? "#{@totals[:margin_percent].round(1)}% of sales ex tax" : "" %></div></td>
+    <td style="background:#F9FAFB;"><div style="color:#6B7280;">Sales</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= @totals[:receipts] %></div>
+      <div style="color:#6B7280;">average <%= money(@dashboard.average_sale_cents, currency: currency) %></div></td>
+    <td style="background:#F9FAFB;"><div style="color:#6B7280;">Gross margin</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= money(@totals[:margin], currency: currency) %></div>
+      <div style="color:#6B7280;"><%= @totals[:margin_percent] ? "#{@totals[:margin_percent].round(1)}% of sales ex tax" : "" %></div></td>
   </tr>
 </table>
 
@@ -51,7 +51,7 @@
 <% end %>
 
 <p style="margin-top:24px;">
-  <%= link_to "Open the dashboard", root_url(subdomain: @account.subdomain), style: "color:#C2410C; font-weight:600;" %> ·
-  <%= link_to "Sales report", report_url("sales", subdomain: @account.subdomain, from: @date, to: @date), style: "color:#C2410C; font-weight:600;" %>
+  <%= link_to "Open the dashboard", root_url(subdomain: @account.subdomain), style: "color:#0D505E; font-weight:600;" %> ·
+  <%= link_to "Sales report", report_url("sales", subdomain: @account.subdomain, from: @date, to: @date), style: "color:#0D505E; font-weight:600;" %>
 </p>
-<p style="color:#5B6573; font-size:12px;">Don't want this email? Turn it off under My profile.</p>
+<p style="color:#6B7280; font-size:12px;">Don't want this email? Turn it off under My profile.</p>

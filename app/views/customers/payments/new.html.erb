@@ -1,6 +1,5 @@
 <% content_for :title, "Record payment" %>
-<p class="text-sm"><%= link_to "← #{@customer.name}", @customer, class: "link" %></p>
-<h1 class="mt-2 mb-2 text-3xl font-bold"><%= @customer.name %> pays</h1>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "#{@customer.name}", @customer, class: "link" %> <span class="text-gray-400">/</span> <%= @customer.name %> pays</h1>
 <p class="hint mb-6">They owe <%= money(@customer.balance_cents) %>. Payments settle the oldest account sales first.</p>
 
 <%= form_with model: @payment, url: customer_payments_path(@customer), class: "card max-w-md" do |form| %>

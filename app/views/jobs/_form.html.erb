@@ -13,7 +13,7 @@
     <div class="field"><%= form.label :site, "Site (optional)", class: "label" %><%= form.text_field :site, class: "input", placeholder: "Plot 14, Kitengela" %></div>
     <div class="field"><%= form.label :budget, "Materials budget (optional)", class: "label" %><%= form.text_field :budget, value: (plain_number(job.budget) if job.budget_cents), inputmode: "decimal", class: "input" %></div>
   </div>
-  <fieldset class="field rounded-lg border border-concrete-300 p-3">
+  <fieldset class="field rounded-lg border border-gray-300 p-3">
     <legend class="label px-1">Billing their client (optional)</legend>
     <div class="grid gap-4 sm:grid-cols-2">
       <div><%= form.label :client_name, "Client", class: "label" %><%= form.text_field :client_name, class: "input", placeholder: "Mr & Mrs Kamau" %></div>

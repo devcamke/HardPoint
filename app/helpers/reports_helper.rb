@@ -8,7 +8,7 @@ module ReportsHelper
     when :quantity then quantity(value)
     when :count then number_with_delimiter(value)
     when :date then value.is_a?(Date) ? l(value, format: :long) : value
-    when :link then value.is_a?(Report::Link) ? link_to(value.text, value.record, class: "hover:text-safety-700") : value
+    when :link then value.is_a?(Report::Link) ? link_to(value.text, value.record, class: "hover:text-primary-700") : value
     else value
     end
   end

@@ -4,7 +4,7 @@
     <div class="flex items-start justify-between gap-3">
       <div>
         <h2 class="text-xl font-bold"><%= @product.name %></h2>
-        <p class="font-mono text-xs text-steel-600"><%= @product.sku %><%= " · #{@product.category.name}" if @product.category %></p>
+        <p class="font-mono text-xs text-gray-500"><%= @product.sku %><%= " · #{@product.category.name}" if @product.category %></p>
       </div>
       <%= tag.span("Inactive", class: "badge") unless @product.active? %>
     </div>
@@ -28,7 +28,7 @@
             <tr class="<%= "font-semibold" if branch == selected_branch %>">
               <td><%= branch.name %></td>
               <td class="text-right tabular-nums <%= "text-red-700" if on_hand <= @product.reorder_level %>"><%= quantity(on_hand, @product.unit) %></td>
-              <td class="text-right text-xs text-steel-600"><%= "+#{quantity(@on_order[branch.id])} on order" if @on_order[branch.id].to_d.positive? %></td>
+              <td class="text-right text-xs text-gray-500"><%= "+#{quantity(@on_order[branch.id])} on order" if @on_order[branch.id].to_d.positive? %></td>
             </tr>
           <% end %>
         </tbody>
@@ -40,7 +40,7 @@
         <% batches = @product.stock_batches.in_stock.where(branch: selected_branch).by_expiry %>
         <ul class="text-sm">
           <% batches.each do |batch| %>
-            <li class="flex items-center justify-between gap-2 border-b border-concrete-100 py-1"><span class="font-mono"><%= batch.number %></span>
+            <li class="flex items-center justify-between gap-2 border-b border-gray-100 py-1"><span class="font-mono"><%= batch.number %></span>
               <%= render "stock_batches/expiry", batch: batch %><span class="tabular-nums"><%= quantity(batch.quantity) %></span></li>
           <% end %>
           <%= tag.li("None in stock.", class: "hint") if batches.none? %>
@@ -51,7 +51,7 @@
         <h3 class="mt-5 mb-1 text-sm font-semibold">Latest at <%= selected_branch.name %></h3>
         <ul class="text-sm">
           <% @movements.each do |movement| %>
-            <li class="flex justify-between border-b border-concrete-100 py-1"><span><%= movement_reason(movement.reason) %> · <%= l(movement.created_at, format: :short) %></span>
+            <li class="flex justify-between border-b border-gray-100 py-1"><span><%= movement_reason(movement.reason) %> · <%= l(movement.created_at, format: :short) %></span>
               <span class="tabular-nums <%= movement.quantity.negative? ? "text-red-700" : "text-green-700" %>"><%= "+" if movement.quantity.positive? %><%= quantity(movement.quantity) %></span></li>
           <% end %>
         </ul>

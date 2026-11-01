@@ -16,10 +16,9 @@
   </div>
 <% else %>
   <% content_for :title, "Return #{@return.return_number}" %>
-  <p class="text-sm"><%= link_to "← #{@return.sale.receipt_number}", @return.sale, class: "link" %></p>
   <div class="mt-2 mb-6 flex items-center justify-between">
     <div>
-      <h1 class="text-3xl font-bold">Return <%= @return.return_number %></h1>
+      <h1 class="text-xl font-medium"><%= link_to "#{@return.sale.receipt_number}", @return.sale, class: "link" %> <span class="text-gray-400">/</span> Return <%= @return.return_number %></h1>
       <p class="hint mt-1"><%= l(@return.created_at, format: :long) %> · <%= @return.creator.name %><%= " · approved by #{@return.approver.name}" if @return.approver %><%= " · #{@return.reason}" if @return.reason.present? %></p>
     </div>
     <%= link_to "Print", return_path(@return, print: 1), target: "_blank", class: "btn-secondary" %>

@@ -1,10 +1,10 @@
 <% content_for :title, "Supplier invoices" %>
 
-<div class="mb-4 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Purchasing</h1>
-  <%= link_to "Record invoice", new_supplier_invoice_path, class: "btn-primary" %>
-</div>
-<%= render "purchasing/tabs" %>
+<%= render "shared/control_panel",
+      title: "Supplier invoices",
+      new_button: [ "New", new_supplier_invoice_path ],
+      search: { placeholder: "Supplier" },
+      records: @invoices %>
 
 <div class="card">
   <% if @invoices.any? %>
@@ -12,7 +12,7 @@
       <thead><tr><th>Invoice</th><th>Supplier</th><th>Dated</th><th>Due</th><th class="text-right">Amount</th></tr></thead>
       <tbody>
         <% @invoices.each do |invoice| %>
-          <tr><td><%= link_to invoice.number, invoice, class: "link font-mono" %></td><td><%= link_to invoice.supplier.name, invoice.supplier, class: "hover:text-safety-700" %></td>
+          <tr><td><%= link_to invoice.number, invoice, class: "link font-mono" %></td><td><%= link_to invoice.supplier.name, invoice.supplier, class: "hover:text-primary-700" %></td>
             <td><%= l(invoice.invoice_date, format: :short) %></td><td><%= l(invoice.due_date, format: :short) %></td><td class="text-right tabular-nums"><%= money(invoice.total_cents, currency: invoice.supplier.currency_code) %></td></tr>
         <% end %>
       </tbody>
@@ -21,4 +21,3 @@
     <p class="hint">No supplier invoices recorded yet.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

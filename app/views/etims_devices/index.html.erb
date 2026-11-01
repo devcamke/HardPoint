@@ -1,9 +1,8 @@
 <% content_for :title, "KRA eTIMS" %>
-<%= render "settings/back" %>
 
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold">KRA eTIMS</h1>
+    <h1 class="text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> KRA eTIMS</h1>
     <p class="hint mt-1 max-w-2xl">Each branch's online control unit (OSCU) sends every sale, void and return to KRA. Receipts then carry KRA's
       signature and a QR code customers can check. If KRA can't be reached, sales keep going and are sent when it's back.</p>
   </div>
@@ -21,9 +20,9 @@
     <section class="card flex flex-wrap items-start justify-between gap-4">
       <div>
         <h2 class="text-lg font-semibold"><%= device.branch.name %>
-          <span class="badge <%= device.environment == "production" ? "bg-green-50 text-green-800" : "bg-safety-100 text-safety-800" %>"><%= device.environment.humanize %></span>
-          <%= device.initialized? ? tag.span("Set up", class: "badge bg-green-50 text-green-800") : tag.span("Not set up", class: "badge bg-concrete-200 text-steel-600") %>
-          <%= tag.span("Off", class: "badge bg-concrete-200 text-steel-600") unless device.active? %></h2>
+          <span class="badge <%= device.environment == "production" ? "bg-green-50 text-green-800" : "bg-amber-100 text-amber-800" %>"><%= device.environment.humanize %></span>
+          <%= device.initialized? ? tag.span("Set up", class: "badge bg-green-50 text-green-800") : tag.span("Not set up", class: "badge bg-gray-200 text-gray-500") %>
+          <%= tag.span("Off", class: "badge bg-gray-200 text-gray-500") unless device.active? %></h2>
         <p class="hint mt-1">PIN <%= device.tin %> · branch <%= device.bhf_id %> · serial <%= device.serial_number %>
           <%= "· control unit #{device.sdc_id}" if device.sdc_id %></p>
       </div>

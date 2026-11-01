@@ -1,7 +1,6 @@
 <% content_for :title, "Start a stock take" %>
 
-<p class="text-sm"><%= link_to "← Stock takes", stock_counts_path, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Start a stock take</h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Stock takes", stock_counts_path, class: "link" %> <span class="text-gray-400">/</span> Start a stock take</h1>
 
 <%= form_with model: @count, class: "card max-w-xl" do |form| %>
   <%= render "shared/errors", model: @count %>

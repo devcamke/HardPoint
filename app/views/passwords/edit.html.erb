@@ -1,7 +1,7 @@
 <% content_for :title, "Choose a password" %>
 
 <div class="mx-auto max-w-md">
-  <h1 class="text-3xl font-bold">Choose a password</h1>
+  <h1 class="text-xl font-medium">Choose a password</h1>
 
   <div class="card mt-6">
     <%= form_with url: password_path(params[:token]), method: :put do |form| %>

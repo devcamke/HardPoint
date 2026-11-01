@@ -4,7 +4,9 @@ class GoodsReceiptsController < ApplicationController
   before_action :ensure_can_purchase
 
   def index
-    @goods_receipts = paginate(Current.account.goods_receipts.chronologically.includes(:supplier, :branch, :purchase_order, :receiver))
+    receipts = Current.account.goods_receipts.chronologically.includes(:supplier, :branch, :purchase_order, :receiver)
+    receipts = receipts.where(supplier_id: Current.account.suppliers.search(params[:query]).select(:id)) if params[:query].present?
+    @goods_receipts = paginate(receipts)
   end
 
   def show

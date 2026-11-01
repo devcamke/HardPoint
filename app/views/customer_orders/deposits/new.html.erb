@@ -1,7 +1,6 @@
 <% content_for :title, @refund ? "Refund deposit" : "Take deposit" %>
 <% order = @customer_order %>
-<p class="text-sm"><%= link_to "← #{order.reference}", order, class: "link" %></p>
-<h1 class="mt-2 mb-2 text-3xl font-bold"><%= @refund ? "Refund deposit" : "Take a deposit" %></h1>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "#{order.reference}", order, class: "link" %> <span class="text-gray-400">/</span> <%= @refund ? "Refund deposit" : "Take a deposit" %></h1>
 <p class="hint mb-6"><%= order.customer.name %> · <%= order.kind.downcase %> total <%= money(order.total_cents) %> · deposit held <%= money(order.deposit_balance_cents) %></p>
 
 <%= form_with model: @deposit, url: customer_order_deposits_path(order), class: "card max-w-md" do |form| %>

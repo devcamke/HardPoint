@@ -1,10 +1,9 @@
 <% content_for :title, "Batch #{@batch.number}" %>
 <% product = @batch.product %>
 
-<p class="text-sm"><%= link_to "← Expiry", stock_batches_path, class: "link" %></p>
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold">Batch <span class="font-mono"><%= @batch.number %></span></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Expiry", stock_batches_path, class: "link" %> <span class="text-gray-400">/</span> Batch <span class="font-mono"><%= @batch.number %></span></h1>
     <p class="hint mt-1"><%= link_to product.name, product, class: "link" %> · <%= @batch.branch.name %></p>
   </div>
 </div>
@@ -37,7 +36,7 @@
         <tbody>
           <% @sales.each do |sale| %>
             <tr><td><%= link_to sale.receipt_number, sale, class: "link font-mono" %></td><td class="whitespace-nowrap"><%= l(sale.completed_at, format: :short) %></td>
-              <td><%= sale.customer ? link_to(sale.customer.name, sale.customer, class: "link") : tag.span("Walk-in", class: "text-steel-600") %><%= tag.span(" · #{sale.customer.phone}", class: "hint") if sale.customer&.phone.present? %></td></tr>
+              <td><%= sale.customer ? link_to(sale.customer.name, sale.customer, class: "link") : tag.span("Walk-in", class: "text-gray-500") %><%= tag.span(" · #{sale.customer.phone}", class: "hint") if sale.customer&.phone.present? %></td></tr>
           <% end %>
         </tbody>
       </table>

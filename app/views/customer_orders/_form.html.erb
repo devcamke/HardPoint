@@ -27,7 +27,7 @@
         <tr>
           <td>
             <% if line.object.persisted? %>
-              <%= line.hidden_field :id %><%= line.object.description %> <span class="font-mono text-xs text-steel-600"><%= line.object.product.sku %></span>
+              <%= line.hidden_field :id %><%= line.object.description %> <span class="font-mono text-xs text-gray-500"><%= line.object.product.sku %></span>
               <span class="hint">· <%= money(line.object.unit_price_cents) %></span>
             <% else %>
               <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Scan or type", class: "input py-1.5 font-mono", "aria-label": "Barcode or SKU" %>
@@ -37,7 +37,7 @@
           <% if current_membership.approver? %>
             <td class="text-right"><%= line.number_field :unit_price, value: (plain_number(line.object.unit_price) if line.object.unit_price_cents.to_i.positive?), step: "0.01", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit price" %></td>
           <% end %>
-          <td class="text-right"><%= line.check_box :_destroy, class: "size-4 accent-safety-500", "aria-label": "Remove line" if line.object.persisted? %></td>
+          <td class="text-right"><%= line.check_box :_destroy, class: "size-4 accent-primary-500", "aria-label": "Remove line" if line.object.persisted? %></td>
         </tr>
       <% end %>
     </tbody>

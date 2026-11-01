@@ -2,10 +2,9 @@
 <% order = @customer_order %>
 <% deposit = order.deposit_balance_cents %>
 
-<p class="text-sm"><%= link_to "← Orders & quotes", customer_orders_path, class: "link" %></p>
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold"><%= order.kind %> <%= order.reference %> <%= render "customer_orders/status", order: order %> <%= render "customer_orders/source", order: order %></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Orders & quotes", customer_orders_path, class: "link" %> <span class="text-gray-400">/</span> <%= order.kind %> <%= order.reference %> <%= render "customer_orders/status", order: order %> <%= render "customer_orders/source", order: order %></h1>
     <p class="hint mt-1"><%= link_to order.customer.name, order.customer, class: "link" %> · <%= order.branch.name %>
       · created <%= l(order.created_at, format: :short) %> <%= order.creator ? "by #{order.creator.name}" : { "online" => "in the online store", "api" => "through the API", "hire" => "for a tool hire" }[order.source] %>
       <%= link_to("· hire #{order.hire_agreement.reference}", order.hire_agreement, class: "link") if order.hire_agreement %>
@@ -40,7 +39,7 @@
       <tbody>
         <% order.lines.includes(product: :unit, product_unit: :unit).each do |line| %>
           <tr>
-            <td><%= link_to line.description, line.product, class: "hover:text-safety-700" %> <span class="font-mono text-xs text-steel-600"><%= line.product.sku %></span></td>
+            <td><%= link_to line.description, line.product, class: "hover:text-primary-700" %> <span class="font-mono text-xs text-gray-500"><%= line.product.sku %></span></td>
             <td class="text-right tabular-nums"><%= quantity(line.quantity, line.unit) %></td>
             <td class="text-right tabular-nums"><%= money(line.unit_price_cents) %></td>
             <td class="text-right tabular-nums"><%= money(line.total_cents) %></td>
@@ -50,7 +49,7 @@
     </table>
     <div class="ml-auto mt-3 max-w-xs space-y-1 text-sm">
       <div class="flex justify-between text-lg font-bold"><span>Total</span><span class="tabular-nums"><%= money(order.total_cents) %></span></div>
-      <div class="flex justify-between text-steel-600"><span>incl. tax</span><span class="tabular-nums"><%= money(order.tax_cents) %></span></div>
+      <div class="flex justify-between text-gray-500"><span>incl. tax</span><span class="tabular-nums"><%= money(order.tax_cents) %></span></div>
       <% if deposit.positive? && !order.collected? %>
         <div class="flex justify-between"><span>Deposit held</span><span class="tabular-nums">−<%= money(deposit) %></span></div>
         <div class="flex justify-between font-semibold"><span>To pay on collection</span><span class="tabular-nums"><%= money(order.balance_to_pay_cents) %></span></div>
@@ -74,7 +73,7 @@
           <p class="flex justify-between text-sm"><span><%= l(entry.created_at, format: :short) %> · <%= entry.refund? ? "Refund" : "Deposit" %>, <%= entry.tender.humanize.downcase %><%= " · #{entry.reference}" if entry.reference %></span>
             <span class="tabular-nums <%= "text-red-700" if entry.refund? %>"><%= money(entry.amount_cents) %></span></p>
         <% end %>
-        <p class="mt-2 flex justify-between border-t border-concrete-200 pt-2 text-sm font-semibold"><span><%= order.collected? ? "Used on collection" : "Held" %></span><span class="tabular-nums"><%= money(order.collected? ? order.deposits_paid_cents : deposit) %></span></p>
+        <p class="mt-2 flex justify-between border-t border-gray-200 pt-2 text-sm font-semibold"><span><%= order.collected? ? "Used on collection" : "Held" %></span><span class="tabular-nums"><%= money(order.collected? ? order.deposits_paid_cents : deposit) %></span></p>
       <% else %>
         <p class="hint">None taken.<%= " Taking a deposit confirms the quote." if order.quote? %></p>
       <% end %>

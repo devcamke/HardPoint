@@ -12,7 +12,7 @@
      [ "Your free trial ends in #{pluralize(account.trial_days_left, "day")}.", :orange ]
    end %>
 <% if message %>
-  <div id="subscription_banner" class="<%= tone == :red ? "bg-red-700 text-white" : "bg-safety-100 text-navy-900" %> px-4 py-2 text-sm" role="status">
+  <div id="subscription_banner" class="<%= tone == :red ? "bg-red-700 text-white" : "bg-amber-100 text-gray-900" %> px-4 py-2 text-sm" role="status">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
       <span><%= message %></span>
       <% if owner && account.closing? %>

@@ -53,7 +53,7 @@ class Admin::AccountsControllerTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_select "h1", "Welcome, Carl Cashier"
-    assert_select "div.bg-safety-500", /HardPoint support \(Ada Admin\)/
+    assert_select "div.bg-amber-300", /HardPoint support \(Ada Admin\)/
     assert Account.without_isolation { Event.exists?(action: "impersonation_started", creator: users(:carl)) }
 
     travel Session::IMPERSONATION_DURATION + 1.minute do

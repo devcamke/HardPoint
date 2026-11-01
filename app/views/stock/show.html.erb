@@ -1,27 +1,26 @@
 <% content_for :title, "Stock" %>
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-3xl font-bold">Stock</h1>
+  <h1 class="text-xl font-medium">Stock</h1>
   <%= render "shared/branch_picker" %>
 </div>
-<%= render "stock/tabs" %>
 
 <div class="mb-6 grid gap-4 sm:grid-cols-2 <%= @expiring ? "lg:grid-cols-5" : "lg:grid-cols-4" %>">
   <% if current_membership.can_see_costs? %>
     <div class="card"><p class="hint">Stock value at cost</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@valuation.total_value_cents) %></p><p class="hint">all branches</p></div>
   <% end %>
-  <%= link_to reorder_list_path, class: "card block hover:border-safety-300" do %>
-    <p class="hint">Low stock at <%= selected_branch&.name %></p><p class="mt-1 text-2xl font-bold <%= "text-safety-700" if @low_stock_count.positive? %>"><%= @low_stock_count %></p><p class="hint">products to reorder</p>
+  <%= link_to reorder_list_path, class: "card block hover:border-primary-300" do %>
+    <p class="hint">Low stock at <%= selected_branch&.name %></p><p class="mt-1 text-2xl font-bold <%= "text-primary-700" if @low_stock_count.positive? %>"><%= @low_stock_count %></p><p class="hint">products to reorder</p>
   <% end %>
-  <%= link_to stock_transfers_path, class: "card block hover:border-safety-300" do %>
+  <%= link_to stock_transfers_path, class: "card block hover:border-primary-300" do %>
     <p class="hint">Transfers in transit</p><p class="mt-1 text-2xl font-bold"><%= @in_transit %></p><p class="hint">waiting to be received</p>
   <% end %>
-  <%= link_to stock_counts_path, class: "card block hover:border-safety-300" do %>
+  <%= link_to stock_counts_path, class: "card block hover:border-primary-300" do %>
     <p class="hint">Open stock takes</p><p class="mt-1 text-2xl font-bold"><%= @open_counts %></p><p class="hint">counting or awaiting approval</p>
   <% end %>
   <% if @expiring %>
-    <%= link_to stock_batches_path, class: "card block hover:border-safety-300" do %>
-      <p class="hint">Expired or expiring</p><p class="mt-1 text-2xl font-bold <%= "text-safety-700" if @expiring.positive? %>"><%= @expiring %></p><p class="hint">batches at <%= selected_branch&.name %></p>
+    <%= link_to stock_batches_path, class: "card block hover:border-primary-300" do %>
+      <p class="hint">Expired or expiring</p><p class="mt-1 text-2xl font-bold <%= "text-primary-700" if @expiring.positive? %>"><%= @expiring %></p><p class="hint">batches at <%= selected_branch&.name %></p>
     <% end %>
   <% end %>
 </div>

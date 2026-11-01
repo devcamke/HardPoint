@@ -16,6 +16,6 @@
   </div>
   <div class="field"><%= form.label :address, class: "label" %><%= form.text_field :address, class: "input" %></div>
   <div class="field"><%= form.label :notes, class: "label" %><%= form.text_area :notes, rows: 2, class: "input" %></div>
-  <div class="field flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-safety-500" %><%= form.label :active, "Active", class: "text-sm font-medium" %></div>
+  <div class="field flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-primary-500" %><%= form.label :active, "Active", class: "text-sm font-medium" %></div>
   <%= form.submit supplier.new_record? ? "Add supplier" : "Save", class: "btn-primary" %>
 <% end %>

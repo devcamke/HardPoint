@@ -9,6 +9,7 @@ class SupplierReturnsController < ApplicationController
     @filter = params[:filter] == "all" ? "all" : "awaiting"
     returns = Current.account.supplier_returns.chronologically.includes(:supplier, :branch)
     returns = returns.awaiting_credit if @filter == "awaiting"
+    returns = returns.where(supplier_id: Current.account.suppliers.search(params[:query]).select(:id)) if params[:query].present?
     @supplier_returns = paginate(returns)
   end
 

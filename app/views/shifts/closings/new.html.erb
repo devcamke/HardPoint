@@ -1,7 +1,6 @@
 <% content_for :title, "Close shift" %>
 
-<p class="text-sm"><%= link_to "← Shift", shift_path(@shift), class: "link" %></p>
-<h1 class="mt-2 mb-2 text-3xl font-bold">Close shift</h1>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "Shift", shift_path(@shift), class: "link" %> <span class="text-gray-400">/</span> Close shift</h1>
 <p class="hint mb-6">Count all the cash in the drawer and enter the total<%= ", and any foreign notes separately" if @shift.currencies_to_count.any? %>. You'll see if it balances after closing.</p>
 
 <%= form_with url: shift_closing_path(@shift), class: "card max-w-md", data: { turbo_confirm: "Close the shift? You won't be able to sell on this till until a new one is opened." } do |form| %>

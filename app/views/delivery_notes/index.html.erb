@@ -1,15 +1,10 @@
 <% content_for :title, "Deliveries" %>
 
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-3xl font-bold">Sales</h1>
-</div>
-<%= render "sales/tabs" %>
-
-<div class="mb-4 flex flex-wrap gap-1 text-sm">
-  <% [ [ "outstanding", "To deliver" ], [ "delivered", "Delivered" ], [ "cancelled", "Cancelled" ], [ "all", "All" ] ].each do |value, label| %>
-    <%= link_to label, delivery_notes_path(status: value), class: class_names("rounded-full px-3 py-1", "bg-navy-900 text-white" => @status == value, "bg-white text-steel-600 hover:text-navy-900" => @status != value) %>
-  <% end %>
-</div>
+<%= render "shared/control_panel",
+      title: "Deliveries",
+      filters: [ search_filter(:status, label: "Status", value: @status, clear: "all",
+                   options: [ [ "outstanding", "To deliver" ], [ "delivered", "Delivered" ], [ "cancelled", "Cancelled" ] ]) ],
+      records: @delivery_notes %>
 
 <div class="card">
   <% if @delivery_notes.any? %>
@@ -19,7 +14,7 @@
         <% @delivery_notes.each do |note| %>
           <tr>
             <td><%= link_to note.reference, note, class: "link font-mono" %></td>
-            <td><%= link_to note.sale.receipt_number, note.sale, class: "font-mono hover:text-safety-700" %></td>
+            <td><%= link_to note.sale.receipt_number, note.sale, class: "font-mono hover:text-primary-700" %></td>
             <td><%= note.customer&.name || "Walk-in" %></td>
             <td class="max-w-64 truncate"><%= note.address %></td>
             <td><%= note.driver_name %></td>
@@ -33,4 +28,3 @@
     <p class="hint">Nothing <%= @status == "outstanding" ? "waiting to be delivered" : "here" %>. Create a delivery note from a completed sale.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

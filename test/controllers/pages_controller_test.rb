@@ -6,7 +6,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   test "the bare domain shows the public site, with the plans" do
     get "/"
     assert_response :success
-    assert_select "h1", /The till, the stock and the books/
+    assert_select "h1", /Point of sale and stock control for hardware stores/
     assert_select "#plan_starter", /KES 2,500/
     assert_select "a[href=?]", new_signup_path(plan: "enterprise")
   end

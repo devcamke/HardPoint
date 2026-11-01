@@ -1,37 +1,46 @@
-# HardPoint brand — "Ironworks"
+# HardPoint look and layout
 
-![Palette](screenshots/00-brand-palette.png)
+The back office follows Odoo's layout, so it looks familiar to anyone who has used a business suite, in its own petrol teal.
 
-**Idea:** steel for structure, safety orange for action, concrete for calm surfaces during long shifts at the till.
-These are the colours of a hardware yard, so the product feels at home behind a counter, and orange draws the
-cashier's eye to the one thing to press next.
+## Layout
 
-| Token | Hex | Use | Contrast |
-|---|---|---|---|
-| `navy-900` Steel Navy | `#102A43` | Navigation bar, headings, body text | 13.3:1 on Concrete |
-| `safety-500` Safety Orange | `#F76707` | Primary buttons (with navy text), logo, focus rings, attention banners | 4.8:1 with navy text |
-| `safety-700` Deep Orange | `#C2410C` | Links and orange text on white | 5.2:1 on white |
-| `concrete-100` Concrete | `#F5F4F1` | Page background; cards are white on top | — |
-| `steel-600` Steel Grey | `#5B6573` | Secondary text and hints | 5.4:1 on Concrete |
+- **Home menu:** the grid button at the top left opens a full-screen menu of apps (Dashboard, Point of Sale,
+  Sales, Tool Hire, Products, Inventory, Purchase, Reports, Employees, Settings, Help). Staff who can't see the
+  dashboard land on the same tiles. The apps and their menus are defined in `app/helpers/navigation_helper.rb`.
+- **Top bar:** the current app's name followed by that app's menu. The user menu (profile, switch user, help,
+  sign out) is under the initials at the top right.
+- **Control panel on list pages** (`app/views/shared/_control_panel.html.erb`): the **New** button and title on
+  the left with a ⚙ menu for other actions, the search bar in the middle, and the pager (`1-50 ‹ ›`) on the right.
+  Active filters show in the search bar as facets ("Status: Open orders ×"); the ▾ opens the filters. Enter
+  searches, and Backspace in an empty box removes the last facet. Filters are declared per page with
+  `search_filter` (`app/helpers/control_panel_helper.rb`).
+- **Page titles:** one line, with the parent page as a breadcrumb: `Products / New product`.
+- **Lists** are flat white tables with a grey header line; **forms** use underlined fields.
+- **Settings** are grouped into sections, with a section index on the left.
 
-Every text/background pair meets WCAG AA (4.5:1). Full scales (`navy-50…950`, `safety-50…900`, `concrete-50…300`,
-`steel-500…700`) are defined as Tailwind theme tokens in `app/assets/tailwind/application.css`.
+## Colours
+
+| Token | Hex | Use |
+|---|---|---|
+| `primary-500` | `#0F5E6E` | Top bar, primary buttons, selected states, charts |
+| `accent-600` | `#0D505E` | Links |
+| `gray-*` | Tailwind greys | Text (`gray-800`), muted text (`gray-500`), borders (`gray-200`), page (`gray-50`) |
+| `amber-*` | Tailwind amber | Warnings: low stock, payment due, offline, impersonation |
+| `red-*`, `green-*` | Tailwind | Errors and destructive actions; success notices |
+
+White text on `primary-500` is 7.4:1, `accent-600` on white is 9.0:1 and `gray-500` on the page is 4.6:1, all above WCAG AA.
 
 ## Rules
 
-- **One orange button per screen:** the main action (e.g. *Charge*, *Switch in*, *Save*). Everything else uses
-  `btn-secondary`.
-- **Orange buttons take navy text, not white.** White on Safety Orange is only 3.6:1 and fails AA.
-- **Never set body text in orange.** Use `safety-700` for links only.
-- Red (`red-700`) is reserved for destructive actions and errors; green for success notices.
+- One primary (petrol) button per screen, for the main action. Everything else is `btn-secondary`.
+- Amber means "needs attention", never decoration.
 
 ## Logo
 
-A hex nut (orange, with a navy or white centre) next to the wordmark **HardPoint**, with "Point"
-in Safety Orange. Rendered by `app/views/shared/_logo.html.erb`. The app icon (`public/icon.svg`, `icon.png`) is the
-nut on a navy rounded square.
+A hex nut next to the wordmark **HardPoint**, rendered by `app/views/shared/_logo.html.erb`. The app icon
+(`public/icon.svg`, `icon.png`) is a white nut on a petrol rounded square.
 
 ## Components
 
-Utilities in `application.css`: `btn-primary`, `btn-secondary`, `btn-danger`, `input`, `label`, `field`, `card`,
-`link`, `hint`, `badge`, and the `.table` component.
+Utilities in `app/assets/tailwind/application.css`: `btn-primary`, `btn-secondary`, `btn-danger`, `input`, `label`,
+`field`, `card`, `link`, `hint`, `badge`, and the `.table` component.

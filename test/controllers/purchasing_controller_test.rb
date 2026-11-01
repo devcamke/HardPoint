@@ -45,6 +45,17 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     assert Account.without_isolation { order.reload.received? }
   end
 
+  test "purchase orders are searched by supplier" do
+    reference = Account.without_isolation { new_order.reference }
+
+    get purchase_orders_path(query: "Nairobi")
+    assert_select "td a", reference
+    assert_select "form[role=search] span", text: "Search: Nairobi"
+
+    get purchase_orders_path(query: "Kentube")
+    assert_select "td a", text: reference, count: 0
+  end
+
   test "sent orders can't be edited" do
     order = new_order
     post purchase_order_sending_path(order)

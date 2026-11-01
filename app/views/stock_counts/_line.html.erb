@@ -1,8 +1,8 @@
 <% editable = count.counting? && current_membership.can_manage_stock? %>
 <% unit = line.product.unit %>
-<tbody id="<%= dom_id(line) %>" class="border-b border-concrete-100">
+<tbody id="<%= dom_id(line) %>" class="border-b border-gray-100">
   <tr>
-    <td><%= line.product.name %><br><span class="font-mono text-xs text-steel-600"><%= line.product.sku %></span>
+    <td><%= line.product.name %><br><span class="font-mono text-xs text-gray-500"><%= line.product.sku %></span>
       <% if line.batch_counts.any? %><span class="badge ml-1">By batch</span><% end %></td>
     <td class="text-right tabular-nums"><%= quantity(line.expected_quantity, unit) %></td>
     <td class="text-right">
@@ -24,9 +24,9 @@
   <% line.batch_counts.in_order.each do |batch| %>
     <% next if batch.number.nil? && batch.expected_quantity.zero? && batch.counted_quantity.nil? && !editable %>
     <tr class="text-sm">
-      <td class="pl-8 text-steel-700"><%= batch.label %><%= tag.span(" · found", class: "text-green-700") if batch.found? %>
-        <% if batch.expires_on %><span class="block text-xs <%= batch.expires_on < Date.current ? "text-red-700" : "text-steel-600" %>">expires <%= l(batch.expires_on, format: :long) %></span><% end %></td>
-      <td class="text-right tabular-nums text-steel-700"><%= quantity(batch.expected_quantity, unit) %></td>
+      <td class="pl-8 text-gray-700"><%= batch.label %><%= tag.span(" · found", class: "text-green-700") if batch.found? %>
+        <% if batch.expires_on %><span class="block text-xs <%= batch.expires_on < Date.current ? "text-red-700" : "text-gray-500" %>">expires <%= l(batch.expires_on, format: :long) %></span><% end %></td>
+      <td class="text-right tabular-nums text-gray-700"><%= quantity(batch.expected_quantity, unit) %></td>
       <td class="text-right">
         <% if editable %>
           <%= form_with url: stock_count_line_batch_counts_path(count, line), class: "inline-flex gap-1", data: { controller: "auto-submit" } do |form| %>

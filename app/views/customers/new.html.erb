@@ -1,4 +1,3 @@
 <% content_for :title, "New customer" %>
-<p class="text-sm"><%= link_to "← Customers", customers_path, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">New customer</h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Customers", customers_path, class: "link" %> <span class="text-gray-400">/</span> New customer</h1>
 <%= render "form", customer: @customer %>

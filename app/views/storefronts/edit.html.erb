@@ -1,9 +1,8 @@
 <% content_for :title, "Online store" %>
-<%= render "settings/back" %>
 
 <div class="mt-2 mb-6">
-  <h1 class="text-3xl font-bold">Online store</h1>
-  <p class="mt-1 text-steel-600">Your catalogue online, with click-and-collect orders.
+  <h1 class="text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> Online store</h1>
+  <p class="mt-1 text-gray-500">Your catalogue online, with click-and-collect orders.
     <% if @storefront.enabled? %><%= link_to "Open the store ↗", store_root_path, class: "link", target: "_blank", rel: "noopener" %><% end %></p>
 </div>
 

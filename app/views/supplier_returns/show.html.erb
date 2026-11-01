@@ -2,11 +2,10 @@
 <% supplier_return = @supplier_return %>
 <% currency = supplier_return.currency %>
 
-<p class="text-sm"><%= link_to "← Returns", supplier_returns_path, class: "link" %></p>
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold">Debit note <%= supplier_return.reference %>
-      <%= supplier_return.credited? ? tag.span("Credited", class: "badge align-middle bg-green-50 text-green-800") : tag.span("Waiting for credit note", class: "badge align-middle bg-safety-100 text-safety-800") %></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Returns", supplier_returns_path, class: "link" %> <span class="text-gray-400">/</span> Debit note <%= supplier_return.reference %>
+      <%= supplier_return.credited? ? tag.span("Credited", class: "badge align-middle bg-green-50 text-green-800") : tag.span("Waiting for credit note", class: "badge align-middle bg-amber-100 text-amber-800") %></h1>
     <p class="hint mt-1"><%= link_to supplier_return.supplier.name, supplier_return.supplier, class: "link" %> · from <%= supplier_return.branch.name %> ·
       <%= l(supplier_return.created_at, format: :long) %> · <%= supplier_return.creator&.name %> · <%= supplier_return.reason.humanize %>
       <%= tag.span("· delivery ") + link_to(supplier_return.goods_receipt.reference, supplier_return.goods_receipt, class: "link") if supplier_return.goods_receipt %></p>
@@ -24,7 +23,7 @@
       <thead><tr><th>Item</th><th class="text-right">Quantity</th><th class="text-right">Unit cost</th><th class="text-right">VAT</th><th class="text-right">Total</th></tr></thead>
       <tbody>
         <% supplier_return.lines.includes(:stock_batch, product: :unit).each do |line| %>
-          <tr><td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %><%= tag.span(" · batch #{line.stock_batch.number}", class: "font-mono text-xs text-steel-600") if line.stock_batch %></td>
+          <tr><td><%= link_to line.product.name, line.product, class: "hover:text-primary-700" %><%= tag.span(" · batch #{line.stock_batch.number}", class: "font-mono text-xs text-gray-500") if line.stock_batch %></td>
             <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
             <td class="text-right tabular-nums"><%= money(line.unit_cost_cents, currency: currency) %></td>
             <td class="text-right tabular-nums"><%= money(line.tax_cents, currency: currency) %></td>

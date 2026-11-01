@@ -1,8 +1,7 @@
 <% content_for :title, "Imports" %>
 
-<%= render "settings/back" %>
 <div class="mt-2 mb-6 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Product imports</h1>
+  <h1 class="text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> Product imports</h1>
   <%= link_to "New import", new_product_import_path, class: "btn-primary" %>
 </div>
 

@@ -66,9 +66,9 @@
            [ :kit, "Kit", "Sold as one item, made of other products" ],
            [ :serialized, "Serial numbers", "Record a serial number for each one sold (power tools, generators)" ] ].each do |attribute, label, hint| %>
         <div class="flex items-start gap-2">
-          <%= form.check_box attribute, class: "mt-1 size-4 accent-safety-500" %>
+          <%= form.check_box attribute, class: "mt-1 size-4 accent-primary-500" %>
           <div>
-            <%= form.label attribute, label, class: "text-sm font-medium text-navy-800" %>
+            <%= form.label attribute, label, class: "text-sm font-medium text-gray-800" %>
             <p class="hint"><%= hint %></p>
           </div>
         </div>
@@ -80,7 +80,7 @@
       <% if product.image.attached? %>
         <%= image_tag product.image, class: "mb-3 aspect-square w-32 rounded object-cover" %>
       <% end %>
-      <%= form.file_field :image, accept: "image/png,image/jpeg,image/webp", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-navy-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-navy-900 hover:file:bg-navy-50" %>
+      <%= form.file_field :image, accept: "image/png,image/jpeg,image/webp", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-gray-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-gray-900 hover:file:bg-gray-50" %>
     </div>
 
     <div class="flex gap-3">

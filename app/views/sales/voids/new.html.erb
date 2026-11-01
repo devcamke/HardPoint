@@ -1,7 +1,6 @@
 <% content_for :title, "Void sale" %>
 
-<p class="text-sm"><%= link_to "← #{@sale.receipt_number}", @sale, class: "link" %></p>
-<h1 class="mt-2 mb-2 text-3xl font-bold">Void <%= @sale.receipt_number %></h1>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "#{@sale.receipt_number}", @sale, class: "link" %> <span class="text-gray-400">/</span> Void <%= @sale.receipt_number %></h1>
 <p class="hint mb-6"><%= money(@sale.total_cents) %> · stock goes back and it stops counting in this shift's takings. Give back any money received.</p>
 
 <%= form_with url: sale_void_path(@sale), class: "card max-w-md" do |form| %>

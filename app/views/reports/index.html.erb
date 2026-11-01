@@ -1,13 +1,13 @@
 <% content_for :title, "Reports" %>
 
-<h1 class="mb-2 text-3xl font-bold">Reports</h1>
+<h1 class="mb-2 text-xl font-medium">Reports</h1>
 <p class="hint mb-6">For any period and branch, on screen or as CSV (opens in Excel) and PDF. A daily summary is emailed each morning to owners, managers and accountants who want it (see My profile).</p>
 
 <div class="grid gap-6 lg:grid-cols-2">
   <% @reports.each do |group, reports| %>
     <section class="card">
       <h2 class="mb-3 text-lg font-semibold"><%= group %></h2>
-      <ul class="divide-y divide-concrete-100">
+      <ul class="divide-y divide-gray-100">
         <% reports.each do |report| %>
           <li class="py-3">
             <%= link_to report.title, report_path(report.key), class: "link font-semibold" %>

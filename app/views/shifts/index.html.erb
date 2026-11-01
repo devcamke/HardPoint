@@ -1,10 +1,9 @@
 <% content_for :title, "Shifts" %>
 
-<div class="mb-4 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Sales</h1>
-  <%= link_to "Go to till", pos_path, class: "btn-primary" %>
-</div>
-<%= render "sales/tabs" %>
+<%= render "shared/control_panel",
+      title: "Shifts",
+      new_button: [ "Go to till", pos_path ],
+      records: @shifts %>
 
 <div class="card">
   <table class="table">
@@ -16,10 +15,9 @@
           <td><%= l(shift.opened_at, format: :short) %> · <%= shift.opened_by.name %></td>
           <td><%= shift.closed_at ? "#{l(shift.closed_at, format: :short)} · #{shift.closed_by&.name}" : "—" %></td>
           <td class="text-right tabular-nums <%= "text-red-700" if shift.variance_cents&.negative? %>"><%= shift.closed? ? money(shift.variance_cents) : "" %></td>
-          <td><span class="badge <%= shift.open? ? "bg-green-50 text-green-800" : "bg-concrete-200 text-steel-600" %>"><%= shift.status.humanize %></span></td>
+          <td><span class="badge <%= shift.open? ? "bg-green-50 text-green-800" : "bg-gray-200 text-gray-500" %>"><%= shift.status.humanize %></span></td>
         </tr>
       <% end %>
     </tbody>
   </table>
 </div>
-<%= render "shared/pagination" %>

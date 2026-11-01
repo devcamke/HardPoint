@@ -3,7 +3,7 @@
   <div>
     <p class="text-sm text-green-800">Sale <strong><%= sale.receipt_number %></strong> complete · <%= money(sale.total_cents) %></p>
     <% if sale.change_cents.positive? %>
-      <p class="text-3xl font-extrabold text-navy-900">Change <%= money(sale.change_cents) %></p>
+      <p class="text-3xl font-extrabold text-gray-900">Change <%= money(sale.change_cents) %></p>
     <% end %>
   </div>
   <div class="ml-auto flex flex-wrap items-center gap-2">

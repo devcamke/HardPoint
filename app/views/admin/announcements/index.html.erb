@@ -1,7 +1,7 @@
 <% content_for :title, "Announcements" %>
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Announcements</h1>
+  <h1 class="text-xl font-medium">Announcements</h1>
   <%= link_to "New announcement", new_admin_announcement_path, class: "btn-primary" %>
 </div>
 <p class="hint mb-4">Shown as a banner to everyone signed in to any shop, between the start and end times. Staff can dismiss them.</p>
@@ -25,6 +25,6 @@
       </tbody>
     </table>
   <% else %>
-    <p class="text-steel-600">No announcements yet.</p>
+    <p class="text-gray-500">No announcements yet.</p>
   <% end %>
 </div>

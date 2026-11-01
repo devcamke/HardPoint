@@ -1,2 +1,2 @@
-<% classes = { "in_transit" => "bg-safety-100 text-safety-800", "received" => "bg-green-50 text-green-800", "cancelled" => "bg-concrete-200 text-steel-600" } %>
+<% classes = { "in_transit" => "bg-amber-100 text-amber-800", "received" => "bg-green-50 text-green-800", "cancelled" => "bg-gray-200 text-gray-500" } %>
 <span class="badge <%= classes[transfer.status] %>"><%= transfer.status.humanize %></span>

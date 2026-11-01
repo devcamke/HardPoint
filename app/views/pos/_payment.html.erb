@@ -1,12 +1,12 @@
 <% due = sale.balance_due_cents %>
-<div class="border-t-2 border-navy-900 bg-concrete-50 px-4 py-3" data-controller="payment" data-payment-due-value="<%= due %>">
+<div class="border-t border-gray-200 bg-gray-50 px-4 py-3" data-controller="payment" data-payment-due-value="<%= due %>">
   <% if sale.payments.any? %>
     <ul class="mb-2 space-y-1 text-sm">
       <% sale.payments.each do |payment| %>
         <li class="flex items-center justify-between">
           <span><%= payment.label %><%= " · #{payment.reference}" if payment.reference %></span>
           <span class="flex items-center gap-2 tabular-nums"><%= money(payment.amount_cents) %>
-            <%= button_to "✕", pos_payment_path(payment), method: :delete, class: "text-steel-500 hover:text-red-700", "aria-label": "Remove payment" %></span>
+            <%= button_to "✕", pos_payment_path(payment), method: :delete, class: "text-gray-400 hover:text-red-700", "aria-label": "Remove payment" %></span>
         </li>
       <% end %>
     </ul>
@@ -33,7 +33,7 @@
     <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5", 6 => "grid-cols-3" }.fetch(tenders.size, "grid-cols-4") %> gap-1 text-sm" data-action="change->payment#switchTender">
       <legend class="sr-only">Payment method</legend>
       <% tenders.each do |value, label| %>
-        <label class="cursor-pointer rounded-md border border-concrete-300 bg-white py-2 text-center font-semibold has-checked:border-navy-900 has-checked:bg-navy-900 has-checked:text-white">
+        <label class="cursor-pointer rounded-md border border-gray-300 bg-white py-2 text-center font-semibold has-checked:border-primary-500 has-checked:bg-primary-500 has-checked:text-white">
           <%= form.radio_button :tender, value, checked: value == chosen_tender, class: "sr-only" %><%= label %>
         </label>
       <% end %>

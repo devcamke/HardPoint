@@ -1,7 +1,6 @@
 <% content_for :title, "Print labels" %>
 
-<p class="text-sm"><%= link_to "← Products", products_path, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Print labels</h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Products", products_path, class: "link" %> <span class="text-gray-400">/</span> Print labels</h1>
 
 <%= form_with url: labels_path, method: :get, class: "grid gap-6 lg:grid-cols-3", data: { turbo: false }, html: { target: "_blank" } do |form| %>
   <div class="card lg:col-span-2">
@@ -28,7 +27,7 @@
   <div class="card self-start">
     <p class="label">Label stock</p>
     <% LabelsController::FORMATS.each do |value, description| %>
-      <label class="mb-2 flex items-center gap-2 text-sm"><%= radio_button_tag :format, value, value == "a4", class: "accent-safety-500" %> <%= description %></label>
+      <label class="mb-2 flex items-center gap-2 text-sm"><%= radio_button_tag :format, value, value == "a4", class: "accent-primary-500" %> <%= description %></label>
     <% end %>
     <%= form.submit "Open print view", class: "btn-primary mt-3 w-full" %>
     <p class="hint mt-2">Opens in a new tab. Print at 100% scale with margins set to “None”.</p>

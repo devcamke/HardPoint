@@ -1,9 +1,9 @@
 <%= turbo_frame_tag "scan_result" do %>
   <% product = @line.product %>
   <% pack = scanned.product_unit %>
-  <article class="card border-l-4 border-safety-500">
+  <article class="card border-l-4 border-primary-500">
     <h2 class="text-lg font-bold"><%= product.name %></h2>
-    <p class="font-mono text-xs text-steel-600"><%= product.sku %></p>
+    <p class="font-mono text-xs text-gray-500"><%= product.sku %></p>
     <p class="mt-2 text-sm">Counted so far: <strong><%= @line.counted_quantity ? quantity(@line.counted_quantity, product.unit) : "nothing yet" %></strong></p>
 
     <%= form_with url: mobile_stock_count_count_entries_path(@count), class: "mt-3", data: { turbo_frame: "_self", action: "turbo:submit-end->camera-scanner#resume" } do |form| %>
@@ -13,10 +13,10 @@
         <fieldset class="mb-3">
           <legend class="label">Which batch?</legend>
           <% batches.each_with_index do |batch, index| %>
-            <label class="flex items-center gap-2 border-b border-concrete-100 py-2 text-sm">
-              <%= form.radio_button :batch_number, batch.number.to_s, checked: index.zero?, class: "size-4 accent-safety-500" %>
+            <label class="flex items-center gap-2 border-b border-gray-100 py-2 text-sm">
+              <%= form.radio_button :batch_number, batch.number.to_s, checked: index.zero?, class: "size-4 accent-primary-500" %>
               <span class="flex-1"><%= batch.label %><%= " · expires #{l(batch.expires_on, format: :long)}" if batch.expires_on %></span>
-              <span class="tabular-nums text-steel-600"><%= batch.counted_quantity ? quantity(batch.counted_quantity, product.unit) : "—" %></span>
+              <span class="tabular-nums text-gray-500"><%= batch.counted_quantity ? quantity(batch.counted_quantity, product.unit) : "—" %></span>
             </label>
           <% end %>
           <label class="mt-2 block text-sm">Or another batch number

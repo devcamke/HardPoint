@@ -1,7 +1,7 @@
 <% content_for :title, "Help" %>
 
-<h1 class="text-3xl font-bold">Help</h1>
-<p class="mt-1 mb-6 text-steel-600">Guides to HardPoint, and the people behind it.</p>
+<h1 class="text-xl font-medium">Help</h1>
+<p class="mt-1 mb-6 text-gray-500">Guides to HardPoint, and the people behind it.</p>
 
 <div class="grid gap-6 lg:grid-cols-5">
   <section class="card lg:col-span-2">
@@ -57,7 +57,7 @@
                 <td class="font-mono"><%= request.reference %></td>
                 <td><%= request.subject %></td>
                 <td><span class="badge <%= request.resolved? ? "bg-green-100 text-green-800" : "" %>"><%= request.status.humanize %></span></td>
-                <td class="text-right text-steel-600"><%= time_ago_in_words(request.created_at) %> ago</td>
+                <td class="text-right text-gray-500"><%= time_ago_in_words(request.created_at) %> ago</td>
               </tr>
             <% end %>
           </tbody>
