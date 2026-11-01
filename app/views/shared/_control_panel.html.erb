@@ -28,7 +28,7 @@
     <%= form_with url: request.path, method: :get, class: "relative order-last w-full lg:order-none lg:mx-auto lg:w-auto lg:max-w-2xl lg:flex-1",
           data: { controller: "search-panel", action: "submit->search-panel#submit click@window->search-panel#closeOnOutsideClick keydown.esc@window->search-panel#close" }, html: { role: "search" } do |form| %>
       <% date_params = filters.select { _1.type == :date }.map(&:param) %>
-      <% request.query_parameters.except("page", query_param, *date_params).each do |key, value| %>
+      <% request.query_parameters.except("page", query_param, *date_params, *filters.flat_map(&:drops)).each do |key, value| %>
         <%= hidden_field_tag key, value unless value.is_a?(Hash) || value.is_a?(Array) %>
       <% end %>
       <%= hidden_field_tag query_param, request.query_parameters[query_param], id: nil, data: { search_panel_target: "query" } if query_param %>
@@ -63,28 +63,38 @@
       </div>
 
       <% if filters.any? %>
+        <% sections = filters.group_by(&:section) %>
         <div hidden data-search-panel-target="dropdown"
-             class="absolute top-full right-0 left-0 z-30 mt-1 rounded border border-gray-200 bg-white py-2 text-sm shadow-lg sm:left-auto sm:w-80">
-          <p class="flex items-center gap-2 px-4 pb-1 font-semibold text-primary-500">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>Filters
-          </p>
-          <% filters.each_with_index do |filter, index| %>
-            <div class="<%= "mt-1 border-t border-gray-100 pt-1" if index.positive? %>">
-              <% if filter.label %><p class="px-4 pt-1 text-xs text-gray-500"><%= filter.label %></p><% end %>
-              <% if filter.type == :date %>
-                <div class="px-4 py-1">
-                  <input type="date" name="<%= filter.param %>" value="<%= filter.value %>" aria-label="<%= filter.label %>"
-                         class="input" data-action="change->search-panel#submitFilters">
-                </div>
-              <% else %>
-                <div class="max-h-60 overflow-y-auto">
-                  <% filter.options.each do |value, label| %>
-                    <% active = filter.active?(value) %>
-                    <%= link_to search_url(filter.param => active ? filter.clear : value),
-                          class: class_names("flex items-center gap-2 py-1.5 pr-4 pl-4 hover:bg-gray-100", "text-gray-900" => active),
-                          aria: { current: (active ? "true" : nil) } do %>
-                      <span class="w-3 text-primary-500"><%= "✓" if active %></span><%= label %>
-                    <% end %>
+             class="<%= class_names("absolute top-full right-0 left-0 z-30 mt-1 grid rounded border border-gray-200 bg-white py-2 text-sm shadow-lg sm:left-auto",
+                       "sm:w-80" => sections.size == 1, "sm:w-[36rem] sm:grid-cols-2 sm:divide-x sm:divide-gray-100" => sections.size > 1) %>">
+          <% sections.each do |section, section_filters| %>
+            <div>
+              <p class="flex items-center gap-2 px-4 pb-1 font-semibold text-primary-500">
+                <% if section == :group_by %>
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5zm-7.6 8L2 12.2l10 5 10-5-2.4-1.2-7.6 3.8zm0 4L2 16.2l10 5 10-5-2.4-1.2-7.6 3.8z"/></svg>Group By
+                <% else %>
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>Filters
+                <% end %>
+              </p>
+              <% section_filters.each_with_index do |filter, index| %>
+                <div class="<%= "mt-1 border-t border-gray-100 pt-1" if index.positive? %>">
+                  <% if filter.label %><p class="px-4 pt-1 text-xs text-gray-500"><%= filter.label %></p><% end %>
+                  <% if filter.type == :date %>
+                    <div class="px-4 py-1">
+                      <input type="date" name="<%= filter.param %>" value="<%= filter.value %>" aria-label="<%= filter.label %>"
+                             class="input" data-action="change->search-panel#submitFilters">
+                    </div>
+                  <% else %>
+                    <div class="max-h-60 overflow-y-auto">
+                      <% filter.options.each do |value, label| %>
+                        <% active = filter.active?(value) %>
+                        <%= link_to search_url(filter.param => active ? filter.clear : value),
+                              class: class_names("flex items-center gap-2 py-1.5 pr-4 pl-4 hover:bg-gray-100", "text-gray-900" => active),
+                              aria: { current: (active ? "true" : nil) } do %>
+                          <span class="w-3 text-primary-500"><%= "✓" if active %></span><%= label %>
+                        <% end %>
+                      <% end %>
+                    </div>
                   <% end %>
                 </div>
               <% end %>

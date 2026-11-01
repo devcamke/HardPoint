@@ -10,9 +10,12 @@ module ControlPanelHelper
   #   clear:   the value that means "no filter" (nil removes the parameter)
   #   facet:   false for settings that are always in force, such as the branch whose stock is shown
   #   type:    :date for a date picker instead of options
-  SearchFilter = Data.define(:param, :label, :options, :value, :clear, :facet, :type) do
-    def initialize(param:, label: nil, options: [], value: nil, clear: nil, facet: true, type: :options)
-      super(param: param.to_s, label:, options: options.map { |v, l| [ v.to_s, l ] }, value: value&.to_s, clear: clear&.to_s, facet:, type:)
+  #   section: :filters, or :group_by for Odoo's "Group By" column
+  #   drops:   parameters a date picker clears when it's used, e.g. the preset period it replaces
+  SearchFilter = Data.define(:param, :label, :options, :value, :clear, :facet, :type, :section, :drops) do
+    def initialize(param:, label: nil, options: [], value: nil, clear: nil, facet: true, type: :options, section: :filters, drops: [])
+      super(param: param.to_s, label:, options: options.map { |v, l| [ v.to_s, l ] }, value: value&.to_s, clear: clear&.to_s, facet:, type:,
+        section:, drops: drops.map(&:to_s))
     end
 
     def active?(option_value) = value == option_value

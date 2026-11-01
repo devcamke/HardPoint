@@ -2,11 +2,12 @@
 # notes all share it. Subclasses give the #title, #reference, #details (lines under the reference),
 # #columns and draw their own #content with the helpers here.
 class DocumentPdf
-  NAVY = "102A43"
-  ORANGE = "F76707"
-  GREY = "5B6573"
-  CONCRETE = "F5F4F1"
-  RULE = "E7E5E0"
+  # The app's colours (app/assets/tailwind/application.css), without the "#" Prawn doesn't take.
+  INK = "1F2937"    # text: gray-800
+  BRAND = "0F5E6E"  # document titles: primary-500, petrol teal
+  GREY = "6B7280"   # secondary text: gray-500
+  SHADE = "F3F7F8"  # table headers: primary-50
+  RULE = "E5E7EB"   # lines: gray-200
   FONTS = Rails.root.join("vendor/fonts")
   # The A4 page less its margins (595 − 2 × 40), upright.
   WIDTH = 515
@@ -54,14 +55,14 @@ class DocumentPdf
     end
 
     def letterhead
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text account.name, size: 18, style: :bold
       pdf.fill_color GREY
       pdf.text [ branch&.name, branch&.address, branch&.phone ].compact_blank.join(" · ").presence || "All branches", size: 9
       pdf.move_up 34
-      pdf.fill_color ORANGE
+      pdf.fill_color BRAND
       pdf.text title.upcase, size: 16, style: :bold, align: :right
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text reference, size: 12, align: :right
       pdf.fill_color GREY
       details.compact_blank.each { pdf.text _1, size: 9, align: :right }
@@ -81,16 +82,16 @@ class DocumentPdf
     def block(title, lines)
       pdf.fill_color GREY
       pdf.text title.upcase, size: 8, style: :bold
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       lines.compact_blank.each { pdf.text _1, size: 10 }
     end
 
     def table(rows)
-      row columns.map(&:first), bold: true, fill: CONCRETE
+      row columns.map(&:first), bold: true, fill: SHADE
       rows.each do |cells|
         if pdf.cursor < 80
           pdf.start_new_page
-          row columns.map(&:first), bold: true, fill: CONCRETE
+          row columns.map(&:first), bold: true, fill: SHADE
         end
         row cells
       end
@@ -104,7 +105,7 @@ class DocumentPdf
         pdf.fill_color fill
         pdf.fill_rectangle [ 0, top ], pdf.bounds.width, height
       end
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       x = 0
       cells.zip(columns).each_with_index do |(cell, (_, width)), index|
         pdf.text_box cell.to_s, at: [ x + 4, top - 4 ], width: width - 8, height: height, size: 9,
@@ -117,7 +118,7 @@ class DocumentPdf
     end
 
     def total(label, cents, size: 12, style: :bold, currency: account.currency)
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text "#{label}  #{Money.format(cents, currency: currency)}", size: size, style: style, align: :right
     end
 

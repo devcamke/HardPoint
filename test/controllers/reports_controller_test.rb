@@ -17,7 +17,7 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     end
 
     get report_path("sales", by: "product")
-    assert_select "select[name=by] option[selected]", "Product"
+    assert_select "form[role=search] span", text: "Group by: Product"
     get report_path("nope")
     assert_response :not_found
   end

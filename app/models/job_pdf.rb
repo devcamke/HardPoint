@@ -43,7 +43,7 @@ class JobPdf < DocumentPdf
       return if materials.empty?
 
       pdf.move_down 16
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text "Materials", size: 11, style: :bold
       pdf.move_down 4
       @columns = MATERIAL_COLUMNS

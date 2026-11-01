@@ -10,7 +10,7 @@
       <% @memberships.each do |membership| %>
         <label class="cursor-pointer rounded-lg border-2 border-gray-200 p-4 text-center font-semibold has-checked:border-primary-500 has-checked:bg-primary-50">
           <%= form.radio_button :membership_id, membership.id, required: true, class: "sr-only" %>
-          <span class="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-gray-900 text-lg text-white"><%= membership.user.name.first %></span>
+          <span class="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-primary-500 text-lg text-white"><%= membership.user.name.first %></span>
           <%= membership.user.name %>
           <span class="block text-xs font-normal text-gray-500"><%= membership.role.humanize %></span>
         </label>
