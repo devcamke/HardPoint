@@ -1,6 +1,8 @@
 <% content_for :title, "Returns" %>
 
-<h1 class="mb-4 text-xl font-medium">Sales</h1>
+<%= render "shared/control_panel",
+      title: "Returns",
+      records: @returns %>
 
 <div class="card">
   <% if @returns.any? %>
@@ -23,4 +25,3 @@
     <p class="hint">No returns yet.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

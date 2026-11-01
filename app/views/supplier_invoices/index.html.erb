@@ -1,9 +1,10 @@
 <% content_for :title, "Supplier invoices" %>
 
-<div class="mb-4 flex items-center justify-between">
-  <h1 class="text-xl font-medium">Purchasing</h1>
-  <%= link_to "Record invoice", new_supplier_invoice_path, class: "btn-primary" %>
-</div>
+<%= render "shared/control_panel",
+      title: "Supplier invoices",
+      new_button: [ "New", new_supplier_invoice_path ],
+      search: { placeholder: "Supplier" },
+      records: @invoices %>
 
 <div class="card">
   <% if @invoices.any? %>
@@ -20,4 +21,3 @@
     <p class="hint">No supplier invoices recorded yet.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

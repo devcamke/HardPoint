@@ -1,9 +1,10 @@
 <% content_for :title, "Receiving" %>
 
-<div class="mb-4 flex items-center justify-between">
-  <h1 class="text-xl font-medium">Purchasing</h1>
-  <%= link_to "Receive without an order", new_goods_receipt_path, class: "btn-secondary" %>
-</div>
+<%= render "shared/control_panel",
+      title: "Receiving",
+      new_button: [ "New", new_goods_receipt_path ],
+      search: { placeholder: "Supplier" },
+      records: @goods_receipts %>
 
 <% waiting = Current.account.purchase_orders.open.includes(:supplier, :branch).order(:expected_on) %>
 <% if waiting.any? %>
@@ -42,4 +43,3 @@
     <p class="hint">Nothing received yet.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

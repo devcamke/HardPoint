@@ -1,19 +1,10 @@
 <% content_for :title, "Hire tools" %>
 
-<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-  <div>
-    <h1 class="text-xl font-medium">Tools for hire</h1>
-    <p class="mt-1 text-gray-500"><%= HireItem::STATUSES.map { |status| "#{@counts.fetch(status, 0)} #{status.humanize(capitalize: false)}" }.join(" · ") %></p>
-  </div>
-  <%= link_to "Add a tool", new_hire_item_path, class: "btn-primary" if current_membership.can_manage_catalogue? %>
-</div>
-
-<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter by status">
-  <%= link_to "All", hire_items_path, class: "rounded-full px-3 py-1 #{@status ? "bg-white" : "bg-primary-500 text-white"}" %>
-  <% HireItem::STATUSES.each do |status| %>
-    <%= link_to status.humanize, hire_items_path(status: status), class: "rounded-full px-3 py-1 #{@status == status ? "bg-primary-500 text-white" : "bg-white"}" %>
-  <% end %>
-</nav>
+<%= render "shared/control_panel",
+      title: "Tools for hire",
+      new_button: ([ "New", new_hire_item_path ] if current_membership.can_manage_catalogue?),
+      filters: [ search_filter(:status, label: "Status", value: @status,
+                   options: HireItem::STATUSES.map { [ _1, "#{_1.humanize} (#{@counts.fetch(_1, 0)})" ] }) ] %>
 
 <div class="card overflow-x-auto">
   <% if @hire_items.any? %>

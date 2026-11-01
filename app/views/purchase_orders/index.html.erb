@@ -1,15 +1,12 @@
 <% content_for :title, "Purchase orders" %>
 
-<div class="mb-4 flex items-center justify-between">
-  <h1 class="text-xl font-medium">Purchasing</h1>
-  <%= link_to "New order", new_purchase_order_path, class: "btn-primary" %>
-</div>
-
-<div class="mb-4 flex flex-wrap gap-4 text-sm">
-  <% [ [ "All", nil ], [ "Drafts", "draft" ], [ "Waiting for delivery", "open" ], [ "Received", "received" ], [ "Cancelled", "cancelled" ] ].each do |label, status| %>
-    <%= link_to label, purchase_orders_path(status: status), class: params[:status] == status ? "font-semibold text-gray-900" : "link" %>
-  <% end %>
-</div>
+<%= render "shared/control_panel",
+      title: "Purchase orders",
+      new_button: [ "New", new_purchase_order_path ],
+      search: { placeholder: "Supplier" },
+      filters: [ search_filter(:status, label: "Status", value: params[:status],
+                   options: [ [ "draft", "Drafts" ], [ "open", "Waiting for delivery" ], [ "received", "Received" ], [ "cancelled", "Cancelled" ] ]) ],
+      records: @purchase_orders %>
 
 <div class="card">
   <% if @purchase_orders.any? %>
@@ -33,4 +30,3 @@
     <p class="hint">No purchase orders<%= " here" if params[:status] %>. Start one, or let <%= link_to "reorder suggestions", reorder_suggestions_path, class: "link" %> draft them for you.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

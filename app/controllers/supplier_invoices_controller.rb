@@ -2,7 +2,9 @@ class SupplierInvoicesController < ApplicationController
   before_action :ensure_can_manage_payables
 
   def index
-    @invoices = paginate(Current.account.supplier_invoices.chronologically.includes(:supplier))
+    invoices = Current.account.supplier_invoices.chronologically.includes(:supplier)
+    invoices = invoices.where(supplier_id: Current.account.suppliers.search(params[:query]).select(:id)) if params[:query].present?
+    @invoices = paginate(invoices)
   end
 
   def show

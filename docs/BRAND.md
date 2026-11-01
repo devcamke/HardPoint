@@ -9,6 +9,11 @@ The back office follows Odoo's layout and colours, so it looks familiar to anyon
   dashboard land on the same tiles. The apps and their menus are defined in `app/helpers/navigation_helper.rb`.
 - **Top bar:** the current app's name followed by that app's menu. The user menu (profile, switch user, help,
   sign out) is under the initials at the top right.
+- **Control panel on list pages** (`app/views/shared/_control_panel.html.erb`): the **New** button and title on
+  the left with a ⚙ menu for other actions, the search bar in the middle, and the pager (`1-50 ‹ ›`) on the right.
+  Active filters show in the search bar as facets ("Status: Open orders ×"); the ▾ opens the filters. Enter
+  searches, and Backspace in an empty box removes the last facet. Filters are declared per page with
+  `search_filter` (`app/helpers/control_panel_helper.rb`).
 - **Page titles:** one line, with the parent page as a breadcrumb: `Products / New product`.
 - **Lists** are flat white tables with a grey header line; **forms** use underlined fields.
 - **Settings** are grouped into sections, with a section index on the left.

@@ -1,15 +1,12 @@
 <% content_for :title, "Expiry" %>
 
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-xl font-medium">Stock</h1>
-  <%= render "shared/branch_picker" %>
-</div>
-
-<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter">
-  <% [ [ "expiring", "Expired or expiring in #{StockBatch::EXPIRING_WITHIN.in_days.to_i} days" ], [ "expired", "Expired" ], [ "all", "All batches in stock" ] ].each do |filter, label| %>
-    <%= link_to label, stock_batches_path(filter: filter), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-primary-500 text-white" : "bg-white"}" %>
-  <% end %>
-</nav>
+<%= render "shared/control_panel",
+      title: "Expiry",
+      filters: [ search_filter(:filter, label: "Show", value: @filter, clear: "all",
+                   options: [ [ "expiring", "Expired or expiring in #{StockBatch::EXPIRING_WITHIN.in_days.to_i} days" ], [ "expired", "Expired" ] ]),
+                 search_filter(:branch_id, label: "Branch", value: selected_branch&.id, facet: false,
+                   options: branches_for_selection.map { [ _1.id, _1.name ] }) ],
+      records: @batches %>
 
 <div class="card overflow-x-auto">
   <% if @batches.any? %>
@@ -27,7 +24,6 @@
         <% end %>
       </tbody>
     </table>
-    <%= render "shared/pagination" %>
   <% else %>
     <p class="text-gray-500"><%= @filter == "all" ? "No batches in stock at #{selected_branch.name}." : "Nothing expired or expiring soon at #{selected_branch.name}." %>
       Products are tracked by batch when <strong>Batches and expiry dates</strong> is ticked on the product.</p>

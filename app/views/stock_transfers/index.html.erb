@@ -1,11 +1,9 @@
 <% content_for :title, "Transfers" %>
 
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-xl font-medium">Stock</h1>
-  <% if current_membership.can_manage_stock? %>
-    <%= link_to "New transfer", new_stock_transfer_path, class: "btn-primary" %>
-  <% end %>
-</div>
+<%= render "shared/control_panel",
+      title: "Transfers",
+      new_button: ([ "New", new_stock_transfer_path ] if current_membership.can_manage_stock?),
+      records: @transfers %>
 
 <div class="card">
   <% if @transfers.any? %>
@@ -28,4 +26,3 @@
     <p class="hint">No transfers yet. Use one to move stock between branches.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

@@ -1,14 +1,11 @@
 <% content_for :title, "eTIMS submissions" %>
-<div class="mt-2 mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-xl font-medium"><%= link_to "KRA eTIMS", etims_devices_path, class: "link" %> <span class="text-gray-400">/</span> Sent to KRA</h1>
-  <% if @counts["failed"].to_i.positive? %><%= button_to "Retry #{pluralize(@counts["failed"], "refused one")}", etims_retries_path, class: "btn-primary" %><% end %>
-</div>
 
-<div class="mb-4 flex flex-wrap gap-1 text-sm">
-  <% [ [ "all", "All" ], [ "pending", "Waiting (#{@counts["pending"].to_i})" ], [ "failed", "Refused (#{@counts["failed"].to_i})" ], [ "sent", "Signed" ] ].each do |value, label| %>
-    <%= link_to label, etims_submissions_path(status: value), class: class_names("rounded-full px-3 py-1", "bg-primary-500 text-white" => @status == value, "bg-white text-gray-500 hover:text-gray-900" => @status != value) %>
-  <% end %>
-</div>
+<%= render "shared/control_panel",
+      title: safe_join([ link_to("KRA eTIMS", etims_devices_path, class: "link"), tag.span("/", class: "text-gray-400"), "Sent to KRA" ], " "),
+      actions: ([ [ "Retry #{pluralize(@counts["failed"], "refused one")}", etims_retries_path, { data: { turbo_method: :post } } ] ] if @counts["failed"].to_i.positive?).to_a,
+      filters: [ search_filter(:status, label: "Status", value: @status, clear: "all",
+                   options: [ [ "pending", "Waiting (#{@counts["pending"].to_i})" ], [ "failed", "Refused (#{@counts["failed"].to_i})" ], [ "sent", "Signed" ] ]) ],
+      records: @submissions %>
 
 <div class="card">
   <% if @submissions.any? %>
@@ -32,4 +29,3 @@
     <p class="hint">Nothing here.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

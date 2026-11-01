@@ -1,14 +1,12 @@
 <% content_for :title, "Returns to suppliers" %>
 
-<div class="mb-4 flex items-center justify-between">
-  <h1 class="text-xl font-medium">Purchasing</h1>
-  <%= link_to "Return goods", new_supplier_return_path, class: "btn-primary" if current_membership.can_purchase? %>
-</div>
-
-<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter">
-  <%= link_to "Waiting for a credit note", supplier_returns_path, class: "rounded-full px-3 py-1 #{@filter == "awaiting" ? "bg-primary-500 text-white" : "bg-white"}" %>
-  <%= link_to "All", supplier_returns_path(filter: "all"), class: "rounded-full px-3 py-1 #{@filter == "all" ? "bg-primary-500 text-white" : "bg-white"}" %>
-</nav>
+<%= render "shared/control_panel",
+      title: "Returns to suppliers",
+      new_button: ([ "New", new_supplier_return_path ] if current_membership.can_purchase?),
+      search: { placeholder: "Supplier" },
+      filters: [ search_filter(:filter, label: "Status", value: (@filter == "awaiting" ? nil : "all"), clear: nil,
+                   options: [ [ "all", "Include credited returns" ] ]) ],
+      records: @supplier_returns %>
 
 <div class="card overflow-x-auto">
   <% if @supplier_returns.any? %>
@@ -28,7 +26,6 @@
         <% end %>
       </tbody>
     </table>
-    <%= render "shared/pagination" %>
   <% else %>
     <p class="text-gray-500"><%= @filter == "awaiting" ? "Every return has its credit note." : "Nothing sent back to suppliers yet." %>
       Damaged or wrong goods go back with a debit note, from the delivery they came on or by scanning them.</p>

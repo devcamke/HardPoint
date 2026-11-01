@@ -1,14 +1,10 @@
 <% content_for :title, "Deliveries" %>
 
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-xl font-medium">Sales</h1>
-</div>
-
-<div class="mb-4 flex flex-wrap gap-1 text-sm">
-  <% [ [ "outstanding", "To deliver" ], [ "delivered", "Delivered" ], [ "cancelled", "Cancelled" ], [ "all", "All" ] ].each do |value, label| %>
-    <%= link_to label, delivery_notes_path(status: value), class: class_names("rounded-full px-3 py-1", "bg-primary-500 text-white" => @status == value, "bg-white text-gray-500 hover:text-gray-900" => @status != value) %>
-  <% end %>
-</div>
+<%= render "shared/control_panel",
+      title: "Deliveries",
+      filters: [ search_filter(:status, label: "Status", value: @status, clear: "all",
+                   options: [ [ "outstanding", "To deliver" ], [ "delivered", "Delivered" ], [ "cancelled", "Cancelled" ] ]) ],
+      records: @delivery_notes %>
 
 <div class="card">
   <% if @delivery_notes.any? %>
@@ -32,4 +28,3 @@
     <p class="hint">Nothing <%= @status == "outstanding" ? "waiting to be delivered" : "here" %>. Create a delivery note from a completed sale.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

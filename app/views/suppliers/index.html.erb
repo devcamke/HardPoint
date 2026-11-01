@@ -1,13 +1,10 @@
 <% content_for :title, "Suppliers" %>
 
-<div class="mb-4 flex items-center justify-between">
-  <h1 class="text-xl font-medium">Purchasing</h1>
-  <% if current_membership.can_purchase? %><%= link_to "Add supplier", new_supplier_path, class: "btn-primary" %><% end %>
-</div>
-
-<%= form_with url: suppliers_path, method: :get, class: "mb-4", data: { controller: "auto-submit" } do |form| %>
-  <%= form.search_field :query, value: params[:query], placeholder: "Search suppliers", class: "input max-w-md", "aria-label": "Search suppliers", data: { action: "input->auto-submit#debouncedSubmit" } %>
-<% end %>
+<%= render "shared/control_panel",
+      title: "Suppliers",
+      new_button: ([ "New", new_supplier_path ] if current_membership.can_purchase?),
+      search: { placeholder: "Supplier name" },
+      records: @suppliers %>
 
 <div class="card">
   <% if @suppliers.any? %>
@@ -28,4 +25,3 @@
     <p class="hint">No suppliers yet.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

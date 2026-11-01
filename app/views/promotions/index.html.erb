@@ -1,15 +1,11 @@
 <% content_for :title, "Promotions" %>
 
-<div class="mt-2 mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-xl font-medium"><%= link_to "Products", products_path, class: "link" %> <span class="text-gray-400">/</span> Promotions</h1>
-  <%= link_to "New promotion", new_promotion_path, class: "btn-primary" if current_membership.approver? %>
-</div>
-
-<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter">
-  <% PromotionsController::FILTERS.each do |filter| %>
-    <%= link_to filter.humanize, promotions_path(filter: filter), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-primary-500 text-white" : "bg-white"}" %>
-  <% end %>
-</nav>
+<%= render "shared/control_panel",
+      title: "Promotions",
+      new_button: ([ "New", new_promotion_path ] if current_membership.approver?),
+      filters: [ search_filter(:filter, label: "Status", value: @filter, clear: "all",
+                   options: PromotionsController::FILTERS.without("all").map { [ _1, _1.humanize ] }) ],
+      records: @promotions %>
 
 <div class="card overflow-x-auto">
   <% if @promotions.any? %>
@@ -30,7 +26,6 @@
         <% end %>
       </tbody>
     </table>
-    <%= render "shared/pagination" %>
   <% else %>
     <p class="text-gray-500">No promotions here. A promotion takes a percentage off, or gives free items with a quantity, on chosen products or whole categories for a set time; the till applies it by itself.</p>
   <% end %>

@@ -1,16 +1,12 @@
 <% content_for :title, "Sales" %>
 
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-xl font-medium">Sales</h1>
-  <%= link_to "Go to till", pos_path, class: "btn-primary" %>
-</div>
-
-<%= form_with url: sales_path, method: :get, class: "card mb-4 flex flex-wrap items-end gap-3 p-4", data: { controller: "auto-submit" } do |form| %>
-  <div><%= form.label :query, "Receipt number", class: "label" %><%= form.search_field :query, value: params[:query], placeholder: "#{(@branch || branches_for_selection.first)&.code}-000123", class: "input font-mono" %></div>
-  <div><%= form.label :date, class: "label" %><%= form.date_field :date, value: @date, class: "input", data: { action: "change->auto-submit#submit" } %></div>
-  <div><%= form.label :branch_id, "Branch", class: "label" %><%= form.collection_select :branch_id, branches_for_selection, :id, :name, { selected: @branch&.id, include_blank: "All branches" }, class: "input", data: { action: "change->auto-submit#submit" } %></div>
-  <%= form.submit "Show", class: "btn-secondary" %>
-<% end %>
+<%= render "shared/control_panel",
+      title: "Sales",
+      new_button: [ "Go to till", pos_path ],
+      search: { placeholder: "Receipt number, e.g. #{(@branch || branches_for_selection.first)&.code}-000123" },
+      filters: [ search_filter(:date, label: "Date", type: :date, value: (@date if params[:date].present?)),
+                 search_filter(:branch_id, label: "Branch", value: (@branch&.id if params[:branch_id].present?), options: branches_for_selection.map { [ _1.id, _1.name ] }) ],
+      records: @sales %>
 
 <div class="card">
   <% if @sales.any? %>
@@ -33,4 +29,3 @@
     <p class="hint">No sales <%= params[:query].present? ? "with that receipt number" : "on #{l(@date, format: :long)}" %>.</p>
   <% end %>
 </div>
-<%= render "shared/pagination" %>

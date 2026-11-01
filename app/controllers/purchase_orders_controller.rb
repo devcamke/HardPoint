@@ -8,6 +8,7 @@ class PurchaseOrdersController < ApplicationController
     orders = Current.account.purchase_orders.chronologically.includes(:supplier, :branch)
     orders = orders.where(status: params[:status]) if params[:status].in?(PurchaseOrder.statuses.keys)
     orders = orders.open if params[:status] == "open"
+    orders = orders.where(supplier_id: Current.account.suppliers.search(params[:query]).select(:id)) if params[:query].present?
     @purchase_orders = paginate(orders)
 
     respond_to do |format|

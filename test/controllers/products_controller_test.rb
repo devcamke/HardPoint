@@ -14,6 +14,20 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td a", "PVC pipe 2 inch 6m"
   end
 
+  test "the search bar shows active filters as facets that can be removed" do
+    plumbing = categories(:acme_plumbing)
+    get products_path(category_id: plumbing.id, query: "pvc")
+
+    assert_select "form[role=search]" do
+      assert_select "span", text: "Category: Plumbing"
+      assert_select "span", text: "Search: pvc"
+      assert_select "a[aria-label='Remove Category: Plumbing'][href=?]", products_path(query: "pvc")
+      assert_select "a[aria-label='Remove Search: pvc'][href=?]", products_path(category_id: plumbing.id)
+      assert_select "a[aria-current=true]", text: /Plumbing/
+    end
+    assert_select "td a", "PVC pipe 2 inch 6m"
+  end
+
   test "a scanned barcode finds its product" do
     get products_path(query: "6161100420017")
     assert_select "tbody tr", 1

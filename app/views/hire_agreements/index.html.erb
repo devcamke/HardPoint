@@ -1,24 +1,12 @@
 <% content_for :title, "Tool hire" %>
 
-<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-  <div>
-    <h1 class="text-xl font-medium">Tool hire</h1>
-    <% if @overdue_count.positive? %><p class="mt-1 font-semibold text-red-700"><%= pluralize(@overdue_count, "hire") %> overdue</p><% end %>
-  </div>
-  <%= link_to "Hire out tools", new_hire_agreement_path, class: "btn-primary" %>
-</div>
-
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <nav class="flex flex-wrap gap-2 text-sm" aria-label="Filter">
-    <% HireAgreementsController::FILTERS.each do |filter| %>
-      <%= link_to filter.humanize, hire_agreements_path(filter: filter, query: params[:query]), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-primary-500 text-white" : "bg-white"}" %>
-    <% end %>
-  </nav>
-  <%= form_with url: hire_agreements_path, method: :get, class: "flex gap-2" do |form| %>
-    <%= form.hidden_field :filter, value: @filter %>
-    <%= form.search_field :query, value: params[:query], placeholder: "Customer name or phone", class: "input", aria: { label: "Search hires" } %>
-  <% end %>
-</div>
+<%= render "shared/control_panel",
+      title: "Tool hire",
+      new_button: [ "New", new_hire_agreement_path ],
+      search: { placeholder: "Customer name or phone" },
+      filters: [ search_filter(:filter, label: "Status", value: @filter, clear: "all",
+                   options: HireAgreementsController::FILTERS.without("all").map { [ _1, _1 == "overdue" && @overdue_count.positive? ? "Overdue (#{@overdue_count})" : _1.humanize ] }) ],
+      records: @hire_agreements %>
 
 <div class="card overflow-x-auto">
   <% if @hire_agreements.any? %>
@@ -37,7 +25,6 @@
         <% end %>
       </tbody>
     </table>
-    <%= render "shared/pagination" %>
   <% else %>
     <p class="text-gray-500">No hires here.</p>
   <% end %>
