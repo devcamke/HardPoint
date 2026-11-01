@@ -1,0 +1,5 @@
+<%= link_to help_article_path(article), class: "card block hover:border-primary-300" do %>
+  <% if show_section %><p class="text-xs font-semibold uppercase tracking-wide text-gray-500"><%= article.section %></p><% end %>
+  <p class="font-semibold"><%= article.title %></p>
+  <p class="mt-1 text-sm text-gray-500"><%= article.summary %></p>
+<% end %>

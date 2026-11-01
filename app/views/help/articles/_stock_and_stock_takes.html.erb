@@ -1,0 +1,35 @@
+<p>HardPoint keeps stock per branch. Every sale, delivery, transfer and correction is a line in the stock history, so you can always see why
+  a number is what it is. <strong>Inventory › Overview</strong> shows what each branch holds and what it's worth.</p>
+
+<h2>Correcting stock</h2>
+<p>Open the product and press <strong>Adjust stock</strong>. Choose the branch, how many to add or take off, and the reason: opening stock,
+  found, damaged, stolen, expired, internal use or a correction. Adjustments are in the activity log with who made them.</p>
+
+<h2>Moving stock between branches</h2>
+<ol>
+  <li>In <strong>Inventory › Transfers</strong>, press <strong>New</strong>, choose the branches and the products, and press
+    <strong>Send transfer</strong>. The stock leaves the sending branch and shows as in transit.</li>
+  <li>When it arrives, the other branch presses <strong>Mark received at …</strong> and the stock is theirs.</li>
+  <li>While it is still in transit, <strong>Cancel transfer</strong> puts the stock back at the sending branch.</li>
+</ol>
+
+<h2>Stock takes</h2>
+<ol>
+  <li>In <strong>Inventory › Stock takes</strong>, press <strong>New</strong>. Count <strong>everything</strong>, or pick one category for a
+    quicker cycle count, and press <strong>Start counting</strong>.</li>
+  <li>Count the shelves: type quantities on the computer, scan with a barcode scanner, or
+    <%= link_to "count on your phone", help_article_path("stock-on-your-phone"), class: "link" %>. Several people can count at once.</li>
+  <li>Press <strong>Submit for approval</strong>. The <strong>Differences</strong> tab shows what's over or short and what it's worth at cost;
+    <strong>Not counted</strong> shows what was missed.</li>
+  <li>An owner or manager presses <strong>Approve and correct stock</strong>. Anything not counted is left as it was.</li>
+</ol>
+<p>Selling carries on during a stock take; HardPoint allows for what was sold while you counted.</p>
+
+<h2>Knowing what to reorder</h2>
+<p>Give products a <strong>reorder level</strong>. <strong>Inventory › Reorder list</strong> shows everything at or below it at a branch,
+  and owners, managers and stock clerks get a low-stock email each morning. To turn the list into orders, see
+  <%= link_to "Buying from suppliers", help_article_path("buying-from-suppliers"), class: "link" %>.</p>
+
+<h2>Stock history</h2>
+<p><strong>Inventory › Movements</strong> lists every change to stock, filtered by product, branch and reason. Each product's page shows its
+  latest movements too.</p>

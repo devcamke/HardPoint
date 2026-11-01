@@ -35,6 +35,32 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "the help centre searches the guides' text, not only their titles" do
+    get help_path(q: "Group By")
+    assert_select "a[href=?]", help_article_path("getting-around")
+    assert_select "a[href=?]", help_article_path("buying-from-suppliers")
+
+    get help_path(q: "zzzz")
+    assert_select "p", /No guides mention "zzzz"/
+  end
+
+  test "every help article renders, and links on to the next and related guides" do
+    HelpArticle.all.each do |article|
+      get help_article_path(article)
+      assert_response :success
+      assert_select "h1", article.title
+    end
+
+    get help_article_path("getting-started")
+    assert_select "a[href=?]", help_article_path("getting-around"), text: /Finding your way around/
+    assert_select "a[href=?]", help_article_path("tills-and-printers")
+  end
+
+  test "help articles' related guides exist" do
+    HelpArticle.all.each { |article| assert_nothing_raised { article.related_articles } }
+    assert_equal HelpArticle::SECTIONS.sort, HelpArticle.all.map(&:section).uniq.sort
+  end
+
   test "signing in asks which shop, then goes to that shop's sign-in" do
     get new_shop_lookup_path
     assert_response :success
