@@ -26,15 +26,15 @@ class JobClientBillPdf < DocumentPdf
 
     def letterhead
       contractor = @job.customer
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text contractor.name, size: 18, style: :bold
       pdf.fill_color GREY
       pdf.text [ contractor.address, contractor.phone, contractor.email ].compact_blank.join(" · "), size: 9
       pdf.text "PIN #{contractor.tax_pin}", size: 9 if contractor.tax_pin.present?
       pdf.move_up(contractor.tax_pin.present? ? 45 : 34)
-      pdf.fill_color ORANGE
+      pdf.fill_color BRAND
       pdf.text title.upcase, size: 16, style: :bold, align: :right
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text reference, size: 12, align: :right
       pdf.fill_color GREY
       details.each { pdf.text _1, size: 9, align: :right }

@@ -19,14 +19,14 @@ class Billing::InvoicePdf < DocumentPdf
 
     def letterhead
       company = Billing.company
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text company[:name].to_s, size: 18, style: :bold
       pdf.fill_color GREY
       pdf.text [ company[:address], company[:email], ("PIN #{company[:tax_pin]}" if company[:tax_pin]) ].compact_blank.join(" · "), size: 9
       pdf.move_up 34
-      pdf.fill_color ORANGE
+      pdf.fill_color BRAND
       pdf.text title.upcase, size: 16, style: :bold, align: :right
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text reference, size: 12, align: :right
       pdf.fill_color GREY
       details.compact_blank.each { pdf.text _1, size: 9, align: :right }

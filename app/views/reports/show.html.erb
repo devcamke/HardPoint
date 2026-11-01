@@ -1,39 +1,34 @@
 <% content_for :title, @report.title %>
 <% report = @report %>
 
-<div class="mt-2 mb-4 flex flex-wrap items-start justify-between gap-3">
-  <div>
-    <h1 class="text-xl font-medium"><%= link_to "Reports", reports_path, class: "link" %> <span class="text-gray-400">/</span> <%= report.title %></h1>
-    <p class="hint mt-1"><%= report.subtitle %> · amounts in <%= Current.account.currency %></p>
-  </div>
-  <div class="flex gap-2 print:hidden">
-    <%= link_to "CSV", report_path(report.class.key, request.query_parameters.merge(format: :csv)), class: "btn-secondary" %>
-    <%= link_to "PDF", report_path(report.class.key, request.query_parameters.merge(format: :pdf)), target: "_blank", class: "btn-secondary" %>
-    <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
-  </div>
-</div>
-
-<%= form_with url: report_path(report.class.key), method: :get, class: "card mb-6 flex flex-wrap items-end gap-3 p-4 print:hidden", data: { controller: "auto-submit report-period" } do |form| %>
-  <% if report.uses_period %>
-    <div><%= form.label :preset, "Period", class: "label" %>
-      <%= form.select :preset, Report::Period::PRESETS.invert.to_a + [ [ "Choose dates…", "" ] ], { selected: report.period.preset.to_s }, class: "input",
-            data: { report_period_target: "preset", action: "change->auto-submit#submit" } %></div>
-    <div><%= form.label :from, class: "label" %><%= form.date_field :from, value: report.period.from, class: "input", data: { action: "change->report-period#chooseDates" } %></div>
-    <div><%= form.label :to, class: "label" %><%= form.date_field :to, value: report.period.to, class: "input", data: { action: "change->report-period#chooseDates" } %></div>
-  <% end %>
-  <div><%= form.label :branch_id, "Branch", class: "label" %>
-    <%= form.collection_select :branch_id, Current.account.branches.alphabetically, :id, :name, { selected: report.branch&.id, include_blank: "All branches" }, class: "input",
-          data: { action: "change->auto-submit#submit" } %></div>
-  <% report.class.options.each do |name, label, choices, _| %>
-    <div><%= form.label name, label, class: "label" %>
-      <%= form.select name, choices, { selected: report.options[name] }, class: "input", data: { action: "change->auto-submit#submit" } %></div>
-  <% end %>
-  <%= form.submit "Show", class: "btn-secondary" %>
+<% filters = [] %>
+<% if report.uses_period %>
+  <% filters << search_filter(:preset, label: "Period", value: report.period.preset, clear: "this_month",
+       options: Report::Period::PRESETS.to_a) %>
+  <% filters << search_filter(:from, label: "From", type: :date, value: report.period.from.iso8601, facet: false, drops: [ :preset ]) %>
+  <% filters << search_filter(:to, label: "To", type: :date, value: report.period.to.iso8601, facet: false, drops: [ :preset ]) %>
+<% end %>
+<% filters << search_filter(:branch_id, label: "Branch", value: report.branch&.id,
+     options: Current.account.branches.alphabetically.map { [ _1.id, _1.name ] }) %>
+<% report.class.options.each do |name, label, choices, default| %>
+  <% filters << search_filter(name, label: label, value: report.options[name], clear: default, options: choices.map(&:reverse),
+       section: (label == "Group by" ? :group_by : :filters)) %>
 <% end %>
 
+<div class="print:hidden">
+  <%= render "shared/control_panel",
+        title: safe_join([ link_to("Reports", reports_path, class: "link"), tag.span("/", class: "text-gray-400"), report.title ], " "),
+        actions: [ [ "Export CSV", report_path(report.class.key, request.query_parameters.merge(format: :csv)) ],
+                   [ "Download PDF", report_path(report.class.key, request.query_parameters.merge(format: :pdf)), { target: "_blank" } ],
+                   [ "Print", "#", { data: { controller: "print", action: "print#print" } } ] ],
+        filters: filters %>
+</div>
+<p class="hint mb-4"><%= report.subtitle %> · amounts in <%= Current.account.currency %></p>
+<h1 class="mb-2 hidden text-xl font-medium print:block"><%= report.title %></h1>
+
 <% report.sections.each do |section| %>
-  <section class="card mb-6 overflow-x-auto">
-    <%= tag.h2 section.title, class: "mb-3 text-lg font-semibold" if section.title %>
+  <section class="card mb-4 overflow-x-auto">
+    <%= tag.h2 section.title, class: "mb-2 font-medium" if section.title %>
     <% if section.rows.any? %>
       <table class="table">
         <thead>
@@ -41,12 +36,12 @@
         </thead>
         <tbody>
           <% section.rows.each_with_index do |row, index| %>
-            <tr class="<%= "font-bold" if index.in?(section.emphasis) %>">
+            <tr class="<%= "font-semibold" if index.in?(section.emphasis) %>">
               <% row.zip(section.columns).each do |value, column| %><td class="<%= report_cell_classes(value, column) %>"><%= report_cell(value, column) %></td><% end %>
             </tr>
           <% end %>
           <% if section.totals %>
-            <tr class="font-bold">
+            <tr class="bg-gray-50 font-semibold">
               <% section.totals.zip(section.columns).each do |value, column| %><td class="<%= report_cell_classes(value, column) %>"><%= report_cell(value, column) %></td><% end %>
             </tr>
           <% end %>

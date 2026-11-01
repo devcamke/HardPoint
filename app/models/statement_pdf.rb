@@ -35,7 +35,7 @@ class StatementPdf < DocumentPdf
       ageing = @statement.ageing
       ageing_columns = BUCKET_LABELS.map { |_, label| [ label, WIDTH / 5 ] }
       with_columns(ageing_columns, numeric_from: 0) do
-        row BUCKET_LABELS.values, bold: true, fill: CONCRETE
+        row BUCKET_LABELS.values, bold: true, fill: SHADE
         row BUCKET_LABELS.keys.map { money(ageing[_1]) }
       end
 

@@ -30,7 +30,7 @@ class DeliveryNotePdf < DocumentPdf
       pdf.move_down 10
       note "Note: #{@note.note}" if @note.note.present?
       pdf.move_down 40
-      pdf.fill_color NAVY
+      pdf.fill_color INK
       pdf.text "Received in good order by: ______________________________   Signature: __________________   Date: ____________", size: 9
     end
 end

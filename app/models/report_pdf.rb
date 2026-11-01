@@ -23,7 +23,7 @@ class ReportPdf < DocumentPdf
         @section = section
         pdf.start_new_page if pdf.cursor < 120
         if section.title
-          pdf.fill_color NAVY
+          pdf.fill_color INK
           pdf.text section.title, size: 12, style: :bold
           pdf.move_down 6
         end
@@ -31,11 +31,11 @@ class ReportPdf < DocumentPdf
         if section.rows.empty?
           note "Nothing in this period."
         else
-          row columns.map(&:first), bold: true, fill: CONCRETE
+          row columns.map(&:first), bold: true, fill: SHADE
           section.rows.each_with_index do |cells, index|
             if pdf.cursor < 60
               pdf.start_new_page
-              row columns.map(&:first), bold: true, fill: CONCRETE
+              row columns.map(&:first), bold: true, fill: SHADE
             end
             row formatted(cells), bold: index.in?(section.emphasis)
           end
