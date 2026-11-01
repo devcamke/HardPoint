@@ -1,7 +1,6 @@
 <% content_for :title, resource_title %>
 
-<%= render "settings/back" %>
-<h1 class="mt-2 mb-6 text-3xl font-bold"><%= resource_title %></h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> <%= resource_title %></h1>
 
 <div class="grid gap-6 lg:grid-cols-3">
   <div class="card lg:col-span-2">

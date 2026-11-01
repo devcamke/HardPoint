@@ -1,10 +1,9 @@
 <% content_for :title, "What we owe" %>
 
 <div class="mb-4 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Purchasing</h1>
+  <h1 class="text-xl font-medium">Purchasing</h1>
   <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
 </div>
-<%= render "purchasing/tabs" %>
 
 <p class="hint mb-4">Unpaid supplier invoices by how late they are, as of <%= l(Date.current, format: :long) %>. Payments settle each supplier's oldest invoices first.
   <%= "Suppliers in other currencies are shown in them; totals are in #{Current.account.currency} at today's rates." if @rows.any? { _1.first.foreign? } %></p>
@@ -21,7 +20,7 @@
               <td class="text-right tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket], currency: supplier.currency_code) if ageing[bucket].nonzero? %></td>
             <% end %>
             <td class="text-right font-semibold tabular-nums"><%= money(balance, currency: supplier.currency_code) %>
-              <%= tag.span("≈ #{money(supplier.to_base_cents(balance))}", class: "block text-xs font-normal text-steel-600") if supplier.foreign? %></td>
+              <%= tag.span("≈ #{money(supplier.to_base_cents(balance))}", class: "block text-xs font-normal text-gray-500") if supplier.foreign? %></td>
             <td class="text-right"><%= link_to "Pay", new_supplier_payment_path(supplier), class: "link text-sm" %></td>
           </tr>
         <% end %>

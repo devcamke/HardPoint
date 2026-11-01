@@ -1,7 +1,6 @@
 <% content_for :title, "Tools back · #{@hire_agreement.reference}" %>
-<p class="text-sm"><%= link_to "← Hire #{@hire_agreement.reference}", @hire_agreement, class: "link" %></p>
-<h1 class="mt-2 mb-1 text-3xl font-bold">Tools back</h1>
-<p class="mb-6 text-steel-600">Tick what's come back now and check each one over. Charges are worked out to now.</p>
+<h1 class="mb-1 text-xl font-medium"><%= link_to "Hire #{@hire_agreement.reference}", @hire_agreement, class: "link" %> <span class="text-gray-400">/</span> Tools back</h1>
+<p class="mb-6 text-gray-500">Tick what's come back now and check each one over. Charges are worked out to now.</p>
 
 <%= form_with url: hire_agreement_return_path(@hire_agreement), class: "space-y-3" do |form| %>
   <% @hire_agreement.lines.includes(:hire_item).reject(&:returned?).each do |line| %>
@@ -9,7 +8,7 @@
       <legend class="sr-only"><%= line.hire_item.label %></legend>
       <label class="flex items-center gap-3">
         <%= check_box_tag "returns[#{line.id}][back]", "1", true, class: "size-5" %>
-        <span class="text-lg font-semibold"><%= line.hire_item.name %> <span class="font-mono text-sm text-steel-600"><%= line.hire_item.asset_tag %></span></span>
+        <span class="text-lg font-semibold"><%= line.hire_item.name %> <span class="font-mono text-sm text-gray-500"><%= line.hire_item.asset_tag %></span></span>
         <span class="ml-auto tabular-nums"><%= HireLine.days_between(@hire_agreement.started_at, Time.current) %> days · <%= money(line.charge_until(Time.current)) %></span>
       </label>
       <div class="mt-3 grid gap-3 sm:grid-cols-3">

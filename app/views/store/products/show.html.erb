@@ -2,19 +2,19 @@
 <p class="mb-4 text-sm"><%= link_to "← #{@product.category&.name || "All products"}", store_products_path(category_id: @product.category_id), class: "link" %></p>
 
 <div class="grid gap-8 md:grid-cols-2">
-  <div class="aspect-square overflow-hidden rounded-xl border border-concrete-200 bg-concrete-100">
+  <div class="aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
     <% if @product.image.attached? %>
       <%= image_tag @product.image, alt: @product.name, class: "size-full object-cover" %>
     <% else %>
-      <span class="flex size-full items-center justify-center text-8xl font-extrabold text-concrete-300" aria-hidden="true"><%= @product.name.first %></span>
+      <span class="flex size-full items-center justify-center text-8xl font-extrabold text-gray-300" aria-hidden="true"><%= @product.name.first %></span>
     <% end %>
   </div>
 
   <div>
     <h1 class="text-3xl font-bold"><%= @product.name %></h1>
-    <p class="mt-1 text-sm text-steel-600"><%= [ @product.brand&.name, "SKU #{@product.sku}" ].compact.join(" · ") %></p>
-    <p class="mt-4"><%= render "store/price", product: @product, size: "text-3xl" %> <span class="text-base font-normal text-steel-600">per <%= @product.unit.name.downcase %>, VAT included</span></p>
-    <% if @product.description.present? %><p class="mt-4 whitespace-pre-line text-steel-700"><%= @product.description %></p><% end %>
+    <p class="mt-1 text-sm text-gray-500"><%= [ @product.brand&.name, "SKU #{@product.sku}" ].compact.join(" · ") %></p>
+    <p class="mt-4"><%= render "store/price", product: @product, size: "text-3xl" %> <span class="text-base font-normal text-gray-500">per <%= @product.unit.name.downcase %>, VAT included</span></p>
+    <% if @product.description.present? %><p class="mt-4 whitespace-pre-line text-gray-700"><%= @product.description %></p><% end %>
 
     <ul id="availability" class="mt-5 space-y-1 text-sm">
       <% storefront.collection_branches.each do |branch| %>

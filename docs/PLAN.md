@@ -13,7 +13,7 @@ customers, staff, or reports.
 | CSS | **Tailwind CSS 4** via `tailwindcss-rails` 4.x |
 | Tenant isolation | **Keep Postgres row-level security** alongside `Current.account` scoping (§2) |
 | Style | Vanilla Rails: built-ins first, rich models, CRUD controllers, Minitest + fixtures (§1) |
-| Brand | "Ironworks": Steel Navy `#102A43`, Safety Orange `#F76707`, Concrete `#F5F4F1` (docs/BRAND.md) |
+| Brand | Odoo-style layout and colours: purple `#714B67`, teal links `#017E84`, Tailwind greys (docs/BRAND.md) |
 | Till PINs | Only for cashiers and stock clerks, and only on a till that's already signed in, so a PIN can never stand in for an owner's password + 2FA |
 | Spreadsheets | CSV only (Ruby's `csv`), which Excel and Google Sheets open and save; no XLSX gem unless shops ask |
 | Labels | Printed from the browser (A4 sheets or 50 × 25 mm rolls) rather than generated PDFs; barcodes via `barby` |

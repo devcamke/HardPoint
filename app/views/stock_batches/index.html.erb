@@ -1,14 +1,13 @@
 <% content_for :title, "Expiry" %>
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-3xl font-bold">Stock</h1>
+  <h1 class="text-xl font-medium">Stock</h1>
   <%= render "shared/branch_picker" %>
 </div>
-<%= render "stock/tabs" %>
 
 <nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter">
   <% [ [ "expiring", "Expired or expiring in #{StockBatch::EXPIRING_WITHIN.in_days.to_i} days" ], [ "expired", "Expired" ], [ "all", "All batches in stock" ] ].each do |filter, label| %>
-    <%= link_to label, stock_batches_path(filter: filter), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-navy-900 text-white" : "bg-white"}" %>
+    <%= link_to label, stock_batches_path(filter: filter), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-primary-500 text-white" : "bg-white"}" %>
   <% end %>
 </nav>
 
@@ -19,7 +18,7 @@
       <tbody>
         <% @batches.each do |batch| %>
           <tr id="<%= dom_id(batch) %>">
-            <td><%= link_to batch.product.name, batch.product, class: "hover:text-safety-700" %></td>
+            <td><%= link_to batch.product.name, batch.product, class: "hover:text-primary-700" %></td>
             <td><%= link_to batch.number, batch, class: "link font-mono" %></td>
             <td><%= render "stock_batches/expiry", batch: batch %></td>
             <td class="text-right tabular-nums"><%= quantity(batch.quantity, batch.product.unit) %></td>
@@ -30,7 +29,7 @@
     </table>
     <%= render "shared/pagination" %>
   <% else %>
-    <p class="text-steel-600"><%= @filter == "all" ? "No batches in stock at #{selected_branch.name}." : "Nothing expired or expiring soon at #{selected_branch.name}." %>
+    <p class="text-gray-500"><%= @filter == "all" ? "No batches in stock at #{selected_branch.name}." : "Nothing expired or expiring soon at #{selected_branch.name}." %>
       Products are tracked by batch when <strong>Batches and expiry dates</strong> is ticked on the product.</p>
   <% end %>
 </div>

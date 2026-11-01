@@ -1,9 +1,8 @@
 <% content_for :title, @promotion.name %>
 
-<p class="text-sm"><%= link_to "← Promotions", promotions_path, class: "link" %></p>
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold"><%= @promotion.name %> <%= render "promotions/status", promotion: @promotion %></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Promotions", promotions_path, class: "link" %> <span class="text-gray-400">/</span> <%= @promotion.name %> <%= render "promotions/status", promotion: @promotion %></h1>
     <p class="hint mt-1"><%= @promotion.offer %> · <%= l(@promotion.starts_on, format: :long) %> to <%= l(@promotion.ends_on, format: :long) %> ·
       <%= @promotion.branch_ids.empty? ? "all branches" : Current.account.branches.where(id: @promotion.branch_ids).pluck(:name).to_sentence %></p>
   </div>
@@ -29,7 +28,7 @@
     <thead><tr><th>Product</th><th class="text-right">Shelf price</th><th class="text-right"><%= @promotion.percent_off? ? "Promotion price" : "Deal" %></th></tr></thead>
     <tbody>
       <% @products.each do |product| %>
-        <tr><td><%= link_to product.name, product, class: "hover:text-safety-700" %> <span class="font-mono text-xs text-steel-600"><%= product.sku %></span></td>
+        <tr><td><%= link_to product.name, product, class: "hover:text-primary-700" %> <span class="font-mono text-xs text-gray-500"><%= product.sku %></span></td>
           <td class="text-right tabular-nums"><%= money(product.price_cents) %></td>
           <td class="text-right font-semibold tabular-nums text-red-700"><%= @promotion.percent_off? ? money(@promotion.price_cents_for(product, product.price_cents)) : @promotion.offer %></td></tr>
       <% end %>

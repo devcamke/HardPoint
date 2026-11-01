@@ -19,6 +19,6 @@
     <div class="field"><%= form.label :consumer_secret, class: "label" %><%= form.password_field :consumer_secret, value: nil, autocomplete: "off", class: "input font-mono" %></div>
     <div class="field sm:col-span-2"><%= form.label :passkey, "Lipa na M-Pesa passkey", class: "label" %><%= form.password_field :passkey, value: nil, autocomplete: "off", class: "input font-mono" %></div>
   </div>
-  <label class="mb-4 flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-safety-500" %> In use</label>
+  <label class="mb-4 flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-primary-500" %> In use</label>
   <%= form.submit shortcode.new_record? ? "Add" : "Save", class: "btn-primary" %>
 <% end %>

@@ -7,15 +7,15 @@
 <table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="margin-top:12px; font-size:14px; border-collapse:collapse;">
   <% @sale.lines.includes(:product, product_unit: :unit).each do |line| %>
     <tr style="border-top:1px solid #E7E5E0;">
-      <td><%= line.description %><br><span style="color:#5B6573; font-size:12px;"><%= quantity(line.quantity, line.unit) %> × <%= money(line.unit_price_cents, currency: @account.currency) %></span></td>
+      <td><%= line.description %><br><span style="color:#6B7280; font-size:12px;"><%= quantity(line.quantity, line.unit) %> × <%= money(line.unit_price_cents, currency: @account.currency) %></span></td>
       <td style="text-align:right; vertical-align:top;"><%= money(line.total_cents, currency: @account.currency) %></td>
     </tr>
   <% end %>
   <% if @sale.discount_cents.positive? %>
     <tr style="border-top:1px solid #E7E5E0;"><td>Discount</td><td style="text-align:right;">−<%= money(@sale.discount_cents, currency: @account.currency) %></td></tr>
   <% end %>
-  <tr style="border-top:2px solid #102A43; font-weight:700; font-size:16px;"><td>Total</td><td style="text-align:right;"><%= money(@sale.total_cents, currency: @account.currency) %></td></tr>
-  <tr><td style="color:#5B6573;">incl. tax</td><td style="text-align:right; color:#5B6573;"><%= money(@sale.tax_cents, currency: @account.currency) %></td></tr>
+  <tr style="border-top:2px solid #1F2937; font-weight:700; font-size:16px;"><td>Total</td><td style="text-align:right;"><%= money(@sale.total_cents, currency: @account.currency) %></td></tr>
+  <tr><td style="color:#6B7280;">incl. tax</td><td style="text-align:right; color:#6B7280;"><%= money(@sale.tax_cents, currency: @account.currency) %></td></tr>
 </table>
 <p style="margin-top:16px;"><%= @sale.payments.map { "#{_1.label} #{money(_1.amount_cents, currency: @account.currency)}" }.join(" · ") %></p>
-<p style="color:#5B6573;"><%= @account.receipt_footer %></p>
+<p style="color:#6B7280;"><%= @account.receipt_footer %></p>

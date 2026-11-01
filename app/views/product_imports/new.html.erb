@@ -1,7 +1,6 @@
 <% content_for :title, "Import products" %>
 
-<p class="text-sm"><%= link_to "← Imports", product_imports_path, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Import products</h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Imports", product_imports_path, class: "link" %> <span class="text-gray-400">/</span> Import products</h1>
 
 <div class="grid gap-6 lg:grid-cols-3">
   <%= form_with model: @import, class: "card lg:col-span-2", data: { turbo: false } do |form| %>
@@ -9,7 +8,7 @@
 
     <div class="field">
       <%= form.label :file, "Spreadsheet (CSV)", class: "label" %>
-      <%= form.file_field :file, required: true, accept: ".csv,text/csv", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-navy-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-navy-900 hover:file:bg-navy-50" %>
+      <%= form.file_field :file, required: true, accept: ".csv,text/csv", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-gray-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-gray-900 hover:file:bg-gray-50" %>
       <p class="hint mt-1">In Excel or Google Sheets use File → Save as / Download → CSV. Up to 10 MB (about 50,000 products).</p>
     </div>
 
@@ -25,7 +24,7 @@
   <div class="card self-start text-sm">
     <h2 class="mb-2 font-semibold">Columns</h2>
     <p class="mb-2"><strong>name</strong> and <strong>price</strong> are required. Optional: sku, barcode, category, brand, unit, cost, tax_rate, reorder_level, stock, active.</p>
-    <ul class="mb-3 list-disc space-y-1 pl-5 text-steel-600">
+    <ul class="mb-3 list-disc space-y-1 pl-5 text-gray-500">
       <li>Rows with an existing SKU update that product; others add new products.</li>
       <li>New categories and brands are created for you.</li>
       <li>Units and tax rates must already exist.</li>

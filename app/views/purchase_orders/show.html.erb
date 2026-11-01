@@ -1,10 +1,9 @@
 <% content_for :title, @purchase_order.reference %>
 <% order = @purchase_order %>
 
-<p class="text-sm"><%= link_to "← Purchase orders", purchase_orders_path, class: "link" %></p>
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold"><%= order.reference %> <%= render "purchasing/status", order: order %></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Purchase orders", purchase_orders_path, class: "link" %> <span class="text-gray-400">/</span> <%= order.reference %> <%= render "purchasing/status", order: order %></h1>
     <p class="hint mt-1"><%= link_to order.supplier.name, order.supplier, class: "link" %> → <%= order.branch.name %>
       · created <%= l(order.created_at, format: :short) %> by <%= order.creator&.name %>
       <%= "· sent #{l(order.sent_at, format: :short)}" if order.sent_at %><%= "· expected #{l(order.expected_on, format: :long)}" if order.expected_on %></p>
@@ -36,7 +35,7 @@
     <tbody>
       <% order.lines.includes(product: :unit).each do |line| %>
         <tr>
-          <td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %> <span class="font-mono text-xs text-steel-600"><%= line.product.sku %></span></td>
+          <td><%= link_to line.product.name, line.product, class: "hover:text-primary-700" %> <span class="font-mono text-xs text-gray-500"><%= line.product.sku %></span></td>
           <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
           <td class="text-right tabular-nums"><%= quantity(line.received_quantity) %></td>
           <td class="text-right tabular-nums <%= "font-semibold" if line.outstanding_quantity.positive? %>"><%= quantity([ line.outstanding_quantity, 0 ].max) %></td>

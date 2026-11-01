@@ -1,13 +1,12 @@
 <% content_for :title, "eTIMS submissions" %>
-<p class="text-sm"><%= link_to "← KRA eTIMS", etims_devices_path, class: "link" %></p>
 <div class="mt-2 mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-3xl font-bold">Sent to KRA</h1>
+  <h1 class="text-xl font-medium"><%= link_to "KRA eTIMS", etims_devices_path, class: "link" %> <span class="text-gray-400">/</span> Sent to KRA</h1>
   <% if @counts["failed"].to_i.positive? %><%= button_to "Retry #{pluralize(@counts["failed"], "refused one")}", etims_retries_path, class: "btn-primary" %><% end %>
 </div>
 
 <div class="mb-4 flex flex-wrap gap-1 text-sm">
   <% [ [ "all", "All" ], [ "pending", "Waiting (#{@counts["pending"].to_i})" ], [ "failed", "Refused (#{@counts["failed"].to_i})" ], [ "sent", "Signed" ] ].each do |value, label| %>
-    <%= link_to label, etims_submissions_path(status: value), class: class_names("rounded-full px-3 py-1", "bg-navy-900 text-white" => @status == value, "bg-white text-steel-600 hover:text-navy-900" => @status != value) %>
+    <%= link_to label, etims_submissions_path(status: value), class: class_names("rounded-full px-3 py-1", "bg-primary-500 text-white" => @status == value, "bg-white text-gray-500 hover:text-gray-900" => @status != value) %>
   <% end %>
 </div>
 

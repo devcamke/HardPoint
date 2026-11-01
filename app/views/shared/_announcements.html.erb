@@ -1,5 +1,5 @@
 <% Announcement.current.limit(3).each do |announcement| %>
-  <div id="<%= dom_id(announcement) %>" class="<%= announcement.level == "warning" ? "bg-safety-500 text-navy-900" : "bg-navy-700 text-white" %> px-4 py-2 text-sm" role="status"
+  <div id="<%= dom_id(announcement) %>" class="<%= announcement.level == "warning" ? "bg-amber-300 text-gray-900" : "border-b border-primary-100 bg-primary-50 text-gray-800" %> px-4 py-2 text-sm" role="status"
        data-controller="dismissible" data-dismissible-key-value="<%= dom_id(announcement) %>-<%= announcement.updated_at.to_i %>">
     <div class="mx-auto flex max-w-6xl items-start justify-between gap-3">
       <p><span class="font-semibold"><%= announcement.title %></span><%= " · #{announcement.body}" if announcement.body.present? %></p>

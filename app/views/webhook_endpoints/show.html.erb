@@ -1,8 +1,7 @@
 <% content_for :title, "Webhook endpoint" %>
-<p class="text-sm"><%= link_to "← Developers", developers_path, class: "link" %></p>
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-4">
   <div class="min-w-0">
-    <h1 class="font-mono text-xl font-bold [overflow-wrap:anywhere]"><%= @endpoint.url %></h1>
+    <h1 class="font-mono text-xl font-medium [overflow-wrap:anywhere]"><%= link_to "Developers", developers_path, class: "link" %> <span class="text-gray-400">/</span> <%= @endpoint.url %></h1>
     <p class="hint mt-1"><%= @endpoint.description %></p>
   </div>
   <div class="flex flex-wrap gap-2">
@@ -25,7 +24,7 @@
   </section>
   <section id="signing_secret" class="card">
     <h2 class="mb-1 text-lg font-semibold">Signing secret</h2>
-    <p class="hint mb-3">Check each request's <code class="rounded bg-concrete-200 px-1">HardPoint-Signature</code> header with this, as the documentation shows.</p>
+    <p class="hint mb-3">Check each request's <code class="rounded bg-gray-200 px-1">HardPoint-Signature</code> header with this, as the documentation shows.</p>
     <details>
       <summary class="cursor-pointer text-sm font-semibold">Show secret</summary>
       <input type="text" readonly value="<%= @endpoint.secret %>" class="input mt-2 font-mono text-sm" data-controller="select-on-focus" aria-label="Signing secret">
@@ -44,13 +43,13 @@
         <% @deliveries.each do |delivery| %>
           <tr id="<%= dom_id(delivery) %>">
             <td><span class="font-mono text-xs"><%= delivery.event %></span>
-              <details class="mt-1"><summary class="cursor-pointer text-xs text-steel-600">Payload</summary>
-                <pre class="mt-1 max-h-64 max-w-xl overflow-auto rounded bg-concrete-100 p-2 text-xs"><%= JSON.pretty_generate(delivery.payload) %></pre></details></td>
+              <details class="mt-1"><summary class="cursor-pointer text-xs text-gray-500">Payload</summary>
+                <pre class="mt-1 max-h-64 max-w-xl overflow-auto rounded bg-gray-100 p-2 text-xs"><%= JSON.pretty_generate(delivery.payload) %></pre></details></td>
             <td class="whitespace-nowrap"><%= l(delivery.created_at, format: :short) %></td>
             <td>
               <% if delivery.delivered? %><span class="badge bg-green-50 text-green-800">Delivered</span> <span class="hint"><%= delivery.response_status %></span>
               <% elsif delivery.failed? %><span class="badge bg-red-50 text-red-800">Failed</span> <span class="hint"><%= delivery.last_error %></span>
-              <% else %><span class="badge bg-safety-100 text-safety-800">Retrying</span> <span class="hint"><%= delivery.last_error %><%= " · next #{time_ago_in_words(delivery.next_attempt_at)} from now" if delivery.attempts.positive? && delivery.next_attempt_at&.future? %></span>
+              <% else %><span class="badge bg-amber-100 text-amber-800">Retrying</span> <span class="hint"><%= delivery.last_error %><%= " · next #{time_ago_in_words(delivery.next_attempt_at)} from now" if delivery.attempts.positive? && delivery.next_attempt_at&.future? %></span>
               <% end %>
             </td>
             <td class="tabular-nums"><%= delivery.attempts %></td>
@@ -60,6 +59,6 @@
       </tbody>
     </table>
   <% else %>
-    <p class="text-sm text-steel-600">Nothing sent yet. Send a test event to check your receiver.</p>
+    <p class="text-sm text-gray-500">Nothing sent yet. Send a test event to check your receiver.</p>
   <% end %>
 </section>

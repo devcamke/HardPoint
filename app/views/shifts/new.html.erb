@@ -1,6 +1,6 @@
 <% content_for :title, "Open a shift" %>
 
-<h1 class="mb-2 text-3xl font-bold">Open a shift on <%= current_till.name %></h1>
+<h1 class="mb-2 text-xl font-medium">Open a shift on <%= current_till.name %></h1>
 <p class="hint mb-6"><%= current_till.branch.name %> · <%= link_to "not this till?", new_pos_till_path, class: "link" %></p>
 
 <%= form_with model: @shift, class: "card max-w-md" do |form| %>

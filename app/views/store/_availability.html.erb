@@ -4,7 +4,7 @@
 <% label, tone = case status
    when :available then [ "Available", "text-green-700" ]
    when :in_stock then [ storefront.show_stock_levels? ? "#{amount} in stock" : "In stock", "text-green-700" ]
-   when :low then [ storefront.show_stock_levels? ? "Only #{amount} left" : "Low stock", "text-safety-700" ]
-   else [ "Out of stock; order and we'll confirm", "text-steel-600" ]
+   when :low then [ storefront.show_stock_levels? ? "Only #{amount} left" : "Low stock", "text-primary-700" ]
+   else [ "Out of stock; order and we'll confirm", "text-gray-500" ]
    end %>
 <span class="<%= tone %>"><%= label %></span>

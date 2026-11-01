@@ -5,7 +5,7 @@ subdomain (`acme.hardpoint.app`), and no shop can see another shop's data.
 
 Built the vanilla Rails way: Rails 8.1, PostgreSQL 18, Hotwire, Tailwind CSS 4, Solid Queue/Cache/Cable,
 Minitest with fixtures, deployed with Kamal. See [docs/PLAN.md](docs/PLAN.md) for the full plan and
-[docs/BRAND.md](docs/BRAND.md) for the brand colours.
+[docs/BRAND.md](docs/BRAND.md) for the look and layout.
 
 ![Owner dashboard](docs/screenshots/90-owner-dashboard.png)
 

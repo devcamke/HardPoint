@@ -1,6 +1,5 @@
 <% content_for :title, "Texts sent" %>
-<p class="text-sm"><%= link_to "← Shop details", edit_account_path(anchor: "sms"), class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Texts sent</h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Shop details", edit_account_path(anchor: "sms"), class: "link" %> <span class="text-gray-400">/</span> Texts sent</h1>
 
 <div class="card">
   <% if @messages.any? %>
@@ -15,7 +14,7 @@
             <td class="max-w-md text-sm"><%= message.body %></td>
             <td><%= message.sender&.name %></td>
             <td><span class="badge <%= { "sent" => "bg-green-50 text-green-800", "failed" => "bg-red-50 text-red-800" }[message.status] %>" title="<%= message.error %>"><%= message.status.humanize %></span>
-              <%= tag.span(message.cost, class: "block text-xs text-steel-600") if message.cost %></td>
+              <%= tag.span(message.cost, class: "block text-xs text-gray-500") if message.cost %></td>
           </tr>
         <% end %>
       </tbody>

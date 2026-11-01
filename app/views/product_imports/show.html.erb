@@ -3,8 +3,7 @@
   <% content_for :head do %><meta http-equiv="refresh" content="2"><% end %>
 <% end %>
 
-<p class="text-sm"><%= link_to "← Imports", product_imports_path, class: "link" %></p>
-<h1 class="mt-2 mb-1 text-3xl font-bold"><%= @import.name %> <%= render "product_imports/status", import: @import %></h1>
+<h1 class="mb-1 text-xl font-medium"><%= link_to "Imports", product_imports_path, class: "link" %> <span class="text-gray-400">/</span> <%= @import.name %> <%= render "product_imports/status", import: @import %></h1>
 <p class="hint mb-6">Uploaded <%= l(@import.created_at, format: :long) %> by <%= @import.creator&.name %><%= " · stock at #{@import.branch.name}" if @import.branch %></p>
 
 <% case @import.status %>

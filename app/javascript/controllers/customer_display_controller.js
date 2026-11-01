@@ -25,7 +25,7 @@ export default class extends Controller {
       this.noteTarget.textContent = change ? `Your change: ${change}` : ""
     } else if (status === "cart" && lines.length) {
       this.linesTarget.innerHTML = lines.map((line) => `<li class="flex justify-between gap-6 py-3"><span>${escape(line.description)}
-        <span class="block text-lg text-navy-300">× ${escape(line.quantity)}</span></span><span class="tabular-nums">${escape(line.total)}</span></li>`).join("")
+        <span class="block text-lg text-gray-300">× ${escape(line.quantity)}</span></span><span class="tabular-nums">${escape(line.total)}</span></li>`).join("")
       this.labelTarget.textContent = "Total"
       this.totalTarget.textContent = total
       this.noteTarget.textContent = paybill ? `Pay with M-Pesa: ${paybill}` : ""

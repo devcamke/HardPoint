@@ -1,7 +1,6 @@
 <% content_for :title, "Adjust stock" %>
 
-<p class="text-sm"><%= link_to "← #{@adjustment.product.name}", @adjustment.product, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Adjust stock</h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "#{@adjustment.product.name}", @adjustment.product, class: "link" %> <span class="text-gray-400">/</span> Adjust stock</h1>
 
 <div class="card max-w-xl">
   <%= form_with model: @adjustment do |form| %>

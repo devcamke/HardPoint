@@ -1,12 +1,11 @@
 <% content_for :title, "Transfers" %>
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-3xl font-bold">Stock</h1>
+  <h1 class="text-xl font-medium">Stock</h1>
   <% if current_membership.can_manage_stock? %>
     <%= link_to "New transfer", new_stock_transfer_path, class: "btn-primary" %>
   <% end %>
 </div>
-<%= render "stock/tabs" %>
 
 <div class="card">
   <% if @transfers.any? %>

@@ -1,17 +1,17 @@
 <% content_for :title, "API and webhooks" %>
 <% content_for :description, "HardPoint's REST API and webhooks: connect a web shop, accounting software or your own tools to your hardware store's products, stock, customers, sales and orders." %>
 <% base = "#{request.protocol}#{@api_host}/v1" %>
-<% code = ->(text) { tag.pre(text.strip_heredoc.strip, class: "mt-2 overflow-x-auto rounded-lg bg-navy-950 p-4 text-xs leading-relaxed text-navy-100") } %>
+<% code = ->(text) { tag.pre(text.strip_heredoc.strip, class: "mt-2 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100") } %>
 
-<section class="bg-navy-950 text-white">
+<section class="bg-gray-950 text-white">
   <div class="mx-auto max-w-4xl px-4 py-12">
     <h1 class="text-4xl font-extrabold">API and webhooks</h1>
-    <p class="mt-2 max-w-2xl text-navy-200">Connect a web shop, your accounting software or your own scripts to your shop: read and update products,
+    <p class="mt-2 max-w-2xl text-gray-200">Connect a web shop, your accounting software or your own scripts to your shop: read and update products,
       stock, customers, sales and orders, and hear about changes as they happen. On the Business and Enterprise plans.</p>
   </div>
 </section>
 
-<article class="help-article mx-auto max-w-4xl space-y-4 px-4 py-12 leading-relaxed text-steel-700">
+<article class="help-article mx-auto max-w-4xl space-y-4 px-4 py-12 leading-relaxed text-gray-700">
   <h2>Getting a key</h2>
   <p>In your shop, the owner goes to <strong>Settings › Developers › New API key</strong>, names it after the app that will use it and
     chooses <strong>read only</strong> or <strong>read and write</strong>. The key (<code>hp_…</code>) is shown once. Revoke it there at any

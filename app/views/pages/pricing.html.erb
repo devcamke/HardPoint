@@ -10,7 +10,7 @@
 
 <section class="mx-auto max-w-6xl px-4 py-16">
   <h1 class="text-center text-4xl font-extrabold">Pricing</h1>
-  <p class="mx-auto mt-3 mb-10 max-w-xl text-center text-steel-600">Every plan has every feature. Pick one for the size of your shop, and try it free for 30 days.</p>
+  <p class="mx-auto mt-3 mb-10 max-w-xl text-center text-gray-500">Every plan has every feature. Pick one for the size of your shop, and try it free for 30 days.</p>
   <%= render "pages/plans", plans: @plans %>
 </section>
 
@@ -20,7 +20,7 @@
     <% faqs.each do |question, answer| %>
       <details class="card group">
         <summary class="cursor-pointer font-semibold"><%= question %></summary>
-        <p class="mt-2 text-steel-700"><%= answer %></p>
+        <p class="mt-2 text-gray-700"><%= answer %></p>
       </details>
     <% end %>
   </div>

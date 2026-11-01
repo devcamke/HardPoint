@@ -1,7 +1,6 @@
 <% content_for :title, "Hire out tools" %>
-<p class="text-sm"><%= link_to "← Tool hire", hire_agreements_path, class: "link" %></p>
-<h1 class="mt-2 mb-1 text-3xl font-bold">Hire out tools</h1>
-<p class="mb-6 text-steel-600">From <%= @branch.name %>
+<h1 class="mb-1 text-xl font-medium"><%= link_to "Tool hire", hire_agreements_path, class: "link" %> <span class="text-gray-400">/</span> Hire out tools</h1>
+<p class="mb-6 text-gray-500">From <%= @branch.name %>
   <% if Current.account.branches.many? %>· <% Current.account.branches.alphabetically.excluding(@branch).each do |branch| %><%= link_to "from #{branch.name}", new_hire_agreement_path(branch_id: branch.id), class: "link" %> <% end %><% end %></p>
 
 <%= form_with model: @hire_agreement, url: hire_agreements_path, class: "grid gap-6 lg:grid-cols-5" do |form| %>
@@ -12,15 +11,15 @@
     <% if @available.any? %>
       <div class="grid gap-2 sm:grid-cols-2">
         <% @available.each do |item| %>
-          <label class="flex cursor-pointer items-start gap-2 rounded-md border border-concrete-200 p-3 has-[:checked]:border-safety-500 has-[:checked]:bg-safety-50">
+          <label class="flex cursor-pointer items-start gap-2 rounded-md border border-gray-200 p-3 has-[:checked]:border-primary-500 has-[:checked]:bg-primary-50">
             <%= check_box_tag "hire_item_ids[]", item.id, Array(params[:hire_item_ids]).include?(item.id.to_s), id: "hire_item_#{item.id}", class: "mt-1" %>
-            <span><span class="font-semibold"><%= item.name %></span> <span class="font-mono text-xs text-steel-600"><%= item.asset_tag %></span><br>
-              <span class="text-sm text-steel-600"><%= money(item.daily_rate_cents) %>/day<%= " · #{money(item.weekly_rate_cents)}/week" if item.weekly_rate_cents %> · deposit <%= money(item.deposit_cents) %></span></span>
+            <span><span class="font-semibold"><%= item.name %></span> <span class="font-mono text-xs text-gray-500"><%= item.asset_tag %></span><br>
+              <span class="text-sm text-gray-500"><%= money(item.daily_rate_cents) %>/day<%= " · #{money(item.weekly_rate_cents)}/week" if item.weekly_rate_cents %> · deposit <%= money(item.deposit_cents) %></span></span>
           </label>
         <% end %>
       </div>
     <% else %>
-      <p class="text-steel-600">No tools are available at <%= @branch.name %>. <%= link_to "See all tools", hire_items_path, class: "link" %></p>
+      <p class="text-gray-500">No tools are available at <%= @branch.name %>. <%= link_to "See all tools", hire_items_path, class: "link" %></p>
     <% end %>
   </div>
 

@@ -1,4 +1,3 @@
 <% content_for :title, "Edit #{@purchase_order.reference}" %>
-<p class="text-sm"><%= link_to "← #{@purchase_order.reference}", @purchase_order, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Edit <%= @purchase_order.reference %></h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "#{@purchase_order.reference}", @purchase_order, class: "link" %> <span class="text-gray-400">/</span> Edit <%= @purchase_order.reference %></h1>
 <%= render "form", purchase_order: @purchase_order %>

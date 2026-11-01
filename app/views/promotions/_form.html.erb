@@ -6,17 +6,17 @@
     <fieldset class="field sm:col-span-2">
       <legend class="label">Offer</legend>
       <div class="grid gap-3 lg:grid-cols-3">
-        <label class="rounded-lg border border-concrete-300 p-3 has-checked:border-navy-900">
-          <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :kind, "percent_off", class: "accent-safety-500" %> A percentage off</span>
+        <label class="rounded-lg border border-gray-300 p-3 has-checked:border-gray-900">
+          <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :kind, "percent_off", class: "accent-primary-500" %> A percentage off</span>
           <span class="mt-2 flex items-center gap-2"><%= form.number_field :percent_off, value: (plain_number(promotion.percent_off) if promotion.percent_off), step: "any", min: 0, max: 100, class: "input w-24", "aria-label": "Percent off" %> % off the shelf price</span>
         </label>
-        <label class="rounded-lg border border-concrete-300 p-3 has-checked:border-navy-900">
-          <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :kind, "buy_get", class: "accent-safety-500" %> Free items with a quantity</span>
+        <label class="rounded-lg border border-gray-300 p-3 has-checked:border-gray-900">
+          <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :kind, "buy_get", class: "accent-primary-500" %> Free items with a quantity</span>
           <span class="mt-2 flex flex-wrap items-center gap-2">Buy <%= form.number_field :buy_quantity, value: (plain_number(promotion.buy_quantity) if promotion.buy_quantity), step: "any", min: 0, class: "input w-20", "aria-label": "Buy quantity" %>
             get <%= form.number_field :free_quantity, value: (plain_number(promotion.free_quantity) if promotion.free_quantity), step: "any", min: 0, class: "input w-20", "aria-label": "Free quantity" %> free</span>
         </label>
-        <label class="rounded-lg border border-concrete-300 p-3 has-checked:border-navy-900">
-          <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :kind, "bundle", class: "accent-safety-500" %> Mix and match</span>
+        <label class="rounded-lg border border-gray-300 p-3 has-checked:border-gray-900">
+          <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :kind, "bundle", class: "accent-primary-500" %> Mix and match</span>
           <span class="mt-2 flex flex-wrap items-center gap-2">Any <%= form.number_field :bundle_quantity, min: 2, step: 1, class: "input w-16", "aria-label": "Bundle quantity" %>
             for <%= Current.account.currency %> <%= form.number_field :bundle_price, value: (plain_number(promotion.bundle_price) if promotion.bundle_price), step: "any", min: 0, class: "input w-28", "aria-label": "Bundle price" %></span>
         </label>
@@ -32,15 +32,15 @@
     <fieldset class="field">
       <legend class="label">…or whole categories</legend>
       <%= form.collection_check_boxes :category_ids, Current.account.categories.alphabetically, :id, :name do |box| %>
-        <label class="flex items-center gap-2 text-sm"><%= box.check_box(class: "size-4 accent-safety-500") %><%= box.text %></label>
+        <label class="flex items-center gap-2 text-sm"><%= box.check_box(class: "size-4 accent-primary-500") %><%= box.text %></label>
       <% end %>
     </fieldset>
     <fieldset class="field">
       <legend class="label">Branches (none ticked: all)</legend>
       <%= form.collection_check_boxes :branch_ids, Current.account.branches.alphabetically, :id, :name do |box| %>
-        <label class="flex items-center gap-2 text-sm"><%= box.check_box(class: "size-4 accent-safety-500") %><%= box.text %></label>
+        <label class="flex items-center gap-2 text-sm"><%= box.check_box(class: "size-4 accent-primary-500") %><%= box.text %></label>
       <% end %>
-      <label class="mt-3 flex items-center gap-2 text-sm"><%= form.check_box :active, class: "size-4 accent-safety-500" %> Active (untick to pause)</label>
+      <label class="mt-3 flex items-center gap-2 text-sm"><%= form.check_box :active, class: "size-4 accent-primary-500" %> Active (untick to pause)</label>
     </fieldset>
   </div>
   <p class="hint mb-4">The till gives each line the one promotion that saves most. A customer on a price list gets whichever is better, their price or the promotion. Percentages also apply to quotes and online orders; free items and mix-and-match bundles are given at the till.

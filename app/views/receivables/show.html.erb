@@ -1,10 +1,9 @@
 <% content_for :title, "Who owes us" %>
 
 <div class="mb-4 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Sales</h1>
+  <h1 class="text-xl font-medium">Sales</h1>
   <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
 </div>
-<%= render "sales/tabs" %>
 
 <p class="hint mb-4">What customers owe on account by how late it is, as of <%= l(Date.current, format: :long) %>. Each account sale is due after the customer's payment terms; payments and returns settle their oldest sales first.</p>
 
@@ -15,12 +14,12 @@
       <tbody>
         <% @rows.each do |customer, ageing, balance| %>
           <tr>
-            <td><%= link_to customer.name, customer, class: "link" %><%= tag.span(customer.phone, class: "ml-2 text-xs text-steel-600") if customer.phone %></td>
+            <td><%= link_to customer.name, customer, class: "link" %><%= tag.span(customer.phone, class: "ml-2 text-xs text-gray-500") if customer.phone %></td>
             <% Ageing::BUCKETS.each_key do |bucket| %>
               <td class="text-right tabular-nums <%= "text-red-700" if bucket != "current" && ageing[bucket].positive? %>"><%= money(ageing[bucket]) if ageing[bucket].nonzero? %></td>
             <% end %>
             <td class="text-right font-semibold tabular-nums <%= "text-red-700" if balance > customer.credit_limit_cents %>"><%= money(balance) %></td>
-            <td class="text-right tabular-nums text-steel-600"><%= money(customer.credit_limit_cents) %></td>
+            <td class="text-right tabular-nums text-gray-500"><%= money(customer.credit_limit_cents) %></td>
             <td class="text-right whitespace-nowrap"><%= link_to "Statement", customer_statement_path(customer), class: "link text-sm" %></td>
           </tr>
         <% end %>

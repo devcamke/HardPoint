@@ -1,7 +1,7 @@
 module BillingsHelper
   STATUS_BADGES = {
-    "trialing" => "bg-navy-50 text-navy-700", "active" => "bg-green-50 text-green-800", "payment_due" => "bg-safety-100 text-safety-800",
-    "read_only" => "bg-red-50 text-red-800", "suspended" => "bg-steel-700 text-white"
+    "trialing" => "bg-gray-50 text-gray-700", "active" => "bg-green-50 text-green-800", "payment_due" => "bg-amber-100 text-amber-800",
+    "read_only" => "bg-red-50 text-red-800", "suspended" => "bg-gray-700 text-white"
   }.freeze
 
   def subscription_status_badge(account)

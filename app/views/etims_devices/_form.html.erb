@@ -13,6 +13,6 @@
     <div class="field"><%= form.label :default_item_class_code, "Default item class", class: "label" %><%= form.text_field :default_item_class_code, required: true, class: "input font-mono" %>
       <p class="hint mt-1">KRA's code for products whose category doesn't set one.</p></div>
   </div>
-  <label class="mb-4 flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-safety-500" %> Send this branch's sales to KRA</label>
+  <label class="mb-4 flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-primary-500" %> Send this branch's sales to KRA</label>
   <%= form.submit device.new_record? ? "Add" : "Save", class: "btn-primary" %>
 <% end %>

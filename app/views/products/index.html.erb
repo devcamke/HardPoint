@@ -1,7 +1,7 @@
 <% content_for :title, "Products" %>
 
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-3xl font-bold">Products</h1>
+  <h1 class="text-xl font-medium">Products</h1>
   <div class="flex flex-wrap gap-2">
     <% if current_membership.can_manage_catalogue? %>
       <%= link_to "Import", new_product_import_path, class: "btn-secondary" %>
@@ -33,7 +33,7 @@
           data: { action: "change->auto-submit#submit" } %>
   </div>
   <label class="flex items-center gap-2 pb-2 text-sm">
-    <%= form.check_box :include_inactive, { checked: params[:include_inactive] == "1", class: "size-4 accent-safety-500", data: { action: "change->auto-submit#submit" } }, "1", nil %>
+    <%= form.check_box :include_inactive, { checked: params[:include_inactive] == "1", class: "size-4 accent-primary-500", data: { action: "change->auto-submit#submit" } }, "1", nil %>
     Include inactive
   </label>
 <% end %>
@@ -50,9 +50,9 @@
             <% stock = product.kit? ? product.stock_at(selected_branch) : @stock.fetch(product.id, 0) %>
             <tr id="<%= dom_id(product) %>" class="[&>td:first-child]:pl-6">
               <td>
-                <%= link_to product.name, product, class: "font-medium hover:text-safety-700", data: { turbo_frame: "_top" } %>
+                <%= link_to product.name, product, class: "font-medium hover:text-primary-700", data: { turbo_frame: "_top" } %>
                 <%= tag.span("Kit", class: "badge ml-1") if product.kit? %>
-                <%= tag.span("Inactive", class: "badge ml-1 bg-concrete-200 text-steel-600") unless product.active? %>
+                <%= tag.span("Inactive", class: "badge ml-1 bg-gray-200 text-gray-500") unless product.active? %>
               </td>
               <td class="font-mono text-xs"><%= product.sku %></td>
               <td><%= product.category&.name %></td>

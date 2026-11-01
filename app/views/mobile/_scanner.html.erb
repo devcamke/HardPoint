@@ -1,6 +1,6 @@
 <%# The camera and the code field. Codes found by the camera, typed, or sent by a Bluetooth scanner all submit the same form. %>
 <div class="mb-4">
-  <video class="mb-3 aspect-[4/3] w-full rounded-lg bg-navy-900 object-cover" data-camera-scanner-target="video" playsinline muted hidden></video>
+  <video class="mb-3 aspect-[4/3] w-full rounded-lg bg-gray-900 object-cover" data-camera-scanner-target="video" playsinline muted hidden></video>
   <%= form_with url: url, method: local_assigns.fetch(:method, :get), data: { camera_scanner_target: "form", turbo_frame: "scan_result" }, class: "flex gap-2" do |form| %>
     <%= form.search_field :code, placeholder: local_assigns.fetch(:placeholder, "Barcode or SKU"), autocomplete: "off", inputmode: "search", required: true,
           class: "input flex-1 font-mono", "aria-label": "Barcode or SKU", data: { camera_scanner_target: "input" } %>

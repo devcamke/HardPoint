@@ -3,7 +3,7 @@
 <% receipt = supplier_return.goods_receipt %>
 
 <p class="text-sm"><%= link_to receipt ? "← #{receipt.reference}" : "← Returns", receipt || supplier_returns_path, class: "link" %></p>
-<h1 class="mt-2 mb-2 text-3xl font-bold">Return goods<%= " to #{supplier_return.supplier.name}" if supplier_return.supplier %></h1>
+<h1 class="mb-2 text-xl font-medium">Return goods<%= " to #{supplier_return.supplier.name}" if supplier_return.supplier %></h1>
 <p class="hint mb-6 max-w-3xl">The goods come out of stock now, and a debit note for what they cost, with VAT, comes off what you owe the supplier.
   Note the supplier's credit note number when it arrives.</p>
 
@@ -30,7 +30,7 @@
         <tr>
           <td>
             <% if receipt && product %>
-              <%= line.hidden_field :product_id %><%= product.name %> <span class="font-mono text-xs text-steel-600"><%= product.sku %></span>
+              <%= line.hidden_field :product_id %><%= product.name %> <span class="font-mono text-xs text-gray-500"><%= product.sku %></span>
             <% else %>
               <%= line.text_field :product_code, value: line.object.product_code || product&.sku, placeholder: "Scan or type", class: "input py-1.5 font-mono", "aria-label": "Barcode or SKU" %>
             <% end %>
@@ -53,7 +53,7 @@
   <div class="flex flex-wrap items-center gap-4">
     <%= form.submit "Record return", class: "btn-primary", data: { turbo_confirm: "Take these goods out of stock and raise the debit note?" } %>
     <% if supplier_return.supplier&.email.present? || supplier_return.supplier.nil? %>
-      <label class="flex items-center gap-2 text-sm"><%= check_box_tag :email, "1", true, class: "size-4 accent-safety-500" %> Email the debit note to the supplier</label>
+      <label class="flex items-center gap-2 text-sm"><%= check_box_tag :email, "1", true, class: "size-4 accent-primary-500" %> Email the debit note to the supplier</label>
     <% end %>
   </div>
 <% end %>

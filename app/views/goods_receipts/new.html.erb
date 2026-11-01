@@ -2,7 +2,7 @@
 <% order = @goods_receipt.purchase_order %>
 
 <p class="text-sm"><%= link_to order ? "← #{order.reference}" : "← Receiving", order || goods_receipts_path, class: "link" %></p>
-<h1 class="mt-2 mb-2 text-3xl font-bold">Receive goods<%= " for #{order.reference}" if order %></h1>
+<h1 class="mb-2 text-xl font-medium">Receive goods<%= " for #{order.reference}" if order %></h1>
 <p class="hint mb-6">Count what actually arrived. Stock goes into the branch and product costs update to the weighted average, including any transport or duty.</p>
 
 <%= form_with model: @goods_receipt, class: "card max-w-4xl" do |form| %>
@@ -36,7 +36,7 @@
         <tr>
           <td>
             <% if line.object.purchase_order_line %>
-              <%= line.hidden_field :purchase_order_line_id %><%= line.object.product.name %> <span class="font-mono text-xs text-steel-600"><%= line.object.product.sku %></span>
+              <%= line.hidden_field :purchase_order_line_id %><%= line.object.product.name %> <span class="font-mono text-xs text-gray-500"><%= line.object.product.sku %></span>
             <% else %>
               <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Scan or type", class: "input py-1.5 font-mono", "aria-label": "Barcode or SKU" %>
             <% end %>

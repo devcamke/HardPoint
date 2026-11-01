@@ -1,9 +1,8 @@
 <% content_for :title, "Tool hire" %>
-<%= render "hire_agreements/tabs" %>
 
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
   <div>
-    <h1 class="text-3xl font-bold">Tool hire</h1>
+    <h1 class="text-xl font-medium">Tool hire</h1>
     <% if @overdue_count.positive? %><p class="mt-1 font-semibold text-red-700"><%= pluralize(@overdue_count, "hire") %> overdue</p><% end %>
   </div>
   <%= link_to "Hire out tools", new_hire_agreement_path, class: "btn-primary" %>
@@ -12,7 +11,7 @@
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
   <nav class="flex flex-wrap gap-2 text-sm" aria-label="Filter">
     <% HireAgreementsController::FILTERS.each do |filter| %>
-      <%= link_to filter.humanize, hire_agreements_path(filter: filter, query: params[:query]), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-navy-900 text-white" : "bg-white"}" %>
+      <%= link_to filter.humanize, hire_agreements_path(filter: filter, query: params[:query]), class: "rounded-full px-3 py-1 #{@filter == filter ? "bg-primary-500 text-white" : "bg-white"}" %>
     <% end %>
   </nav>
   <%= form_with url: hire_agreements_path, method: :get, class: "flex gap-2" do |form| %>
@@ -40,6 +39,6 @@
     </table>
     <%= render "shared/pagination" %>
   <% else %>
-    <p class="text-steel-600">No hires here.</p>
+    <p class="text-gray-500">No hires here.</p>
   <% end %>
 </div>

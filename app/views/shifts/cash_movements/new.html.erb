@@ -1,14 +1,13 @@
 <% content_for :title, "Cash drop or payout" %>
 
-<p class="text-sm"><%= link_to "← Shift", shift_path(@shift), class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Cash in or out of the drawer</h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Shift", shift_path(@shift), class: "link" %> <span class="text-gray-400">/</span> Cash in or out of the drawer</h1>
 
 <%= form_with model: @movement, url: shift_cash_movements_path(@shift), class: "card max-w-md" do |form| %>
   <%= render "shared/errors", model: @movement %>
   <fieldset class="field space-y-2">
     <legend class="label">What's happening?</legend>
     <% { "drop" => "Drop to the safe (takings leave the drawer)", "payout" => "Pay out (e.g. transport, a supplier)", "pay_in" => "Pay in (more change for the float)" }.each do |kind, label| %>
-      <label class="flex items-center gap-2 text-sm"><%= form.radio_button :kind, kind, class: "accent-safety-500" %> <%= label %></label>
+      <label class="flex items-center gap-2 text-sm"><%= form.radio_button :kind, kind, class: "accent-primary-500" %> <%= label %></label>
     <% end %>
   </fieldset>
   <div class="field">

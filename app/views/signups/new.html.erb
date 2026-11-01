@@ -1,8 +1,8 @@
 <% content_for :title, "Open your shop" %>
 
 <section class="mx-auto max-w-xl px-4 py-12">
-<h1 class="text-3xl font-bold">Open your shop</h1>
-<p class="mt-2 mb-8 text-steel-600">Free for 30 days, no card needed. Your shop's data is private to your shop.</p>
+<h1 class="text-xl font-medium">Open your shop</h1>
+<p class="mt-2 mb-8 text-gray-500">Free for 30 days, no card needed. Your shop's data is private to your shop.</p>
 
 <div class="card">
   <%# Turbo can't follow the redirect to the new shop's subdomain (another origin), so submit normally. %>
@@ -18,7 +18,7 @@
       <%= form.label :subdomain, "Web address", class: "label" %>
       <div class="flex items-center gap-2">
         <%= form.text_field :subdomain, required: true, pattern: "[a-z0-9]+(-[a-z0-9]+)*", class: "input", placeholder: "acme" %>
-        <span class="text-steel-600">.<%= request.host %></span>
+        <span class="text-gray-500">.<%= request.host %></span>
       </div>
     </div>
 
@@ -41,9 +41,9 @@
       <legend class="label">Plan after the trial</legend>
       <div class="grid gap-2 sm:grid-cols-3">
         <% Plan.all.each do |plan| %>
-          <label class="flex cursor-pointer flex-col rounded-md border border-concrete-300 p-3 text-sm has-[:checked]:border-safety-500 has-[:checked]:bg-safety-50">
+          <label class="flex cursor-pointer flex-col rounded-md border border-gray-300 p-3 text-sm has-[:checked]:border-primary-500 has-[:checked]:bg-primary-50">
             <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :plan, plan.key %> <%= plan.name %></span>
-            <span class="text-steel-600"><%= plan.price %>/month</span>
+            <span class="text-gray-500"><%= plan.price %>/month</span>
           </label>
         <% end %>
       </div>
@@ -53,5 +53,5 @@
     <%= form.submit "Create my shop", class: "btn-primary w-full" %>
   <% end %>
 </div>
-<p class="mt-6 text-center text-sm text-steel-600">Already have a shop? <%= link_to "Sign in", new_shop_lookup_path, class: "link" %></p>
+<p class="mt-6 text-center text-sm text-gray-500">Already have a shop? <%= link_to "Sign in", new_shop_lookup_path, class: "link" %></p>
 </section>

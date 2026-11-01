@@ -11,8 +11,8 @@
 
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
   <div>
-    <h1 class="text-3xl font-bold">Set up your shop</h1>
-    <p class="mt-1 text-steel-600"><%= @onboarding.done_count %> of <%= @onboarding.required_steps.size %> done. Most shops are ready in an afternoon. <%= link_to "Read the guide", help_article_url("getting-started", subdomain: false), class: "link", target: "_blank", rel: "noopener" %></p>
+    <h1 class="text-xl font-medium">Set up your shop</h1>
+    <p class="mt-1 text-gray-500"><%= @onboarding.done_count %> of <%= @onboarding.required_steps.size %> done. <%= link_to "Read the guide", help_article_url("getting-started", subdomain: false), class: "link", target: "_blank", rel: "noopener" %></p>
   </div>
   <% unless @onboarding.finished? %>
     <%= button_to (@onboarding.ready? ? "All done: hide this checklist" : "Hide this checklist"), onboarding_completion_path,
@@ -20,20 +20,20 @@
   <% end %>
 </div>
 
-<div class="mb-8 h-2 overflow-hidden rounded-full bg-concrete-200" role="progressbar" aria-valuemin="0" aria-valuemax="<%= @onboarding.required_steps.size %>" aria-valuenow="<%= @onboarding.done_count %>">
-  <div class="h-full bg-safety-500" style="width: <%= (100.0 * @onboarding.done_count / @onboarding.required_steps.size).round %>%"></div>
+<div class="mb-8 h-2 overflow-hidden rounded-full bg-gray-200" role="progressbar" aria-valuemin="0" aria-valuemax="<%= @onboarding.required_steps.size %>" aria-valuenow="<%= @onboarding.done_count %>">
+  <div class="h-full bg-primary-500" style="width: <%= (100.0 * @onboarding.done_count / @onboarding.required_steps.size).round %>%"></div>
 </div>
 
 <ol class="space-y-3">
   <% @onboarding.steps.each.with_index(1) do |step, number| %>
     <% description, actions = details.fetch(step.key) %>
     <li id="step_<%= step.key %>" class="card flex flex-wrap items-start gap-4 <%= "opacity-75" if step.done? %>">
-      <span class="flex size-9 shrink-0 items-center justify-center rounded-full font-bold <%= step.done? ? "bg-green-600 text-white" : "bg-concrete-200 text-navy-900" %>">
+      <span class="flex size-9 shrink-0 items-center justify-center rounded-full font-bold <%= step.done? ? "bg-green-600 text-white" : "bg-gray-200 text-gray-900" %>">
         <%= step.done? ? "✓" : number %>
       </span>
       <div class="min-w-0 flex-1">
         <p class="font-semibold"><%= step.title %> <% if step.optional? %><span class="badge ml-1">Optional</span><% end %></p>
-        <p class="text-sm text-steel-600"><%= description %></p>
+        <p class="text-sm text-gray-500"><%= description %></p>
       </div>
       <div class="flex flex-wrap gap-2">
         <% actions.each.with_index do |(label, path), index| %>

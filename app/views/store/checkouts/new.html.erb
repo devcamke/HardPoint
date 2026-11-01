@@ -45,7 +45,7 @@
         <li class="flex justify-between gap-3"><span><%= quantity(line.quantity, line.product.unit) %> × <%= line.product.name %></span><span class="tabular-nums"><%= money(line.total_cents) %></span></li>
       <% end %>
     </ul>
-    <p class="mt-3 flex justify-between border-t border-concrete-200 pt-3 font-bold"><span>Total</span><span class="tabular-nums"><%= money(cart.total_cents) %></span></p>
+    <p class="mt-3 flex justify-between border-t border-gray-200 pt-3 font-bold"><span>Total</span><span class="tabular-nums"><%= money(cart.total_cents) %></span></p>
     <p class="mt-3 text-sm"><%= link_to "Change", store_cart_path, class: "link" %></p>
   </aside>
 </div>

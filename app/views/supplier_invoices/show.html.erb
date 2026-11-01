@@ -1,7 +1,6 @@
 <% content_for :title, "Invoice #{@invoice.number}" %>
 
-<p class="text-sm"><%= link_to "← #{@invoice.supplier.name}", @invoice.supplier, class: "link" %></p>
-<h1 class="mt-2 mb-6 text-3xl font-bold">Invoice <%= @invoice.number %></h1>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "#{@invoice.supplier.name}", @invoice.supplier, class: "link" %> <span class="text-gray-400">/</span> Invoice <%= @invoice.number %></h1>
 
 <div class="card max-w-xl space-y-2 text-sm">
   <p class="flex justify-between"><span>Supplier</span><%= link_to @invoice.supplier.name, @invoice.supplier, class: "link" %></p>

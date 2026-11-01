@@ -1,6 +1,6 @@
 <% content_for :title, "Settings" %>
 
-<h1 class="mb-6 text-3xl font-bold">Settings</h1>
+<h1 class="mb-4 text-xl font-medium">Settings</h1>
 
 <% sections = {
      "Shop" => [
@@ -30,14 +30,25 @@
      ].compact
    } %>
 
-<% sections.compact_blank.each do |heading, links| %>
-  <h2 class="mt-8 mb-3 text-sm font-semibold uppercase tracking-wide text-steel-600"><%= heading %></h2>
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <% links.each do |name, path, description| %>
-      <%= link_to path, class: "card block transition hover:border-safety-300 hover:shadow" do %>
-        <p class="font-semibold"><%= name %></p>
-        <p class="hint mt-1"><%= description %></p>
-      <% end %>
+<div class="flex gap-6">
+  <nav class="sticky top-16 hidden w-48 shrink-0 self-start text-sm lg:block">
+    <% sections.compact_blank.each_key do |heading| %>
+      <a href="#<%= heading.parameterize %>" class="block rounded px-3 py-1.5 text-gray-700 hover:bg-gray-100"><%= heading %></a>
+    <% end %>
+  </nav>
+  <div class="min-w-0 flex-1 space-y-4">
+    <% sections.compact_blank.each do |heading, links| %>
+      <section id="<%= heading.parameterize %>" class="scroll-mt-16 rounded border border-gray-200 bg-white">
+        <h2 class="border-b border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-800"><%= heading %></h2>
+        <div class="grid sm:grid-cols-2">
+          <% links.each do |name, path, description| %>
+            <%= link_to path, class: "block border-b border-gray-100 px-4 py-3 hover:bg-gray-50" do %>
+              <p class="font-medium text-gray-900"><%= name %></p>
+              <p class="hint"><%= description %></p>
+            <% end %>
+          <% end %>
+        </div>
+      </section>
     <% end %>
   </div>
-<% end %>
+</div>

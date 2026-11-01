@@ -1,8 +1,7 @@
 <% content_for :title, "Currencies" %>
 <% base = Current.account.currency %>
 
-<p class="text-sm"><%= link_to "← Settings", settings_path, class: "link" %></p>
-<h1 class="mt-2 mb-2 text-3xl font-bold">Currencies</h1>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> Currencies</h1>
 <p class="hint mb-6 max-w-2xl">Other currencies you take at the till or buy in, and what one unit is worth in <%= base %>. Update the rate when your
   bureau or bank's changes, or let it follow the market rate HardPoint fetches each morning, less a margin for your risk. A move of more than
   <%= ExchangeRates::HOLD_PERCENT %>% in a day waits for you to apply it. Each payment and order keeps the rate it used. Change for foreign notes is given in <%= base %>.</p>
@@ -42,7 +41,7 @@
                 <%= form_with model: currency, class: "mt-2 flex flex-wrap items-center gap-2 text-sm", data: { controller: "auto-submit" } do |form| %>
                   <%= form.hidden_field :rate, value: currency.rate %>
                   <%= form.hidden_field :accepted_at_till, value: currency.accepted_at_till %>
-                  <label class="flex items-center gap-1"><%= form.check_box :follows_market, class: "size-4 accent-safety-500", data: { action: "change->auto-submit#submit" } %> Follow the daily rate, less</label>
+                  <label class="flex items-center gap-1"><%= form.check_box :follows_market, class: "size-4 accent-primary-500", data: { action: "change->auto-submit#submit" } %> Follow the daily rate, less</label>
                   <%= form.number_field :margin_percent, value: plain_number(currency.margin_percent), step: "any", min: 0, max: 49, class: "input w-16 py-0.5 text-right",
                         "aria-label": "Margin below the market rate for #{currency.code}", data: { action: "change->auto-submit#submit" } %> %
                 <% end %>
@@ -54,20 +53,20 @@
               <% if current_membership.approver? %>
                 <%= form_with model: currency, data: { controller: "auto-submit" } do |form| %>
                   <%= form.hidden_field :rate, value: currency.rate %>
-                  <%= form.check_box :accepted_at_till, class: "size-4 accent-safety-500", "aria-label": "Take #{currency.code} at the till", data: { action: "change->auto-submit#submit" } %>
+                  <%= form.check_box :accepted_at_till, class: "size-4 accent-primary-500", "aria-label": "Take #{currency.code} at the till", data: { action: "change->auto-submit#submit" } %>
                 <% end %>
               <% else %>
                 <%= currency.accepted_at_till? ? "Yes" : "No" %>
               <% end %>
             </td>
-            <td class="text-sm text-steel-600"><%= l(currency.updated_at, format: :short) %><%= currency.updater ? " by #{currency.updater.name}" : (" by the daily rate" if currency.follows_market?) %></td>
+            <td class="text-sm text-gray-500"><%= l(currency.updated_at, format: :short) %><%= currency.updater ? " by #{currency.updater.name}" : (" by the daily rate" if currency.follows_market?) %></td>
             <td class="text-right"><%= button_to "Remove", currency, method: :delete, class: "link text-sm", form: { data: { turbo_confirm: "Stop using #{currency.code}? Past payments keep their rate." } } if current_membership.approver? %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
   <% else %>
-    <p class="text-steel-600">Only <%= base %> so far.</p>
+    <p class="text-gray-500">Only <%= base %> so far.</p>
   <% end %>
 </div>
 
@@ -80,7 +79,7 @@
         <%= form.text_field :code, list: "currency_codes", required: true, maxlength: 3, placeholder: "USD", class: "input font-mono uppercase" %>
         <datalist id="currency_codes"><% Currency::COMMON.except(base).each do |code, name| %><option value="<%= code %>"><%= name %></option><% end %></datalist></div>
       <div class="field"><%= form.label :rate, "1 unit is worth (#{base})", class: "label" %><%= form.number_field :rate, step: "any", min: 0, required: true, class: "input", placeholder: "129.50" %></div>
-      <div class="field flex items-end gap-2 pb-2"><%= form.check_box :accepted_at_till, class: "size-4 accent-safety-500" %><%= form.label :accepted_at_till, "Take it at the till", class: "text-sm" %></div>
+      <div class="field flex items-end gap-2 pb-2"><%= form.check_box :accepted_at_till, class: "size-4 accent-primary-500" %><%= form.label :accepted_at_till, "Take it at the till", class: "text-sm" %></div>
     </div>
     <%= form.submit "Add currency", class: "btn-primary" %>
   <% end %>

@@ -1,9 +1,8 @@
 <% content_for :title, "Transfer ##{@transfer.id}" %>
 
-<p class="text-sm"><%= link_to "← Transfers", stock_transfers_path, class: "link" %></p>
 <div class="mt-2 mb-6 flex flex-wrap items-center justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-bold">Transfer #<%= @transfer.id %> <%= render "stock_transfers/status", transfer: @transfer %></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Transfers", stock_transfers_path, class: "link" %> <span class="text-gray-400">/</span> Transfer #<%= @transfer.id %> <%= render "stock_transfers/status", transfer: @transfer %></h1>
     <p class="hint mt-1"><%= @transfer.from_branch.name %> → <%= @transfer.to_branch.name %> · sent <%= l(@transfer.sent_at, format: :long) %> by <%= @transfer.sender&.name %>
       <%= "· received #{l(@transfer.received_at, format: :long)} by #{@transfer.receiver&.name}" if @transfer.received? %></p>
     <%= tag.p(@transfer.note, class: "mt-1 text-sm") if @transfer.note.present? %>
@@ -22,7 +21,7 @@
     <tbody>
       <% @transfer.lines.includes(product: :unit).each do |line| %>
         <tr>
-          <td><%= link_to line.product.name, line.product, class: "hover:text-safety-700" %></td>
+          <td><%= link_to line.product.name, line.product, class: "hover:text-primary-700" %></td>
           <td class="font-mono text-xs"><%= line.product.sku %></td>
           <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
         </tr>

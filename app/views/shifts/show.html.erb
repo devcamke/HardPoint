@@ -2,8 +2,7 @@
 
 <div class="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
   <div>
-    <p class="text-sm"><%= link_to "← Shifts", shifts_path, class: "link" %></p>
-    <h1 class="mt-2 text-3xl font-bold"><%= @shift.open? ? "X report" : "Z report" %> <span class="badge <%= @shift.open? ? "bg-green-50 text-green-800" : "bg-concrete-200 text-steel-600" %>"><%= @shift.status.humanize %></span></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Shifts", shifts_path, class: "link" %> <span class="text-gray-400">/</span> <%= @shift.open? ? "X report" : "Z report" %> <span class="badge <%= @shift.open? ? "bg-green-50 text-green-800" : "bg-gray-200 text-gray-500" %>"><%= @shift.status.humanize %></span></h1>
   </div>
   <div class="flex flex-wrap gap-2">
     <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
@@ -24,7 +23,7 @@
   <%= row.("Opened", "#{l(@shift.opened_at, format: :short)} #{@shift.opened_by.name}") %>
   <%= row.("Closed", "#{l(@shift.closed_at, format: :short)} #{@shift.closed_by&.name}") if @shift.closed? %>
 
-  <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Sales</p>
+  <p class="mt-3 border-b border-dashed border-gray-400 font-bold">Sales</p>
   <%= row.("Sales", @report.sales_count) %>
   <%= row.("Voided", @report.voided_count) %>
   <%= row.("Gross", money(@report.gross_cents)) %>
@@ -32,7 +31,7 @@
   <%= row.("Net sales", money(@report.net_cents), strong: true) %>
   <%= row.("of which tax", money(@report.tax_cents)) %>
 
-  <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Takings</p>
+  <p class="mt-3 border-b border-dashed border-gray-400 font-bold">Takings</p>
   <% takings = @report.takings_by_tender %>
   <% Payment::TENDERS.each do |tender| %>
     <%# Foreign cash and points only show on tills that take them. %>
@@ -41,7 +40,7 @@
   <% end %>
 
   <% if @report.deposits_by_tender.any? || @report.account_payments_by_method.any? %>
-    <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Deposits and account payments</p>
+    <p class="mt-3 border-b border-dashed border-gray-400 font-bold">Deposits and account payments</p>
     <% @report.deposits_by_tender.each do |tender, cents| %>
       <%= row.("Deposits, #{tender.humanize.downcase}", money(cents)) %>
     <% end %>
@@ -51,13 +50,13 @@
   <% end %>
 
   <% if @report.returns_count.positive? %>
-    <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Refunds (<%= @report.returns_count %>)</p>
+    <p class="mt-3 border-b border-dashed border-gray-400 font-bold">Refunds (<%= @report.returns_count %>)</p>
     <% @report.refunds_by_method.each do |method, cents| %>
       <%= row.(method.humanize, "−#{money(cents)}") %>
     <% end %>
   <% end %>
 
-  <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Cash drawer</p>
+  <p class="mt-3 border-b border-dashed border-gray-400 font-bold">Cash drawer</p>
   <%= row.("Opening float", money(@shift.opening_float_cents)) %>
   <%= row.("Cash sales", money(@shift.cash_sales_cents)) %>
   <% foreign_change = @shift.foreign_change_cents %>
@@ -78,7 +77,7 @@
   <% end %>
   <% foreign = @shift.closed? ? @shift.foreign_cash.transform_values { _1["expected"] } : @shift.expected_foreign_cents_now %>
   <% if foreign.any? %>
-    <p class="mt-3 border-b border-dashed border-steel-500 font-bold">Foreign notes</p>
+    <p class="mt-3 border-b border-dashed border-gray-400 font-bold">Foreign notes</p>
     <% foreign.each do |code, expected| %>
       <%= row.("Expected #{code}", money(expected, currency: code), strong: true) %>
       <% if @shift.closed? %>

@@ -4,7 +4,7 @@
     <tbody>
       <% product.kit_components.includes(component: :unit).each do |part| %>
         <tr>
-          <td><%= link_to part.component.name, part.component, class: "hover:text-safety-700" %></td>
+          <td><%= link_to part.component.name, part.component, class: "hover:text-primary-700" %></td>
           <td class="text-right tabular-nums"><%= quantity(part.quantity, part.component.unit) %></td>
           <td class="text-right"><%= button_to "Remove", product_component_path(product, part), method: :delete, class: "link text-xs" if current_membership.can_manage_catalogue? %></td>
         </tr>

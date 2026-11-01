@@ -124,8 +124,8 @@ export default class extends Controller {
     const matches = query ? (this.catalogue.customers || []).filter((customer) =>
       customer.name.toLowerCase().includes(query) || (digits.length >= 4 && (customer.phone || "").replace(/\D/g, "").includes(digits.slice(-9)))).slice(0, 8) : []
     this.customerResultsTarget.innerHTML = matches.map((customer) => `<li><button type="button" data-action="offline-till#chooseCustomer" data-customer-id="${customer.id}"
-      class="w-full py-2 text-left text-sm hover:bg-concrete-50"><span class="font-medium">${escape(customer.name)}</span>
-      <span class="block text-xs text-steel-600">${escape([ customer.phone, customer.price_list_name ].filter(Boolean).join(" · "))}</span></button></li>`).join("")
+      class="w-full py-2 text-left text-sm hover:bg-gray-50"><span class="font-medium">${escape(customer.name)}</span>
+      <span class="block text-xs text-gray-500">${escape([ customer.phone, customer.price_list_name ].filter(Boolean).join(" · "))}</span></button></li>`).join("")
   }
 
   async chooseCustomer(event) {
@@ -284,17 +284,17 @@ export default class extends Controller {
     this.cartTarget.innerHTML = lines.length ? lines.map((line, index) => `
       <li class="px-4 py-3">
         <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0"><p class="font-medium">${escape(line.product.name)}${line.pack ? ` <span class="text-steel-600">(${escape(line.pack.name)})</span>` : ""}</p>
-            <p class="text-xs text-steel-600">${formatMoney(line.unit_price_cents, currency)} / ${escape(line.pack?.unit || line.product.unit)}
+          <div class="min-w-0"><p class="font-medium">${escape(line.product.name)}${line.pack ? ` <span class="text-gray-500">(${escape(line.pack.name)})</span>` : ""}</p>
+            <p class="text-xs text-gray-500">${formatMoney(line.unit_price_cents, currency)} / ${escape(line.pack?.unit || line.product.unit)}
               ${line.promotion ? `<span class="badge ml-1 bg-red-50 text-red-800">${escape(line.promotion.offer)} −${formatMoney(line.promotion_discount_cents, currency)}</span>` : ""}</p></div>
           <p class="whitespace-nowrap font-semibold tabular-nums">${formatMoney(line.total, currency)}</p>
         </div>
         <div class="mt-1 flex items-center justify-between">
           <input type="number" min="0" step="${line.pack || !line.product.fractional ? 1 : "any"}" value="${line.quantity}" data-index="${index}"
                  data-action="change->offline-till#changeQuantity" class="input w-24 py-1 text-right" aria-label="Quantity of ${escape(line.product.name)}">
-          <button type="button" data-index="${index}" data-action="offline-till#remove" class="text-steel-500 hover:text-red-700" aria-label="Remove ${escape(line.product.name)}">✕</button>
+          <button type="button" data-index="${index}" data-action="offline-till#remove" class="text-gray-400 hover:text-red-700" aria-label="Remove ${escape(line.product.name)}">✕</button>
         </div>
-      </li>`).join("") : `<li class="p-8 text-center text-steel-600">Scan or tap products to start a sale.</li>`
+      </li>`).join("") : `<li class="p-8 text-center text-gray-500">Scan or tap products to start a sale.</li>`
 
     this.customerNameTarget.innerHTML = this.customer ? `${escape(this.customer.name)}${this.customer.price_list_name ? ` <span class="badge ml-1">${escape(this.customer.price_list_name)}</span>` : ""}
       <button type="button" class="link ml-2 text-xs font-normal" data-action="offline-till#walkIn">Walk-in</button>` : "Walk-in"
@@ -335,9 +335,9 @@ export default class extends Controller {
 
   productButton(product, large = false) {
     const currency = this.catalogue.till.currency
-    const stock = product.stock === null ? "" : `<span class="block text-xs ${product.stock > 0 ? "text-steel-600" : "text-red-700"}">${formatQuantity(product.stock)} ${escape(product.unit)} at last sync</span>`
+    const stock = product.stock === null ? "" : `<span class="block text-xs ${product.stock > 0 ? "text-gray-500" : "text-red-700"}">${formatQuantity(product.stock)} ${escape(product.unit)} at last sync</span>`
     const packs = product.packs.map((pack) => `<button type="button" data-action="offline-till#pick" data-product-id="${product.id}" data-pack-id="${pack.id}"
-        class="mt-2 w-full rounded border border-concrete-300 px-2 py-1 text-xs font-semibold hover:border-safety-400">${escape(pack.unit)} · ${formatMoney(pack.price_cents, currency)}</button>`).join("")
+        class="mt-2 w-full rounded border border-gray-300 px-2 py-1 text-xs font-semibold hover:border-primary-400">${escape(pack.unit)} · ${formatMoney(pack.price_cents, currency)}</button>`).join("")
     return `<div class="card ${large ? "p-3" : "p-2"} text-left">
       <button type="button" data-action="offline-till#pick" data-product-id="${product.id}" class="w-full text-left">
         <span class="block font-medium">${escape(product.name)}</span>
@@ -351,13 +351,13 @@ export default class extends Controller {
     this.queueTarget.innerHTML = sales.length ? sales.map((sale) => `
       <li class="flex items-start justify-between gap-3 py-2 text-sm">
         <span><span class="font-mono">${escape(sale.receipt_number || sale.offline_receipt_number)}</span>
-          <span class="block text-xs text-steel-600">${new Date(sale.happened_at).toLocaleTimeString("en-KE", { timeStyle: "short" })}
+          <span class="block text-xs text-gray-500">${new Date(sale.happened_at).toLocaleTimeString("en-KE", { timeStyle: "short" })}
           ${sale.status === "sent" ? `· sent${sale.receipt_number ? ` (was ${escape(sale.offline_receipt_number)})` : ""}` : ""}</span>
-          ${(sale.warnings || []).map((warning) => `<span class="block text-xs text-safety-800">${escape(warning)}</span>`).join("")}
+          ${(sale.warnings || []).map((warning) => `<span class="block text-xs text-amber-800">${escape(warning)}</span>`).join("")}
           ${sale.error ? `<span class="block text-xs text-red-700">${escape(sale.error)}</span>` : ""}</span>
         <span class="whitespace-nowrap text-right tabular-nums">${formatMoney(sale.total_cents, currency)}
-          <span class="badge ${{ sent: "bg-green-50 text-green-800", error: "bg-red-50 text-red-800" }[sale.status] || "bg-safety-100 text-safety-800"}">${{ sent: "Sent", error: "Problem" }[sale.status] || "Waiting"}</span></span>
-      </li>`).join("") : `<li class="py-2 text-sm text-steel-600">No offline sales on this till.</li>`
+          <span class="badge ${{ sent: "bg-green-50 text-green-800", error: "bg-red-50 text-red-800" }[sale.status] || "bg-amber-100 text-amber-800"}">${{ sent: "Sent", error: "Problem" }[sale.status] || "Waiting"}</span></span>
+      </li>`).join("") : `<li class="py-2 text-sm text-gray-500">No offline sales on this till.</li>`
   }
 
   receiptData(receiptNumber, lines, payments) {

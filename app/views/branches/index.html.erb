@@ -1,7 +1,7 @@
 <% content_for :title, "Branches" %>
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-3xl font-bold">Branches</h1>
+  <h1 class="text-xl font-medium">Branches</h1>
   <% if current_membership.can_manage_branches? %>
     <%= link_to "Add branch", new_branch_path, class: "btn-primary" %>
   <% end %>
