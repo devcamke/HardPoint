@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
 /*
- * HardPoint look: a business back office in the Odoo mould.
- *   primary-500  #714B67  top bar, primary buttons, active states
- *   accent-600   #017E84  links
+ * HardPoint look: a business back office laid out like Odoo, in petrol teal.
+ *   primary-500  #0F5E6E  top bar, primary buttons, active states
+ *   accent-600   links, a shade darker than primary
  *   gray-*       Tailwind greys for text, borders and surfaces
  *   amber-*      warnings (low stock, payment due, offline)
  */
 @theme {
   --font-sans: "Roboto", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
 
-  --color-primary-50: #f8f3f7;
-  --color-primary-100: #efe4ec;
-  --color-primary-200: #dfc9d9;
-  --color-primary-300: #c5a3bd;
-  --color-primary-400: #8f6886;
-  --color-primary-500: #714b67;
-  --color-primary-600: #64405b;
-  --color-primary-700: #573650;
-  --color-primary-800: #452b40;
-  --color-primary-900: #34202f;
+  --color-primary-50: #f3f7f8;
+  --color-primary-100: #e2ecee;
+  --color-primary-200: #c3d7db;
+  --color-primary-300: #93b7be;
+  --color-primary-400: #4b8692;
+  --color-primary-500: #0f5e6e;
+  --color-primary-600: #0d5361;
+  --color-primary-700: #0c4956;
+  --color-primary-800: #093a44;
+  --color-primary-900: #072d35;
 
-  --color-accent-500: #00a09d;
-  --color-accent-600: #017e84;
-  --color-accent-700: #016a6f;
+  --color-accent-500: #4b8692;
+  --color-accent-600: #0d505e;
+  --color-accent-700: #0a424d;
 }
 
 @layer base {
@@ -119,7 +119,7 @@
   /* App launcher (home menu) */
   .o-apps:popover-open {
     @apply fixed inset-0 m-0 flex h-screen max-h-none w-screen max-w-none flex-col overflow-y-auto border-0 p-0;
-    background: linear-gradient(160deg, #7c5a72 0%, #5b3f55 55%, #3e2b3b 100%);
+    background: linear-gradient(160deg, #2a7584 0%, #0f5462 55%, #082f37 100%);
   }
 }
 

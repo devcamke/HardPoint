@@ -1,6 +1,6 @@
 # HardPoint look and layout
 
-The back office follows Odoo's layout and colours, so it looks familiar to anyone who has used a business suite.
+The back office follows Odoo's layout, so it looks familiar to anyone who has used a business suite, in its own petrol teal.
 
 ## Layout
 
@@ -22,23 +22,23 @@ The back office follows Odoo's layout and colours, so it looks familiar to anyon
 
 | Token | Hex | Use |
 |---|---|---|
-| `primary-500` | `#714B67` | Top bar, primary buttons, selected states, charts |
-| `accent-600` | `#017E84` | Links |
+| `primary-500` | `#0F5E6E` | Top bar, primary buttons, selected states, charts |
+| `accent-600` | `#0D505E` | Links |
 | `gray-*` | Tailwind greys | Text (`gray-800`), muted text (`gray-500`), borders (`gray-200`), page (`gray-50`) |
 | `amber-*` | Tailwind amber | Warnings: low stock, payment due, offline, impersonation |
 | `red-*`, `green-*` | Tailwind | Errors and destructive actions; success notices |
 
-White text on `primary-500` is 7.2:1, `accent-600` on white is 4.9:1 and `gray-500` on the page is 4.6:1, all above WCAG AA.
+White text on `primary-500` is 7.4:1, `accent-600` on white is 9.0:1 and `gray-500` on the page is 4.6:1, all above WCAG AA.
 
 ## Rules
 
-- One primary (purple) button per screen, for the main action. Everything else is `btn-secondary`.
+- One primary (petrol) button per screen, for the main action. Everything else is `btn-secondary`.
 - Amber means "needs attention", never decoration.
 
 ## Logo
 
 A hex nut next to the wordmark **HardPoint**, rendered by `app/views/shared/_logo.html.erb`. The app icon
-(`public/icon.svg`, `icon.png`) is a white nut on a purple rounded square.
+(`public/icon.svg`, `icon.png`) is a white nut on a petrol rounded square.
 
 ## Components
 
