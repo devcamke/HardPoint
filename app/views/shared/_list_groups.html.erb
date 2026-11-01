@@ -1,0 +1,25 @@
+<%# locals: (groups:, param:) %>
+<%# A grouped list, as in Odoo: a row per group with its count and totals; opening one loads its records from the
+    same list filtered to that group (see ListGrouping). %>
+<div class="card overflow-hidden p-0">
+  <% if groups.any? %>
+    <% groups.each do |group| %>
+      <details class="group/list border-b border-gray-100 last:border-b-0">
+        <summary class="flex cursor-pointer list-none items-center gap-2 px-4 py-2.5 select-none hover:bg-gray-50 [&::-webkit-details-marker]:hidden">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="size-4 shrink-0 text-gray-400 transition-transform group-open/list:rotate-90" aria-hidden="true"><path d="M9 6l6 6-6 6z"/></svg>
+          <span class="font-medium text-gray-900"><%= group.label %></span>
+          <span class="text-gray-500">(<%= number_with_delimiter(group.count) %>)</span>
+          <span class="ml-auto flex flex-wrap justify-end gap-x-3 font-medium tabular-nums">
+            <% group.totals.each do |currency, cents| %><span><%= money(cents, currency: currency) %></span><% end %>
+          </span>
+        </summary>
+        <%= turbo_frame_tag "group_#{group.value}", src: search_url("group_by" => nil, param.to_s => group.value, "frame" => "group_#{group.value}"),
+              loading: :lazy, target: "_top", class: "block border-t border-gray-100" do %>
+          <p class="hint px-4 py-3">Loading…</p>
+        <% end %>
+      </details>
+    <% end %>
+  <% else %>
+    <p class="hint p-6">Nothing to group.</p>
+  <% end %>
+</div>

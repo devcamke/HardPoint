@@ -28,6 +28,33 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td a", "PVC pipe 2 inch 6m"
   end
 
+  test "grouping by category counts the whole list and opens each group on demand" do
+    plumbing = categories(:acme_plumbing)
+    get products_path(group_by: "category")
+
+    assert_select "details summary", text: /Fasteners\s*\(2\)/
+    assert_select "details summary", text: /Plumbing\s*\(2\)/
+    assert_select "td a", count: 0, message: "records load when a group is opened"
+    assert_select "turbo-frame#group_#{plumbing.id}[loading=lazy][target=_top][src*='category_id=#{plumbing.id}']"
+    assert_select "form[role=search] span", text: "Group by: Category"
+
+    get products_path(category_id: plumbing.id, frame: "group_#{plumbing.id}")
+    assert_select "turbo-frame#group_#{plumbing.id}" do
+      assert_select "td a", "PVC pipe 2 inch 6m"
+      assert_select "td a", text: "Bamburi cement 50kg", count: 0
+    end
+  end
+
+  test "grouping by brand puts products without one under No brand, which filters to them" do
+    get products_path(group_by: "brand")
+    assert_select "details summary", text: /Bamburi\s*\(1\)/
+    assert_select "details summary", text: /No brand\s*\(4\)/
+
+    get products_path(brand_id: "none")
+    assert_select "td a", "PVC pipe 2 inch 6m"
+    assert_select "td a", text: "Bamburi cement 50kg", count: 0
+  end
+
   test "a scanned barcode finds its product" do
     get products_path(query: "6161100420017")
     assert_select "tbody tr", 1

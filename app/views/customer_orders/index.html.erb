@@ -5,10 +5,18 @@
       new_button: [ "New", new_customer_order_path ],
       search: { placeholder: "Customer name or phone" },
       filters: [ search_filter(:status, label: "Status", value: @status, clear: "all",
-                   options: [ [ "open", "Open orders" ], [ "ready", "Ready to collect" ], [ "quote", "Quotes" ], [ "collected", "Collected" ], [ "cancelled", "Cancelled" ] ]) ],
-      records: @customer_orders %>
+                   options: [ [ "open", "Open orders" ], [ "ordered", "Ordered" ], [ "ready", "Ready to collect" ], [ "quote", "Quotes" ],
+                              [ "collected", "Collected" ], [ "cancelled", "Cancelled" ] ]),
+                 search_filter(:customer_id, label: "Customer", value: params[:customer_id], menu: false,
+                   options: Current.account.customers.where(id: params[:customer_id]).pluck(:id, :name)),
+                 search_filter(:group_by, label: "Group by", value: @group_by, section: :group_by, options: CustomerOrdersController::GROUPINGS.to_a) ],
+      records: (@customer_orders unless @groups) %>
 
-<div class="card">
+<% if @groups %>
+  <%= render "shared/list_groups", groups: @groups, param: @group_by == "status" ? :status : :customer_id %>
+<% else %>
+<%= turbo_frame_tag list_frame || "list", target: "_top" do %>
+<div class="<%= list_frame ? "px-4 pb-2" : "card" %>">
   <% if @customer_orders.any? %>
     <table class="table">
       <thead><tr><th>Number</th><th>Customer</th><th>Date</th><th>Needed / valid until</th><th>Status</th><th class="text-right">Deposit</th><th class="text-right">Total</th></tr></thead>
@@ -30,3 +38,6 @@
     <p class="hint">Nothing here yet. Quotes become orders when the customer confirms or pays a deposit, and are collected at the till.</p>
   <% end %>
 </div>
+<%= render "shared/group_more" %>
+<% end %>
+<% end %>

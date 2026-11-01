@@ -12,10 +12,11 @@ module ControlPanelHelper
   #   type:    :date for a date picker instead of options
   #   section: :filters, or :group_by for Odoo's "Group By" column
   #   drops:   parameters a date picker clears when it's used, e.g. the preset period it replaces
-  SearchFilter = Data.define(:param, :label, :options, :value, :clear, :facet, :type, :section, :drops) do
-    def initialize(param:, label: nil, options: [], value: nil, clear: nil, facet: true, type: :options, section: :filters, drops: [])
+  #   menu:    false for a filter that shows as a facet but isn't offered in the dropdown (one customer of thousands)
+  SearchFilter = Data.define(:param, :label, :options, :value, :clear, :facet, :type, :section, :drops, :menu) do
+    def initialize(param:, label: nil, options: [], value: nil, clear: nil, facet: true, type: :options, section: :filters, drops: [], menu: true)
       super(param: param.to_s, label:, options: options.map { |v, l| [ v.to_s, l ] }, value: value&.to_s, clear: clear&.to_s, facet:, type:,
-        section:, drops: drops.map(&:to_s))
+        section:, drops: drops.map(&:to_s), menu:)
     end
 
     def active?(option_value) = value == option_value

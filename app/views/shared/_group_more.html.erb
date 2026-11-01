@@ -1,0 +1,4 @@
+<%# Under an opened group's records: when there are more than a page, a way to see them all. %>
+<% if list_frame && @next_page %>
+  <p class="border-t border-gray-100 px-4 py-2 text-sm"><%= link_to "Showing the first #{Pagination::PER_PAGE}. See them all", search_url("frame" => nil), class: "link" %></p>
+<% end %>

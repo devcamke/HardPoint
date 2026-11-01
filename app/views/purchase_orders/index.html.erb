@@ -5,10 +5,18 @@
       new_button: [ "New", new_purchase_order_path ],
       search: { placeholder: "Supplier" },
       filters: [ search_filter(:status, label: "Status", value: params[:status],
-                   options: [ [ "draft", "Drafts" ], [ "open", "Waiting for delivery" ], [ "received", "Received" ], [ "cancelled", "Cancelled" ] ]) ],
-      records: @purchase_orders %>
+                   options: [ [ "draft", "Drafts" ], [ "open", "Waiting for delivery" ], [ "sent", "Sent" ], [ "partially_received", "Partly received" ],
+                              [ "received", "Received" ], [ "cancelled", "Cancelled" ] ]),
+                 search_filter(:supplier_id, label: "Supplier", value: params[:supplier_id], menu: false,
+                   options: Current.account.suppliers.where(id: params[:supplier_id]).pluck(:id, :name)),
+                 search_filter(:group_by, label: "Group by", value: @group_by, section: :group_by, options: PurchaseOrdersController::GROUPINGS.to_a) ],
+      records: (@purchase_orders unless @groups) %>
 
-<div class="card">
+<% if @groups %>
+  <%= render "shared/list_groups", groups: @groups, param: @group_by == "supplier" ? :supplier_id : :status %>
+<% else %>
+<%= turbo_frame_tag list_frame || "list", target: "_top" do %>
+<div class="<%= list_frame ? "px-4 pb-2" : "card" %>">
   <% if @purchase_orders.any? %>
     <table class="table">
       <thead><tr><th>Order</th><th>Supplier</th><th>Deliver to</th><th>Created</th><th>Expected</th><th class="text-right">Total</th><th>Status</th></tr></thead>
@@ -30,3 +38,6 @@
     <p class="hint">No purchase orders<%= " here" if params[:status] %>. Start one, or let <%= link_to "reorder suggestions", reorder_suggestions_path, class: "link" %> draft them for you.</p>
   <% end %>
 </div>
+<%= render "shared/group_more" %>
+<% end %>
+<% end %>

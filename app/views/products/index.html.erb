@@ -8,14 +8,20 @@
                  [ "Print labels", new_labels_path(query: params[:query], category_id: params[:category_id]) ] ].compact,
       search: { placeholder: "Search name, SKU or scan a barcode", autofocus: true },
       filters: [ search_filter(:category_id, label: "Category", value: params[:category_id],
-                   options: Current.account.categories.alphabetically.map { [ _1.id, _1.full_name ] }),
+                   options: Current.account.categories.alphabetically.map { [ _1.id, _1.full_name ] } + [ [ "none", "No category" ] ]),
+                 search_filter(:brand_id, label: "Brand", value: params[:brand_id],
+                   options: Current.account.brands.order(:name).map { [ _1.id, _1.name ] } + [ [ "none", "No brand" ] ]),
                  search_filter(:include_inactive, options: [ [ "1", "Include inactive" ] ], value: params[:include_inactive]),
                  search_filter(:branch_id, label: "Stock at", value: selected_branch&.id, facet: false,
-                   options: branches_for_selection.map { [ _1.id, _1.name ] }) ],
-      records: @products %>
+                   options: branches_for_selection.map { [ _1.id, _1.name ] }),
+                 search_filter(:group_by, label: "Group by", value: @group_by, section: :group_by, options: ProductsController::GROUPINGS.to_a) ],
+      records: (@products unless @groups) %>
 
-<%= turbo_frame_tag "products", data: { turbo_action: "advance" } do %>
-  <div class="card overflow-x-auto p-0">
+<% if @groups %>
+  <%= render "shared/list_groups", groups: @groups, param: @group_by == "category" ? :category_id : :brand_id %>
+<% else %>
+<%= turbo_frame_tag list_frame || "products", target: "_top", data: { turbo_action: "advance" } do %>
+  <div class="<%= list_frame ? "overflow-x-auto" : "card overflow-x-auto p-0" %>">
     <% if @products.any? %>
       <table class="table">
         <thead>
@@ -43,4 +49,6 @@
       <p class="hint p-6"><%= params[:query].present? ? "Nothing matches “#{params[:query]}”." : "No products yet. Add one or import a spreadsheet." %></p>
     <% end %>
   </div>
+  <%= render "shared/group_more" %>
+<% end %>
 <% end %>

@@ -1,20 +1,29 @@
 class CustomerOrdersController < ApplicationController
   BLANK_LINES = 5
   STATUS_FILTERS = %w[ quote open ready collected cancelled ].freeze
+  GROUPINGS = { "status" => "Status", "customer" => "Customer" }.freeze
+
+  include ListGrouping
 
   before_action :ensure_can_sell
   before_action :set_customer_order, only: %i[ show edit update ]
 
   def index
     orders = Current.account.customer_orders.chronologically.includes(:customer, :branch)
-    @status = params[:status].presence_in(STATUS_FILTERS + [ "all" ]) || "open"
+    # "ordered" isn't offered as a filter (it's part of "open"), but opening the Ordered group picks it.
+    @status = params[:status].presence_in(STATUS_FILTERS + [ "ordered", "all" ]) || "open"
     orders = case @status
     when "open" then orders.open
     when "all" then orders
     else orders.where(status: @status)
     end
     orders = orders.where(customer_id: Current.account.customers.search(params[:query]).select(:id)) if params[:query].present?
-    @customer_orders = paginate(orders)
+    orders = orders.where(customer: Current.account.customers.find(params[:customer_id])) if params[:customer_id].present?
+    if (@group_by = params[:group_by].presence_in(GROUPINGS.keys))
+      @groups = order_groups(orders)
+    else
+      @customer_orders = paginate(orders)
+    end
   end
 
   def show
@@ -63,6 +72,16 @@ class CustomerOrdersController < ApplicationController
   end
 
   private
+    def order_groups(orders)
+      if @group_by == "status"
+        list_groups(orders, :status, labels: ->(status) { status.humanize }, total: :total_cents, currency: Current.account.currency,
+          order: CustomerOrder.statuses.keys)
+      else
+        names = Current.account.customers.where(id: orders.select(:customer_id)).pluck(:id, :name).to_h
+        list_groups(orders, :customer_id, labels: names.method(:[]), total: :total_cents, currency: Current.account.currency)
+      end
+    end
+
     def set_customer_order
       @customer_order = Current.account.customer_orders.find(params[:id])
     end
