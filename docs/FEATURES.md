@@ -544,6 +544,8 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 - **Airtel Money:** connect a merchant account in Settings, send a payment prompt from the till or type the transaction
   ID, and use payments that arrive after the till stopped waiting. It is a payment method wherever M-Pesa is, and on
   the offline till
+- **Five new help guides:** Airtel Money, QuickBooks Online export, Sending documents on WhatsApp, Changing many prices
+  at once, and Deliveries and transport charges
 
 ## Since then: the new look, lists and help
 

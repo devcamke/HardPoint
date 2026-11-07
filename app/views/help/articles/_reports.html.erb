@@ -23,11 +23,11 @@
 <p>Margins are worked out from what each item cost on the day it was sold, so later price changes don't rewrite the past.</p>
 
 <h2>QuickBooks Online</h2>
-<p><strong>Reports › QuickBooks Online export</strong> downloads a month (or any period) of the books as a zip your accountant imports into
+<p><strong>Reports › QuickBooks export</strong> downloads a month of the books as a zip your accountant imports into
   QuickBooks Online: journal entries for each day's sales by branch, returns, voids, deposits, customer and supplier payments and supplier
   invoices, plus customer and supplier lists. Set the QuickBooks account names once on that page so they match your chart of accounts. Each
   journal file stays under QuickBooks' 1,000-line limit, and anything that couldn't be exported (a sale whose payments don't add up, say) is
-  listed in <code>skipped.csv</code> with the reason.</p>
+  listed in <code>not-in-the-journal.csv</code> with the reason. See <%= link_to "QuickBooks Online export", help_article_path("quickbooks"), class: "link" %>.</p>
 
 <h2>The daily summary email</h2>
 <p>Each morning, owners, managers and accountants get yesterday's figures by email. Turn it on or off under <strong>My profile</strong>.</p>

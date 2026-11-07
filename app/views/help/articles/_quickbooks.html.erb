@@ -1,0 +1,47 @@
+<p>If your accountant keeps the books in QuickBooks Online, HardPoint can give them a month of your figures ready to import, so nobody types
+  sales in by hand. Owners, managers and accountants can download it.</p>
+
+<h2>Before the first export: match the account names</h2>
+<p>Open <strong>Reports › QuickBooks export</strong>. Under <strong>Accounts in QuickBooks</strong> is a list of each kind of money (cash,
+  M-Pesa, Airtel Money, card, what customers owe, sales, VAT on sales, cost of sales, stock and so on) and the QuickBooks account it goes to.
+  Ask your accountant for the names in their chart of accounts, type them in exactly, and press <strong>Save account names</strong>. Blank
+  boxes keep the usual QuickBooks name shown in grey. You only need to do this once.</p>
+
+<h2>Downloading a month</h2>
+<ol>
+  <li>Choose the <strong>Month</strong> and press <strong>Download for QuickBooks</strong>.</li>
+  <li>You get a ZIP file. Send it to your accountant, or open it yourself.</li>
+</ol>
+<p>Inside the ZIP:</p>
+<ul>
+  <li><code>README.txt</code>: the import steps, written for the person doing them.</li>
+  <li><code>customers.csv</code> and <code>suppliers.csv</code>: your customers and suppliers, to import first so every name in the
+    journal already exists in QuickBooks.</li>
+  <li><code>journal.csv</code> (or <code>journal-1.csv</code>, <code>journal-2.csv</code>… for a busy month): the journal entries. Each
+    file stays under QuickBooks' limit of 1,000 lines, and an entry is never split between files.</li>
+  <li><code>not-in-the-journal.csv</code>, only if needed: anything that couldn't go in the journal, with the reason.</li>
+</ul>
+
+<h2>Importing into QuickBooks Online</h2>
+<ol>
+  <li>In QuickBooks, import <code>customers.csv</code> as Customers and <code>suppliers.csv</code> as Suppliers.</li>
+  <li>Then import each journal file under <strong>Settings › Import data › Journal entries</strong>. Dates are written day/month/year.</li>
+  <li>Check the totals against HardPoint's <strong>Sales and margin</strong> and <strong>Tax (VAT)</strong> reports for the same month.</li>
+</ol>
+
+<h2>What's in the journal</h2>
+<ul>
+  <li><strong>Sales</strong>, one entry per branch per day: the money taken by each payment method, sales before VAT, VAT on sales, and
+    the cost of what was sold taken out of stock.</li>
+  <li><strong>Voids and returns</strong>, reversing their sales, with goods put back into stock at their cost.</li>
+  <li><strong>Deposits</strong> on orders, and <strong>customers paying</strong> their accounts.</li>
+  <li><strong>Supplier invoices</strong> with VAT on purchases, and <strong>payments to suppliers</strong>. Invoices in dollars or another
+    currency are converted at the rate they were entered at.</li>
+</ul>
+<p>HardPoint sends journal entries rather than invoices because QuickBooks won't import invoices once VAT is set up, which it is for every
+  VAT-registered shop.</p>
+
+<h2>What gets left out, and why</h2>
+<p>A sale whose payments don't add up to its total, or a payment to a supplier in a foreign currency, can't be turned into a balanced
+  entry. They're listed in <code>not-in-the-journal.csv</code> with the date, amount and reason, for your accountant to enter by hand.</p>
+<p>Export each month once. Importing the same month twice puts the entries in QuickBooks twice.</p>

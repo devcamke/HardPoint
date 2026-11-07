@@ -33,7 +33,8 @@ to use it. For the full list of what each phase of the build added, see [docs/FE
 Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 [When the internet goes down](https://hardpoint.app/help/offline) ·
 [Tills and printers](https://hardpoint.app/help/tills-and-printers) ·
-[Promotions](https://hardpoint.app/help/promotions)
+[Promotions](https://hardpoint.app/help/promotions) ·
+[WhatsApp](https://hardpoint.app/help/whatsapp)
 
 ![Till](docs/screenshots/43-till-cart.png)
 
@@ -48,7 +49,8 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 
 Guides: [Customers on account](https://hardpoint.app/help/customer-accounts) ·
 [Jobs for contractors](https://hardpoint.app/help/contractor-jobs) ·
-[Online store](https://hardpoint.app/help/online-store)
+[Online store](https://hardpoint.app/help/online-store) ·
+[Deliveries and transport](https://hardpoint.app/help/deliveries)
 
 ### Stock and purchasing
 
@@ -66,7 +68,8 @@ Guides: [Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes
 [Buying from suppliers](https://hardpoint.app/help/buying-from-suppliers) ·
 [Importing products](https://hardpoint.app/help/importing-products) ·
 [Stock on your phone](https://hardpoint.app/help/stock-on-your-phone) ·
-[Batches and expiry](https://hardpoint.app/help/batches-and-expiry)
+[Batches and expiry](https://hardpoint.app/help/batches-and-expiry) ·
+[Changing prices](https://hardpoint.app/help/changing-prices)
 
 ![Stock › Reorder](docs/screenshots/311-reorder.png)
 
@@ -82,8 +85,9 @@ Guides: [Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes
   profit and loss, VAT, payments, discounts and voids, stock valuation, dead stock and shifts. A daily summary email,
   and a **QuickBooks Online export**.
 
-Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [KRA eTIMS](https://hardpoint.app/help/etims) ·
-[Reports](https://hardpoint.app/help/reports) · [Currencies](https://hardpoint.app/help/foreign-currencies)
+Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://hardpoint.app/help/airtel-money) ·
+[KRA eTIMS](https://hardpoint.app/help/etims) · [Reports](https://hardpoint.app/help/reports) ·
+[QuickBooks Online](https://hardpoint.app/help/quickbooks) · [Currencies](https://hardpoint.app/help/foreign-currencies)
 
 ### Running the shop on HardPoint
 
