@@ -14,7 +14,7 @@ class ExchangeRatesTest < ActiveSupport::TestCase
   test "each morning every shop's currencies get the market rate; one request per home currency" do
     refresh
     Current.account = @acme
-    assert_equal [ BigDecimal("129.87012987"), Date.current ], [ @usd.reload.market_rate, @usd.market_rate_on ]
+    assert_equal [ BigDecimal("129.87012987"), Time.current.in_time_zone(@acme.time_zone).to_date ], [ @usd.reload.market_rate, @usd.market_rate_on ]
     assert_equal BigDecimal("138.88888889"), @eur.reload.market_rate
     assert_equal BigDecimal("129.5"), @usd.rate, "not following: the shop's own rate stays"
     assert_equal 1, @feed.requests.size
