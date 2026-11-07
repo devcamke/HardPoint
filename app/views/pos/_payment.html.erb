@@ -31,7 +31,7 @@
     <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5", 6 => "grid-cols-3" }.fetch(tenders.size, "grid-cols-4") %> gap-1 text-sm" data-action="change->payment#switchTender">
       <legend class="sr-only">Payment method</legend>
       <% tenders.each do |value, label| %>
-        <label class="cursor-pointer rounded-md border border-gray-300 bg-white py-2 text-center font-semibold has-checked:border-primary-500 has-checked:bg-primary-500 has-checked:text-white">
+        <label class="cursor-pointer rounded-md border border-gray-300 bg-white py-2 text-center font-semibold select-none pointer-coarse:py-3 has-checked:border-primary-500 has-checked:bg-primary-500 has-checked:text-white">
           <%= form.radio_button :tender, value, checked: value == chosen_tender, class: "sr-only" %><%= label %>
         </label>
       <% end %>
@@ -41,11 +41,11 @@
       <div class="flex-1" data-payment-target="cashFields">
         <%= form.label :tendered, "Cash received", class: "label" %>
         <%= form.number_field :tendered, step: "0.01", min: 0, placeholder: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums",
-              data: { payment_target: "tendered", shortcuts_target: "pay", action: "input->payment#showChange" } %>
+              data: { payment_target: "tendered", shortcuts_target: "pay", action: "input->payment#showChange focus->payment#openKeypad" } %>
       </div>
       <div class="hidden flex-1" data-payment-target="otherFields">
         <%= form.label :amount, "Amount", class: "label" %>
-        <%= form.number_field :amount, step: "0.01", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount", deposit: (plain_number(BigDecimal([ deposit, due ].min) / 100) if deposit.positive?) } %>
+        <%= form.number_field :amount, step: "0.01", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount", action: "focus->payment#openKeypad", deposit: (plain_number(BigDecimal([ deposit, due ].min) / 100) if deposit.positive?) } %>
       </div>
       <% if foreign.any? %>
         <div class="hidden flex-1" data-payment-target="foreignFields">
@@ -54,7 +54,7 @@
             <%= form.select :currency, foreign.map { [ _1.code, _1.code, { data: { rate: _1.rate.to_s, decimals: Currency.decimals(_1.code) } } ] }, {},
                   class: "input w-24", "aria-label": "Currency", data: { payment_target: "currency", action: "change->payment#showChange" } %>
             <%= form.number_field :foreign_tendered, step: "0.01", min: 0, class: "input text-lg tabular-nums", "aria-label": "Foreign amount received",
-                  data: { payment_target: "foreignTendered", action: "input->payment#showChange" } %>
+                  data: { payment_target: "foreignTendered", action: "input->payment#showChange focus->payment#openKeypad" } %>
           </div>
         </div>
       <% end %>
@@ -68,12 +68,27 @@
           <%= form.password_field :approval_pin, inputmode: "numeric", autocomplete: "off", placeholder: "Over limit", class: "input" %>
         </div>
       <% end %>
+      <button type="button" class="btn-secondary hidden size-11 shrink-0 p-0 pointer-coarse:inline-flex aria-expanded:border-primary-500 aria-expanded:bg-primary-50" title="Number pad"
+              aria-label="Number pad" aria-expanded="false" data-payment-target="keypadToggle" data-action="payment#toggleKeypad">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="size-5" aria-hidden="true"><% [ 5, 12, 19 ].product([ 5, 12, 19 ]).each do |x, y| %><circle cx="<%= x %>" cy="<%= y %>" r="2.2"/><% end %></svg>
+      </button>
     </div>
 
     <div class="mt-2 flex flex-wrap gap-1" data-payment-target="quickCash">
       <% [ due, *[ 100_00, 500_00, 1000_00 ].map { |step| ((due + step - 1) / step) * step } ].uniq.select(&:positive?).first(4).each do |amount| %>
-        <button type="button" class="btn-secondary px-2 py-1 text-xs" data-action="payment#fill" data-amount="<%= plain_number(BigDecimal(amount) / 100) %>"><%= money(amount) %></button>
+        <button type="button" class="btn-secondary px-2 py-1 text-xs select-none active:bg-primary-100" data-action="payment#fill" data-amount="<%= plain_number(BigDecimal(amount) / 100) %>"><%= money(amount) %></button>
       <% end %>
+    </div>
+    <%# A number pad for touch screens, typing into whichever amount the chosen tender uses. It opens when the amount is
+        tapped, or with the button beside it, and each till remembers whether it was left open. %>
+    <div class="mt-2 hidden grid-cols-4 gap-1.5" data-payment-target="keypad" aria-label="Number pad">
+      <% key = "btn-secondary min-h-11 text-lg tabular-nums select-none active:bg-primary-100" %>
+      <% [ *%w[ 7 8 9 ], [ "⌫", "back", "Delete a digit" ], *%w[ 4 5 6 ], [ "C", "clear", "Clear" ], *%w[ 1 2 3 00 ] ].each do |label, value, name| %>
+        <button type="button" class="<%= key %>" data-action="payment#press" data-key="<%= value || label %>" aria-label="<%= name || label %>"><%= label %></button>
+      <% end %>
+      <button type="button" class="<%= key %> col-span-2" data-action="payment#press" data-key="0">0</button>
+      <button type="button" class="<%= key %>" data-action="payment#press" data-key=".">.</button>
+      <button type="button" class="<%= key %> text-sm" data-action="payment#press" data-key="exact" data-payment-target="exactKey" title="The amount due">Exact</button>
     </div>
     <p class="mt-1 h-5 text-sm font-semibold text-green-800" data-payment-target="change"></p>
 

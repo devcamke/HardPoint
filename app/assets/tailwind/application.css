@@ -29,11 +29,20 @@
 @layer base {
   html {
     font-size: 14px;
+    /* Taps register at once on touch screens (no double-tap zoom wait); pinch zoom still works. */
+    touch-action: manipulation;
+  }
+
+  /* iPhones and iPads zoom into any field with text under 16px when it's tapped. */
+  @supports (-webkit-touch-callout: none) {
+    input, select, textarea {
+      font-size: max(16px, 1em);
+    }
   }
 }
 
 @utility btn {
-  @apply inline-flex items-center justify-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium cursor-pointer whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-400 disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex items-center justify-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium cursor-pointer whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-400 disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:min-h-11;
 }
 
 @utility btn-primary {
@@ -48,9 +57,9 @@
   @apply btn border border-gray-200 bg-gray-100 text-red-700 hover:border-red-200 hover:bg-red-50;
 }
 
-/* Underlined fields, as in an Odoo form. */
+/* Underlined fields, as in an Odoo form. Buttons and fields are at least 44px tall on touch screens. */
 @utility input {
-  @apply block w-full rounded-none border-0 border-b border-gray-300 bg-transparent px-1 py-1.5 text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-0 placeholder:text-gray-400;
+  @apply block w-full rounded-none border-0 border-b border-gray-300 bg-transparent px-1 py-1.5 text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-0 placeholder:text-gray-400 pointer-coarse:min-h-11;
 }
 
 @utility label {

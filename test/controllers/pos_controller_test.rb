@@ -63,6 +63,45 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_equal 120000, Account.without_isolation { current_sale.total_cents }
   end
 
+  test "tapping through categories to products, subcategories included" do
+    Account.without_isolation do
+      empty = accounts(:acme).categories.create!(name: "Paint")
+      pipes = accounts(:acme).categories.create!(name: "Pipes", parent: categories(:acme_plumbing))
+      products(:acme_pipe).update!(category: pipes)
+      accounts(:acme).categories.create!(name: "Nothing yet", parent: empty)
+    end
+
+    get pos_products_path
+    assert_select "nav[aria-label='Product categories'] a", count: 4 do |tabs|
+      assert_equal [ "Quick picks", "Building materials", "Fasteners", "Plumbing" ], tabs.map(&:text)
+    end
+    assert_select "nav a[aria-current=page]", "Quick picks"
+
+    get pos_products_path(category_id: categories(:acme_plumbing).id)
+    assert_select "nav a[aria-current=page]", "Plumbing"
+    assert_select "form button", /PVC pipe 2 inch 6m/
+    assert_select "form button", /Plumbing starter kit/
+    assert_select "form button", text: /Bamburi cement/, count: 0
+
+    get pos_products_path(category_id: categories(:bolt_tools).id)
+    assert_select "nav a[aria-current=page]", "Quick picks"
+    assert_select "form button", text: /Claw hammer/, count: 0
+  end
+
+  test "one more, one less, and the phone's sale tab keeps count" do
+    post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
+    line = Account.without_isolation { current_sale.lines.sole }
+    assert_select "turbo-stream[target=pane_tabs]", /800\.00/
+
+    get pos_path
+    assert_select "#cart button[disabled][aria-label='One less Bamburi cement 50kg']"
+    assert_select "#cart form[action='#{pos_line_path(line)}'] input[name='sale_line[quantity]'][value='2']"
+
+    patch pos_line_path(line), params: { sale_line: { quantity: "2" } }, as: :turbo_stream
+    assert_select "turbo-stream[target=pane_tabs]", /1,600\.00/
+    assert_equal 2, Account.without_isolation { line.reload.quantity }
+  end
+
   test "big discounts need a manager's approval PIN" do
     Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
     post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream

@@ -28,8 +28,10 @@ module PosSale
     def render_cart(message: nil, alert: nil, status: :ok)
       respond_to do |format|
         format.turbo_stream do
+          sale = @sale.reload_for_cart
           render turbo_stream: [
-            turbo_stream.replace("cart", partial: "pos/cart", locals: { sale: @sale.reload_for_cart }),
+            turbo_stream.replace("cart", partial: "pos/cart", locals: { sale: sale }),
+            turbo_stream.replace("pane_tabs", partial: "pos/pane_tabs", locals: { sale: sale }),
             turbo_stream.replace("pos_message", partial: "pos/message", locals: { message: message, alert: alert }),
             turbo_stream.remove("completed_sale")
           ], status: status

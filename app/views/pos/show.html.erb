@@ -1,7 +1,12 @@
 <% content_for :title, "Till" %>
 
-<div class="grid h-[calc(100vh-3.25rem)] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_30rem]">
-  <section class="flex min-h-0 flex-col gap-4 overflow-y-auto p-4">
+<%# Fills the screen under the header and any banners. Phones get one pane at a time (pos/_pane_tabs); tablets and
+    tills get the products beside the sale, with the sale widening as the screen does. %>
+<div class="group grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_22rem] md:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_26rem] xl:grid-cols-[minmax(0,1fr)_30rem]"
+     data-controller="till-panes" data-pane="products">
+  <%= render "pos/pane_tabs", sale: @sale %>
+
+  <section id="till_products" class="flex min-h-0 flex-col gap-3 p-3 sm:gap-4 sm:p-4 group-data-[pane=cart]:max-md:hidden">
     <% if @completed_sale %>
       <%= render "pos/completed", sale: @completed_sale %>
     <% end %>
@@ -15,23 +20,25 @@
           action: "turbo:submit-end->scanner#reset" } do |form| %>
       <%= form.search_field :code, autofocus: true, autocomplete: "off", placeholder: "Scan a barcode, or type to search products",
             class: "input py-3 text-lg", "aria-label": "Scan or search", data: { scanner_target: "input", shortcuts_target: "scanner",
-            action: "input->scanner#search keydown.esc->scanner#clear" } %>
+            action: "input->scanner#search keydown.esc->scanner#clear pointerdown->scanner#allowKeyboard blur->scanner#hideKeyboard" } %>
       <%= form.submit "Add", class: "btn-secondary px-5" %>
     <% end %>
 
-    <%= turbo_frame_tag "search_results", src: pos_products_path, loading: :eager do %>
-      <p class="hint">Loading…</p>
-    <% end %>
+    <div class="@container -mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain px-1">
+      <%= turbo_frame_tag "search_results", src: pos_products_path, loading: :eager do %>
+        <p class="hint">Loading…</p>
+      <% end %>
+    </div>
 
-    <div class="mt-auto flex flex-wrap gap-2 text-sm">
+    <div class="grid grid-cols-2 gap-2 text-sm sm:flex sm:flex-wrap">
       <%= link_to "Parked sales (#{current_shift.sales.parked.count})", pos_parked_sales_path, class: "btn-secondary" %>
       <%= link_to "Collect an order", customer_orders_path(status: "open"), class: "btn-secondary" %>
-      <%= button_to "Park this sale", pos_parking_path, class: "btn-secondary", form: { data: { shortcuts_target: "park" } } %>
-      <%= button_to "Clear sale", pos_discard_path, class: "btn-danger", form: { data: { turbo_confirm: "Clear everything in this sale?" } } %>
+      <%= button_to "Park this sale", pos_parking_path, class: "btn-secondary w-full", form: { data: { shortcuts_target: "park" } } %>
+      <%= button_to "Clear sale", pos_discard_path, class: "btn-danger w-full", form: { data: { turbo_confirm: "Clear everything in this sale?" } } %>
     </div>
   </section>
 
-  <aside class="flex min-h-0 flex-col border-l border-gray-200 bg-white">
+  <aside id="till_cart" class="flex min-h-0 flex-col overflow-y-auto border-gray-200 bg-white md:border-l group-data-[pane=products]:max-md:hidden">
     <%= render "pos/cart", sale: @sale %>
   </aside>
 </div>

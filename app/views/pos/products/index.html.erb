@@ -1,22 +1,41 @@
 <%= turbo_frame_tag "search_results" do %>
-  <% products = @products.presence || @quick_picks %>
-  <% if params[:query].present? && @products.empty? %>
+  <% searching = params[:query].present? %>
+  <% chip = "shrink-0 whitespace-nowrap rounded-full border px-4 py-2 font-medium select-none pointer-coarse:py-3" %>
+  <% if @categories.any? %>
+    <nav class="-mx-1 mb-3 flex gap-2 overflow-x-auto px-1 pb-1 text-sm" aria-label="Product categories">
+      <% [ [ "Quick picks", nil ], *@categories.map { [ _1.name, _1 ] } ].each do |name, category| %>
+        <% active = !searching && @category == category %>
+        <%= link_to name, pos_products_path(category_id: category&.id), aria: { current: ("page" if active) },
+              class: class_names(chip, active ? "border-primary-500 bg-primary-500 text-white" : "border-gray-300 bg-white text-gray-800 hover:bg-gray-50 active:bg-primary-50") %>
+      <% end %>
+    </nav>
+  <% end %>
+
+  <% if searching && @products.empty? %>
     <p class="hint">No products match “<%= params[:query] %>”.</p>
+  <% elsif @products.empty? %>
+    <p class="hint">Nothing to sell in <%= @category&.name || "the catalogue" %> yet.</p>
   <% else %>
-    <p class="mb-2 text-xs uppercase tracking-wide text-gray-500"><%= params[:query].present? ? "Results" : "Quick picks" %></p>
-    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
-      <% products.each do |product| %>
-        <div class="flex flex-col rounded-lg border border-gray-200 bg-white p-3">
-          <%= button_to pos_lines_path, params: { product_id: product.id }, class: "w-full cursor-pointer text-left", form: { data: { turbo_frame: "_top" } }, form_class: "flex-1" do %>
+    <p class="mb-2 text-xs uppercase tracking-wide text-gray-500"><%= searching ? "Results" : @category&.name || "Quick picks" %></p>
+    <%# Sized by the panel, not the screen, so tiles stay finger-sized beside the cart on any till. %>
+    <div class="grid grid-cols-2 gap-2 @lg:grid-cols-3 @3xl:grid-cols-4 @5xl:grid-cols-5 @7xl:grid-cols-6">
+      <% @products.each do |product| %>
+        <div class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <%= button_to pos_lines_path, params: { product_id: product.id }, form_class: "flex-1", form: { data: { turbo_frame: "_top" } },
+                class: "flex h-full min-h-24 w-full cursor-pointer flex-col items-start p-3 text-left select-none transition-colors hover:bg-gray-50 active:bg-primary-50" do %>
             <span class="line-clamp-2 font-medium leading-snug"><%= product.name %></span>
             <span class="mt-1 block text-lg font-bold tabular-nums"><%= money(product.price_cents) %></span>
             <% if @branch && (product.track_stock? || product.kit?) %>
               <span class="text-xs <%= product.stock_at(@branch).positive? ? "text-gray-500" : "text-red-700" %>"><%= quantity(product.stock_at(@branch), product.unit) %> here</span>
             <% end %>
           <% end %>
-          <% product.product_units.each do |pack| %>
-            <%= button_to pos_lines_path, params: { product_id: product.id, product_unit_id: pack.id }, class: "btn-secondary mt-2 w-full px-2 py-1 text-xs",
-                  form: { data: { turbo_frame: "_top" } } do %><%= pack.unit.name %> · <%= money(pack.effective_price_cents) %><% end %>
+          <% if product.product_units.any? %>
+            <div class="flex flex-col gap-2 px-3 pb-3">
+              <% product.product_units.each do |pack| %>
+                <%= button_to pos_lines_path, params: { product_id: product.id, product_unit_id: pack.id }, class: "btn-secondary w-full px-2 py-1 text-xs select-none active:bg-primary-100",
+                      form: { data: { turbo_frame: "_top" } } do %><%= pack.unit.name %> · <%= money(pack.effective_price_cents) %><% end %>
+              <% end %>
+            </div>
           <% end %>
         </div>
       <% end %>

@@ -16,19 +16,19 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-screen overflow-hidden bg-gray-100 text-gray-900" data-controller="shortcuts offline-sync" data-action="keydown@window->shortcuts#handle"
+  <body class="flex h-dvh flex-col overflow-hidden bg-gray-100 text-gray-900" data-controller="shortcuts offline-sync" data-action="keydown@window->shortcuts#handle"
         data-offline-sync-catalogue-url-value="<%= pos_catalogue_path %>" data-offline-sync-sales-url-value="<%= pos_offline_sales_path %>"
         data-offline-sync-token-url-value="<%= new_pos_offline_sale_path %>" data-offline-sync-offline-url-value="<%= pos_offline_path %>"
         data-offline-sync-till-url-value="<%= pos_path %>" data-offline-sync-offline-page-value="<%= controller_name == "offlines" %>">
-    <header class="flex h-12 items-center gap-4 bg-primary-500 px-4 text-sm text-white/85">
-      <%= link_to root_path(home: 1), title: "Back to HardPoint" do %><%= render "shared/logo", dark: true %><% end %>
-      <span class="font-semibold text-white"><%= current_till&.name %></span>
-      <span class="hidden sm:inline"><%= current_till&.branch&.name %></span>
+    <header class="flex h-12 shrink-0 items-center gap-3 whitespace-nowrap bg-primary-500 px-3 text-sm text-white/85 sm:gap-4 sm:px-4">
+      <%= link_to root_path(home: 1), title: "Back to HardPoint", "aria-label": "Back to HardPoint", class: "max-sm:[&>span>span]:hidden" do %><%= render "shared/logo", dark: true %><% end %>
+      <span class="truncate font-semibold text-white"><%= current_till&.name %></span>
+      <span class="hidden lg:inline"><%= current_till&.branch&.name %></span>
       <% if current_shift %>
         <%= link_to "Shift", shift_path(current_shift), class: "rounded bg-white/15 px-2 py-1 hover:bg-white/25 hover:text-white" %>
       <% end %>
       <%= link_to "Sales", sales_path, class: "hover:text-white" %>
-      <div class="ml-auto flex items-center gap-4">
+      <div class="ml-auto flex items-center gap-3 sm:gap-4">
         <%# A dot for the connection, drawn in CSS so it survives the controller rewriting the text. %>
         <span class="inline-flex items-center gap-1.5 text-xs before:size-2 before:rounded-full before:bg-gray-400 data-[state=online]:before:bg-green-400 data-[state=offline]:text-amber-200 data-[state=offline]:before:bg-amber-400"
               data-offline-sync-target="status" role="status" aria-live="polite">Checking…</span>
@@ -37,9 +37,9 @@
                   data-receipt-printer-till-value="<%= current_till.slice(:print_mode, :printer_name, :receipt_width).to_json %>"
                   data-receipt-printer-drawer-url-value="<%= pos_drawer_openings_path %>">Open drawer</button>
         <% end %>
-        <span class="hidden text-xs text-white/70 md:inline">F2 scan · F8 park · F9 pay</span>
-        <%= link_to "Switch user", new_session_switch_path, class: "hover:text-white" %>
-        <span class="font-semibold text-white"><%= Current.user.name %></span>
+        <span class="hidden text-xs text-white/70 xl:inline pointer-coarse:hidden">F2 scan · F8 park · F9 pay</span>
+        <%= link_to new_session_switch_path, class: "hover:text-white" do %>Switch<span class="hidden sm:inline"> user</span><% end %>
+        <span class="hidden font-semibold text-white md:inline"><%= Current.user.name %></span>
       </div>
     </header>
     <%= render "shared/impersonation_banner" if Current.session.impersonated? %>

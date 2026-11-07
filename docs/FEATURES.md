@@ -558,4 +558,23 @@ The plan and its reasons are in [SIMPLIFY.md](SIMPLIFY.md).
 
 ![Search](screenshots/314-search.png)
 
+## Touch screens
+
+- **Categories at the till:** Quick picks and every top-level category with something to sell are tabs above the
+  products; a category includes its subcategories' products
+- **+ and − on each line**, and a bigger remove button
+- **A number pad** for cash received and other amounts on touch screens, opened by tapping the amount or the pad button
+  and remembered per till; the device's own keyboard no longer covers the till
+- **Finger-sized controls:** buttons and fields are at least 44 px tall wherever the screen is touch, and iPhones and
+  iPads no longer zoom into fields
+- **Every screen size:** the till fills the screen under any banner, so **Take payment** is never cut off; products sit
+  beside the sale from tablets up, with the tiles sized by the space they have; phones get **Products** and **Sale** tabs.
+  The offline till stacks on phones too
+
+![Till on a 1024×768 touch screen](screenshots/320-till-touch-1024.png)
+
+![A category on a tablet, with the number pad open](screenshots/321-till-category-tablet.png)
+
+![Phone: products](screenshots/322-till-phone-products.png) ![Phone: the sale and number pad](screenshots/323-till-phone-keypad.png)
+
 Screenshots of every screen are in [screenshots](screenshots).
