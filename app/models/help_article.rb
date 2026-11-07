@@ -33,9 +33,6 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
         %w[ customer-accounts ]),
       new("online-store", "Selling online with click-and-collect", "Your catalogue online: switching it on, what customers see, and handling their orders.", "Customers and orders",
         %w[ customer-accounts mpesa ]),
-      new("tool-hire", "Hiring out tools", "Tools for hire, hire agreements, deposits, returns and settling up at the till.", "Customers and orders",
-        %w[ selling customer-accounts ]),
-
       new("stock-and-stock-takes", "Stock levels, transfers and stock takes", "Adjusting stock, moving it between branches, counting it, and the reorder list.", "Stock and purchasing",
         %w[ stock-on-your-phone buying-from-suppliers batches-and-expiry ]),
       new("buying-from-suppliers", "Buying from suppliers", "Purchase orders, receiving deliveries, reorder suggestions, supplier invoices and what you owe.", "Stock and purchasing",

@@ -20,7 +20,7 @@ class Admin::AdoptionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#first-sale tr", /Signed up since/
     assert_select "#shortcuts tr", /Search: opened a product\s*2\s*2/
     assert_select "#shortcuts tr", /Reorder: drafted every supplier's order at once\s*1\s*1/
-    assert_select "#features tr", /Tool hire\s*1/
+    assert_select "#features tr", /Contractor jobs\s*1/
     assert_select "#lost", /1\s*in the last 30 days/
     assert_select "#lost li", /Where is the reorder list\?/
   end

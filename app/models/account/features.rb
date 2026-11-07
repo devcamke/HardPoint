@@ -1,7 +1,7 @@
 # Optional parts of HardPoint a shop switches on in Settings › Features. A feature that's off is left
 # out of the menus, Settings, Home and forms; its records are kept, so switching it back on brings
-# everything back. A feature can't be switched off while it's live (a promotion running, tools out
-# on hire), so switching one off never quietly changes what the till does.
+# everything back. A feature can't be switched off while it's live (a promotion running, products
+# recording batches), so switching one off never quietly changes what the till does.
 module Account::Features
   extend ActiveSupport::Concern
 
@@ -13,7 +13,6 @@ module Account::Features
     Feature.new("loyalty", "Loyalty points", "Customers earn points on what they buy and spend them at the till", "Selling"),
     Feature.new("currencies", "Foreign currencies", "Dollars and other notes at the till, and suppliers who invoice in them", "Selling"),
     Feature.new("online_store", "Online store", "Click-and-collect from your own web address", "Selling"),
-    Feature.new("tool_hire", "Tool hire", "Hire out mixers, compactors and scaffolding by the day or week", "Stock and work"),
     Feature.new("jobs", "Contractor jobs", "Tag a contractor's purchases to a project and track it against a budget", "Stock and work"),
     Feature.new("batches", "Batches and expiry dates", "For paint, adhesives and chemicals: first-expiring-first selling and recalls", "Stock and work"),
     Feature.new("serial_numbers", "Serial numbers", "Record the serial number of each power tool or generator sold", "Stock and work"),
@@ -51,9 +50,6 @@ module Account::Features
       "Foreign notes are taken at the till. Stop taking them in Currencies first." if currencies.at_till.exists?
     when "online_store"
       "Your online store is open. Close it first." if storefront&.enabled?
-    when "tool_hire"
-      count = hire_agreements.out.count
-      "#{count == 1 ? "A hire agreement is" : "#{count} hire agreements are"} still out. Settle #{count == 1 ? "it" : "them"} first." if count.positive?
     when "batches"
       count = products.where(tracks_batches: true).count
       "#{count == 1 ? "A product records" : "#{count} products record"} batches. Untick that on #{count == 1 ? "it" : "them"} first." if count.positive?
@@ -74,7 +70,6 @@ module Account::Features
       when "loyalty" then loyalty_program.present?
       when "currencies" then currencies.exists?
       when "online_store" then storefront.present?
-      when "tool_hire" then hire_items.exists?
       when "jobs" then jobs.exists?
       when "batches" then stock_batches.exists? || products.where(tracks_batches: true).exists?
       when "serial_numbers" then products.where(serialized: true).exists?

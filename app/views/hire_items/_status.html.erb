@@ -1,2 +1,0 @@
-<%# locals: (item:) %>
-<%= status_dot item.status.humanize, { "available" => :success, "on_hire" => :warning, "maintenance" => :danger, "retired" => :muted }[item.status] %>
