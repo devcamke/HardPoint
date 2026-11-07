@@ -23,6 +23,15 @@ module Account::CatalogueDefaults
     units.find_by(name: "Piece") || units.alphabetically.first
   end
 
+  TRANSPORT_SKU = "TRANSPORT"
+
+  # The service transport to a customer's site is sold as, at whatever the trip costs: added at the till
+  # or charged on a delivery note. Not on the till's search or the online store; its line says where to.
+  def transport_product
+    products.find_by(sku: TRANSPORT_SKU) || products.create!(sku: TRANSPORT_SKU, name: "Transport", unit: default_unit, price_cents: 0,
+      tax_rate: default_tax_rate, track_stock: false, active: false, online: false)
+  end
+
   def default_tax_rate
     tax_rates.find_by(default: true)
   end

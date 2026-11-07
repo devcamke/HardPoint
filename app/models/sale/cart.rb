@@ -19,6 +19,21 @@ module Sale::Cart
     line
   end
 
+  # Transport to the customer's site at what the trip costs, as its own line on this sale.
+  def add_transport(amount_cents:, destination: nil)
+    raise ArgumentError, "This sale can't be changed" unless open?
+
+    line = lines.build(account: account, product: account.transport_product, quantity: 1, unit_price_cents: amount_cents.to_i,
+      detail: destination.to_s.squish.presence&.then { "to #{_1.first(80)}" })
+    line.errors.add :base, "Enter what the transport costs" unless amount_cents.to_i.positive?
+    transaction { line.save && recalculate } if line.errors.empty?
+    line
+  end
+
+  def transport_cents
+    lines.select(&:transport?).sum(&:total_cents)
+  end
+
   def change_customer(customer)
     raise ArgumentError, "The customer of an order can't be changed" if customer_order && customer != customer_order.customer
 

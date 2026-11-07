@@ -1,0 +1,64 @@
+<p>Everything you sell lives in <strong>Stock › Products</strong>. Owners, managers and stock clerks can add and change products; everyone
+  else can look them up. To bring in a whole price list at once, see
+  <%= link_to "Importing products from a spreadsheet", help_article_path("importing-products"), class: "link" %>.</p>
+
+<h2>Adding a product</h2>
+<ol>
+  <li>On <strong>Stock › Products</strong>, press <strong>New</strong>.</li>
+  <li>Type the <strong>Name</strong> and <strong>Selling price</strong> in shillings, including VAT. Add the <strong>Cost price</strong> too, for profit reports.</li>
+  <li>Choose what it's <strong>Sold by</strong> (piece, bag, metre…) and its <strong>Category</strong>.</li>
+  <li>Scan the maker's <strong>Barcode</strong>. If it has none, leave it blank and HardPoint gives it a barcode of its own for your labels.</li>
+  <li>Enter the <strong>Opening stock</strong>: what's on the shelf at this branch now.</li>
+  <li>Press <strong>Add product</strong>, or <strong>Add and start another</strong> to go straight to a new one with the same category and unit.</li>
+</ol>
+<p><strong>More options</strong> holds the rest: the <strong>SKU</strong> (left blank, one is made for you), <strong>Brand</strong>,
+  <strong>Tax</strong> (blank uses the shop default), <strong>Reorder level</strong> for the low-stock alert, a description and a
+  <strong>Photo</strong>. To change a product later, open it and press <strong>Edit</strong>.</p>
+
+<h2>Active, inactive and services</h2>
+<ul>
+  <li>Untick <strong>Active</strong> to hide a product from the till. A product with stock history can't be deleted, so make it inactive instead.</li>
+  <li>Untick <strong>Track stock</strong> for services such as cutting or delivery.</li>
+  <li>With the online store on, <strong>Show in the online store</strong> keeps a product on or off it.</li>
+</ul>
+
+<h2>Barcodes, pack sizes and loose goods</h2>
+<p>A product can have several barcodes: add them under <strong>Barcodes</strong> on the product page. Units are set up in
+  <strong>Settings › Units</strong>; tick <strong>Sold in parts</strong> for kilograms, metres or litres so the till accepts 2.5 or 0.75.
+  Other units only take whole numbers.</p>
+<p>If you sell nails by the kilo and by the box, add the box under <strong>Pack sizes</strong>: choose the <strong>Pack</strong>, how many it
+  <strong>Holds</strong>, and a <strong>Price</strong> if it isn't simply that many times the single price. Then add the box's own barcode,
+  choosing the pack under <strong>For</strong>. Scanning it adds a box at the box price.</p>
+
+<h2>Kits and serial numbers</h2>
+<ul>
+  <li>Tick <strong>Kit</strong> for something sold as one item but made of other products, such as a toilet set. Add the parts under
+    <strong>Kit contents</strong>. Selling a kit takes its parts out of stock.</li>
+  <li><strong>Serial numbers</strong> appears once it's switched on in <strong>Settings › Features</strong>. The till then asks for the serial
+    number of each one sold, and it's printed on the receipt.</li>
+</ul>
+
+<h2>Special prices and quantity breaks</h2>
+<p>Under <strong>Special prices</strong> on the product, choose who it's <strong>For</strong> (a price list, or <strong>Everyone
+  (retail)</strong>), a <strong>From qty</strong> and the <strong>Unit price</strong>. For example, cement at 750 shillings a bag from 50
+  bags. Customers always get the lowest price that applies. Make price lists such as Contractor or Wholesale in
+  <strong>Settings › Price lists</strong>, then set a customer's <strong>Prices</strong> when editing them.</p>
+
+<h2>Categories, brands and tax rates</h2>
+<p>These are in Settings, under <strong>Catalogue</strong>. A category can sit <strong>Inside</strong> another, like Plumbing › Pipes. In
+  <strong>Tax rates</strong>, mark VAT 16% as <strong>Default for new products</strong>, and give exempt or zero-rated goods their own rate.</p>
+
+<h2>The products list</h2>
+<p>Search by name or SKU, or scan a barcode into the search box. Filter by <strong>Category</strong>, <strong>Brand</strong> or
+  <strong>Include inactive</strong>, choose which branch's stock to show under <strong>Stock at</strong>, and <strong>Group by</strong>
+  category or brand. The <strong>⚙</strong> menu has <strong>Import</strong>, <strong>Change prices</strong> (see
+  <%= link_to "Changing many prices at once", help_article_path("changing-prices"), class: "link" %>), <strong>Export CSV</strong> and
+  <strong>Print labels</strong>.</p>
+
+<h2>Shelf labels</h2>
+<p><strong>Print labels</strong> in the ⚙ menu labels the products in your current search or category; the button on a product page
+  labels just that one. Set the copies for each, choose an <strong>A4 sheet</strong> (3 × 8 labels) or a <strong>Label printer roll</strong> (50 × 25 mm), and press
+  <strong>Open print view</strong>. Print at 100% scale with no margins.</p>
+
+<p>Stock levels and counts are covered in <%= link_to "Stock levels, transfers and stock takes", help_article_path("stock-and-stock-takes"), class: "link" %>,
+  and offers in <%= link_to "Promotions and offers", help_article_path("promotions"), class: "link" %>.</p>

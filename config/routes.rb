@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   post "webhooks/billing/mpesa/:token", to: "webhooks/billing_mpesa#create", as: :billing_mpesa_webhook
   post "webhooks/paystack", to: "webhooks/paystack#create", as: :paystack_webhook
 
+  # Callbacks from Airtel, on any host; the shop is found by the secret token in the path.
+  post "webhooks/airtel/:token", to: "webhooks/airtel#create", as: :airtel_webhook
+
   # Callbacks from Safaricom, on any host. The shop is found by the secret token in the path.
   scope "webhooks/mpesa/:token", controller: "webhooks/mpesa", as: :mpesa_webhook do
     post "stk", action: :stk, as: :stk
@@ -51,6 +54,7 @@ Rails.application.routes.draw do
           resource :trial_extension, only: :create
           resource :suspension, only: %i[ create destroy ]
           resources :payments, only: :create
+          resources :two_factor_resets, only: :create
         end
       end
       resources :impersonations, only: :create
@@ -72,6 +76,7 @@ Rails.application.routes.draw do
     end
     namespace :my do
       resource :profile, only: :show
+      resource :password, only: %i[ edit update ]
       resource :two_factor, only: %i[ new create destroy ]
       resource :recovery_codes, only: :show
       resource :approval_pin, only: %i[ edit update ]
@@ -82,11 +87,17 @@ Rails.application.routes.draw do
     resource :account, only: %i[ edit update ]
     resources :branches, except: :show
     resources :registers, except: :show
-    resources :memberships, except: :show
+    resources :memberships, except: :show do
+      resource :two_factor_reset, only: :create, module: :memberships
+    end
     resources :events, only: :index
     resource :settings, only: :show
     resource :features, only: %i[ show update ]
     resource :search, only: :show
+    resources :price_changes, only: %i[ new create ]
+    resource :quickbooks_export, path: "reports/quickbooks", only: %i[ show update ]
+    # Documents sent by WhatsApp, opened without signing in (DocumentShare).
+    get "share/:token", to: "shares#show", as: :share
     resources :support_requests, only: %i[ new create ]
     resource :account_data, only: :show
     resource :developers, only: :show
@@ -175,9 +186,12 @@ Rails.application.routes.draw do
       resource :discount, only: :update
       resources :payments, only: %i[ create destroy ]
       resource :parking, only: :create
+      resource :transport, only: :create
       resources :parked_sales, only: :index
       resource :discard, only: :create
       resources :mpesa_requests, only: %i[ create show destroy ]
+      resources :airtel_requests, only: %i[ create show destroy ]
+      resources :airtel_matches, only: :create
       resources :mpesa_matches, only: :create
       resource :catalogue, only: :show
       resources :offline_sales, only: %i[ new create ]
@@ -265,6 +279,9 @@ Rails.application.routes.draw do
     end
 
     # Integrations
+    resources :airtel_merchants, path: "airtel", except: %i[ show destroy ] do
+      resource :connection_test, only: :create, module: :airtel_merchants
+    end
     resources :mpesa_shortcodes, path: "mpesa", except: %i[ show destroy ] do
       scope module: :mpesa_shortcodes do
         resource :connection_test, only: :create

@@ -32,11 +32,11 @@
 
 <h3 style="margin:20px 0 8px; font-size:16px;">How it was paid</h3>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
-  <% Report::Payments::TENDER_LABELS.values.each_with_index do |label, index| %>
-    <% next if @payments[index + 1].zero? %>
-    <tr style="border-top:1px solid #E7E5E0;"><td><%= label %></td><td style="text-align:right;"><%= money(@payments[index + 1], currency: currency) %></td></tr>
+  <% Report::Payments::TENDER_LABELS.values.each do |label| %>
+    <% next if @payments[label].to_i.zero? %>
+    <tr style="border-top:1px solid #E7E5E0;"><td><%= label %></td><td style="text-align:right;"><%= money(@payments[label], currency: currency) %></td></tr>
   <% end %>
-  <% if @payments.last.nonzero? %><tr style="border-top:1px solid #E7E5E0;"><td>Refunds</td><td style="text-align:right;"><%= money(@payments.last, currency: currency) %></td></tr><% end %>
+  <% if @payments["Refunds"].to_i.nonzero? %><tr style="border-top:1px solid #E7E5E0;"><td>Refunds</td><td style="text-align:right;"><%= money(@payments["Refunds"], currency: currency) %></td></tr><% end %>
 </table>
 
 <% if @shifts.any? || @voids.positive? %>

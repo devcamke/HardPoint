@@ -1,0 +1,37 @@
+<p>When a supplier puts its prices up, or cement goes up across the market, you can change hundreds of prices in one go instead of editing
+  each product. Owners, managers and anyone allowed to manage the catalogue can do it.</p>
+
+<h2>Changing prices by a rule</h2>
+<ol>
+  <li>Open <strong>Stock › Products</strong>, press the <strong>⚙</strong> menu and choose <strong>Change prices</strong>.</li>
+  <li>Under <strong>Which products</strong>, choose <strong>All products</strong>, a <strong>category</strong> (its subcategories are
+    included), a <strong>brand</strong>, or a <strong>supplier's products</strong>.</li>
+  <li>Choose whether to change by a <strong>percentage</strong> or an <strong>amount</strong> in shillings, and type it. Use a minus sign to
+    lower prices: <code>-5</code> takes 5% off.</li>
+  <li>Choose whether to <strong>round new prices</strong> to the nearest 100, 500, 1,000 or 5,000 shillings, so the shelf prices stay tidy.</li>
+  <li>Tick <strong>Packs with their own price too</strong> to change the price of a bag, box or bundle as well, and <strong>Contractor and
+    wholesale prices too</strong> to change price lists as well.</li>
+  <li>Press <strong>Preview</strong>. HardPoint lists every price that will change, old and new, and changes nothing yet.</li>
+  <li>If it looks right, press <strong>Apply</strong> and confirm.</li>
+</ol>
+<p>The change is recorded in the activity log, with who made it and what it was. Sales already made keep the price they were sold at, and
+  margins in reports use the cost on the day each sale was made.</p>
+
+<h2>Examples</h2>
+<ul>
+  <li>Your cement supplier puts prices up 8%: <strong>Supplier's products</strong>, that supplier, percentage, <code>8</code>, round to the
+    nearest 100.</li>
+  <li>Clearing a brand: the brand, percentage, <code>-15</code>, without contractor prices.</li>
+  <li>Transport costs have gone up on everything heavy: the Building materials category, amount, <code>50</code>.</li>
+</ul>
+
+<h2>Changes that don't follow a rule</h2>
+<p>When each product needs its own new price, use a spreadsheet instead: press <strong>Export CSV</strong> on the Products list, change the
+  price column and import the file again. See <%= link_to "Importing products from a spreadsheet", help_article_path("importing-products"), class: "link" %>.</p>
+
+<h2>After changing prices</h2>
+<ul>
+  <li>Reprint shelf labels for the changed products with <strong>Print labels</strong> in the Products ⚙ menu.</li>
+  <li>Tills pick up the new prices on the next sale. The offline till picks them up the next time it's opened online.</li>
+  <li>Quotes already sent keep their prices until they expire.</li>
+</ul>

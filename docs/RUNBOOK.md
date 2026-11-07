@@ -127,6 +127,7 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 | M-Pesa payments not arriving | Shop's Settings › M-Pesa "Test connection"; Safaricom's callback IP list (`MPESA_CALLBACK_IPS`) |
 | eTIMS queue growing | Settings › KRA eTIMS › Submissions shows the errors; KRA outages retry by themselves |
 | A shop reports seeing another shop's data | Treat as a security incident (docs/SECURITY.md): take screenshots, suspend the affected shops from the admin, check the Activity logs, then fix |
+| Someone lost their phone and recovery codes | A shop's owner can reset staff who work only for that shop (Settings › Staff). Otherwise, after checking who they are (call back on the shop's number on file, and ask something only the shop knows, such as its last invoice amount), open the shop in the admin and press **Reset 2FA** by their name: they're signed out, emailed, and it's in the shop's Activity with your email |
 | Someone's account compromised | Reset their password (sessions end), turn off their access in Staff, check Activity for what they did |
 | Replica behind or unreachable | Admin Database page, "Read replica". Reports and exports read from it, so they fail or show old numbers; tills and everything else don't. `bin/kamal accessory logs db-replica -d scaled`. To take it out of service, remove `DATABASE_REPLICA_HOST` and redeploy: reads go back to the primary |
 

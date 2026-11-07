@@ -1,0 +1,56 @@
+<p>You don't need a customer for every sale: most go through as <strong>Walk-in</strong>. Add the people you want to know again:
+  contractors, fundis, regulars, and anyone who buys on account or needs a tax invoice. Customers live in
+  <strong>Customers › Customers</strong>.</p>
+
+<h2>Adding a customer</h2>
+<ol>
+  <li>On <strong>Customers</strong>, press <strong>New</strong>.</li>
+  <li>Type their <strong>Name</strong> and <strong>Phone</strong>. The phone number finds them at the till and is where texted receipts go.</li>
+  <li>Owners and managers can set a <strong>Credit limit</strong> in shillings. 0 means cash only; above 0 lets them buy on account.</li>
+  <li>Under <strong>More options</strong>, add their <strong>Email</strong>, <strong>Tax PIN</strong> (their KRA PIN, for tax invoices) and
+    <strong>Address</strong> (for deliveries and statements). Owners and managers also choose their <strong>Prices</strong> and how many days
+    they <strong>Pay within</strong>. There's room for <strong>Notes</strong> too.</li>
+  <li>Press <strong>Add customer</strong>.</li>
+</ol>
+<p>To change any of it later, open the customer and press <strong>Edit</strong>. The customer's KRA PIN appears on their tax invoices,
+  quotes and statements, and goes to KRA with the sale when eTIMS is connected.</p>
+
+<h2>Contractor and wholesale prices</h2>
+<p>Make a price list, such as Contractor, in <strong>Settings › Price lists</strong>, and give products their price on it under
+  <strong>Special prices</strong> on each product page (see <%= link_to "Products and the catalogue", help_article_path("products"), class: "link" %>).
+  Then set the customer's <strong>Prices</strong> to that list. Customers left on <strong>Retail</strong> pay the normal price.</p>
+
+<h2>Choosing a customer at the till</h2>
+<ol>
+  <li>At the top of the cart, press <strong>Change</strong> next to <strong>Customer</strong>.</li>
+  <li>Type part of their name or phone number and pick them. The cart is repriced at once with their price list, shown as a badge by
+    their name.</li>
+  <li>To go back to a cash sale, press <strong>Walk-in customer</strong>.</li>
+</ol>
+<p>If they're not there yet, press <strong>New customer</strong> under the search. The form opens with the name or phone number you
+  searched for. Fill in the rest and press <strong>Add and use on this sale</strong>: you're back at the till with the new customer on
+  the sale. <strong>Back to the till</strong> returns without adding them.</p>
+
+<h2>The customer page</h2>
+<p>Open a customer from the list (search by name or phone) to see:</p>
+<ul>
+  <li>Their <strong>Prices</strong>, what the customer <strong>Owes on account</strong> (and how much is overdue), <strong>Credit left</strong> and
+    how many days they pay within.</li>
+  <li><strong>Unpaid account sales</strong> with their due dates, and <strong>Payments on account</strong>.</li>
+  <li>Open quotes and orders, open jobs, and their <strong>Recent purchases</strong>.</li>
+</ul>
+<p>The buttons along the top are <strong>New quote</strong>, <strong>Statement</strong>, <strong>Record payment</strong> (when they owe
+  something) and, with contractor jobs switched on in <strong>Settings › Features</strong>, <strong>Add a job</strong>. When SMS is set up
+  and they owe money, <strong>Text a reminder</strong> sends their balance to their phone. A statement can also go by PDF, email or
+  WhatsApp.</p>
+
+<h2>Who owes us</h2>
+<p><strong>Customers › Who owes us</strong> lists every customer with a balance, split into not yet due, 1–30, 31–60, 61–90 and over 90
+  days late, with a <strong>Statement</strong> link for each. Owners, managers and accountants can see it.</p>
+
+<h2>More on customers</h2>
+<ul>
+  <li>Credit, quotes, deposits, payments and statements: <%= link_to "Customers on account, quotes and orders", help_article_path("customer-accounts"), class: "link" %>.</li>
+  <li>Tagging a contractor's purchases to a project: <%= link_to "Jobs for contractors", help_article_path("contractor-jobs"), class: "link" %>.</li>
+  <li>Sending receipts, quotes and statements to their phone: <%= link_to "Sending documents on WhatsApp", help_article_path("whatsapp"), class: "link" %>.</li>
+</ul>

@@ -8,13 +8,14 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
   # Controllers whose :id names a record of another model.
   MODEL_FOR_CONTROLLER = {
     "etims_devices" => "Etims::Device", "etims_submissions" => "Etims::Submission", "mpesa_shortcodes" => "Mpesa::Shortcode",
-    "pos/lines" => "SaleLine", "pos/mpesa_requests" => "Mpesa::StkRequest", "billings/mpesa_payments" => "Billing::Payment",
+    "pos/lines" => "SaleLine", "pos/mpesa_requests" => "Mpesa::StkRequest", "pos/airtel_requests" => "Airtel::Request",
+    "airtel_merchants" => "Airtel::Merchant", "billings/mpesa_payments" => "Billing::Payment",
     "billings/invoices" => "Billing::Invoice", "customer_orders" => "CustomerOrder", "delivery_notes" => "DeliveryNote",
     "orders" => "CustomerOrder", "products/prices" => "PriceListItem", "products/components" => "KitComponent",
     "stock_counts/lines" => "StockCountLine", "deliveries" => "DeliveryNote", "returns" => "SaleReturn", "sale_returns" => "SaleReturn"
   }.freeze
   MODEL_FOR_PARAM = { "mpesa_shortcode_id" => "Mpesa::Shortcode", "etims_device_id" => "Etims::Device", "etims_submission_id" => "Etims::Submission",
-    "delivery_id" => "WebhookDelivery", "line_id" => "StockCountLine" }.freeze
+    "delivery_id" => "WebhookDelivery", "airtel_merchant_id" => "Airtel::Merchant", "line_id" => "StockCountLine" }.freeze
 
   setup { build_victim_records }
 
@@ -101,6 +102,8 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
           sale.add(products(:acme_nails), quantity: 4)
           sale.pay(tender: "on_account", credit_approver: users(:amina))
           sale.reload
+          acme.airtel_merchants.create!(name: "Airtel Money", environment: "simulator")
+            .requests.create!(account: acme, sale: sale, phone: "254733000111", amount_cents: 100_00)
           acme.sale_returns.create!(sale: sale, shift: shift, refund_method: "cash", approver: users(:amina),
             lines_attributes: [ { sale_line: sale.lines.first, quantity: 1, restock: true } ])
           acme.delivery_notes.create!(sale: sale, address: "Plot 12, Mombasa Road")

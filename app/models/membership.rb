@@ -116,6 +116,24 @@ class Membership < ApplicationRecord
     end
   end
 
+  # A shop can reset two-factor only for someone whose sole shop it is: a person's sign-in is shared by every
+  # shop they work for, so one shop mustn't weaken it for the others. HardPoint support can reset anyone's.
+  def two_factor_resettable_by_shop?
+    Account.without_isolation { user.memberships.count } == 1
+  end
+
+  # For someone who has lost their phone and their recovery codes. They're signed out everywhere, told by
+  # email, and set two-factor up again on their next sign-in if the shop requires it.
+  def reset_two_factor(administrator: nil)
+    return false unless user.two_factor_enabled?
+
+    user.disable_two_factor
+    Account.without_isolation { user.sessions.destroy_all }
+    track_event "two_factor_reset", administrator: administrator&.email_address
+    MembershipsMailer.with(membership: self, by: administrator ? "HardPoint support" : Current.user&.name).two_factor_reset.deliver_later
+    true
+  end
+
   def pin_role?
     role.in?(PIN_ROLES)
   end

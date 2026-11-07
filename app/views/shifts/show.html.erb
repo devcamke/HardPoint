@@ -35,8 +35,8 @@
   <% takings = @report.takings_by_tender %>
   <% Payment::TENDERS.each do |tender| %>
     <%# Foreign cash and points only show on tills that take them. %>
-    <% next if tender.in?(%w[ foreign_cash points ]) && !takings.key?(tender) %>
-    <%= row.(tender == "deposit" ? "Deposits used" : tender.humanize, money(takings.fetch(tender, 0))) %>
+    <% next if tender.in?(%w[ foreign_cash points airtel_money ]) && !takings.key?(tender) %>
+    <%= row.({ "deposit" => "Deposits used", "mobile_money" => "M-Pesa", "airtel_money" => "Airtel Money" }.fetch(tender, tender.humanize), money(takings.fetch(tender, 0))) %>
   <% end %>
 
   <% if @report.deposits_by_tender.any? || @report.account_payments_by_method.any? %>

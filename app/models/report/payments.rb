@@ -5,7 +5,7 @@ class Report::Payments < Report
   self.description = "Takings by day and method, refunds, deposits and payments on account"
   self.group = "Sales and money"
 
-  TENDER_LABELS = { "cash" => "Cash", "mobile_money" => "M-Pesa", "card" => "Card", "on_account" => "On account", "deposit" => "Deposits used", "foreign_cash" => "Foreign cash", "points" => "Points" }.freeze
+  TENDER_LABELS = { "cash" => "Cash", "mobile_money" => "M-Pesa", "airtel_money" => "Airtel Money", "card" => "Card", "on_account" => "On account", "deposit" => "Deposits used", "foreign_cash" => "Foreign cash", "points" => "Points" }.freeze
 
   def sections
     [ Section.new(title: "Takings by day", columns: day_columns, rows: day_rows, totals: day_totals,
@@ -21,6 +21,7 @@ class Report::Payments < Report
         case tender
         when "foreign_cash" then account.currencies.exists? || takings.keys.any? { _2 == tender }
         when "points" then takings.keys.any? { _2 == tender }
+        when "airtel_money" then account.airtel_merchants.exists? || takings.keys.any? { _2 == tender }
         else true
         end
       end

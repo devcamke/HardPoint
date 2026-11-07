@@ -1,0 +1,54 @@
+<p>Customers who use Airtel Money can pay at the till the same way M-Pesa customers do: a prompt on their phone, or a transaction ID the
+  cashier types in. You need an Airtel Money merchant account and API access from Airtel Africa.</p>
+
+<h2>Connecting your merchant account</h2>
+<ol>
+  <li>Register on Airtel Africa's developer portal and create an app for collections in Kenya. Airtel gives you a <strong>client ID</strong>
+    and a <strong>client secret</strong>: first for the sandbox (test money), then for production once Airtel approves you.</li>
+  <li>In HardPoint, open <strong>Settings › Airtel Money</strong> and press <strong>Add Airtel Money</strong>.</li>
+  <li>Give it a name, choose <strong>Sandbox</strong> or <strong>Production</strong>, and type your merchant or till number if you want it
+    shown to cashiers. Paste the client ID and secret. They're stored encrypted and never shown again.</li>
+  <li>Choose the branch it's for, or leave it for <strong>every branch without its own</strong>.</li>
+  <li>Press <strong>Test connection</strong>. If it says it's connected, the keys are right.</li>
+  <li>Copy the <strong>callback address</strong> shown on the page into your app on Airtel's developer portal. That's how Airtel tells
+    HardPoint a customer has paid. Keep it private: it identifies your shop.</li>
+</ol>
+<p>Only the shop's owner can connect Airtel Money. To stop taking it, edit the account and untick <strong>In use</strong>.</p>
+
+<h2>Taking a payment with a prompt</h2>
+<ol>
+  <li>Ring up the sale and choose <strong>Airtel</strong> among the payment methods. It's there once Airtel Money is connected for the branch.</li>
+  <li>Type the customer's Airtel number (for example 0733 000 111) and press <strong>Send prompt</strong>. The amount is rounded up to the
+    next whole shilling.</li>
+  <li>The customer gets a message on their phone and enters their Airtel Money PIN. The till waits and completes the sale by itself when
+    Airtel confirms, then prints the receipt with the Airtel Money transaction ID.</li>
+  <li>If the customer declines, has too little money or doesn't answer within a few minutes, the till says so. Try again, or take
+    another payment method.</li>
+</ol>
+<p>Press <strong>Stop waiting</strong> if the customer walks away. If they pay anyway, the money isn't lost: see below.</p>
+
+<h2>Typing a transaction ID instead</h2>
+<p>If the customer has already paid your merchant number from their phone, choose <strong>Airtel</strong>, type the transaction ID
+  from their confirmation message in the <strong>Code</strong> box and press <strong>Take payment</strong>. The ID is required, so every Airtel payment can be
+  traced. This also works on the offline till.</p>
+
+<h2>Money that arrived after the till stopped waiting</h2>
+<p>When a prompt is paid after the cashier stopped waiting, the payment shows on the till under <strong>Received on Airtel Money, not used
+  yet</strong>, with the time, phone number and amount. Press <strong>Use</strong> next to it to put it on the current sale. Each payment
+  can be used once.</p>
+
+<h2>Refunds, deposits and accounts</h2>
+<p>Airtel Money is a payment method for order deposits, customers paying their accounts, paying suppliers and refunds on returns. A refund
+  recorded as Airtel Money is a note of how you paid the customer back; send the money from your Airtel merchant account yourself.</p>
+
+<h2>Reports and tax</h2>
+<p>Airtel Money has its own line in <strong>Payments by method</strong>, on the X and Z reports and in the daily summary email. KRA eTIMS
+  receives it as a mobile money payment, and the QuickBooks export posts it to its own account.</p>
+
+<h2>If something goes wrong</h2>
+<ul>
+  <li><strong>"Couldn't connect"</strong> when testing: check you chose the environment (sandbox or production) that matches the keys.</li>
+  <li><strong>Prompts never arrive:</strong> check the number is an Airtel line and the customer's phone has signal.</li>
+  <li><strong>The till keeps waiting:</strong> HardPoint also asks Airtel directly after about 20 seconds, so a lost callback doesn't stop
+    the sale. Check the callback address on Airtel's portal matches the one in Settings.</li>
+</ul>

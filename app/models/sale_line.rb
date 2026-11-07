@@ -35,7 +35,8 @@ class SaleLine < ApplicationRecord
 
   # Lines from a customer order keep the price the customer was quoted.
   def reprice
-    return if customer_order_line_id
+    # Order lines keep the price agreed; transport keeps what the trip was charged at.
+    return if customer_order_line_id || transport?
     self.unit_price_cents = product_unit ? product_unit.effective_price_cents : product.price_cents_for(quantity: quantity, price_list: sale.price_list)
     apply_best_promotion
   end
@@ -47,9 +48,13 @@ class SaleLine < ApplicationRecord
     self.promotion, self.promotion_discount_cents = best || [ nil, 0 ]
   end
 
+  def transport?
+    product&.sku == Account::CatalogueDefaults::TRANSPORT_SKU
+  end
+
   # Whole units of a single product at the customer's price: what a mix-and-match bundle can take.
   def bundleable?
-    product_unit_id.nil? && customer_order_line_id.nil? && discount_cents.to_i.zero? && quantity >= 1
+    !transport? && product_unit_id.nil? && customer_order_line_id.nil? && discount_cents.to_i.zero? && quantity >= 1
   end
 
   def description

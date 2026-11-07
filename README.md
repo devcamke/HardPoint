@@ -13,7 +13,8 @@ KRA eTIMS built in. The till keeps selling when the internet drops. No shop can 
 ## What it does
 
 Each area below links to its guide in the help centre (`/help` on the public site), which is where shop staff learn
-to use it. For the full list of what each phase of the build added, see [docs/FEATURES.md](docs/FEATURES.md).
+to use it. All the guides are also in one document, [docs/USER_GUIDE.md](docs/USER_GUIDE.md). For the full list of what each
+phase of the build added, see [docs/FEATURES.md](docs/FEATURES.md).
 
 ### At the till
 
@@ -22,7 +23,7 @@ to use it. For the full list of what each phase of the build added, see [docs/FE
 - **Touch screens:** on a touch POS terminal, tablet or phone, staff tap through product categories, change quantities
   with + and −, and type amounts on an on-screen number pad. Buttons are finger-sized on touch screens, and phones show
   the products and the sale as two tabs.
-- **Payments** by cash with change, M-Pesa (a prompt to the customer's phone, or money paid to your Paybill), card,
+- **Payments** by cash with change, M-Pesa (a prompt to the customer's phone, or money paid to your Paybill), Airtel Money, card,
   foreign notes, on account, or a mix. Gap-free receipt numbers per branch.
 - **Discounts** within the shop's limit; bigger ones, voids, returns and going over a credit limit need a manager's
   **approval PIN**, which approves that one thing and signs nobody in.
@@ -36,7 +37,10 @@ to use it. For the full list of what each phase of the build added, see [docs/FE
 Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 [When the internet goes down](https://hardpoint.app/help/offline) ·
 [Tills and printers](https://hardpoint.app/help/tills-and-printers) ·
-[Promotions](https://hardpoint.app/help/promotions)
+[Promotions](https://hardpoint.app/help/promotions) ·
+[WhatsApp](https://hardpoint.app/help/whatsapp) ·
+[Shifts and cash](https://hardpoint.app/help/shifts-and-cash) ·
+[Returns and refunds](https://hardpoint.app/help/returns-and-refunds)
 
 ![Till](docs/screenshots/43-till-cart.png)
 
@@ -49,9 +53,11 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
   marked-up bill for their client.
 - **An online store** at `yourshop.hardpoint.app/store` for click-and-collect, paid ahead by M-Pesa or on collection.
 
-Guides: [Customers on account](https://hardpoint.app/help/customer-accounts) ·
+Guides: [Customers](https://hardpoint.app/help/customers) ·
+[Customers on account](https://hardpoint.app/help/customer-accounts) ·
 [Jobs for contractors](https://hardpoint.app/help/contractor-jobs) ·
-[Online store](https://hardpoint.app/help/online-store)
+[Online store](https://hardpoint.app/help/online-store) ·
+[Deliveries and transport](https://hardpoint.app/help/deliveries)
 
 ### Stock and purchasing
 
@@ -65,25 +71,31 @@ Guides: [Customers on account](https://hardpoint.app/help/customer-accounts) ·
   suppliers with debit notes.
 - **HardPoint Stock** on the phone: look up, count and check deliveries in with the camera.
 
-Guides: [Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes) ·
+Guides: [Products](https://hardpoint.app/help/products) ·
+[Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes) ·
 [Buying from suppliers](https://hardpoint.app/help/buying-from-suppliers) ·
 [Importing products](https://hardpoint.app/help/importing-products) ·
 [Stock on your phone](https://hardpoint.app/help/stock-on-your-phone) ·
-[Batches and expiry](https://hardpoint.app/help/batches-and-expiry)
+[Batches and expiry](https://hardpoint.app/help/batches-and-expiry) ·
+[Changing prices](https://hardpoint.app/help/changing-prices)
 
 ![Stock › Reorder](docs/screenshots/311-reorder.png)
 
 ### Money, tax and reports
 
-- **M-Pesa (Daraja)** on the shop's own Paybill or Till, with a reconciliation report.
+- **M-Pesa (Daraja)** on the shop's own Paybill or Till, with a reconciliation report, and **Airtel Money** prompts.
+- **WhatsApp** buttons on receipts, quotes, statements, purchase orders and delivery notes.
+- **Bulk price changes** by category, brand or supplier, with rounding and a preview, and **transport charges** on deliveries.
 - **KRA eTIMS (OSCU)**, one control unit per branch: every sale signed, KRA's QR code on the receipt, and retries when
   KRA is down. **SMS** through Africa's Talking for receipts, order updates and reminders.
 - **Foreign currencies** at the till and with importers, with a daily market rate.
 - **A live owner's dashboard** and **reports** for any period and branch, on screen, as CSV or as PDF: sales and margin,
-  profit and loss, VAT, payments, discounts and voids, stock valuation, dead stock and shifts. A daily summary email.
+  profit and loss, VAT, payments, discounts and voids, stock valuation, dead stock and shifts. A daily summary email,
+  and a **QuickBooks Online export**.
 
-Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [KRA eTIMS](https://hardpoint.app/help/etims) ·
-[Reports](https://hardpoint.app/help/reports) · [Currencies](https://hardpoint.app/help/foreign-currencies)
+Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://hardpoint.app/help/airtel-money) ·
+[KRA eTIMS](https://hardpoint.app/help/etims) · [Reports](https://hardpoint.app/help/reports) ·
+[QuickBooks Online](https://hardpoint.app/help/quickbooks) · [Currencies](https://hardpoint.app/help/foreign-currencies)
 
 ### Running the shop on HardPoint
 
@@ -99,6 +111,7 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [KRA eTIMS](https://hardpo
 
 Guides: [Setting up your shop](https://hardpoint.app/help/getting-started) ·
 [Finding your way around](https://hardpoint.app/help/getting-around) ·
+[Shop settings](https://hardpoint.app/help/shop-settings) · [Your profile](https://hardpoint.app/help/my-profile) ·
 [Staff and roles](https://hardpoint.app/help/staff-and-roles) · [Billing](https://hardpoint.app/help/billing) ·
 [Connecting apps](https://hardpoint.app/help/connecting-apps) · [Your data](https://hardpoint.app/help/your-data)
 
@@ -154,6 +167,7 @@ ending 0000 declines). Without Paystack keys, "Pay by card" goes to a simulated 
 | Document | For | What's in it |
 |---|---|---|
 | Help centre (`/help`, in `app/views/help`) | Shop owners and staff | How to set up and use every part of HardPoint |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Shop owners and staff, trainers | Every help guide in one document, to read, print or share. Generated from the help centre by `bin/rails help:export` |
 | Developer docs (`/developers`) | Developers connecting other apps | The REST API and webhooks, with signature checks in Ruby, Node.js and Python |
 | [docs/FEATURES.md](docs/FEATURES.md) | Everyone | What each phase of the build added, with screenshots |
 | [docs/PLAN.md](docs/PLAN.md) | The team | The original plan, decisions and the backlog |
@@ -217,7 +231,8 @@ needs its guide changed too.
 summary, section and related guides; the order is the reading order) and write its text in
 `app/views/help/articles/_<slug_with_underscores>.html.erb`, using `<h2>`, `<p>`, `<ul>` and `<ol>`. Search covers
 the text, and each guide links on to the next one in its section. Write for someone at the counter: what to press,
-in the order they press it, using the words on the screen.
+in the order they press it, using the words on the screen. After adding or changing a guide, run
+`bin/rails help:export` to rebuild [docs/USER_GUIDE.md](docs/USER_GUIDE.md); a test fails until you do.
 
 Load testing (k6) is in [perf/README.md](perf/README.md); backups, restores and incidents in
 [docs/RUNBOOK.md](docs/RUNBOOK.md).

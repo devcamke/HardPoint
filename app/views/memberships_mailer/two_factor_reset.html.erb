@@ -1,0 +1,9 @@
+<p>Hi <%= @user.name %>,</p>
+
+<p><%= @by || "Someone" %> turned off two-factor sign-in on your HardPoint account at <strong><%= @account.name %></strong>, because you'd lost
+  your phone. You've been signed out everywhere.</p>
+
+<p>Sign in again at <%= link_to new_session_url(subdomain: @account.subdomain), new_session_url(subdomain: @account.subdomain) %> with your
+  password, then set up two-factor again under <strong>My profile</strong> with your new phone.</p>
+
+<p>If you didn't ask for this, tell the shop's owner straight away and change your password with "Forgot password?" on the sign-in page.</p>
