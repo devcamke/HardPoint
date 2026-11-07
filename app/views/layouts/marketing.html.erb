@@ -3,7 +3,7 @@
   <head>
     <title><%= [ content_for(:title), "HardPoint · Point of sale for hardware stores" ].compact.join(" · ") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="<%= content_for(:description) || "Point of sale, stock control, M-Pesa and KRA eTIMS for Kenyan hardware stores. Works offline. 30-day free trial." %>">
+    <meta name="description" content="<%= content_for(:description) || "Point of sale, stock control, M-Pesa and KRA eTIMS for Kenyan hardware stores. Works offline. #{Plan::TRIAL.inspect.sub(" ", "-").chomp("s")} free trial." %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="icon" href="/icon.png" type="image/png">

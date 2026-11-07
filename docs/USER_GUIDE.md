@@ -343,7 +343,7 @@ The till is a full-screen page made for a barcode scanner and a busy counter. Op
 
 1. **Scan or search.** Scan a barcode and it's in the sale. No scanner? Type a few letters of the name or SKU and press the product. F2 brings you back here.
 2. **Browse by category.** Quick picks are your best sellers. Press a category to see everything in it, handy on a touch screen.
-3. **Tap to add.** Each button shows the price and how many you have at this branch. Pack sizes, like a box of screws, have their own button underneath.
+3. **Tap to add.** Each button shows the price and how many you have at this branch. Tap one and a box asks how many, with 1 ready to confirm. Pack sizes, like a box of screws, have their own button underneath.
 4. **Who's buying?** Walk-in by default. Press Change to choose a customer, so their prices, credit and KRA PIN go on the receipt.
 5. **The sale.** Change a quantity with − and +, or type it. Discount gives money off one line, and × removes it.
 6. **Totals and discount.** Press Discount for money off the whole sale, as an amount or a percentage. Over your shop's limit, a manager types their approval PIN.
