@@ -20,6 +20,7 @@
      ] if current_membership.can_manage_staff?).to_a,
      "Payments and tax" => ([
        [ "M-Pesa", mpesa_shortcodes_path, "Paybill or Till: prompts to pay from the till, payments received" ],
+       [ "Airtel Money", airtel_merchants_path, "Prompts to pay with Airtel Money from the till" ],
        [ "KRA eTIMS", etims_devices_path, "Send sales to KRA and print signed receipts" ],
        [ "SMS", edit_account_path(anchor: "sms"), "Text receipts, order updates and balance reminders" ]
      ] if current_membership.can_manage_account?).to_a + ([

@@ -1,0 +1,7 @@
+<div class="mb-3 rounded-lg border-2 border-primary-500 bg-primary-50 p-3" data-controller="mpesa-poll"
+     data-mpesa-poll-url-value="<%= pos_airtel_request_path(airtel_request, format: :json) %>">
+  <p class="flex items-center gap-2 font-semibold"><span class="size-3 animate-pulse rounded-full bg-primary-500"></span>
+    Waiting for <%= PhoneNumber.display(airtel_request.phone) %> to enter their Airtel Money PIN</p>
+  <p class="mt-1 text-sm"><%= money(airtel_request.whole_shillings * 100) %> with <%= airtel_request.merchant.label %>. The sale completes by itself once they've paid.</p>
+  <%= button_to "Stop waiting", pos_airtel_request_path(airtel_request), method: :delete, class: "link mt-2 text-sm" %>
+</div>

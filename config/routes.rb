@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   post "webhooks/billing/mpesa/:token", to: "webhooks/billing_mpesa#create", as: :billing_mpesa_webhook
   post "webhooks/paystack", to: "webhooks/paystack#create", as: :paystack_webhook
 
+  # Callbacks from Airtel, on any host; the shop is found by the secret token in the path.
+  post "webhooks/airtel/:token", to: "webhooks/airtel#create", as: :airtel_webhook
+
   # Callbacks from Safaricom, on any host. The shop is found by the secret token in the path.
   scope "webhooks/mpesa/:token", controller: "webhooks/mpesa", as: :mpesa_webhook do
     post "stk", action: :stk, as: :stk
@@ -183,6 +186,8 @@ Rails.application.routes.draw do
       resources :parked_sales, only: :index
       resource :discard, only: :create
       resources :mpesa_requests, only: %i[ create show destroy ]
+      resources :airtel_requests, only: %i[ create show destroy ]
+      resources :airtel_matches, only: :create
       resources :mpesa_matches, only: :create
       resource :catalogue, only: :show
       resources :offline_sales, only: %i[ new create ]
@@ -270,6 +275,9 @@ Rails.application.routes.draw do
     end
 
     # Integrations
+    resources :airtel_merchants, path: "airtel", except: %i[ show destroy ] do
+      resource :connection_test, only: :create, module: :airtel_merchants
+    end
     resources :mpesa_shortcodes, path: "mpesa", except: %i[ show destroy ] do
       scope module: :mpesa_shortcodes do
         resource :connection_test, only: :create

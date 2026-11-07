@@ -85,7 +85,7 @@ module Sale::Offline
         tender, intended = payment["tender"].to_s, payment["amount_cents"]&.to_i
         # Cash pays what the till charged it with.
         taken = pay(tender: tender, amount_cents: intended, tendered_cents: payment["tendered_cents"]&.to_i,
-          reference: payment["reference"].presence || (tender == "mobile_money" ? "OFFLINE" : nil), cash_limit_cents: (intended if tender == "cash"))
+          reference: payment["reference"].presence || (tender.in?(%w[ mobile_money airtel_money ]) ? "OFFLINE" : nil), cash_limit_cents: (intended if tender == "cash"))
         if taken.errors.any?
           offline_warnings << "#{taken.label} payment not recorded: #{taken.errors.full_messages.to_sentence}"
         end

@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 import { Turbo } from "@hotwired/turbo-rails"
 
-// While a customer is answering an M-Pesa prompt, asks the server every few seconds whether they
+// While a customer is answering an M-Pesa or Airtel Money prompt, asks the server every few seconds whether they
 // have, then reloads the till (or shows the finished sale).
 export default class extends Controller {
   static values = { url: String }

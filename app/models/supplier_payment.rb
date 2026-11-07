@@ -1,7 +1,7 @@
 class SupplierPayment < ApplicationRecord
   include AccountOwned, Monetary
 
-  METHODS = %w[ bank_transfer mobile_money cheque cash ].freeze
+  METHODS = %w[ bank_transfer mobile_money airtel_money cheque cash ].freeze
 
   belongs_to :supplier
   belongs_to :creator, class_name: "User", default: -> { Current.user }, optional: true

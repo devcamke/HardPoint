@@ -44,7 +44,7 @@
     <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
       <h2 class="font-medium"><%= pluralize(change.rows.size, "price") %> will change · <%= change.description %>, <%= change.change_description %></h2>
       <% if change.rows.any? %>
-        <%= button_to "Apply to #{pluralize(change.rows.size, "price")}", price_changes_path, params: { price_change: params.require(:price_change).permit!.to_h },
+        <%= button_to "Apply to #{pluralize(change.rows.size, "price")}", price_changes_path, params: { price_change: change.attributes },
               class: "btn-primary", form: { data: { turbo_confirm: "Change #{pluralize(change.rows.size, "price")}?" } } %>
       <% end %>
     </div>

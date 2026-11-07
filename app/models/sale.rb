@@ -20,6 +20,7 @@ class Sale < ApplicationRecord
   belongs_to :job, optional: true
   has_many :delivery_notes, dependent: :restrict_with_error
   has_many :stk_requests, class_name: "Mpesa::StkRequest", dependent: :destroy
+  has_many :airtel_requests, class_name: "Airtel::Request", dependent: :destroy
   has_one :etims_submission, -> { where(kind: "sale") }, class_name: "Etims::Submission", as: :document
   has_many :lines, -> { order(:id) }, class_name: "SaleLine", dependent: :destroy, inverse_of: :sale
   has_many :sale_returns, dependent: :restrict_with_error

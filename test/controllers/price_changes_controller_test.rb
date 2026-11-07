@@ -15,6 +15,12 @@ class PriceChangesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#preview td", "KES 865.00"
     assert_equal 80000, acme { products(:acme_cement).reload.price_cents }, "a preview changes nothing"
 
+    assert_select "#preview form[action='#{price_changes_path}']" do
+      assert_select "input[name='price_change[target]'][value='category:#{categories(:acme_building).id}']"
+      assert_select "input[name='price_change[round_to]'][value='500']"
+      assert_select "input[name='price_change[include_price_lists]'][value='false']"
+    end
+
     post price_changes_path, params: params
     assert_redirected_to products_path
     assert_equal 86500, acme { products(:acme_cement).reload.price_cents }

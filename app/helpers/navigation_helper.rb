@@ -68,7 +68,7 @@ module NavigationHelper
       menu += [ [ "Staff", memberships_path ], [ "Activity", events_path ] ] if current_membership&.can_manage_staff?
       App.new(:settings, "Settings", settings_path, "#6c757d", :settings, menu,
         %w[ /account /account_data /account_exports /billing /onboarding /storefront /developers /api_keys /webhook_endpoints
-            /mpesa /etims /texts /currencies /features /categories /brands /units /tax_rates /price_lists /memberships /events ])
+            /mpesa /airtel /etims /texts /currencies /features /categories /brands /units /tax_rates /price_lists /memberships /events ])
     end
   end
 

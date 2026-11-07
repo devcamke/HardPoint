@@ -45,6 +45,9 @@ class Account < ApplicationRecord
   has_many :mpesa_shortcodes, class_name: "Mpesa::Shortcode", dependent: :destroy
   has_many :mpesa_stk_requests, class_name: "Mpesa::StkRequest", dependent: :destroy
   has_many :mpesa_transactions, class_name: "Mpesa::Transaction", dependent: :destroy
+  # Prompts first: a merchant isn't removed while it has any.
+  has_many :airtel_requests, class_name: "Airtel::Request", dependent: :delete_all
+  has_many :airtel_merchants, class_name: "Airtel::Merchant", dependent: :destroy
   has_many :etims_devices, class_name: "Etims::Device", dependent: :destroy
   has_many :etims_submissions, class_name: "Etims::Submission", dependent: :destroy
   has_many :sms_messages, class_name: "Sms::Message", dependent: :delete_all

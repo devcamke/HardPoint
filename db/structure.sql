@@ -284,6 +284,92 @@ ALTER SEQUENCE public.admin_sessions_id_seq OWNED BY public.admin_sessions.id;
 
 
 --
+-- Name: airtel_merchants; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.airtel_merchants (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint,
+    name character varying NOT NULL,
+    environment character varying DEFAULT 'sandbox'::character varying NOT NULL,
+    merchant_number character varying,
+    client_id text,
+    client_secret text,
+    callback_token character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.airtel_merchants FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: airtel_merchants_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.airtel_merchants_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: airtel_merchants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.airtel_merchants_id_seq OWNED BY public.airtel_merchants.id;
+
+
+--
+-- Name: airtel_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.airtel_requests (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    merchant_id bigint NOT NULL,
+    sale_id bigint NOT NULL,
+    payment_id bigint,
+    requested_by_id bigint,
+    phone character varying NOT NULL,
+    amount_cents bigint NOT NULL,
+    transaction_id character varying NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    airtel_money_id character varying,
+    result_code character varying,
+    result_description character varying,
+    resolved_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.airtel_requests FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: airtel_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.airtel_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: airtel_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.airtel_requests_id_seq OWNED BY public.airtel_requests.id;
+
+
+--
 -- Name: announcements; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3211,6 +3297,20 @@ ALTER TABLE ONLY public.admin_sessions ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: airtel_merchants id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_merchants ALTER COLUMN id SET DEFAULT nextval('public.airtel_merchants_id_seq'::regclass);
+
+
+--
+-- Name: airtel_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_requests ALTER COLUMN id SET DEFAULT nextval('public.airtel_requests_id_seq'::regclass);
+
+
+--
 -- Name: announcements id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3754,6 +3854,22 @@ ALTER TABLE ONLY public.active_storage_variant_records
 
 ALTER TABLE ONLY public.admin_sessions
     ADD CONSTRAINT admin_sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: airtel_merchants airtel_merchants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_merchants
+    ADD CONSTRAINT airtel_merchants_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: airtel_requests airtel_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_requests
+    ADD CONSTRAINT airtel_requests_pkey PRIMARY KEY (id);
 
 
 --
@@ -4424,6 +4540,62 @@ CREATE INDEX index_admin_sessions_on_user_id ON public.admin_sessions USING btre
 
 
 --
+-- Name: index_airtel_merchants_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_airtel_merchants_on_account_id ON public.airtel_merchants USING btree (account_id);
+
+
+--
+-- Name: index_airtel_merchants_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_airtel_merchants_on_branch_id ON public.airtel_merchants USING btree (branch_id);
+
+
+--
+-- Name: index_airtel_merchants_on_callback_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_airtel_merchants_on_callback_token ON public.airtel_merchants USING btree (callback_token);
+
+
+--
+-- Name: index_airtel_requests_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_airtel_requests_on_account_id_and_created_at ON public.airtel_requests USING btree (account_id, created_at);
+
+
+--
+-- Name: index_airtel_requests_on_merchant_id_and_transaction_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_airtel_requests_on_merchant_id_and_transaction_id ON public.airtel_requests USING btree (merchant_id, transaction_id);
+
+
+--
+-- Name: index_airtel_requests_on_payment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_airtel_requests_on_payment_id ON public.airtel_requests USING btree (payment_id);
+
+
+--
+-- Name: index_airtel_requests_on_requested_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_airtel_requests_on_requested_by_id ON public.airtel_requests USING btree (requested_by_id);
+
+
+--
+-- Name: index_airtel_requests_on_sale_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_airtel_requests_on_sale_id ON public.airtel_requests USING btree (sale_id);
+
+
+--
 -- Name: index_api_idempotency_keys_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4764,6 +4936,13 @@ CREATE INDEX index_delivery_notes_on_creator_id ON public.delivery_notes USING b
 --
 
 CREATE INDEX index_delivery_notes_on_sale_id ON public.delivery_notes USING btree (sale_id);
+
+
+--
+-- Name: index_delivery_notes_on_transport_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delivery_notes_on_transport_order_id ON public.delivery_notes USING btree (transport_order_id) WHERE (transport_order_id IS NOT NULL);
 
 
 --
@@ -6113,6 +6292,14 @@ ALTER TABLE ONLY public.supplier_return_lines
 
 
 --
+-- Name: airtel_requests fk_rails_0324adcb9e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_requests
+    ADD CONSTRAINT fk_rails_0324adcb9e FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: stock_count_lines fk_rails_039c3d997e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6209,6 +6396,14 @@ ALTER TABLE ONLY public.stock_transfer_lines
 
 
 --
+-- Name: airtel_merchants fk_rails_12c5588126; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_merchants
+    ADD CONSTRAINT fk_rails_12c5588126 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
 -- Name: supplier_returns fk_rails_13b907b733; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6262,6 +6457,14 @@ ALTER TABLE ONLY public.shifts
 
 ALTER TABLE ONLY public.events
     ADD CONSTRAINT fk_rails_15c34a9137 FOREIGN KEY (creator_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: airtel_requests fk_rails_161c76cbcb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_requests
+    ADD CONSTRAINT fk_rails_161c76cbcb FOREIGN KEY (payment_id) REFERENCES public.payments(id) DEFERRABLE;
 
 
 --
@@ -6782,6 +6985,14 @@ ALTER TABLE ONLY public.shifts
 
 ALTER TABLE ONLY public.customer_order_lines
     ADD CONSTRAINT fk_rails_65d173b232 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: airtel_requests fk_rails_66fb7058c1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_requests
+    ADD CONSTRAINT fk_rails_66fb7058c1 FOREIGN KEY (requested_by_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -7353,6 +7564,14 @@ ALTER TABLE ONLY public.billing_invoices
 
 
 --
+-- Name: airtel_requests fk_rails_bee29d8de3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_requests
+    ADD CONSTRAINT fk_rails_bee29d8de3 FOREIGN KEY (merchant_id) REFERENCES public.airtel_merchants(id) DEFERRABLE;
+
+
+--
 -- Name: etims_item_registrations fk_rails_bf0a6f8617; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7422,6 +7641,22 @@ ALTER TABLE ONLY public.barcodes
 
 ALTER TABLE ONLY public.deposits
     ADD CONSTRAINT fk_rails_c92b54cb89 FOREIGN KEY (customer_order_id) REFERENCES public.customer_orders(id) DEFERRABLE;
+
+
+--
+-- Name: airtel_requests fk_rails_c9736f26f0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_requests
+    ADD CONSTRAINT fk_rails_c9736f26f0 FOREIGN KEY (sale_id) REFERENCES public.sales(id) DEFERRABLE;
+
+
+--
+-- Name: airtel_merchants fk_rails_ccdab62628; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.airtel_merchants
+    ADD CONSTRAINT fk_rails_ccdab62628 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -7835,6 +8070,20 @@ ALTER TABLE public.account_exports ENABLE ROW LEVEL SECURITY;
 --
 
 CREATE POLICY account_isolation ON public.account_exports USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: airtel_merchants account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.airtel_merchants USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: airtel_requests account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.airtel_requests USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -8314,6 +8563,18 @@ CREATE POLICY account_isolation ON public.webhook_endpoints USING (((current_set
 
 
 --
+-- Name: airtel_merchants; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.airtel_merchants ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: airtel_requests; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.airtel_requests ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: api_idempotency_keys; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8728,6 +8989,8 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107200000'),
+('20261107195000'),
 ('20261107190000'),
 ('20261107180000'),
 ('20261107170000'),

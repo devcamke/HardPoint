@@ -4,7 +4,7 @@
 class SaleReturn < ApplicationRecord
   include AccountOwned, Monetary
 
-  REFUND_METHODS = %w[ cash card mobile_money on_account ].freeze
+  REFUND_METHODS = %w[ cash card mobile_money airtel_money on_account ].freeze
 
   belongs_to :sale
   belongs_to :branch
