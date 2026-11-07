@@ -65,8 +65,8 @@ class HelpGuideExport
     end
 
     def href(href)
-      if (slug = href.to_s[%r{\A(?:https?://[^/]+)?/help/([\w-]+)\z}, 1])
-        "##{slug}"
+      if (match = href.to_s.match(%r{\A(?:https?://[^/]+)?/help/([\w-]+)(?:#([\w-]+))?\z}))
+        "##{match[2] || match[1]}"
       elsif href.to_s.start_with?("#")
         href
       else

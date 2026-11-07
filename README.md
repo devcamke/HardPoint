@@ -35,7 +35,9 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 [When the internet goes down](https://hardpoint.app/help/offline) ·
 [Tills and printers](https://hardpoint.app/help/tills-and-printers) ·
 [Promotions](https://hardpoint.app/help/promotions) ·
-[WhatsApp](https://hardpoint.app/help/whatsapp)
+[WhatsApp](https://hardpoint.app/help/whatsapp) ·
+[Shifts and cash](https://hardpoint.app/help/shifts-and-cash) ·
+[Returns and refunds](https://hardpoint.app/help/returns-and-refunds)
 
 ![Till](docs/screenshots/43-till-cart.png)
 
@@ -48,7 +50,8 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
   marked-up bill for their client.
 - **An online store** at `yourshop.hardpoint.app/store` for click-and-collect, paid ahead by M-Pesa or on collection.
 
-Guides: [Customers on account](https://hardpoint.app/help/customer-accounts) ·
+Guides: [Customers](https://hardpoint.app/help/customers) ·
+[Customers on account](https://hardpoint.app/help/customer-accounts) ·
 [Jobs for contractors](https://hardpoint.app/help/contractor-jobs) ·
 [Online store](https://hardpoint.app/help/online-store) ·
 [Deliveries and transport](https://hardpoint.app/help/deliveries)
@@ -65,7 +68,8 @@ Guides: [Customers on account](https://hardpoint.app/help/customer-accounts) ·
   suppliers with debit notes.
 - **HardPoint Stock** on the phone: look up, count and check deliveries in with the camera.
 
-Guides: [Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes) ·
+Guides: [Products](https://hardpoint.app/help/products) ·
+[Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes) ·
 [Buying from suppliers](https://hardpoint.app/help/buying-from-suppliers) ·
 [Importing products](https://hardpoint.app/help/importing-products) ·
 [Stock on your phone](https://hardpoint.app/help/stock-on-your-phone) ·
@@ -104,6 +108,7 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://har
 
 Guides: [Setting up your shop](https://hardpoint.app/help/getting-started) ·
 [Finding your way around](https://hardpoint.app/help/getting-around) ·
+[Shop settings](https://hardpoint.app/help/shop-settings) · [Your profile](https://hardpoint.app/help/my-profile) ·
 [Staff and roles](https://hardpoint.app/help/staff-and-roles) · [Billing](https://hardpoint.app/help/billing) ·
 [Connecting apps](https://hardpoint.app/help/connecting-apps) · [Your data](https://hardpoint.app/help/your-data)
 

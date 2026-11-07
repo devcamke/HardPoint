@@ -1,0 +1,71 @@
+<p>Everyone who uses HardPoint signs in with their own email address and password. This guide covers signing in, what's under
+  <strong>My profile</strong>, and what to do if you're locked out. Who can do what is in
+  <%= link_to "Staff, roles and PINs", help_article_path("staff-and-roles"), class: "link" %>.</p>
+
+<h2>Signing in</h2>
+<p>Every shop has its own web address, like <strong>yourshop.hardpoint.app</strong>. It's in your welcome email.</p>
+<ol>
+  <li>Go to your shop's address. If you only remember the HardPoint website, press <strong>Sign in</strong>, type your shop's name as it
+    appears in its address under <strong>Your shop's web address</strong> and press <strong>Continue</strong>.</li>
+  <li>Type your <strong>Email address</strong> and <strong>Password</strong> and press <strong>Sign in</strong>.</li>
+  <li>If you use two-factor sign-in, type the 6-digit code from your authenticator app and press <strong>Verify</strong>.</li>
+</ol>
+<p>You stay signed in on that computer or phone until you sign out.</p>
+
+<h2>Forgotten your password?</h2>
+<ol>
+  <li>On the sign-in page press <strong>Forgot password?</strong>.</li>
+  <li>Type your email address and press <strong>Email reset instructions</strong>.</li>
+  <li>Open the link in the email (it only works for a short while), type your new password twice and press <strong>Save</strong>.</li>
+</ol>
+<p>Choosing a new password signs you out everywhere, so sign in again with it. This is also how you change your password.</p>
+
+<h2>My profile</h2>
+<p>Open your name in the top right and choose <strong>My profile</strong>. It shows your name, email address and role, and these
+  sections, depending on your role:</p>
+<ul>
+  <li><strong>Two-factor sign-in</strong>, for everyone.</li>
+  <li><strong>Approval PIN</strong>, for owners and managers: press <strong>Set an approval PIN</strong>, type 4 to 6 digits and your
+    password. You type it at a cashier's till to approve a big discount, a void or a return. It doesn't sign you in.</li>
+  <li><strong>Till PIN</strong>, for cashiers and stock clerks: press <strong>Set a PIN</strong>, type 4 to 6 digits and your password,
+    then <strong>Save PIN</strong>. Use it with Switch user (below). <strong>Remove PIN</strong> turns it off.</li>
+  <li><strong>Daily summary email</strong>, for owners, managers and accountants: yesterday's takings, margin, best sellers, payments and
+    till counts, each morning at about 7:15. It's on to begin with; press <strong>Stop sending it</strong> to turn it off, or
+    <strong>Send it to me</strong> to turn it back on.</li>
+</ul>
+
+<h2>Two-factor sign-in</h2>
+<ol>
+  <li>Install an authenticator app, such as Google Authenticator or Microsoft Authenticator.</li>
+  <li>On My profile press <strong>Set up two-factor</strong> and scan the QR code with the app. If you can't scan it, type the key shown
+    under it.</li>
+  <li>Type the 6-digit code the app shows and press <strong>Turn on</strong>. If it doesn't match, check your phone sets its time
+    automatically.</li>
+  <li>HardPoint shows 10 <strong>recovery codes</strong>, once only. Write them down or print them, keep them away from your phone,
+    and press <strong>I've saved them</strong>.</li>
+</ol>
+<p>If you lose your phone, type a recovery code instead of the 6-digit code. Each works once; My profile shows how many are left. To turn
+  two-factor off, type your password and press <strong>Turn off two-factor</strong>. If the owner requires two-factor for owners and
+  managers, you'll be taken to set it up before you can do anything else.</p>
+
+<h2>Switch user</h2>
+<p>On a shared till, the next cashier or stock clerk doesn't need the password. Choose <strong>Switch user</strong> (under your name, or in
+  the till's top bar), tap your name, type your till PIN and press <strong>Switch in</strong>. The person before is signed out of that till.
+  Only people who have set a till PIN are listed.</p>
+
+<h2>Signing out</h2>
+<p>Open your name in the top right and choose <strong>Sign out</strong>.</p>
+
+<h2>If you're locked out</h2>
+<ul>
+  <li><strong>"Try another email address or password."</strong>: check both, or use Forgot password.</li>
+  <li><strong>"Try again later."</strong>: after too many tries in a few minutes, HardPoint stops you for a short time. Wait a few
+    minutes.</li>
+  <li><strong>"Please sign in again."</strong>: the two-factor step must be finished within 10 minutes of typing your password.</li>
+  <li><strong>Till PIN locked</strong>: five wrong PINs lock it. Sign in with your password and set a new PIN on My profile to unlock it.</li>
+  <li>If the shop is being closed, only its owners can sign in.</li>
+</ul>
+
+<h2>On your phone</h2>
+<p>Your shop's address works in a phone's browser too. For stock work, see
+  <%= link_to "Stock on your phone", help_article_path("stock-on-your-phone"), class: "link" %>.</p>

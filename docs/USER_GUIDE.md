@@ -9,6 +9,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 
 - [Setting up your shop](#getting-started): The first afternoon: branches, taxes, products, staff and a test receipt.
 - [Finding your way around](#getting-around): The six areas, Home, search, filtering lists, Group By, Settings and where Help is.
+- [Shop settings, branches and text messages](#shop-settings): Your shop's name, time zone and receipt footer, branches and their receipt codes, tills, features, and texting customers.
 - [Importing products from a spreadsheet](#importing-products): Bring in your whole price list at once, and update prices later the same way.
 - [Staff, roles and PINs](#staff-and-roles): Who can do what, quick switching with a PIN, and approving discounts.
 - [Tills, receipt printers and cash drawers](#tills-and-printers): Printing from the browser, or silently through QZ Tray, and opening the drawer.
@@ -16,12 +17,15 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 **At the till**
 
 - [Selling at the till](#selling): Opening a shift, scanning, discounts, parking a sale, taking payment, returns and closing up.
+- [Shifts, cash and closing up](#shifts-and-cash): Opening with a float, cash drops and payouts, the X report, the blind count at close, over or short, and the Z report.
+- [Returns, refunds and voids](#returns-and-refunds): Taking goods back against a receipt, restocking or writing off, refund methods, approval PINs, and voiding a sale rung up by mistake.
 - [When the internet goes down](#offline): How the till keeps selling offline and sends the sales when it's back.
 - [Sending documents on WhatsApp](#whatsapp): Receipts, quotes, statements, purchase orders and delivery notes, sent from your own WhatsApp with a link.
 - [Promotions and offers](#promotions): Percentages off, "buy 10, get 1 free" and mix-and-match bundles, applied by the till by itself.
 
 **Customers and orders**
 
+- [Customers](#customers): Adding customers with their KRA PIN and prices, choosing them at the till, and what the customer page shows.
 - [Customers on account, quotes and orders](#customer-accounts): Credit limits, deposits, statements and delivery notes.
 - [Deliveries and transport charges](#deliveries): Charging transport at the till or afterwards, delivery notes, and tracking the lorry to site.
 - [Jobs for contractors](#contractor-jobs): Tag what contractors buy to their projects (online or offline), track it against a budget, and print a cost summary or a bill for their client.
@@ -29,6 +33,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 
 **Stock and purchasing**
 
+- [Products and the catalogue](#products): Adding products, barcodes and pack sizes, loose goods, kits, special prices and quantity breaks, and printing shelf labels.
 - [Changing many prices at once](#changing-prices): Raising or lowering prices for a category, brand or supplier, with rounding and a preview.
 - [Stock levels, transfers and stock takes](#stock-and-stock-takes): Adjusting stock, moving it between branches, counting it, and the reorder list.
 - [Buying from suppliers](#buying-from-suppliers): Purchase orders, receiving deliveries, reorder suggestions, supplier invoices and what you owe.
@@ -47,6 +52,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 
 **Your account**
 
+- [Your profile and signing in](#my-profile): Signing in at your shop's address, forgotten passwords, two-factor and recovery codes, PINs, Switch user and the daily email.
 - [Plans, billing and read-only mode](#billing): Your free trial, paying HardPoint, changing plan and what happens if an invoice is late.
 - [Connecting a web shop or other apps](#connecting-apps): API keys and webhooks, for the developer who connects your web shop or accounts.
 - [Exporting your data and closing your account](#your-data): Download everything, and what happens when a shop is closed.
@@ -146,13 +152,75 @@ Owners choose what their shop uses in **Settings › Features**: deliveries, pro
 
 **Help** opens these guides. If you're stuck, **Contact support** (under your name) sends us a message with the page you were on, so we can see what you see. Or chat with us on WhatsApp.
 
+<a id="shop-settings"></a>
+
+### Shop settings, branches and text messages
+
+_Your shop's name, time zone and receipt footer, branches and their receipt codes, tills, features, and texting customers._
+
+Most of what you set up once lives in **Settings** (the gear in the top bar): your shop's name and time zone, your branches and tills, the features you use, and text messages to customers. Shop details, Features and SMS are for the shop's owner; owners and managers look after branches and tills.
+
+#### Shop details
+
+Open **Settings › Shop details**. The page is called **Shop settings** and holds:
+
+- **Business name**: printed on receipts and used in emails and texts.
+- **Time zone**: sets when your day starts and ends for reports, shifts and the daily email.
+- **Currency (ISO code)**: three letters, such as KES.
+- **Largest discount a cashier can give without approval (%)**: see [Staff, roles and PINs](#staff-and-roles).
+- **Receipt footer**: a line or two at the bottom of receipts, emailed receipts and invoices, for example your returns policy or KRA PIN. The footer is also sent to KRA eTIMS (the first 100 characters).
+- **Require two-factor sign-in for owners and managers**: once ticked, owners and managers without it are asked to set it up the next time they use HardPoint.
+
+The page also shows your shop's web address. To change it, contact support. Press **Save settings** when you're done.
+
+#### Branches
+
+**Settings › Branches** lists your locations. Owners and managers can press **Add branch** and give it a **Name**, **Address** and **Phone**. These are printed at the top of its receipts.
+
+- Each branch gets a **Receipt code** made from the first letters of its name. Its receipt numbers start with it, for example MOI-000123. Press **Edit** to change it: 1 to 6 letters or numbers.
+- Each branch has its own tills, stock levels, sales, orders, purchase orders and stock takes. M-Pesa, Airtel Money and KRA eTIMS can be set up per branch too.
+- **Remove branch**, on its edit page, only works for a branch with no tills and no sales.
+- How many branches and tills you can have depends on your plan: see [Plans, billing and read-only mode](#billing).
+
+#### Tills
+
+**Settings › Tills** lists each point of sale and its branch. Owners and managers press **Add till**, give it a name (such as Front counter), pick the branch and choose how receipts print. Untick **In use** to retire a till. Printers and cash drawers are explained in [Tills, receipt printers and cash drawers](#tills-and-printers).
+
+#### Features
+
+**Settings › Features** switches parts of HardPoint on and off: deliveries, promotions, foreign currencies, the online store, contractor jobs, batches and expiry dates, serial numbers, and the API. Press **Save features** after changing them. See [Switching features on and off](#features).
+
+#### Text messages (SMS)
+
+HardPoint can text customers through Africa's Talking. To turn it on:
+
+1. Open **Settings › SMS**. It takes you to the bottom of Shop details.
+2. Tick **Send texts to customers (SMS)** and press **Save settings**.
+
+Once it's on:
+
+- **Receipts**: after a sale, type the customer's number in **Text receipt to…** and press **Text**. On a past sale, use **Text the receipt**.
+- **Order ready**: on a customer order, **Mark ready and text** (with the customer's first name) tells them to come and collect, with anything left to pay. The customer needs a phone number.
+- **Balance reminders**: on a customer who owes money, **Text a reminder** sends their balance, what's overdue, and your Paybill if you have one. Owners, managers and accountants can send these.
+- **Online orders**: customers who order from your online store get a text saying you have their order.
+
+Texts only go to Kenyan mobile numbers. A shop can send up to 500 texts a day, so a mistake can't run up a bill.
+
+#### Seeing what was sent
+
+Under the SMS tick box, Shop details shows how many texts went this month and a **Texts sent** link. That page lists each text: when, to whom, what kind, the message, who sent it and whether it was **Sent** or **Failed**, with its cost where Africa's Talking reported one.
+
+#### Elsewhere in Settings
+
+Staff and activity are in [Staff, roles and PINs](#staff-and-roles). Payments and tax have their own guides: [M-Pesa payments](#mpesa), [Airtel Money](#airtel-money) and [KRA eTIMS](#etims). Exporting and closing the account are in [Exporting your data and closing your account](#your-data).
+
 <a id="importing-products"></a>
 
 ### Importing products from a spreadsheet
 
 _Bring in your whole price list at once, and update prices later the same way._
 
-Go to **Products**, press **Import** at the top of the list (or **Settings › Import products**) and choose a CSV file. A [template with the right columns](https://hardpoint.app/product-import-template.csv) is there to start from. Most spreadsheet programs save one with **File → Save as → CSV**. The first row names the columns; only `sku` and `name` are required.
+Go to **Stock › Products**, choose **Import** from the **⚙** menu (or **Settings › Import products**) and choose a CSV file. A [template with the right columns](https://hardpoint.app/product-import-template.csv) is there to start from. Most spreadsheet programs save one with **File → Save as → CSV**. The first row names the columns; only `sku` and `name` are required.
 
 - `sku`: your product code. A row whose SKU already exists updates that product.
 - `name`, `category`, `brand`, `unit` (new categories, brands and units are created for you).
@@ -188,7 +256,7 @@ Each person only sees the areas their role uses: a cashier sees Home, Sell, Cust
 
 #### Quick switching with a PIN
 
-On a shared till, cashiers and stock clerks don't need to sign out. Each sets a 4 to 6 digit PIN under **My profile** (open your name in the top right). Then **Switch user**, in the same menu, changes who's selling in a couple of taps. Five wrong tries lock the PIN for a while.
+On a shared till, cashiers and stock clerks don't need to sign out. Each sets a 4 to 6 digit PIN under **My profile** (open your name in the top right). Then **Switch user**, in the same menu, changes who's selling in a couple of taps. Five wrong tries lock the PIN until its owner signs in with their password and sets a new one.
 
 #### Discounts and other things that need approval
 
@@ -269,13 +337,124 @@ A discount above the shop's limit, a void, a return, or a sale that takes a cust
 - **Return**: find the sale under **Sales** and press **Return items** to refund part or all of it, putting the goods back into stock or writing them off, and refunding by cash, M-Pesa, Airtel Money, card or account credit.
 - **Void**: **Void sale** cancels a sale made in error, as long as its shift is still open. After the shift has closed, use a return instead.
 
+More in [Returns, refunds and voids](#returns-and-refunds).
+
 #### Cash during the day
 
 **Cash drop / payout** records cash taken to the safe, paid out (for transport, say) or paid in. The **X report** shows how the shift is doing without closing it.
 
 #### Closing the shift
 
-At the end of the day, press **Close shift** and count the drawer. The count is blind: the till doesn't show what it expects until you've entered what's there. HardPoint then shows the difference and prints the **Z report**. Past shifts are under **Sell › Shifts**.
+At the end of the day, press **Close shift** and count the drawer. The count is blind: the till doesn't show what it expects until you've entered what's there. HardPoint then shows the difference and prints the **Z report**. Past shifts are under **Sell › Shifts**. More in [Shifts, cash and closing up](#shifts-and-cash).
+
+<a id="shifts-and-cash"></a>
+
+### Shifts, cash and closing up
+
+_Opening with a float, cash drops and payouts, the X report, the blind count at close, over or short, and the Z report._
+
+A shift runs from the cash you start with to the count at the end of the day. Every cash sale, refund and payout in between is counted against it, so at closing time HardPoint knows what should be in the drawer and can tell you if it's over or short.
+
+#### Opening a shift
+
+1. Open the till. If no shift is open on it, HardPoint asks for one first.
+2. Count the change in the drawer and type it in **Cash in the drawer to start**.
+3. Press **Open shift**.
+
+A shift belongs to the till, not to one person. Each till has one open shift at a time, and cashiers who switch in with their PIN sell into the same shift. Each sale still records who rang it up, and the report shows who opened and who closed the shift.
+
+#### Cash in and out during the day
+
+Press **Shift** in the till's top bar, then **Cash drop / payout**. Choose what's happening, type the amount and a reason, and press **Record**:
+
+- **Drop to the safe**: takings taken out of the drawer.
+- **Pay out**: cash paid from the till, for transport or a supplier, say.
+- **Pay in**: more change added to the float.
+
+Each one shows on the shift report with its reason. On tills that print through QZ Tray, **Open drawer** in the top bar opens the drawer without a sale. It's logged as "No sale" in **Settings › Activity**.
+
+#### The X report
+
+Press **Shift** on the till at any time to see the **X report**: how the shift is doing so far, without closing it. It shows sales, voids, discounts and tax; takings by method (cash, card, M-Pesa, on account, and Airtel Money or foreign cash when used); deposits and account payments; refunds; and the cash drawer worked out line by line. **Print** prints it.
+
+#### Closing the shift
+
+1. Finish or clear any sale still open or parked on the till. The shift won't close while one has goods on it.
+2. On the shift, press **Close shift**. Cashiers can also use **End my shift** on their Home.
+3. Count all the cash and type it in **Cash counted**. If the till takes dollars or other currencies, count each one's notes separately in its own box.
+4. Add a **Note** if the manager should know something, then press **Close shift** and confirm.
+
+The count is blind: the closing page doesn't show what's expected. Afterwards the **Z report** shows the expected cash, what was counted, and whether the drawer is **Over**, **Short** or **Balanced**, with the same for each foreign currency. Press **Print** to print it. Once closed, nothing more can be sold on that till until a new shift is opened.
+
+#### What's expected in the drawer
+
+The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds, change given for foreign notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.
+
+#### Past shifts
+
+**Sell › Shifts** lists shifts with the till, branch, who opened and closed them, and the over or short. Owners and managers see every till; cashiers see the shifts of the till they're on. Open one to see its X or Z report. The **Shifts and cash counts** report lists every closed shift in a period. See [Reports and the owner's dashboard](#reports).
+
+#### Shifts left open
+
+On the owner's Home, **Cash in the drawers** shows the cash expected in every open till. A shift still open from an earlier day shows under **Needs you today**; press **See shifts** and close it so the cash gets counted.
+
+For the till itself, see [Selling at the till](#selling); for dollars, see [Dollars and other currencies](#foreign-currencies).
+
+<a id="returns-and-refunds"></a>
+
+### Returns, refunds and voids
+
+_Taking goods back against a receipt, restocking or writing off, refund methods, approval PINs, and voiding a sale rung up by mistake._
+
+When a customer brings goods back, record a return against their receipt. When a sale was rung up by mistake and the shift is still open, void it instead. Both put stock back and keep the shift's cash right.
+
+#### Finding the sale
+
+Press **Sales** in the till's top bar, or go to **Sell › Sales**. Type the receipt number from the customer's receipt in the search box (for example MAIN-000123), or filter by date and branch, and open the sale.
+
+#### Returning goods
+
+Returns are done at a till with an open shift, because a cash refund comes out of that drawer.
+
+1. On the sale, press **Return items**.
+2. Under **Returning**, type how many of each item are coming back. You can return part of a line, some lines or the whole sale. Items already returned are shown, and you can't return more than was bought.
+3. Leave **Back on the shelf?** ticked to put the goods back into stock. Untick it for damaged goods: they're written off.
+4. Choose **Refund by**: Cash, Card, M-Pesa, Airtel Money, or **Credit to customer's account**. It starts as the way the customer paid. Account credit needs a sale with a customer.
+5. Type a **Reason** if you like, then press **Process return**.
+
+The refund is what the customer actually paid for those items, including their share of any discount. HardPoint records how you paid them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.
+
+#### Approval
+
+A cashier or stock clerk needs an owner's or manager's **Manager approval PIN** to process a return or void a sale. Owners and managers don't need to type one. See [Staff, roles and PINs](#staff-and-roles).
+
+#### The return slip
+
+Each return gets its own number, such as MAIN-R00012. Its page shows the items, which were restocked or written off, who did it and who approved it. **Print** prints a return slip with the refund and how it was paid. The sale also lists its returns.
+
+#### KRA eTIMS
+
+When the branch is connected to eTIMS and the original sale went to KRA, each return and each void is sent to KRA as a credit note against it. See [KRA eTIMS](#etims).
+
+#### Voiding a sale
+
+**Void sale** cancels a sale made in error, such as one rung up twice. It's only there while the sale's shift is still open and nothing has been returned from it. After that, use a return.
+
+1. On the sale, press **Void sale**.
+2. Type the **Reason** (required) and, for a cashier, the manager approval PIN.
+3. Press **Void sale**, and give back any money the customer paid.
+
+All the stock goes back, and the sale stops counting in the shift's takings. It stays in the sales list, crossed out and marked **Voided**, with who voided it and why. If it was a collected order, the order is reopened.
+
+#### The returns list
+
+**Sell › Returns** lists every return with its receipt, when, who did it, the refund method and the amount.
+
+#### Stock, the shift and reports
+
+- Restocked items go back into stock; written-off items don't.
+- The X and Z reports show refunds by method and the number of voided sales. Cash refunds come off the cash expected in the drawer. See [Shifts, cash and closing up](#shifts-and-cash).
+- In the **Sales and margin** report, returns count on the day they happen. Restocked goods take their cost back out; written-off goods don't. **Payments by method** has a refunds column. See [Reports and the owner's dashboard](#reports).
 
 <a id="offline"></a>
 
@@ -361,6 +540,56 @@ Percentage-off promotions also price new quotes, orders and online orders (a quo
 Each promotion's page shows how many sales used it, units sold, what it gave away and the takings on those lines.
 
 ## Customers and orders
+
+<a id="customers"></a>
+
+### Customers
+
+_Adding customers with their KRA PIN and prices, choosing them at the till, and what the customer page shows._
+
+You don't need a customer for every sale: most go through as **Walk-in**. Add the people you want to know again: contractors, fundis, regulars, and anyone who buys on account or needs a tax invoice. Customers live in **Customers › Customers**.
+
+#### Adding a customer
+
+1. On **Customers**, press **New**.
+2. Type their **Name** and **Phone**. The phone number finds them at the till and is where texted receipts go.
+3. Owners and managers can set a **Credit limit** in shillings. 0 means cash only; above 0 lets them buy on account.
+4. Under **More options**, add their **Email**, **Tax PIN** (their KRA PIN, for tax invoices) and **Address** (for deliveries and statements). Owners and managers also choose their **Prices** and how many days they **Pay within**. There's room for **Notes** too.
+5. Press **Add customer**.
+
+To change any of it later, open the customer and press **Edit**. The customer's KRA PIN appears on their tax invoices, quotes and statements, and goes to KRA with the sale when eTIMS is connected.
+
+#### Contractor and wholesale prices
+
+Make a price list, such as Contractor, in **Settings › Price lists**, and give products their price on it under **Special prices** on each product page (see [Products and the catalogue](#products)). Then set the customer's **Prices** to that list. Customers left on **Retail** pay the normal price.
+
+#### Choosing a customer at the till
+
+1. At the top of the cart, press **Change** next to **Customer**.
+2. Type part of their name or phone number and pick them. The cart is repriced at once with their price list, shown as a badge by their name.
+3. To go back to a cash sale, press **Walk-in customer**.
+
+If they're not there yet, press **New customer** under the search. It opens the customer form; save it, go back to the till, and choose them. The sale waits on the till while you do.
+
+#### The customer page
+
+Open a customer from the list (search by name or phone) to see:
+
+- Their **Prices**, what the customer **Owes on account** (and how much is overdue), **Credit left** and how many days they pay within.
+- **Unpaid account sales** with their due dates, and **Payments on account**.
+- Open quotes and orders, open jobs, and their **Recent purchases**.
+
+The buttons along the top are **New quote**, **Statement**, **Record payment** (when they owe something) and, with contractor jobs switched on in **Settings › Features**, **Add a job**. When SMS is set up and they owe money, **Text a reminder** sends their balance to their phone. A statement can also go by PDF, email or WhatsApp.
+
+#### Who owes us
+
+**Customers › Who owes us** lists every customer with a balance, split into not yet due, 1–30, 31–60, 61–90 and over 90 days late, with a **Statement** link for each. Owners, managers and accountants can see it.
+
+#### More on customers
+
+- Credit, quotes, deposits, payments and statements: [Customers on account, quotes and orders](#customer-accounts).
+- Tagging a contractor's purchases to a project: [Jobs for contractors](#contractor-jobs).
+- Sending receipts, quotes and statements to their phone: [Sending documents on WhatsApp](#whatsapp).
 
 <a id="customer-accounts"></a>
 
@@ -493,6 +722,60 @@ Every active product with a price is in the store. To keep one out, open the pro
 If you've connected an M-Pesa Paybill, the customer's order page shows your business number with their order number as the account number. Payments made that way are matched to the order automatically. Till (Buy Goods) numbers can't carry an order number, so with one of those customers pay when they collect.
 
 ## Stock and purchasing
+
+<a id="products"></a>
+
+### Products and the catalogue
+
+_Adding products, barcodes and pack sizes, loose goods, kits, special prices and quantity breaks, and printing shelf labels._
+
+Everything you sell lives in **Stock › Products**. Owners, managers and stock clerks can add and change products; everyone else can look them up. To bring in a whole price list at once, see [Importing products from a spreadsheet](#importing-products).
+
+#### Adding a product
+
+1. On **Stock › Products**, press **New**.
+2. Type the **Name** and **Selling price** in shillings, including VAT. Add the **Cost price** too, for profit reports.
+3. Choose what it's **Sold by** (piece, bag, metre…) and its **Category**.
+4. Scan the maker's **Barcode**. If it has none, leave it blank and HardPoint gives it a barcode of its own for your labels.
+5. Enter the **Opening stock**: what's on the shelf at this branch now.
+6. Press **Add product**, or **Add and start another** to go straight to a new one with the same category and unit.
+
+**More options** holds the rest: the **SKU** (left blank, one is made for you), **Brand**, **Tax** (blank uses the shop default), **Reorder level** for the low-stock alert, a description and a **Photo**. To change a product later, open it and press **Edit**.
+
+#### Active, inactive and services
+
+- Untick **Active** to hide a product from the till. A product with stock history can't be deleted, so make it inactive instead.
+- Untick **Track stock** for services such as cutting or delivery.
+- With the online store on, **Show in the online store** keeps a product on or off it.
+
+#### Barcodes, pack sizes and loose goods
+
+A product can have several barcodes: add them under **Barcodes** on the product page. Units are set up in **Settings › Units**; tick **Sold in parts** for kilograms, metres or litres so the till accepts 2.5 or 0.75. Other units only take whole numbers.
+
+If you sell nails by the kilo and by the box, add the box under **Pack sizes**: choose the **Pack**, how many it **Holds**, and a **Price** if it isn't simply that many times the single price. Then add the box's own barcode, choosing the pack under **For**. Scanning it adds a box at the box price.
+
+#### Kits and serial numbers
+
+- Tick **Kit** for something sold as one item but made of other products, such as a toilet set. Add the parts under **Kit contents**. Selling a kit takes its parts out of stock.
+- **Serial numbers** appears once it's switched on in **Settings › Features**. The till then asks for the serial number of each one sold, and it's printed on the receipt.
+
+#### Special prices and quantity breaks
+
+Under **Special prices** on the product, choose who it's **For** (a price list, or **Everyone (retail)**), a **From qty** and the **Unit price**. For example, cement at 750 shillings a bag from 50 bags. Customers always get the lowest price that applies. Make price lists such as Contractor or Wholesale in **Settings › Price lists**, then set a customer's **Prices** when editing them.
+
+#### Categories, brands and tax rates
+
+These are in Settings, under **Catalogue**. A category can sit **Inside** another, like Plumbing › Pipes. In **Tax rates**, mark VAT 16% as **Default for new products**, and give exempt or zero-rated goods their own rate.
+
+#### The products list
+
+Search by name or SKU, or scan a barcode into the search box. Filter by **Category**, **Brand** or **Include inactive**, choose which branch's stock to show under **Stock at**, and **Group by** category or brand. The **⚙** menu has **Import**, **Change prices** (see [Changing many prices at once](#changing-prices)), **Export CSV** and **Print labels**.
+
+#### Shelf labels
+
+**Print labels** in the ⚙ menu labels the products in your current search or category; the button on a product page labels just that one. Set the copies for each, choose an **A4 sheet** (3 × 8 labels) or a **Label printer roll** (50 × 25 mm), and press **Open print view**. Print at 100% scale with no margins.
+
+Stock levels and counts are covered in [Stock levels, transfers and stock takes](#stock-and-stock-takes), and offers in [Promotions and offers](#promotions).
 
 <a id="changing-prices"></a>
 
@@ -900,6 +1183,70 @@ Count your own cash as usual, and each foreign currency separately. The Z report
 - "What we owe" shows their balance in their currency, with the total in yours at today's rates; the VAT report converts their invoices at the rate recorded on each.
 
 ## Your account
+
+<a id="my-profile"></a>
+
+### Your profile and signing in
+
+_Signing in at your shop's address, forgotten passwords, two-factor and recovery codes, PINs, Switch user and the daily email._
+
+Everyone who uses HardPoint signs in with their own email address and password. This guide covers signing in, what's under **My profile**, and what to do if you're locked out. Who can do what is in [Staff, roles and PINs](#staff-and-roles).
+
+#### Signing in
+
+Every shop has its own web address, like **yourshop.hardpoint.app**. It's in your welcome email.
+
+1. Go to your shop's address. If you only remember the HardPoint website, press **Sign in**, type your shop's name as it appears in its address under **Your shop's web address** and press **Continue**.
+2. Type your **Email address** and **Password** and press **Sign in**.
+3. If you use two-factor sign-in, type the 6-digit code from your authenticator app and press **Verify**.
+
+You stay signed in on that computer or phone until you sign out.
+
+#### Forgotten your password?
+
+1. On the sign-in page press **Forgot password?**.
+2. Type your email address and press **Email reset instructions**.
+3. Open the link in the email (it only works for a short while), type your new password twice and press **Save**.
+
+Choosing a new password signs you out everywhere, so sign in again with it. This is also how you change your password.
+
+#### My profile
+
+Open your name in the top right and choose **My profile**. It shows your name, email address and role, and these sections, depending on your role:
+
+- **Two-factor sign-in**, for everyone.
+- **Approval PIN**, for owners and managers: press **Set an approval PIN**, type 4 to 6 digits and your password. You type it at a cashier's till to approve a big discount, a void or a return. It doesn't sign you in.
+- **Till PIN**, for cashiers and stock clerks: press **Set a PIN**, type 4 to 6 digits and your password, then **Save PIN**. Use it with Switch user (below). **Remove PIN** turns it off.
+- **Daily summary email**, for owners, managers and accountants: yesterday's takings, margin, best sellers, payments and till counts, each morning at about 7:15. It's on to begin with; press **Stop sending it** to turn it off, or **Send it to me** to turn it back on.
+
+#### Two-factor sign-in
+
+1. Install an authenticator app, such as Google Authenticator or Microsoft Authenticator.
+2. On My profile press **Set up two-factor** and scan the QR code with the app. If you can't scan it, type the key shown under it.
+3. Type the 6-digit code the app shows and press **Turn on**. If it doesn't match, check your phone sets its time automatically.
+4. HardPoint shows 10 **recovery codes**, once only. Write them down or print them, keep them away from your phone, and press **I've saved them**.
+
+If you lose your phone, type a recovery code instead of the 6-digit code. Each works once; My profile shows how many are left. To turn two-factor off, type your password and press **Turn off two-factor**. If the owner requires two-factor for owners and managers, you'll be taken to set it up before you can do anything else.
+
+#### Switch user
+
+On a shared till, the next cashier or stock clerk doesn't need the password. Choose **Switch user** (under your name, or in the till's top bar), tap your name, type your till PIN and press **Switch in**. The person before is signed out of that till. Only people who have set a till PIN are listed.
+
+#### Signing out
+
+Open your name in the top right and choose **Sign out**.
+
+#### If you're locked out
+
+- **"Try another email address or password."**: check both, or use Forgot password.
+- **"Try again later."**: after too many tries in a few minutes, HardPoint stops you for a short time. Wait a few minutes.
+- **"Please sign in again."**: the two-factor step must be finished within 10 minutes of typing your password.
+- **Till PIN locked**: five wrong PINs lock it. Sign in with your password and set a new PIN on My profile to unlock it.
+- If the shop is being closed, only its owners can sign in.
+
+#### On your phone
+
+Your shop's address works in a phone's browser too. For stock work, see [Stock on your phone](#stock-on-your-phone).
 
 <a id="billing"></a>
 

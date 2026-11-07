@@ -755,8 +755,9 @@ set of books.
   is a tender for sales, deposits, customer and supplier payments, refunds, shifts, the payments report, QuickBooks
   and eTIMS (payment type 06), and on the offline till as a typed ID. The API paths follow Airtel Africa's published
   collection API and still need checking against their sandbox.
-- **Help:** a guide for each (Airtel Money, QuickBooks Online export, WhatsApp, changing prices, deliveries and
-  transport), linked from the guides they touch.
+- **Help for the whole app:** a guide for each of the above, plus guides for the parts that had none (products and the
+  catalogue, customers, shifts and cash, returns and refunds, shop settings, your profile), and all 34 guides in one
+  document, docs/USER_GUIDE.md, generated from the help centre and checked by a test.
 
 ### Beyond v1 (backlog)
 - ~~Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).~~ Done as a web app in Phase 15; wrap with Hotwire Native if a store listing is wanted.
