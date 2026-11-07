@@ -155,6 +155,7 @@ ending 0000 declines). Without Paystack keys, "Pay by card" goes to a simulated 
 | Developer docs (`/developers`) | Developers connecting other apps | The REST API and webhooks, with signature checks in Ruby, Node.js and Python |
 | [docs/FEATURES.md](docs/FEATURES.md) | Everyone | What each phase of the build added, with screenshots |
 | [docs/PLAN.md](docs/PLAN.md) | The team | The original plan, decisions and the backlog |
+| [docs/SIMPLIFY.md](docs/SIMPLIFY.md) | The team | The plan for making the app simpler to use, with mockups |
 | [docs/BRAND.md](docs/BRAND.md) | Anyone changing screens | The look and layout: colours, components and rules |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Whoever runs production | Deploys, backups and restores, incidents, scaling out |
 | [docs/SECURITY.md](docs/SECURITY.md) | Security reviewers | Controls and the penetration test brief |
