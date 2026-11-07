@@ -13,7 +13,8 @@ KRA eTIMS built in. The till keeps selling when the internet drops. No shop can 
 ## What it does
 
 Each area below links to its guide in the help centre (`/help` on the public site), which is where shop staff learn
-to use it. For the full list of what each phase of the build added, see [docs/FEATURES.md](docs/FEATURES.md).
+to use it. All the guides are also in one document, [docs/USER_GUIDE.md](docs/USER_GUIDE.md). For the full list of what each
+phase of the build added, see [docs/FEATURES.md](docs/FEATURES.md).
 
 ### At the till
 
@@ -158,6 +159,7 @@ ending 0000 declines). Without Paystack keys, "Pay by card" goes to a simulated 
 | Document | For | What's in it |
 |---|---|---|
 | Help centre (`/help`, in `app/views/help`) | Shop owners and staff | How to set up and use every part of HardPoint |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Shop owners and staff, trainers | Every help guide in one document, to read, print or share. Generated from the help centre by `bin/rails help:export` |
 | Developer docs (`/developers`) | Developers connecting other apps | The REST API and webhooks, with signature checks in Ruby, Node.js and Python |
 | [docs/FEATURES.md](docs/FEATURES.md) | Everyone | What each phase of the build added, with screenshots |
 | [docs/PLAN.md](docs/PLAN.md) | The team | The original plan, decisions and the backlog |
@@ -221,7 +223,8 @@ needs its guide changed too.
 summary, section and related guides; the order is the reading order) and write its text in
 `app/views/help/articles/_<slug_with_underscores>.html.erb`, using `<h2>`, `<p>`, `<ul>` and `<ol>`. Search covers
 the text, and each guide links on to the next one in its section. Write for someone at the counter: what to press,
-in the order they press it, using the words on the screen.
+in the order they press it, using the words on the screen. After adding or changing a guide, run
+`bin/rails help:export` to rebuild [docs/USER_GUIDE.md](docs/USER_GUIDE.md); a test fails until you do.
 
 Load testing (k6) is in [perf/README.md](perf/README.md); backups, restores and incidents in
 [docs/RUNBOOK.md](docs/RUNBOOK.md).

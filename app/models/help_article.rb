@@ -9,7 +9,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
     @all ||= [
       new("getting-started", "Setting up your shop", "The first afternoon: branches, taxes, products, staff and a test receipt.", "Getting started",
         %w[ importing-products staff-and-roles tills-and-printers ]),
-      new("getting-around", "Finding your way around", "The apps menu, searching and filtering lists, Group By, and where Help is.", "Getting started",
+      new("getting-around", "Finding your way around", "The six areas, Home, search, filtering lists, Group By, Settings and where Help is.", "Getting started",
         %w[ getting-started staff-and-roles ]),
       new("importing-products", "Importing products from a spreadsheet", "Bring in your whole price list at once, and update prices later the same way.", "Getting started",
         %w[ getting-started stock-and-stock-takes ]),

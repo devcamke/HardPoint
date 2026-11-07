@@ -1,0 +1,56 @@
+<p>A shift runs from the cash you start with to the count at the end of the day. Every cash sale, refund and payout in between is
+  counted against it, so at closing time HardPoint knows what should be in the drawer and can tell you if it's over or short.</p>
+
+<h2>Opening a shift</h2>
+<ol>
+  <li>Open the till. If no shift is open on it, HardPoint asks for one first.</li>
+  <li>Count the change in the drawer and type it in <strong>Cash in the drawer to start</strong>.</li>
+  <li>Press <strong>Open shift</strong>.</li>
+</ol>
+<p>A shift belongs to the till, not to one person. Each till has one open shift at a time, and cashiers who switch in with their PIN sell
+  into the same shift. Each sale still records who rang it up, and the report shows who opened and who closed the shift.</p>
+
+<h2>Cash in and out during the day</h2>
+<p>Press <strong>Shift</strong> in the till's top bar, then <strong>Cash drop / payout</strong>. Choose what's happening, type the amount
+  and a reason, and press <strong>Record</strong>:</p>
+<ul>
+  <li><strong>Drop to the safe</strong>: takings taken out of the drawer.</li>
+  <li><strong>Pay out</strong>: cash paid from the till, for transport or a supplier, say.</li>
+  <li><strong>Pay in</strong>: more change added to the float.</li>
+</ul>
+<p>Each one shows on the shift report with its reason. On tills that print through QZ Tray, <strong>Open drawer</strong> in the top bar opens
+  the drawer without a sale. It's logged as "No sale" in <strong>Settings › Activity</strong>.</p>
+
+<h2>The X report</h2>
+<p>Press <strong>Shift</strong> on the till at any time to see the <strong>X report</strong>: how the shift is doing so far, without closing it.
+  It shows sales, voids, discounts and tax; takings by method (cash, card, M-Pesa, on account, and Airtel Money or foreign cash when used);
+  deposits and account payments; refunds; and the cash drawer worked out line by line. <strong>Print</strong> prints it.</p>
+
+<h2>Closing the shift</h2>
+<ol>
+  <li>Finish or clear any sale still open or parked on the till. The shift won't close while one has goods on it.</li>
+  <li>On the shift, press <strong>Close shift</strong>. Cashiers can also use <strong>End my shift</strong> on their Home.</li>
+  <li>Count all the cash and type it in <strong>Cash counted</strong>. If the till takes dollars or other currencies, count each one's notes
+    separately in its own box.</li>
+  <li>Add a <strong>Note</strong> if the manager should know something, then press <strong>Close shift</strong> and confirm.</li>
+</ol>
+<p>The count is blind: the closing page doesn't show what's expected. Afterwards the <strong>Z report</strong> shows the expected cash,
+  what was counted, and whether the drawer is <strong>Over</strong>, <strong>Short</strong> or <strong>Balanced</strong>, with the same for
+  each foreign currency. Press <strong>Print</strong> to print it. Once closed, nothing more can be sold on that till until a new shift is
+  opened.</p>
+
+<h2>What's expected in the drawer</h2>
+<p>The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds, change given for foreign
+  notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.</p>
+
+<h2>Past shifts</h2>
+<p><strong>Sell › Shifts</strong> lists shifts with the till, branch, who opened and closed them, and the over or short. Owners and managers
+  see every till; cashiers see the shifts of the till they're on. Open one to see its X or Z report. The
+  <strong>Shifts and cash counts</strong> report lists every closed shift in a period. See
+  <%= link_to "Reports and the owner's dashboard", help_article_path("reports"), class: "link" %>.</p>
+
+<h2>Shifts left open</h2>
+<p>On the owner's Home, <strong>Cash in the drawers</strong> shows the cash expected in every open till. A shift still open from an earlier
+  day shows under <strong>Needs you today</strong>; press <strong>See shifts</strong> and close it so the cash gets counted.</p>
+<p>For the till itself, see <%= link_to "Selling at the till", help_article_path("selling"), class: "link" %>; for dollars, see
+  <%= link_to "Dollars and other currencies", help_article_path("foreign-currencies"), class: "link" %>.</p>
