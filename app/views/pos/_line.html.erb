@@ -1,3 +1,5 @@
+<% square = "flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md select-none pointer-coarse:size-11"
+   step = "#{square} border border-gray-300 bg-white text-lg font-semibold text-gray-700 hover:bg-gray-50 active:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-40" %>
 <li id="<%= dom_id(line) %>" class="px-4 py-2.5">
   <div class="flex items-start justify-between gap-2">
     <div class="min-w-0">
@@ -10,15 +12,24 @@
   </div>
 
   <div class="mt-1.5 flex flex-wrap items-center gap-2">
-    <%= form_with model: line, url: pos_line_path(line), method: :patch, class: "flex items-center gap-1", data: { controller: "auto-submit" } do |form| %>
-      <%= form.number_field :quantity, value: plain_number(line.quantity), step: (line.product_unit || !line.product.unit.fractional? ? 1 : "any"), min: 0,
-            class: "input w-20 py-1 text-right", "aria-label": "Quantity of #{line.product.name}", data: { action: "change->auto-submit#submit" } %>
-      <% if line.product.product_units.any? %>
+    <%# − and + for a touch screen; the box still takes a typed quantity (2.5 m, 12 pcs). %>
+    <div class="flex items-center gap-1">
+      <%= button_to pos_line_path(line), method: :patch, params: { sale_line: { quantity: plain_number(line.quantity - 1) } }, disabled: line.quantity <= 1,
+            class: step, title: "One less", "aria-label": "One less #{line.product.name}" do %>−<% end %>
+      <%= form_with model: line, url: pos_line_path(line), method: :patch, data: { controller: "auto-submit" } do |form| %>
+        <%= form.number_field :quantity, value: plain_number(line.quantity), step: (line.product_unit || !line.product.unit.fractional? ? 1 : "any"), min: 0,
+              class: "input w-16 py-1 text-center tabular-nums", inputmode: "decimal", "aria-label": "Quantity of #{line.product.name}", data: { action: "change->auto-submit#submit" } %>
+      <% end %>
+      <%= button_to pos_line_path(line), method: :patch, params: { sale_line: { quantity: plain_number(line.quantity + 1) } },
+            class: step, title: "One more", "aria-label": "One more #{line.product.name}" do %>+<% end %>
+    </div>
+    <% if line.product.product_units.any? %>
+      <%= form_with model: line, url: pos_line_path(line), method: :patch, data: { controller: "auto-submit" } do |form| %>
         <%= form.select :product_unit_id, [ [ line.product.unit.abbreviation, "" ] ] + line.product.product_units.map { [ _1.unit.name.downcase, _1.id ] },
               {}, class: "input w-auto py-1", "aria-label": "Unit", data: { action: "change->auto-submit#submit" } %>
-      <% else %>
-        <span class="text-sm text-gray-500"><%= line.unit.abbreviation %></span>
       <% end %>
+    <% else %>
+      <span class="text-sm text-gray-500"><%= line.unit.abbreviation %></span>
     <% end %>
 
     <% if line.product.serialized? %>
@@ -28,14 +39,16 @@
       <% end %>
     <% end %>
 
-    <details class="ml-auto">
-      <summary class="link cursor-pointer list-none text-xs">Discount</summary>
-      <%= form_with model: line, url: pos_line_path(line), method: :patch, class: "mt-1 flex gap-1" do |form| %>
-        <%= form.number_field :discount, value: (plain_number(line.discount) if line.discount_cents.positive?), step: "0.01", min: 0, placeholder: "Amount", class: "input w-24 py-1", "aria-label": "Line discount" %>
-        <%= password_field_tag :approval_pin, nil, inputmode: "numeric", placeholder: "Mgr PIN", class: "input w-20 py-1", "aria-label": "Manager approval PIN", autocomplete: "off" %>
-        <%= form.submit "OK", class: "btn-secondary py-1" %>
-      <% end %>
-    </details>
-    <%= button_to pos_line_path(line), method: :delete, class: "text-gray-400 hover:text-red-700", title: "Remove", "aria-label": "Remove #{line.product.name}" do %>✕<% end %>
+    <div class="ml-auto flex items-center gap-1">
+      <details>
+        <summary class="link cursor-pointer list-none px-1 py-2 text-xs select-none">Discount</summary>
+        <%= form_with model: line, url: pos_line_path(line), method: :patch, class: "mt-1 flex gap-1" do |form| %>
+          <%= form.number_field :discount, value: (plain_number(line.discount) if line.discount_cents.positive?), step: "0.01", min: 0, placeholder: "Amount", class: "input w-24 py-1", inputmode: "decimal", "aria-label": "Line discount" %>
+          <%= password_field_tag :approval_pin, nil, inputmode: "numeric", placeholder: "Mgr PIN", class: "input w-20 py-1", "aria-label": "Manager approval PIN", autocomplete: "off" %>
+          <%= form.submit "OK", class: "btn-secondary py-1" %>
+        <% end %>
+      </details>
+      <%= button_to pos_line_path(line), method: :delete, class: "#{square} text-gray-400 hover:bg-red-50 hover:text-red-700 active:bg-red-100", title: "Remove", "aria-label": "Remove #{line.product.name}" do %>✕<% end %>
+    </div>
   </div>
 </li>

@@ -1,0 +1,11 @@
+<%# Phones only: switches between the products and the sale (see till_panes_controller.js). Replaced with the cart. %>
+<% tab = "-mb-px border-b-2 border-transparent px-3 py-3 font-semibold select-none" %>
+<div id="pane_tabs" class="grid grid-cols-2 border-b border-gray-200 bg-white text-sm md:hidden" aria-label="Till">
+  <button type="button" data-pane="products" data-action="till-panes#show" aria-controls="till_products"
+          class="<%= tab %> text-gray-600 group-data-[pane=products]:border-primary-500 group-data-[pane=products]:text-gray-900">Products</button>
+  <button type="button" data-pane="cart" data-action="till-panes#show" aria-controls="till_cart"
+          class="<%= tab %> truncate text-gray-600 group-data-[pane=cart]:border-primary-500 group-data-[pane=cart]:text-gray-900">
+    Sale<% if sale.lines.any? %> <span class="ml-1 rounded-full bg-primary-500 px-2 py-0.5 text-xs text-white tabular-nums"><%= quantity(sale.item_count) %></span>
+      <span class="ml-1 tabular-nums"><%= money(sale.total_cents) %></span><% end %>
+  </button>
+</div>

@@ -264,7 +264,7 @@ export default class extends Controller {
         <div class="mt-1 flex items-center justify-between">
           <input type="number" min="0" step="${line.pack || !line.product.fractional ? 1 : "any"}" value="${line.quantity}" data-index="${index}"
                  data-action="change->offline-till#changeQuantity" class="input w-24 py-1 text-right" aria-label="Quantity of ${escape(line.product.name)}">
-          <button type="button" data-index="${index}" data-action="offline-till#remove" class="text-gray-400 hover:text-red-700" aria-label="Remove ${escape(line.product.name)}">✕</button>
+          <button type="button" data-index="${index}" data-action="offline-till#remove" class="flex size-9 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-700 pointer-coarse:size-11" aria-label="Remove ${escape(line.product.name)}">✕</button>
         </div>
       </li>`).join("") : `<li class="p-8 text-center text-gray-500">Scan or tap products to start a sale.</li>`
 
@@ -295,7 +295,7 @@ export default class extends Controller {
     const packs = product.packs.map((pack) => `<button type="button" data-action="offline-till#pick" data-product-id="${product.id}" data-pack-id="${pack.id}"
         class="mt-2 w-full rounded border border-gray-300 px-2 py-1 text-xs font-semibold hover:border-primary-400">${escape(pack.unit)} · ${formatMoney(pack.price_cents, currency)}</button>`).join("")
     return `<div class="card ${large ? "p-3" : "p-2"} text-left">
-      <button type="button" data-action="offline-till#pick" data-product-id="${product.id}" class="w-full text-left">
+      <button type="button" data-action="offline-till#pick" data-product-id="${product.id}" class="w-full cursor-pointer select-none text-left active:opacity-70">
         <span class="block font-medium">${escape(product.name)}</span>
         <span class="block ${large ? "text-lg" : ""} font-bold tabular-nums">${formatMoney(product.price_cents, currency)}</span>${stock}
       </button>${packs}</div>`

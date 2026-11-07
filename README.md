@@ -20,6 +20,9 @@ phase of the build added, see [docs/FEATURES.md](docs/FEATURES.md).
 
 - A **full-screen till** built around a barcode scanner: scan, search or tap a quick-pick button; loose goods by the
   metre or kilo; pack sizes; F2 scan · F8 park · F9 pay. Each computer remembers its till.
+- **Touch screens:** on a touch POS terminal, tablet or phone, staff tap through product categories, change quantities
+  with + and −, and type amounts on an on-screen number pad. Buttons are finger-sized on touch screens, and phones show
+  the products and the sale as two tabs.
 - **Payments** by cash with change, M-Pesa (a prompt to the customer's phone, or money paid to your Paybill), Airtel Money, card,
   foreign notes, on account, or a mix. Gap-free receipt numbers per branch.
 - **Discounts** within the shop's limit; bigger ones, voids, returns and going over a credit limit need a manager's

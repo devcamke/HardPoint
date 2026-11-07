@@ -312,7 +312,7 @@ Count the cash in the drawer and press **Open shift** with that float. Everythin
 
 #### Ringing up a sale
 
-1. Scan barcodes, or type part of a name or SKU and pick the product. Quick-pick buttons cover fast movers and pack sizes.
+1. Scan barcodes, type part of a name or SKU and pick the product, or tap through the categories. Quick-pick buttons cover fast movers and pack sizes.
 2. Change the quantity for loose goods: 2.5 metres, 0.75 kg. A box's barcode adds the box at its pack price.
 3. Choose a customer if the sale goes on their account, needs their KRA PIN on the receipt, or is for one of their jobs. Their price list applies as soon as you pick them.
 4. If you're taking the goods to site, **Add transport** puts the delivery charge on the sale, with where it's going.
@@ -321,6 +321,16 @@ Count the cash in the drawer and press **Open shift** with that float. Everythin
 7. The receipt prints. KRA's signature and QR code are on it when eTIMS is connected. It can also be emailed or texted, or sent with **WhatsApp receipt**.
 
 Keyboard shortcuts: **F2** goes to the scan box, **F8** parks the sale, **F9** takes payment.
+
+#### On a touch screen
+
+The till works without a keyboard or scanner, on a touch-screen POS terminal, a tablet or a phone:
+
+- Tap **Quick picks** or a category along the top of the products, then tap a product to add it. A category shows its subcategories' products too. Products are put into categories on the product form.
+- Use **+** and **−** on a line to change the quantity, or tap the number to type one, and **✕** to take it off.
+- Tap **Cash received** (or the amount for M-Pesa or card) and a number pad opens. **Exact** fills in the amount due, **C** clears it and **⌫** takes off a digit. The button with the dots beside the amount opens and closes the pad, and each till remembers how you left it.
+- The device's own keyboard stays out of the way while a scanner is plugged in; tap the scan box when you want to type a search.
+- On a phone, the till shows the products and the sale one at a time: switch with **Products** and **Sale** at the top. The Sale tab shows how many items are in the sale and its total.
 
 #### Sending documents by WhatsApp
 

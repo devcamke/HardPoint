@@ -10,8 +10,9 @@
   </style>
 <% end %>
 
-<div class="grid h-[calc(100vh-3.25rem)] grid-cols-[1fr_24rem] overflow-hidden" data-controller="offline-till">
-  <section class="flex min-h-0 flex-col gap-3 overflow-y-auto p-4">
+<%# Side by side from tablets up; stacked, and scrolling as one page, on phones. %>
+<div class="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(0,1fr)_22rem] md:overflow-hidden lg:grid-cols-[minmax(0,1fr)_24rem]" data-controller="offline-till">
+  <section class="flex flex-col gap-3 p-3 sm:p-4 md:min-h-0 md:overflow-y-auto">
     <div class="rounded-lg border-2 border-primary-500 bg-primary-50 px-4 py-3">
       <p class="font-semibold">Offline till <span class="font-normal" data-offline-till-target="till"></span></p>
       <p class="text-sm">Sales are kept on this device and sent as soon as it's back online; they get their receipt numbers then.
@@ -24,10 +25,10 @@
              aria-label="Scan or search" data-offline-till-target="code" data-action="input->offline-till#search">
       <button class="btn-secondary px-5">Add</button>
     </form>
-    <div class="grid grid-cols-2 gap-2 lg:grid-cols-4" data-offline-till-target="results"></div>
+    <div class="grid grid-cols-2 gap-2 xl:grid-cols-4" data-offline-till-target="results"></div>
 
     <p class="text-xs uppercase tracking-wide text-gray-500">Quick picks</p>
-    <div class="grid grid-cols-2 gap-2 lg:grid-cols-4" data-offline-till-target="quickPicks"></div>
+    <div class="grid grid-cols-2 gap-2 xl:grid-cols-4" data-offline-till-target="quickPicks"></div>
 
     <section class="card mt-auto">
       <h2 class="mb-1 font-semibold">Sales on this till</h2>
@@ -35,7 +36,7 @@
     </section>
   </section>
 
-  <aside class="flex min-h-0 flex-col border-l border-gray-200 bg-white">
+  <aside class="flex flex-col border-t border-gray-200 bg-white md:min-h-0 md:overflow-y-auto md:border-t-0 md:border-l">
     <div class="border-b border-gray-200 px-4 py-3">
       <p class="text-xs uppercase tracking-wide text-gray-500">Customer</p>
       <p class="font-semibold" data-offline-till-target="customerName">Walk-in</p>
@@ -45,7 +46,7 @@
       <label hidden class="mt-2 block text-sm" data-offline-till-target="jobField">Job
         <select class="input mt-1 py-1 text-sm" data-offline-till-target="job" aria-label="Job"><option value="">No job</option></select></label>
     </div>
-    <ul class="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto" data-offline-till-target="cart"></ul>
+    <ul class="min-h-32 flex-1 divide-y divide-gray-100 overflow-y-auto" data-offline-till-target="cart"></ul>
     <div class="border-t border-gray-200 px-4 py-3 text-sm">
       <div class="flex justify-between"><span>Items</span><span class="tabular-nums" data-offline-till-target="items">0</span></div>
       <div class="flex justify-between text-gray-500"><span>incl. tax</span><span class="tabular-nums" data-offline-till-target="tax"></span></div>
@@ -57,7 +58,7 @@
       <fieldset class="mb-2 grid <%= tenders.size > 3 ? "grid-cols-4" : "grid-cols-3" %> gap-1 text-sm" data-action="change->offline-till#switchTender">
         <legend class="sr-only">Payment method</legend>
         <% tenders.each_with_index do |(value, label), index| %>
-          <label class="cursor-pointer rounded-md border border-gray-300 bg-white py-2 text-center font-semibold has-checked:border-primary-500 has-checked:bg-primary-500 has-checked:text-white">
+          <label class="cursor-pointer rounded-md border border-gray-300 bg-white py-2 text-center font-semibold select-none pointer-coarse:py-3 has-checked:border-primary-500 has-checked:bg-primary-500 has-checked:text-white">
             <input type="radio" name="tender" value="<%= value %>" class="sr-only" <%= "checked" if index.zero? %>><%= label %>
           </label>
         <% end %>
