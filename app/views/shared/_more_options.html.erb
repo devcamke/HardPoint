@@ -1,6 +1,6 @@
-<%# locals: (summary:, open: false) %>
+<%# locals: (summary:, open: false, tour: nil) %>
 <%# Fields people rarely change, folded away with a line saying what they're set to (docs/SIMPLIFY.md, change 5). %>
-<details class="mt-2 mb-4 border-t border-gray-100 pt-3" <%= "open" if open %>>
+<details class="mt-2 mb-4 border-t border-gray-100 pt-3" <%= "open" if open %> <%= tag.attributes(data: { tour: tour }) %>>
   <summary class="cursor-pointer"><span class="font-medium text-primary-700">More options</span>
     <span class="hint block pl-4"><%= summary %></span>
   </summary>

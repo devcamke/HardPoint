@@ -172,7 +172,8 @@ export default class extends Controller {
   // While waiting to reach the tour's screen: a note in the corner, with a way out.
   showWaiting(tour) {
     this.waiting = this.element.ownerDocument.createElement("div")
-    this.waiting.className = "fixed right-4 bottom-4 z-[1001] flex max-w-sm items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm shadow-xl"
+    // Top centre, under the menus: the corners hold Take payment and Clear sale on the till.
+    this.waiting.className = "fixed top-20 left-1/2 z-[1001] flex w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm shadow-xl"
     this.waiting.setAttribute("role", "status")
     this.waiting.innerHTML = `
       <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#e46f2f] text-xs font-bold text-white" aria-hidden="true">?</span>

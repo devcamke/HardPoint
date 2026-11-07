@@ -5,19 +5,19 @@
 
 <%= form_with url: shift_closing_path(@shift), class: "card max-w-md", data: { turbo_confirm: "Close the shift? You won't be able to sell on this till until a new one is opened." } do |form| %>
   <% if flash.now[:alert] %><p id="alert" class="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-800"><%= flash.now[:alert] %></p><% end %>
-  <div class="field">
+  <div class="field" data-tour="close-cash">
     <%= form.label :counted_cash, "Cash counted (#{Current.account.currency})", class: "label" %>
     <%= form.number_field :counted_cash, step: "0.01", min: 0, required: true, autofocus: true, class: "input text-2xl" %>
   </div>
-  <% @shift.currencies_to_count.each do |code| %>
-    <div class="field">
+  <% @shift.currencies_to_count.each_with_index do |code, index| %>
+    <div class="field" <%= tag.attributes(data: { tour: ("close-foreign" if index.zero?) }) %>>
       <%= label_tag "counted_foreign_#{code}", "#{Currency::COMMON.fetch(code, code)} notes counted (#{code})", class: "label" %>
       <%= number_field_tag "counted_foreign[#{code}]", nil, id: "counted_foreign_#{code}", step: (Currency.decimals(code).zero? ? 1 : "0.01"), min: 0, class: "input text-xl", placeholder: "0" %>
     </div>
   <% end %>
-  <div class="field">
+  <div class="field" data-tour="close-note">
     <%= form.label :note, class: "label" %>
     <%= form.text_field :note, class: "input", placeholder: "Anything the manager should know" %>
   </div>
-  <%= form.submit "Close shift", class: "btn-primary w-full" %>
+  <%= form.submit "Close shift", class: "btn-primary w-full", data: { tour: "close-submit" } %>
 <% end %>

@@ -12,8 +12,11 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?][data-guided-tour-start]", "/?tour=home", text: "Start the tour"
     assert_select "a[href=?][data-guided-tour-start]", "/pos?tour=till", text: "Start the tour"
     assert_select "a[href=?][data-guided-tour-start]", "/products?tour=products", text: "Start the tour"
-    assert_select "a[href*='tour=stock-take']", count: 0
-    assert_select "a[href*='tour=receiving']", count: 0
+    assert_select "h2", text: "At the till"
+    assert_select "a[href=?]", "/pos?tour=close-shift"
+    assert_select "a[href=?]", "/orders/new?tour=quote"
+    assert_select "a[href=?]", "/customers?tour=customer"
+    %w[ stock-take receiving transfer purchase-order report ].each { assert_select "a[href*='tour=#{_1}']", count: 0 }
   end
 
   test "stock clerks get stock takes and receiving, which start from their lists" do
@@ -23,7 +26,7 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?][data-guided-tour-start]", "/stock_counts?tour=stock-take", text: "Start the tour"
     assert_select "a[href=?][data-guided-tour-start]", "/goods_receipts?tour=receiving", text: "Start the tour"
     data = JSON.parse(css_select("a[href='/stock_counts?tour=stock-take']").first["data-guided-tour-start"])
-    assert_equal "^/stock_counts/[^/]+$", data["page_pattern"]
+    assert_equal "^/stock_counts/[0-9]+$", data["page_pattern"]
     assert_match "press New", data["waiting"]
   end
 
@@ -34,6 +37,9 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
     get tours_path
     assert_select "a[href=?]", "/pos?tour=till", count: 0
     assert_select "a[href=?]", "/?tour=home"
+    assert_select "a[href=?]", "/reports/sales?tour=report"
+    assert_select "a[href=?]", "/customers?tour=customer"
+    assert_select "a[href*='tour=quote']", count: 0
   end
 
   test "?tour= starts a tour, with its steps and the guide behind it" do
@@ -55,7 +61,10 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
     post pos_till_path, params: { register_id: registers(:acme_front).id }
 
     post stock_counts_path, params: { stock_count: { branch_id: branches(:acme_main).id, category_id: categories(:acme_fasteners).id } }
-    screens = { "stock-take" => stock_count_path(Account.without_isolation { StockCount.last }) }
+    screens = { "stock-take" => stock_count_path(Account.without_isolation { StockCount.last }),
+                "close-shift" => new_shift_closing_path(shifts(:acme_front_open)),
+                "customer" => customer_path(customers(:acme_contractor)),
+                "report" => report_path("sales") }
 
     HelpTour.all.each do |tour|
       screen = screens.fetch(tour.id, tour.page)
@@ -71,7 +80,7 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
         get pos_products_path
         body += response.body
       end
-      tour.steps.each do |step|
+      tour.steps.reject(&:optional).each do |step|
         assert_includes body, %(data-tour="#{step.target}"), "#{tour.id}: nothing on #{screen} has data-tour=\"#{step.target}\""
       end
     end

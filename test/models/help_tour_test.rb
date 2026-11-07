@@ -22,6 +22,11 @@ class HelpTourTest < ActiveSupport::TestCase
     end
   end
 
+  test "a step only some shops have is marked optional" do
+    assert HelpTour.find("till").steps.none?(&:optional)
+    assert HelpTour.find("close-shift").steps.find { _1.target == "close-foreign" }.optional
+  end
+
   test "the steps a guide's walkthroughs show can be searched for" do
     assert_includes HelpArticle.search("park this sale"), HelpArticle.find("selling")
   end
@@ -42,6 +47,8 @@ class HelpTourTest < ActiveSupport::TestCase
     assert tour.runs_on?("/stock_counts/42")
     assert_not tour.runs_on?("/stock_counts")
     assert_not tour.runs_on?("/stock_counts/42/lines")
+    assert_not tour.runs_on?("/stock_counts/new")
+    assert_not HelpTour.find("customer").runs_on?("/customers/new")
     assert_equal "/stock_counts", tour.start
     assert_equal "/", HelpTour.find("home").start
     assert HelpTour.find("receiving").runs_on?("/goods_receipts/new")

@@ -44,6 +44,8 @@
   and they owe money, <strong>Text a reminder</strong> sends their balance to their phone. A statement can also go by PDF, email or
   WhatsApp.</p>
 
+<%= render "help/walkthrough", tour: HelpTour.find("customer") %>
+
 <h2>Who owes us</h2>
 <p><strong>Customers › Who owes us</strong> lists every customer with a balance, split into not yet due, 1–30, 31–60, 61–90 and over 90
   days late, with a <strong>Statement</strong> link for each. Owners, managers and accountants can see it.</p>

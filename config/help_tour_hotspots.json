@@ -55,5 +55,61 @@
       "receive-note": [ 32.8, 49.3, 28.6, 11.3 ],
       "receive-submit": [ 3.1, 62.4, 10.1, 3.8 ]
     }
+  },
+  "close-shift": {
+    "size": [ 1280, 800 ],
+    "steps": {
+      "close-cash": [ 3.1, 22.3, 27.7, 7.3 ],
+      "close-foreign": [ 3.1, 31.3, 27.7, 6.9 ],
+      "close-note": [ 3.1, 48.7, 27.7, 6.5 ],
+      "close-submit": [ 3.1, 56.9, 27.7, 3.8 ]
+    }
+  },
+  "transfer": {
+    "size": [ 1280, 800 ],
+    "steps": {
+      "transfer-branches": [ 3.1, 19.2, 49.6, 8 ],
+      "transfer-lines": [ 3.1, 30.4, 49.6, 38.6 ],
+      "transfer-note": [ 3.1, 70.8, 49.6, 6.5 ],
+      "transfer-send": [ 3.1, 79, 8, 3.8 ]
+    }
+  },
+  "quote": {
+    "size": [ 1280, 800 ],
+    "steps": {
+      "order-customer": [ 3.1, 19.2, 28.6, 8.8 ],
+      "order-lines": [ 3.1, 32.6, 58.4, 31.6 ],
+      "order-more": [ 3.1, 69, 58.4, 6.3 ],
+      "order-save": [ 3.1, 77, 58.4, 3.8 ]
+    }
+  },
+  "purchase-order": {
+    "size": [ 1280, 800 ],
+    "steps": {
+      "po-supplier": [ 3.1, 19.2, 30.6, 6.2 ],
+      "po-lines": [ 3.1, 29.1, 58.4, 37.1 ],
+      "po-more": [ 3.1, 67.9, 58.4, 6.3 ],
+      "po-save": [ 3.1, 75.9, 6.4, 3.8 ]
+    }
+  },
+  "customer": {
+    "size": [ 1280, 800 ],
+    "steps": {
+      "customer-details": [ 1.6, 15.6, 40.8, 2.2 ],
+      "customer-account": [ 1.6, 20.4, 96.7, 12.5 ],
+      "customer-actions": [ 54.5, 12.1, 43.8, 3.8 ],
+      "customer-unpaid": [ 1.6, 35.5, 47.5, 33.8 ],
+      "customer-purchases": [ 50.8, 71.9, 47.5, 28.1 ]
+    }
+  },
+  "report": {
+    "size": [ 1280, 800 ],
+    "steps": {
+      "list-search": [ 37.6, 6.6, 45.9, 3.9 ],
+      "list-filters": [ 80.9, 6.7, 2.5, 3.7 ],
+      "report-subtitle": [ 1.6, 11.8, 96.7, 2.2 ],
+      "report-table": [ 1.6, 15.8, 96.7, 43.8 ],
+      "list-actions": [ 19.7, 7, 1.9, 3.1 ]
+    }
   }
 }

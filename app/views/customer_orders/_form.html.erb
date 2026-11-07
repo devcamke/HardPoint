@@ -3,7 +3,7 @@
   <%= render "shared/errors", model: customer_order %>
 
   <div class="grid gap-4 sm:grid-cols-2">
-    <div class="field"><%= form.label :customer_id, "Customer", class: "label" %>
+    <div class="field" data-tour="order-customer"><%= form.label :customer_id, "Customer", class: "label" %>
       <%= form.collection_select :customer_id, Current.account.customers.alphabetically, :id, :name, { prompt: "Choose…" }, required: true, class: "input" %>
       <p class="hint mt-1">Not listed? <%= link_to "Add a customer", new_customer_path, class: "link" %> first.</p></div>
     <% jobs = customer_order.customer ? ([ customer_order.job ] + customer_order.customer.jobs.open.alphabetically).compact.uniq : [] %>
@@ -14,7 +14,7 @@
   </div>
 
   <p class="label mt-2">Products</p>
-  <table class="table mb-2">
+  <table class="table mb-2" data-tour="order-lines">
     <thead><tr><th>Barcode or SKU</th><th class="text-right">Quantity</th><% if current_membership.approver? %><th class="text-right">Unit price (blank = their price)</th><% end %><th class="text-right">Remove</th></tr></thead>
     <tbody>
       <%= form.fields_for :lines do |line| %>
@@ -39,7 +39,7 @@
   <p class="hint mb-4">Prices are the customer's own (their price list and quantity breaks) and hold once saved.</p>
 
   <% quote = customer_order.new_record? || customer_order.quote? %>
-  <%= render "shared/more_options", open: more_fields.any? { customer_order.errors.include?(_1) },
+  <%= render "shared/more_options", open: more_fields.any? { customer_order.errors.include?(_1) }, tour: "order-more",
         summary: [ "at #{(customer_order.branch || selected_branch)&.name}",
                    (("valid until #{customer_order.valid_until ? l(customer_order.valid_until, format: :short) : "#{CustomerOrder::QUOTE_VALIDITY.in_days.to_i} days from today"}") if quote),
                    (customer_order.needed_by ? "needed by #{l(customer_order.needed_by, format: :short)}" : "no date needed"),
@@ -55,7 +55,7 @@
     </div>
     <div class="field"><%= form.label :note, "Note (shown on the quote)", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. delivery to site included" %></div>
   <% end %>
-  <div class="flex flex-wrap items-center gap-3">
+  <div class="flex flex-wrap items-center gap-3" data-tour="order-save">
     <% if customer_order.new_record? %>
       <%= form.submit "Save quote", class: "btn-primary" %>
       <%= form.button "Save as confirmed order", name: "order_now", value: "1", class: "btn-secondary" %>

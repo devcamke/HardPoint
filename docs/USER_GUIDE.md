@@ -425,6 +425,15 @@ Press **Shift** on the till at any time to see the **X report**: how the shift i
 
 The count is blind: the closing page doesn't show what's expected. Afterwards the **Z report** shows the expected cash, what was counted, and whether the drawer is **Over**, **Short** or **Balanced**, with the same for each foreign currency. Press **Print** to print it. Once closed, nothing more can be sold on that till until a new shift is opened.
 
+**Walkthrough: Close a shift**
+
+![Screenshot: Close a shift](../app/assets/images/help/tours/close-shift.png)
+
+1. **Count the drawer.** Count all the cash and type the total. The count is blind. This page doesn't show what's expected, so nobody counts to a number.
+2. **Foreign notes.** If the till takes dollars or other currencies, count each one's notes separately, in its own box.
+3. **Anything to report?** Add a note if the manager should know something, like a payout without a slip.
+4. **Close shift.** Press it and confirm. The Z report then shows the expected and counted cash, and whether the drawer is Over, Short or Balanced. Nothing more can be sold on this till until a new shift is opened.
+
 #### What's expected in the drawer
 
 The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds, change given for foreign notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.
@@ -620,6 +629,16 @@ Open a customer from the list (search by name or phone) to see:
 
 The buttons along the top are **New quote**, **Statement**, **Record payment** (when they owe something) and, with contractor jobs switched on in **Settings › Features**, **Add a job**. When SMS is set up and they owe money, **Text a reminder** sends their balance to their phone. A statement can also go by PDF, email or WhatsApp.
 
+**Walkthrough: A customer's account**
+
+![Screenshot: A customer's account](../app/assets/images/help/tours/customer.png)
+
+1. **How to reach them.** Phone, email, address and KRA PIN. The phone finds them at the till and gets texted receipts. The PIN goes on their tax invoices.
+2. **Their account at a glance.** Their prices, what they owe on account and how much of it is overdue, the credit they have left, and how many days they pay within.
+3. **What you can do.** New quote, Statement (as a PDF, by email or WhatsApp), Text a reminder when they owe and SMS is set up, and Record payment, which settles their oldest sales first.
+4. **Unpaid account sales.** Each sale they haven't paid for yet, with its due date. Their payments on account are listed alongside.
+5. **What they buy.** Their recent purchases. Open quotes, orders and jobs are listed above when they have any.
+
 #### Who owes us
 
 **Customers › Who owes us** lists every customer with a balance, split into not yet due, 1–30, 31–60, 61–90 and over 90 days late, with a **Statement** link for each. Owners, managers and accountants can see it.
@@ -652,6 +671,15 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 2. When the customer agrees, press **Confirm order**. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
 3. When the goods are in, press **Mark ready to collect** (with SMS on, the customer can be texted).
 4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted.
+
+**Walkthrough: Write a quote**
+
+![Screenshot: Write a quote](../app/assets/images/help/tours/quote.png)
+
+1. **Who it's for.** Choose the customer. Not listed? Add a customer first. With contractor jobs switched on, you can put it against one of their jobs.
+2. **The goods.** Scan or type each barcode or SKU with the quantity. Prices are the customer's own, from their price list and quantity breaks, and hold once saved. Owners and managers can type a different unit price.
+3. **Branch, dates and a note.** More options sets the branch, how long the quote is valid (14 days if left blank), when it's needed by, and a note shown on the quote.
+4. **Quote or order.** Save quote to send it as a PDF or by email. When they agree, press Confirm order on it and take a deposit. If they've already agreed, Save as confirmed order.
 
 #### Payments and statements
 
@@ -880,6 +908,15 @@ Open the product and press **Adjust stock**. Choose the branch, how many to add 
 2. When it arrives, the other branch presses **Mark received at …** and the stock is theirs.
 3. While it is still in transit, **Cancel transfer** puts the stock back at the sending branch.
 
+**Walkthrough: Move stock between branches**
+
+![Screenshot: Move stock between branches](../app/assets/images/help/tours/transfer.png)
+
+1. **From and to.** Choose the branch the stock leaves, and the one it's going to.
+2. **What's going.** Scan or type each product's barcode or SKU, with how many. Leave the spare rows empty.
+3. **A note for the other end.** Say how it's coming, like "on the Tuesday lorry".
+4. **Send transfer.** The stock leaves the sending branch straight away and shows as in transit. When it arrives, the other branch opens the transfer and presses Mark received at, followed by its own name. Until then, Cancel transfer puts it back.
+
 #### Stock takes
 
 1. In **Stock › Stock takes**, press **New**. Count **everything**, or pick one category for a quicker cycle count, and press **Start counting**.
@@ -927,6 +964,15 @@ Add each supplier in **Buy › Suppliers** with their contacts, payment terms an
 **Stock › Reorder** works out what to order per branch from reorder levels, the last 30 days' sales, lead times, what's already on order and minimum order sizes, grouped by supplier. **Draft an order for …** turns a supplier's suggestions into a draft order to check and send, and when several suppliers have suggestions, **Draft … purchase orders** does them all at once. **Order them** on Home takes you there.
 
 Use **Group By › Supplier** on the orders list to see what's still to come from each supplier.
+
+**Walkthrough: Order from a supplier**
+
+![Screenshot: Order from a supplier](../app/assets/images/help/tours/purchase-order.png)
+
+1. **The supplier.** Choose who you're ordering from. To order everything that's running low, Stock › Reorder can draft the orders for you instead.
+2. **What to order.** Scan or type each barcode or SKU with the quantity. Leave the unit cost blank to use the supplier's price.
+3. **Delivery.** More options sets the branch it's delivered to, when it's expected, and a note to the supplier.
+4. **Save draft, then send.** The order is saved as a draft. On it, press Email to … to send it with a PDF attached, or Mark sent (phoned in). When the goods come, press Receive goods.
 
 #### Receiving a delivery
 
@@ -1158,6 +1204,16 @@ Open **Reports**, choose a report, then a period (today, this week, last month, 
 - Plus **Who owes us**, **What we owe** and the stock history.
 
 Margins are worked out from what each item cost on the day it was sold, so later price changes don't rewrite the past.
+
+**Walkthrough: Read a report**
+
+![Screenshot: Read a report](../app/assets/images/help/tours/report.png)
+
+1. **Filters.** A period, branch or grouping you choose shows here as a tag. Press × on a tag to go back to the default.
+2. **Change them.** Choose today, this week, last month or your own dates, one branch, and, on reports that have it, what to group by.
+3. **What you're looking at.** The period and branch the figures cover (this month and all branches, unless you change them), and the currency.
+4. **The figures.** The rows, with totals at the bottom. Margins use what each item cost on the day it sold, so later price changes don't rewrite the past.
+5. **Take it with you.** The ⚙ has Export CSV, to open in Excel, Download PDF on your letterhead, and Print.
 
 #### QuickBooks Online
 

@@ -655,3 +655,30 @@ Screenshots of every screen are in [screenshots](screenshots).
 ![Receive a delivery, at the lines](screenshots/336-guided-tour-receiving.png)
 
 ![Waiting on Receiving for an order to be chosen](screenshots/337-guided-tour-waiting.png)
+
+## Since then: tours of every main screen
+
+Six more guided tours, each also a walkthrough in its guide, for 11 in all:
+
+- **Close a shift** (shifts and cash): the blind count, foreign notes, the note, and what the Z report shows. Starts
+  from the till, with a note to finish the sale and press Shift, then Close shift
+- **Move stock between branches** (stock and stock takes): from and to, the products, the note, sending, and receiving
+  or cancelling at the other end
+- **Write a quote** (customers on account): the customer, their prices, validity and dates, and quote or confirmed order
+- **Order from a supplier** (buying from suppliers): the supplier, supplier prices, delivery, and sending the draft
+- **A customer's account** (customers): contact details, what they owe and can still buy on account, the buttons along
+  the top, unpaid sales and recent purchases
+- **Read a report** (reports): filters, the period and branch shown, the figures, and CSV, PDF and Print. Runs on
+  any report
+
+Guided tours are now grouped like the help centre (Getting started, At the till, and so on), and each tour is offered
+only to the roles that can open its screen. The note shown while a tour waits for its screen sits at the top, clear
+of Take payment. Pages for one record match by number, so a tour of a customer's page doesn't start on New customer.
+
+![Close a shift](screenshots/338-guided-tour-close-shift.png)
+
+![Write a quote, at More options](screenshots/339-guided-tour-quote.png)
+
+![Read a report, at the ⚙ menu](screenshots/340-guided-tour-report.png)
+
+![Guided tours, grouped like the help centre](screenshots/341-guided-tours-by-section.png)

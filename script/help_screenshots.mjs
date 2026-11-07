@@ -54,6 +54,18 @@ const prepare = {
   async receiving(page) {
     await page.getByRole("link", { name: "Receive", exact: true }).first().click()
     await page.locator("[data-tour=receive-lines]").waitFor()
+  },
+  // From the till (chosen by the till's tour), Shift at the top, then Close shift.
+  async "close-shift"(page) {
+    await page.locator("header").getByRole("link", { name: "Shift", exact: true }).click()
+    await page.getByRole("link", { name: "Close shift", exact: true }).click()
+    await page.locator("[data-tour=close-cash]").waitFor()
+  },
+  // A customer who owes something, so their account has numbers in it: the first on Who owes us.
+  async customer(page) {
+    await page.goto(new URL("/receivables", page.url()).href)
+    await page.locator("main a[href^='/customers/']").first().click()
+    await page.locator("[data-tour=customer-account]").waitFor()
   }
 }
 

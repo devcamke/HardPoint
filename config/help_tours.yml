@@ -5,17 +5,20 @@
 #   - in the help centre, as a walkthrough of a screenshot, in the guide named by `article`.
 #
 # A step's `target` is the value of a data-tour="..." attribute on that screen. Steps whose target isn't on the
-# screen (a role or feature that hides it) are skipped in the shop.
+# screen (a role or feature that hides it) are skipped in the shop. Mark a step `optional: true` when its target is
+# only there for some shops, so the tests don't expect it on every screen.
 #
 # After changing a tour, or a screen it points at, run `bin/rails help:screenshots` to retake its screenshot and
 # re-measure where each step is (app/assets/images/help/tours and config/help_tour_hotspots.json), then
 # `bin/rails help:export`.
 #
-#   page:    where the tour runs, in the shop. :id stands for a record's number, as in /stock_counts/:id
+#   page:    where the tour runs, in the shop. :id stands for a record's number, as in /stock_counts/:id, and :key for
+#            a name, as in /reports/:key
 #   start:   where "Start the tour" goes, when that isn't the page itself (default: the page)
 #   waiting: what to do to get to the page, shown until you're there (the till sends you to choose a till first)
-#   for:     who it's offered to in the shop: everyone, sellers (everyone but accountants), stock (owners, managers
-#            and stock clerks: stock takes) or purchasing (the same people: receiving goods)
+#   for:     who it's offered to in the shop: everyone; sellers (everyone but accountants); stock and purchasing
+#            (owners, managers and stock clerks); customers (sellers and accountants); reports (owners, managers and
+#            accountants). See HelpTour#available_to?
 #   minutes: about how long it takes
 
 home:
@@ -163,3 +166,141 @@ receiving:
     - target: receive-submit
       title: Receive into stock
       text: The goods go into the branch's stock, and each product's cost becomes the average of the old and new stock. Then record the supplier's invoice from the delivery.
+
+close-shift:
+  title: Close a shift
+  summary: The blind cash count, foreign notes, a note for the manager, and the Z report.
+  article: shifts-and-cash
+  page: /shifts/:id/closing/new
+  start: /pos
+  waiting: Finish or clear any sale on the till first. Then press Shift at the top of the till, and Close shift.
+  for: sellers
+  minutes: 1
+  steps:
+    - target: close-cash
+      title: Count the drawer
+      text: Count all the cash and type the total. The count is blind. This page doesn't show what's expected, so nobody counts to a number.
+    - target: close-foreign
+      optional: true # only for shops that take foreign notes
+      title: Foreign notes
+      text: If the till takes dollars or other currencies, count each one's notes separately, in its own box.
+    - target: close-note
+      title: Anything to report?
+      text: Add a note if the manager should know something, like a payout without a slip.
+    - target: close-submit
+      title: Close shift
+      text: Press it and confirm. The Z report then shows the expected and counted cash, and whether the drawer is Over, Short or Balanced. Nothing more can be sold on this till until a new shift is opened.
+
+transfer:
+  title: Move stock between branches
+  summary: Choosing the branches and products, sending, and receiving at the other end.
+  article: stock-and-stock-takes
+  page: /stock_transfers/new
+  for: stock
+  minutes: 1
+  steps:
+    - target: transfer-branches
+      title: From and to
+      text: Choose the branch the stock leaves, and the one it's going to.
+    - target: transfer-lines
+      title: What's going
+      text: Scan or type each product's barcode or SKU, with how many. Leave the spare rows empty.
+    - target: transfer-note
+      title: A note for the other end
+      text: Say how it's coming, like "on the Tuesday lorry".
+    - target: transfer-send
+      title: Send transfer
+      text: The stock leaves the sending branch straight away and shows as in transit. When it arrives, the other branch opens the transfer and presses Mark received at, followed by its own name. Until then, Cancel transfer puts it back.
+
+quote:
+  title: Write a quote
+  summary: The customer and the goods at their prices, how long it's valid, and saving it as a quote or a confirmed order.
+  article: customer-accounts
+  page: /orders/new
+  for: sellers
+  minutes: 1
+  steps:
+    - target: order-customer
+      title: Who it's for
+      text: Choose the customer. Not listed? Add a customer first. With contractor jobs switched on, you can put it against one of their jobs.
+    - target: order-lines
+      title: The goods
+      text: Scan or type each barcode or SKU with the quantity. Prices are the customer's own, from their price list and quantity breaks, and hold once saved. Owners and managers can type a different unit price.
+    - target: order-more
+      title: Branch, dates and a note
+      text: More options sets the branch, how long the quote is valid (14 days if left blank), when it's needed by, and a note shown on the quote.
+    - target: order-save
+      title: Quote or order
+      text: Save quote to send it as a PDF or by email. When they agree, press Confirm order on it and take a deposit. If they've already agreed, Save as confirmed order.
+
+purchase-order:
+  title: Order from a supplier
+  summary: The supplier and products, where and when it's delivered, then a draft to email or phone in.
+  article: buying-from-suppliers
+  page: /purchase_orders/new
+  for: purchasing
+  minutes: 1
+  steps:
+    - target: po-supplier
+      title: The supplier
+      text: Choose who you're ordering from. To order everything that's running low, Stock › Reorder can draft the orders for you instead.
+    - target: po-lines
+      title: What to order
+      text: Scan or type each barcode or SKU with the quantity. Leave the unit cost blank to use the supplier's price.
+    - target: po-more
+      title: Delivery
+      text: More options sets the branch it's delivered to, when it's expected, and a note to the supplier.
+    - target: po-save
+      title: Save draft, then send
+      text: The order is saved as a draft. On it, press Email to … to send it with a PDF attached, or Mark sent (phoned in). When the goods come, press Receive goods.
+
+customer:
+  title: A customer's account
+  summary: What a customer owes and can still buy on account, their unpaid sales and purchases, and the buttons for quotes, statements and payments.
+  article: customers
+  page: /customers/:id
+  start: /customers
+  waiting: Open a customer from the list. Search by name or phone.
+  for: customers
+  minutes: 1
+  steps:
+    - target: customer-details
+      title: How to reach them
+      text: Phone, email, address and KRA PIN. The phone finds them at the till and gets texted receipts. The PIN goes on their tax invoices.
+    - target: customer-account
+      title: Their account at a glance
+      text: Their prices, what they owe on account and how much of it is overdue, the credit they have left, and how many days they pay within.
+    - target: customer-actions
+      title: What you can do
+      text: New quote, Statement (as a PDF, by email or WhatsApp), Text a reminder when they owe and SMS is set up, and Record payment, which settles their oldest sales first.
+    - target: customer-unpaid
+      title: Unpaid account sales
+      text: Each sale they haven't paid for yet, with its due date. Their payments on account are listed alongside.
+    - target: customer-purchases
+      title: What they buy
+      text: Their recent purchases. Open quotes, orders and jobs are listed above when they have any.
+
+report:
+  title: Read a report
+  summary: Any report's period, branch and grouping, and downloading it as CSV or PDF.
+  article: reports
+  page: /reports/:key
+  start: /reports/sales
+  for: reports
+  minutes: 1
+  steps:
+    - target: list-search
+      title: Filters
+      text: A period, branch or grouping you choose shows here as a tag. Press × on a tag to go back to the default.
+    - target: list-filters
+      title: Change them
+      text: Choose today, this week, last month or your own dates, one branch, and, on reports that have it, what to group by.
+    - target: report-subtitle
+      title: What you're looking at
+      text: The period and branch the figures cover (this month and all branches, unless you change them), and the currency.
+    - target: report-table
+      title: The figures
+      text: The rows, with totals at the bottom. Margins use what each item cost on the day it sold, so later price changes don't rewrite the past.
+    - target: list-actions
+      title: Take it with you
+      text: The ⚙ has Export CSV, to open in Excel, Download PDF on your letterhead, and Print.

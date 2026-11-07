@@ -3,9 +3,9 @@
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="text-xl font-medium"><%= link_to "Customers", customers_path, class: "link" %> <span class="text-gray-400">/</span> <%= @customer.name %></h1>
-    <p class="hint mt-1"><%= [ @customer.phone, @customer.email, @customer.address, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %></p>
+    <p class="hint mt-1" data-tour="customer-details"><%= [ @customer.phone, @customer.email, @customer.address, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %></p>
   </div>
-  <div class="flex flex-wrap gap-2">
+  <div class="flex flex-wrap gap-2" data-tour="customer-actions">
     <% if current_membership.can_sell? %>
       <%= link_to "Edit", edit_customer_path(@customer), class: "btn-secondary" %>
       <%= link_to "New quote", new_customer_order_path(customer_id: @customer.id), class: "btn-secondary" %>
@@ -19,7 +19,7 @@
   </div>
 </div>
 
-<div class="mb-6 grid gap-4 sm:grid-cols-4">
+<div class="mb-6 grid gap-4 sm:grid-cols-4" data-tour="customer-account">
   <div class="card"><p class="hint">Prices</p><p class="mt-1 text-xl font-bold"><%= @customer.price_list&.name || "Retail" %></p></div>
   <div class="card"><p class="hint">Owes on account</p><p class="mt-1 text-xl font-bold tabular-nums"><%= money(@customer.balance_cents) %></p>
     <% overdue = @customer.overdue_cents %><%= tag.p("#{money(overdue)} overdue", class: "text-sm font-semibold text-red-700") if overdue.positive? %></div>
@@ -29,7 +29,7 @@
 </div>
 
 <div class="grid gap-6 lg:grid-cols-2">
-  <section class="card">
+  <section class="card" data-tour="customer-unpaid">
     <h2 class="mb-3 text-lg font-semibold">Unpaid account sales</h2>
     <% if @open_invoices.any? %>
       <table class="table">
@@ -96,7 +96,7 @@
     </section>
   <% end %>
 
-  <section class="card">
+  <section class="card" data-tour="customer-purchases">
     <h2 class="mb-3 text-lg font-semibold">Recent purchases</h2>
     <% if @sales.any? %>
       <table class="table">
