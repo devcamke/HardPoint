@@ -1,13 +1,9 @@
+<% more_fields = %i[ branch branch_id expected_on note ] %>
 <%= form_with model: purchase_order, class: "card max-w-4xl" do |form| %>
   <%= render "shared/errors", model: purchase_order %>
 
-  <div class="grid gap-4 sm:grid-cols-3">
-    <div class="field"><%= form.label :supplier_id, "Supplier", class: "label" %>
-      <%= form.collection_select :supplier_id, Current.account.suppliers.active.alphabetically, :id, :name, { prompt: "Choose…" }, required: true, class: "input" %></div>
-    <div class="field"><%= form.label :branch_id, "Deliver to", class: "label" %>
-      <%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %></div>
-    <div class="field"><%= form.label :expected_on, "Expected by", class: "label" %><%= form.date_field :expected_on, class: "input" %></div>
-  </div>
+  <div class="field max-w-md"><%= form.label :supplier_id, "Supplier", class: "label" %>
+    <%= form.collection_select :supplier_id, Current.account.suppliers.active.alphabetically, :id, :name, { prompt: "Choose…" }, required: true, class: "input" %></div>
 
   <p class="label mt-2">Products</p>
   <table class="table mb-4">
@@ -30,6 +26,16 @@
     </tbody>
   </table>
 
-  <div class="field"><%= form.label :note, "Note to the supplier", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. deliver to the back gate before 10am" %></div>
+  <%= render "shared/more_options", open: more_fields.any? { purchase_order.errors.include?(_1) },
+        summary: [ "deliver to #{(purchase_order.branch || selected_branch)&.name}",
+                   (purchase_order.expected_on ? "expected by #{l(purchase_order.expected_on, format: :short)}" : "no expected date"),
+                   (purchase_order.note.present? ? "note: #{purchase_order.note.truncate(40)}" : "no note") ].join(" · ") do %>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="field"><%= form.label :branch_id, "Deliver to", class: "label" %>
+        <%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %></div>
+      <div class="field"><%= form.label :expected_on, "Expected by", class: "label" %><%= form.date_field :expected_on, class: "input" %></div>
+    </div>
+    <div class="field"><%= form.label :note, "Note to the supplier", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. deliver to the back gate before 10am" %></div>
+  <% end %>
   <%= form.submit purchase_order.new_record? ? "Save draft" : "Save", class: "btn-primary" %>
 <% end %>

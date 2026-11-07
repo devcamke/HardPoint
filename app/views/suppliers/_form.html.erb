@@ -1,21 +1,32 @@
+<% more_fields = %i[ contact_name tax_pin payment_terms_days currency address notes active ] %>
 <%= form_with model: supplier, class: "card max-w-2xl" do |form| %>
   <%= render "shared/errors", model: supplier %>
   <div class="field"><%= form.label :name, class: "label" %><%= form.text_field :name, required: true, autofocus: true, class: "input" %></div>
   <div class="grid gap-4 sm:grid-cols-2">
-    <div class="field"><%= form.label :contact_name, "Contact person", class: "label" %><%= form.text_field :contact_name, class: "input" %></div>
     <div class="field"><%= form.label :phone, class: "label" %><%= form.telephone_field :phone, class: "input" %></div>
     <div class="field"><%= form.label :email, "Email (orders are sent here)", class: "label" %><%= form.email_field :email, class: "input" %></div>
-    <div class="field"><%= form.label :tax_pin, "Tax PIN", class: "label" %><%= form.text_field :tax_pin, class: "input uppercase" %></div>
-    <div class="field"><%= form.label :payment_terms_days, "Pay within (days)", class: "label" %><%= form.number_field :payment_terms_days, min: 0, class: "input" %></div>
-    <% if Current.account.currencies.any? || supplier.foreign? %>
-      <div class="field"><%= form.label :currency, "Invoices in", class: "label" %>
-        <%= form.select :currency, [ [ "#{Current.account.currency} (our currency)", "" ], *Current.account.currencies.alphabetically.map { [ _1.name, _1.code ] } ], {},
-              class: "input", disabled: supplier.persisted? && supplier.trading? %>
-        <p class="hint mt-1"><%= supplier.persisted? && supplier.trading? ? "Fixed once there are orders or invoices." : "Orders, invoices and payments for this supplier are in this currency." %></p></div>
-    <% end %>
   </div>
-  <div class="field"><%= form.label :address, class: "label" %><%= form.text_field :address, class: "input" %></div>
-  <div class="field"><%= form.label :notes, class: "label" %><%= form.text_area :notes, rows: 2, class: "input" %></div>
-  <div class="field flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-primary-500" %><%= form.label :active, "Active", class: "text-sm font-medium" %></div>
+
+  <%= render "shared/more_options", open: more_fields.any? { supplier.errors.include?(_1) },
+        summary: [ "invoices in #{supplier.foreign? ? supplier.currency_code : Current.account.currency}",
+                   (supplier.payment_terms_days.to_i.positive? ? "pay within #{supplier.payment_terms_days} days" : "pay on delivery"),
+                   ("contact #{supplier.contact_name}" if supplier.contact_name.present?),
+                   ("not active" unless supplier.active?) ].compact.join(" · ") do %>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="field"><%= form.label :contact_name, "Contact person", class: "label" %><%= form.text_field :contact_name, class: "input" %></div>
+      <div class="field"><%= form.label :tax_pin, "Tax PIN", class: "label" %><%= form.text_field :tax_pin, class: "input uppercase" %></div>
+      <div class="field"><%= form.label :payment_terms_days, "Pay within (days)", class: "label" %><%= form.number_field :payment_terms_days, min: 0, class: "input" %></div>
+      <% if Current.account.currencies.any? || supplier.foreign? %>
+        <div class="field"><%= form.label :currency, "Invoices in", class: "label" %>
+          <%= form.select :currency, [ [ "#{Current.account.currency} (our currency)", "" ], *Current.account.currencies.alphabetically.map { [ _1.name, _1.code ] } ], {},
+                class: "input", disabled: supplier.persisted? && supplier.trading? %>
+          <p class="hint mt-1"><%= supplier.persisted? && supplier.trading? ? "Fixed once there are orders or invoices." : "Orders, invoices and payments for this supplier are in this currency." %></p></div>
+      <% end %>
+    </div>
+    <div class="field"><%= form.label :address, class: "label" %><%= form.text_field :address, class: "input" %></div>
+    <div class="field"><%= form.label :notes, class: "label" %><%= form.text_area :notes, rows: 2, class: "input" %></div>
+    <div class="field flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-primary-500" %><%= form.label :active, "Active", class: "text-sm font-medium" %></div>
+  <% end %>
+
   <%= form.submit supplier.new_record? ? "Add supplier" : "Save", class: "btn-primary" %>
 <% end %>
