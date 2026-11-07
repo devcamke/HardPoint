@@ -16,7 +16,9 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", "/pos?tour=close-shift"
     assert_select "a[href=?]", "/orders/new?tour=quote"
     assert_select "a[href=?]", "/customers?tour=customer"
-    %w[ stock-take receiving transfer purchase-order report ].each { assert_select "a[href*='tour=#{_1}']", count: 0 }
+    assert_select "a[href=?]", "/sales?tour=return"
+    assert_select "a[href=?]", "/settings?tour=settings"
+    %w[ stock-take receiving transfer purchase-order report mpesa staff ].each { assert_select "a[href*='tour=#{_1}']", count: 0 }
   end
 
   test "stock clerks get stock takes and receiving, which start from their lists" do
@@ -55,16 +57,38 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
     assert_nil css_select("[data-controller=guided-tour]").first["data-guided-tour-tour-value"]
   end
 
+  test "a cashier's return has the approval step the owner's doesn't" do
+    sale = Current.set(account: accounts(:acme), session: Account.without_isolation { accounts(:acme).sessions.create!(user: users(:carl)) }) do
+      shifts(:acme_front_open).current_sale.tap do |sale|
+        sale.add(products(:acme_cement), quantity: 1)
+        sale.pay(tender: "cash", tendered_cents: 100000)
+      end
+    end
+    sign_in_as users(:carl)
+    post pos_till_path, params: { register_id: registers(:acme_front).id }
+
+    get new_sale_return_path(sale)
+    assert_select "[data-tour=return-approval]"
+    assert HelpTour.find("return").runs_on?(new_sale_return_path(sale))
+  end
+
   # The tours point at data-tour="…" on their screens: renaming or removing one would quietly skip a step.
   test "every step's button is on its screen, for the owner" do
     sign_in_as users(:amina)
     post pos_till_path, params: { register_id: registers(:acme_front).id }
 
     post stock_counts_path, params: { stock_count: { branch_id: branches(:acme_main).id, category_id: categories(:acme_fasteners).id } }
+    sale = Current.set(account: accounts(:acme), session: Account.without_isolation { accounts(:acme).sessions.create!(user: users(:amina)) }) do
+      shifts(:acme_front_open).current_sale.tap do |sale|
+        sale.add(products(:acme_cement), quantity: 2)
+        sale.pay(tender: "cash", tendered_cents: 200000)
+      end
+    end
     screens = { "stock-take" => stock_count_path(Account.without_isolation { StockCount.last }),
                 "close-shift" => new_shift_closing_path(shifts(:acme_front_open)),
                 "customer" => customer_path(customers(:acme_contractor)),
-                "report" => report_path("sales") }
+                "report" => report_path("sales"),
+                "return" => new_sale_return_path(sale) }
 
     HelpTour.all.each do |tour|
       screen = screens.fetch(tour.id, tour.page)

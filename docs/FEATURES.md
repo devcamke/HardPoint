@@ -682,3 +682,26 @@ of Take payment. Pages for one record match by number, so a tour of a customer's
 ![Read a report, at the ⚙ menu](screenshots/340-guided-tour-report.png)
 
 ![Guided tours, grouped like the help centre](screenshots/341-guided-tours-by-section.png)
+
+## Since then: a tour for every main guide
+
+Four more guided tours, each also a walkthrough in its guide, for 15 in all:
+
+- **Return goods** (returns and refunds): what's coming back, back on the shelf or written off, how the refund is paid,
+  the manager's approval PIN (for cashiers and stock clerks), and Process return. Starts from Sell › Sales
+- **Connect M-Pesa** (M-Pesa): adding a Paybill or Till with the Daraja keys, Receive payments and Test connection,
+  and the reconciliation report. For owners
+- **Find your way around Settings** (shop settings): each section, and what's in it for your role
+- **Add a member of staff** (staff and roles): their login, the five roles, and the PINs they set themselves. For
+  owners and managers
+
+The screenshot script can take a screen taller than usual (Settings is), and a step only some people see, like the
+approval PIN, may be left off the screenshot.
+
+![Return goods, at Refund by](screenshots/342-guided-tour-return.png)
+
+![Connect M-Pesa, at Receive payments](screenshots/343-guided-tour-mpesa.png)
+
+![Settings, at the catalogue's lists](screenshots/344-guided-tour-settings.png)
+
+![Add a member of staff, at the role](screenshots/345-guided-tour-staff.png)

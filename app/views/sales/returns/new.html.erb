@@ -7,8 +7,8 @@
   <% if flash.now[:alert] %><p id="alert" class="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-800"><%= flash.now[:alert] %></p><% end %>
   <%= render "shared/errors", model: @return %>
 
-  <table class="table mb-4">
-    <thead><tr><th>Item</th><th class="text-right">Bought</th><th class="text-right">Returning</th><th class="text-center">Back on the shelf?</th></tr></thead>
+  <table class="table mb-4" data-tour="return-lines">
+    <thead><tr><th>Item</th><th class="text-right">Bought</th><th class="text-right">Returning</th><th class="text-center" data-tour="return-restock">Back on the shelf?</th></tr></thead>
     <tbody>
       <% @sale.lines.includes(:product, product_unit: :unit).each_with_index do |line, index| %>
         <% returnable = line.quantity - @sale.returned_quantity(line) %>
@@ -30,17 +30,17 @@
   </table>
 
   <div class="grid gap-4 sm:grid-cols-2">
-    <div class="field">
+    <div class="field" data-tour="return-refund">
       <%= form.label :refund_method, "Refund by", class: "label" %>
       <%= form.select :refund_method, SaleReturn::REFUND_METHODS.map { [ _1 == "on_account" ? "Credit to customer's account" : payment_method_label(_1), _1 ] }, {}, class: "input" %>
     </div>
-    <div class="field">
+    <div class="field" data-tour="return-reason">
       <%= form.label :reason, class: "label" %>
       <%= form.text_field :reason, class: "input", placeholder: "e.g. wrong size" %>
     </div>
   </div>
   <% unless current_membership.approver? %>
-    <div class="field"><%= label_tag :approval_pin, "Manager approval PIN", class: "label" %><%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %></div>
+    <div class="field" data-tour="return-approval"><%= label_tag :approval_pin, "Manager approval PIN", class: "label" %><%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %></div>
   <% end %>
-  <%= form.submit "Process return", class: "btn-primary" %>
+  <%= form.submit "Process return", class: "btn-primary", data: { tour: "return-submit" } %>
 <% end %>

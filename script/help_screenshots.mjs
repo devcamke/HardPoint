@@ -18,7 +18,9 @@ const { chromium } = require("playwright")
 const [ toursPath, imagesDirectory, hotspotsPath ] = process.argv.slice(2)
 const tours = JSON.parse(readFileSync(toursPath, "utf8"))
 const shopUrl = process.env.HELP_SHOP_URL || "http://demo.localhost:3000"
-const viewport = { width: 1280, height: 800 }
+const standard = { width: 1280, height: 800 }
+// Screens whose last step would sit below a standard screenshot are taken taller.
+const sizes = { settings: { width: 1280, height: 1020 } }
 
 // Gets a screen into a state worth showing before its screenshot. Each tour starts on its start page.
 const prepare = {
@@ -61,6 +63,21 @@ const prepare = {
     await page.getByRole("link", { name: "Close shift", exact: true }).click()
     await page.locator("[data-tour=close-cash]").waitFor()
   },
+  // From Sell › Sales, the first sale that can still take a return, then Return items. Needs the till chosen by the
+  // till's tour, since returns are done at a till.
+  async return(page) {
+    const sales = await page.locator("main table a[href^='/sales/']").evaluateAll((links) => links.map((link) => link.href))
+    for (const sale of sales.slice(0, 10)) {
+      await page.goto(sale)
+      const returnItems = page.getByRole("link", { name: "Return items", exact: true })
+      if (await returnItems.count()) {
+        await returnItems.click()
+        await page.locator("[data-tour=return-lines]").waitFor()
+        return
+      }
+    }
+    throw new Error("No sale in the first ten can take a return")
+  },
   // A customer who owes something, so their account has numbers in it: the first on Who owes us.
   async customer(page) {
     await page.goto(new URL("/receivables", page.url()).href)
@@ -70,7 +87,7 @@ const prepare = {
 }
 
 const browser = await chromium.launch()
-const context = await browser.newContext({ viewport, deviceScaleFactor: 2 })
+const context = await browser.newContext({ viewport: standard, deviceScaleFactor: 2 })
 const page = await context.newPage()
 
 await page.goto(`${shopUrl}/session/new`)
@@ -82,6 +99,8 @@ mkdirSync(imagesDirectory, { recursive: true })
 const hotspots = {}
 
 for (const tour of tours) {
+  const viewport = sizes[tour.id] || standard
+  await page.setViewportSize(viewport)
   await page.goto(shopUrl + tour.page)
   await page.waitForLoadState("networkidle")
   await prepare[tour.id]?.(page)

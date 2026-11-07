@@ -18,7 +18,7 @@
 #   waiting: what to do to get to the page, shown until you're there (the till sends you to choose a till first)
 #   for:     who it's offered to in the shop: everyone; sellers (everyone but accountants); stock and purchasing
 #            (owners, managers and stock clerks); customers (sellers and accountants); reports (owners, managers and
-#            accountants). See HelpTour#available_to?
+#            accountants); staff (owners and managers); account (owners). See HelpTour#available_to?
 #   minutes: about how long it takes
 
 home:
@@ -304,3 +304,98 @@ report:
     - target: list-actions
       title: Take it with you
       text: The ⚙ has Export CSV, to open in Excel, Download PDF on your letterhead, and Print.
+
+return:
+  title: Return goods
+  summary: What's coming back, back on the shelf or written off, how the refund is paid, and approval.
+  article: returns-and-refunds
+  page: /sales/:id/returns/new
+  start: /sales
+  waiting: Find the sale by its receipt number, open it and press Return items. Returns are done at a till with an open shift.
+  for: sellers
+  minutes: 1
+  steps:
+    - target: return-lines
+      title: What's coming back
+      text: Under Returning, type how many of each item are coming back. Part of a line, some lines or the whole sale. You can't return more than was bought.
+    - target: return-restock
+      title: Back on the shelf?
+      text: Leave it ticked to put the goods back into stock. Untick it for damaged goods, and they're written off.
+    - target: return-refund
+      title: Refund by
+      text: Cash, card, M-Pesa, Airtel Money, or credit to the customer's account. It starts as the way they paid. For card and mobile money, send the money back yourself. HardPoint records how you did.
+    - target: return-reason
+      title: Why
+      text: A reason, if you like, such as "wrong size".
+    - target: return-approval
+      optional: true # only cashiers and stock clerks see it
+      title: Manager approval
+      text: A cashier or stock clerk needs an owner's or manager's approval PIN. It approves this return only, and signs nobody in.
+    - target: return-submit
+      title: Process return
+      text: The refund is what the customer paid for those items, including their share of any discount. The return gets its own number, and its page has Print for the return slip. With eTIMS, it goes to KRA as a credit note.
+
+mpesa:
+  title: Connect M-Pesa
+  summary: Your Paybill or Till, receiving money paid straight to it, testing it, and checking it all matches.
+  article: mpesa
+  page: /mpesa
+  for: account
+  minutes: 1
+  steps:
+    - target: mpesa-add
+      title: Add Paybill or Till
+      text: Add your Paybill or Till number with the Daraja API keys (consumer key, secret and passkey) from Safaricom's developer portal. The keys are stored encrypted.
+    - target: mpesa-shortcode
+      optional: true # once one is added
+      title: Your number
+      text: Which branches use it, whether it's live, and whether payments made straight to it are coming in.
+    - target: mpesa-actions
+      optional: true # once one is added
+      title: Receive payments
+      text: Press Receive payments once (it says Register again after that), so Safaricom tells HardPoint about money paid straight in. Test connection checks the keys. Then at the till, choose M-Pesa and type the customer's phone, and the sale completes when they pay.
+    - target: mpesa-reconciliation
+      title: Does it all match?
+      text: The reconciliation report lists money received but not yet used on a sale, and M-Pesa codes typed at a till that Safaricom never confirmed.
+
+settings:
+  title: Find your way around Settings
+  summary: Where your shop details, branches and tills, staff, payments, tax and the catalogue's lists are.
+  article: shop-settings
+  page: /settings
+  for: everyone
+  minutes: 1
+  steps:
+    - target: settings-index
+      title: Jump to a section
+      text: Settings comes in sections. Press one to go straight to it. You only see the ones your role uses.
+    - target: settings-shop
+      title: Your shop
+      text: Branches and tills. Owners also get Shop details (name, time zone, receipt footer and the discount limit), Billing, Features and Your data.
+    - target: settings-people
+      title: People
+      text: Staff, with their roles and till PINs, and Activity, which shows who did what, and when.
+    - target: settings-payments-and-tax
+      title: Payments and tax
+      text: M-Pesa, Airtel Money, KRA eTIMS and text messages, and currencies if your shop takes them.
+    - target: settings-catalogue
+      title: The catalogue's lists
+      text: Categories, brands, units, tax rates and price lists, set up once and used on every product.
+
+staff:
+  title: Add a member of staff
+  summary: Their own login, choosing the right role, and the PINs they set up themselves.
+  article: staff-and-roles
+  page: /memberships/new
+  for: staff
+  minutes: 1
+  steps:
+    - target: staff-person
+      title: Who they are
+      text: Their name and email address. Everyone gets their own login, so the activity log shows who did what.
+    - target: staff-role
+      title: Their role
+      text: Owner, everything. Manager, runs the shop and approves discounts, voids and returns. Cashier, sells. Stock clerk, receives, orders, moves and counts stock. Accountant, the money side without the till.
+    - target: staff-add
+      title: Add staff member
+      text: We email them a link to choose a password. Cashiers and stock clerks then set a PIN under My profile, for Switch user at a shared till. Owners and managers set an approval PIN there.

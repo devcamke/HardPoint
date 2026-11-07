@@ -173,6 +173,16 @@ _Your shop's name, time zone and receipt footer, branches and their receipt code
 
 Most of what you set up once lives in **Settings** (the gear in the top bar): your shop's name and time zone, your branches and tills, the features you use, and text messages to customers. Shop details, Features and SMS are for the shop's owner; owners and managers look after branches and tills.
 
+**Walkthrough: Find your way around Settings**
+
+![Screenshot: Find your way around Settings](../app/assets/images/help/tours/settings.png)
+
+1. **Jump to a section.** Settings comes in sections. Press one to go straight to it. You only see the ones your role uses.
+2. **Your shop.** Branches and tills. Owners also get Shop details (name, time zone, receipt footer and the discount limit), Billing, Features and Your data.
+3. **People.** Staff, with their roles and till PINs, and Activity, which shows who did what, and when.
+4. **Payments and tax.** M-Pesa, Airtel Money, KRA eTIMS and text messages, and currencies if your shop takes them.
+5. **The catalogue's lists.** Categories, brands, units, tax rates and price lists, set up once and used on every product.
+
 #### Shop details
 
 Open **Settings › Shop details**. The page is called **Shop settings** and holds:
@@ -266,6 +276,14 @@ Everyone who uses HardPoint gets their own login, so the activity log shows who 
 - **Accountant**: the money side without the till: customer accounts and statements, supplier invoices and payments, and reports.
 
 Each person only sees the areas their role uses: a cashier sees Home, Sell, Customers and Stock, and starts at the till.
+
+**Walkthrough: Add a member of staff**
+
+![Screenshot: Add a member of staff](../app/assets/images/help/tours/staff.png)
+
+1. **Who they are.** Their name and email address. Everyone gets their own login, so the activity log shows who did what.
+2. **Their role.** Owner, everything. Manager, runs the shop and approves discounts, voids and returns. Cashier, sells. Stock clerk, receives, orders, moves and counts stock. Accountant, the money side without the till.
+3. **Add staff member.** We email them a link to choose a password. Cashiers and stock clerks then set a PIN under My profile, for Switch user at a shared till. Owners and managers set an approval PIN there.
 
 #### Quick switching with a PIN
 
@@ -471,6 +489,16 @@ Returns are done at a till with an open shift, because a cash refund comes out o
 5. Type a **Reason** if you like, then press **Process return**.
 
 The refund is what the customer actually paid for those items, including their share of any discount. HardPoint records how you paid them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.
+
+**Walkthrough: Return goods**
+
+![Screenshot: Return goods](../app/assets/images/help/tours/return.png)
+
+1. **What's coming back.** Under Returning, type how many of each item are coming back. Part of a line, some lines or the whole sale. You can't return more than was bought.
+2. **Back on the shelf?** Leave it ticked to put the goods back into stock. Untick it for damaged goods, and they're written off.
+3. **Refund by.** Cash, card, M-Pesa, Airtel Money, or credit to the customer's account. It starts as the way they paid. For card and mobile money, send the money back yourself. HardPoint records how you did.
+4. **Why.** A reason, if you like, such as "wrong size".
+5. **Process return.** The refund is what the customer paid for those items, including their share of any discount. The return gets its own number, and its page has Print for the return slip. With eTIMS, it goes to KRA as a credit note.
 
 #### Approval
 
@@ -1100,6 +1128,15 @@ When the supplier sends their credit note, open the return and note its number a
 _Payment prompts to the customer's phone, and money paid straight to your Paybill or Till._
 
 Connect your Paybill or Till number in **Settings › M-Pesa › Add Paybill or Till** with the Daraja API keys (consumer key, secret and passkey) from Safaricom's developer portal. Then press **Receive payments** so Safaricom tells HardPoint about money paid in. The keys are stored encrypted.
+
+**Walkthrough: Connect M-Pesa**
+
+![Screenshot: Connect M-Pesa](../app/assets/images/help/tours/mpesa.png)
+
+1. **Add Paybill or Till.** Add your Paybill or Till number with the Daraja API keys (consumer key, secret and passkey) from Safaricom's developer portal. The keys are stored encrypted.
+2. **Your number.** Which branches use it, whether it's live, and whether payments made straight to it are coming in.
+3. **Receive payments.** Press Receive payments once (it says Register again after that), so Safaricom tells HardPoint about money paid straight in. Test connection checks the keys. Then at the till, choose M-Pesa and type the customer's phone, and the sale completes when they pay.
+4. **Does it all match?** The reconciliation report lists money received but not yet used on a sale, and M-Pesa codes typed at a till that Safaricom never confirmed.
 
 #### Payment prompts
 

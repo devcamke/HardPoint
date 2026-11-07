@@ -1,5 +1,7 @@
 <p>Connect your Paybill or Till number in <strong>Settings › M-Pesa › Add Paybill or Till</strong> with the Daraja API keys (consumer key, secret and passkey) from Safaricom's developer portal. Then press <strong>Receive payments</strong> so Safaricom tells HardPoint about money paid in. The keys are stored encrypted.</p>
 
+<%= render "help/walkthrough", tour: HelpTour.find("mpesa") %>
+
 <h2>Payment prompts</h2>
 <p>At the till, choose M-Pesa and enter the customer's phone number. They get a prompt on their phone for the amount, enter their PIN, and the sale completes itself when Safaricom confirms. If it doesn't go through, the till says why.</p>
 

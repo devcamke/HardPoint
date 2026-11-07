@@ -107,8 +107,9 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://har
 - **A public API and webhooks** for web shops and accounting software (Business and Enterprise), documented at
   `/developers`.
 - **Your data:** export everything as CSV files, or close the shop.
-- **Help in the app:** the guides, **guided tours** that point at the real buttons on 11 screens (Home, the till, closing a shift,
-  lists, stock takes, transfers, receiving, purchase orders, quotes, a customer's account and reports),
+- **Help in the app:** the guides, **guided tours** that point at the real buttons on 15 screens (Home, the till, returns, closing a
+  shift, lists, stock takes, transfers, receiving, purchase orders, quotes, a customer's account, reports, M-Pesa,
+  Settings and adding staff),
   WhatsApp, and a message form that tells support which page you were on. The guides open with interactive
   walkthroughs of the same screens.
 
@@ -170,7 +171,7 @@ ending 0000 declines). Without Paystack keys, "Pay by card" goes to a simulated 
 | Document | For | What's in it |
 |---|---|---|
 | Help centre (`/help`, in `app/views/help`) | Shop owners and staff | How to set up and use every part of HardPoint, with interactive walkthroughs of the main screens |
-| Guided tours (`/tours` in a shop, `config/help_tours.yml`) | Shop owners and staff | Step-by-step pop-ups over 11 live screens, from the till and closing a shift to stock takes, purchasing, quotes and reports |
+| Guided tours (`/tours` in a shop, `config/help_tours.yml`) | Shop owners and staff | Step-by-step pop-ups over 15 live screens, one for every main help guide |
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Shop owners and staff, trainers | Every help guide in one document, to read, print or share. Generated from the help centre by `bin/rails help:export` |
 | Developer docs (`/developers`) | Developers connecting other apps | The REST API and webhooks, with signature checks in Ruby, Node.js and Python |
 | [docs/FEATURES.md](docs/FEATURES.md) | Everyone | What each phase of the build added, with screenshots |

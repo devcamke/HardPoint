@@ -14,6 +14,7 @@ class HelpTourTest < ActiveSupport::TestCase
     HelpTour.all.each do |tour|
       assert Rails.root.join("app/assets/images", tour.image).exist?, "#{tour.image} is missing"
       tour.steps.each do |step|
+        next if step.optional && step.box.nil? # shown to some people only, like the approval PIN to cashiers
         assert step.box, "#{tour.id}: #{step.target} isn't placed on the screenshot"
         x, y, width, height = step.box
         assert [ x, y, width, height ].all? { _1.between?(0, 100) } && x + width <= 100.1 && y + height <= 100.1,
@@ -40,6 +41,9 @@ class HelpTourTest < ActiveSupport::TestCase
     assert_not HelpTour.find("home").available_to?(nil)
     assert_not HelpTour.find("stock-take").available_to?(memberships(:carl_acme))
     assert HelpTour.find("receiving").available_to?(memberships(:sara_acme))
+    assert HelpTour.find("mpesa").available_to?(memberships(:amina_acme))
+    assert_not HelpTour.find("staff").available_to?(memberships(:sara_acme))
+    assert HelpTour.find("settings").available_to?(memberships(:sara_acme))
   end
 
   test "a tour can run on any record's page, and start somewhere else" do

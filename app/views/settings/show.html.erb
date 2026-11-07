@@ -37,14 +37,14 @@
    } %>
 
 <div class="flex gap-6">
-  <nav class="sticky top-16 hidden w-48 shrink-0 self-start text-sm lg:block">
+  <nav class="sticky top-16 hidden w-48 shrink-0 self-start text-sm lg:block" data-tour="settings-index">
     <% sections.compact_blank.each_key do |heading| %>
       <a href="#<%= heading.parameterize %>" class="block rounded px-3 py-1.5 text-gray-700 hover:bg-gray-100"><%= heading %></a>
     <% end %>
   </nav>
   <div class="min-w-0 flex-1 space-y-4">
     <% sections.compact_blank.each do |heading, links| %>
-      <section id="<%= heading.parameterize %>" class="scroll-mt-16 rounded border border-gray-200 bg-white">
+      <section id="<%= heading.parameterize %>" class="scroll-mt-16 rounded border border-gray-200 bg-white" data-tour="settings-<%= heading.parameterize %>">
         <h2 class="border-b border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-800"><%= heading %></h2>
         <div class="grid sm:grid-cols-2">
           <% links.each do |name, path, description| %>

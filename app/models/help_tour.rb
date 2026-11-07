@@ -5,7 +5,7 @@ class HelpTour < Data.define(:id, :title, :summary, :article, :page, :start, :wa
   DEFINITIONS_PATH = Rails.root.join("config/help_tours.yml")
   HOTSPOTS_PATH = Rails.root.join("config/help_tour_hotspots.json")
   IMAGES_DIRECTORY = "help/tours"
-  AUDIENCES = %w[ everyone sellers stock purchasing customers reports ].freeze
+  AUDIENCES = %w[ everyone sellers stock purchasing customers reports staff account ].freeze
 
   # One step. Its box is [ x, y, width, height ]: where its target is on the screenshot, as percentages of the image.
   # An optional step's target is only on some shops' screens (foreign notes, say).
@@ -40,6 +40,8 @@ class HelpTour < Data.define(:id, :title, :summary, :article, :page, :start, :wa
     when "purchasing" then membership&.can_purchase?
     when "customers" then membership&.can_sell? || membership&.can_manage_receivables?
     when "reports" then membership&.can_view_reports?
+    when "staff" then membership&.can_manage_staff?
+    when "account" then membership&.can_manage_account?
     else raise ArgumentError, "Unknown tour audience #{audience}"
     end
   end
