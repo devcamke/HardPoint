@@ -260,27 +260,6 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     first_invoice.payments.create!(provider: "mpesa", amount_cents: first_invoice.amount_cents, reference: "ws_CO_SEED01", phone: "254722000111", user: owner)
       .succeed(receipt: "SKA4F9T2QX")
 
-    # Tool hire: mixers, compactors, scaffolding and a generator, one hire out, one overdue, one back.
-    tools = [
-      [ main, "Concrete mixer 350L", "MIX-01", 1_500, 6_000, 5_000 ], [ main, "Concrete mixer 350L", "MIX-02", 1_500, 6_000, 5_000 ],
-      [ yard, "Plate compactor", "CMP-01", 2_500, 10_000, 8_000 ], [ yard, "Scaffolding set (10 frames)", "SCF-01", 3_000, 12_000, 15_000 ],
-      [ main, "Generator 5kVA", "GEN-01", 3_500, nil, 20_000 ], [ main, "Tile cutter", "TLC-01", 800, 3_200, 3_000 ],
-      [ yard, "Poker vibrator", "VIB-01", 1_200, 4_800, 4_000 ]
-    ].map do |branch, name, tag, daily, weekly, deposit|
-      account.hire_items.create!(branch: branch, name: name, asset_tag: tag, daily_rate: daily, weekly_rate: weekly, deposit: deposit)
-    end
-    tool = tools.index_by(&:asset_tag)
-    out = HireAgreement.hire_out(branch: main, customer: otieno, items: [ tool["MIX-01"], tool["GEN-01"] ], started_at: 2.days.ago.change(hour: 8),
-      due_back_at: 2.days.from_now.change(hour: 17), id_number: "23456789", site: "Plot 45, Kitengela")
-    out.customer_order.take_deposit(amount_cents: out.deposit_due_cents, tender: "mobile_money", reference: "SJU77KD12M")
-    late = HireAgreement.hire_out(branch: yard, customer: mwangi, items: [ tool["SCF-01"] ], started_at: 9.days.ago.change(hour: 9),
-      due_back_at: 2.days.ago.change(hour: 17), id_number: "11223344", site: "Mwangi Towers, Ruaka")
-    late.customer_order.take_deposit(amount_cents: late.deposit_due_cents, tender: "card", reference: "VISA 4242")
-    back = HireAgreement.hire_out(branch: yard, customer: grace, items: [ tool["CMP-01"] ], started_at: 4.days.ago.change(hour: 10),
-      due_back_at: 1.day.ago.change(hour: 10), id_number: "34567890", site: "Kiambu Road, Ridgeways")
-    back.customer_order.take_deposit(amount_cents: back.deposit_due_cents, tender: "mobile_money", reference: "SJV88LE23N")
-    back.return_tools({ back.lines.first.id => { condition_note: "Clean, working" } }, at: 1.day.ago.change(hour: 9, min: 30))
-
     # Products tracked by batch: tile adhesive and sealant with expiry dates, one batch already expired and two close,
     # and a contractor's sale that took adhesive from a batch (for tracing a recall).
     [ [ "Tile adhesive 20kg", "ADH-TILE20", "Bag", 1250, 980, 10 ], [ "Waterproof sealant 300ml", "SEAL-300", "Piece", 650, 420, 12 ] ].each do |name, sku, unit_name, price, cost, reorder|
@@ -409,7 +388,9 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
   end
 
   # The demo shop shows off everything it has records for (Settings › Features).
-  Account.find_by!(subdomain: "demo").then { _1.update_columns(features: (Account::Features::DEFAULTS + _1.features_in_use).uniq.sort) }
+  # Inside the shop's own context: row-level security hides its records from anywhere else.
+  demo = Account.find_by!(subdomain: "demo")
+  Current.set(account: demo) { demo.update_columns(features: (Account::Features::DEFAULTS + demo.features_in_use).uniq.sort) }
 
   Announcement.create!(title: "New: export all your shop's data", body: "Owners can download everything as spreadsheets from Settings → Your data.",
     starts_at: 1.day.ago, ends_at: 2.weeks.from_now)

@@ -1,2 +1,0 @@
-<%# locals: (agreement:) %>
-<% if agreement.overdue? %><%= status_dot "Overdue", :danger %><% elsif agreement.out? %><%= status_dot "Out", :warning %><% elsif agreement.returned? %><%= status_dot "Returned", :success %><% else %><%= status_dot "Cancelled", :muted %><% end %>

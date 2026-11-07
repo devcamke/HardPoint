@@ -8,6 +8,8 @@ This plan keeps every feature. It changes **what people see by default** and **h
 take**. The images in [`docs/simplify/`](simplify/) are mockups of the proposed screens. Screens marked
 "today" are real screenshots from `docs/screenshots/`.
 
+> Tool hire, mentioned below, was removed afterwards (PLAN.md, Phase 30).
+
 > **Status: built.** All four phases are in the app. [What was built](#what-was-built) has screenshots of the real
 > screens and lists where the build differs from this plan.
 
@@ -210,7 +212,7 @@ Where the code lives:
 
 - **Features:** customer accounts, quotes and orders, more than one branch, and kits and pack sizes are always on
   rather than switchable, because the till and reports lean on them everywhere. Serial numbers and the API were
-  added to the list. A feature can't be switched off while it's live (a promotion running, tools out on hire,
+  added to the list. A feature can't be switched off while it's live (a promotion running,
   products recording batches), so switching one off never changes what the till does; the page says what to
   finish first.
 - **Setup checklist:** the new step links to Settings › Features (optional, like M-Pesa and eTIMS) instead of

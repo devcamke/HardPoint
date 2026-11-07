@@ -33,6 +33,7 @@ to use it, the help centre (`/help` on the public site). The plan the phases cam
 - [Phase 27: jobs for contractors, continued](#phase-27-jobs-for-contractors-continued)
 - [Phase 28: the daily exchange rate](#phase-28-the-daily-exchange-rate)
 - [Phase 29: shop-editable hire terms](#phase-29-shop-editable-hire-terms)
+- [Phase 30: tool hire removed](#phase-30-tool-hire-removed)
 - [Since then: the new look, lists and help](#since-then-the-new-look-lists-and-help)
 
 ## Phase 1: shops, staff and sign-in
@@ -282,6 +283,8 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ## Phase 13: tool hire
 
+*Removed in [Phase 30](#phase-30-tool-hire-removed).*
+
 - **Tools for hire** (Settings › Tools for hire): each concrete mixer, compactor or scaffold set with an asset tag,
   branch, daily and optional weekly rate, deposit and status (available, on hire, in maintenance, retired), with what
   it has earned
@@ -496,11 +499,22 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ## Phase 29: shop-editable hire terms
 
+*Removed in [Phase 30](#phase-30-tool-hire-removed), with tool hire.*
+
 - **Hire terms** (owners and managers; ⚙ on Tools for hire, or Settings): the shop writes the numbered terms printed on its
   hire agreements, one per line, with a preview of how they'll print. Until it does, the standard terms apply, and it can
   go back to them at any time
 - **Each agreement keeps the terms it was made under**, so editing them never changes what a customer signed; agreements
   from before this print the standard terms they were signed with
+
+## Phase 30: tool hire removed
+
+- **Tool hire is gone:** tools for hire, hire agreements, returns, settling hire at the till, overdue texts, hire terms
+  and the "Hiring out tools" guide. Its tables are dropped
+- **What stays:** the "hire" orders it created, with their deposits, payments, receipts and KRA eTIMS invoices (marked
+  "for a tool hire (no longer in HardPoint)"), the "Tool hire" product their lines sold, texts in the SMS log, and
+  activity entries, which still read sensibly
+- **Labour lines** on a contractor's client bill are dropped from the backlog
 
 ## Since then: the new look, lists and help
 
@@ -523,7 +537,7 @@ The plan and its reasons are in [SIMPLIFY.md](SIMPLIFY.md).
   underneath, Settings under the gear. Pages that were in two menus have one home; old addresses redirect
 - **Needs you today:** Home lists what to act on (low stock, overdue customers and suppliers, eTIMS refusals, stock takes to
   approve, shifts left open, orders to collect, deliveries), each with its button. Cashiers get one big **Start selling**
-- **Settings › Features:** deliveries, promotions, loyalty, currencies, the online store, tool hire, jobs, batches, serial
+- **Settings › Features:** deliveries, promotions, loyalty, currencies, the online store, jobs, batches, serial
   numbers and the API are switched on per shop; one that's off leaves the menus, Settings, Home and forms
 - **One Reorder page** that drafts an order for every supplier in one click
 - **A shorter product form** with opening stock, and **Add and start another**

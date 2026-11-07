@@ -45,11 +45,10 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 - **Jobs for contractors:** tag purchases to a project, track it against a budget, and print a cost summary or a
   marked-up bill for their client.
 - **An online store** at `yourshop.hardpoint.app/store` for click-and-collect, paid ahead by M-Pesa or on collection.
-- **Tool hire:** agreements, deposits, returns tool by tool, and settling up at the till.
 
 Guides: [Customers on account](https://hardpoint.app/help/customer-accounts) ·
 [Jobs for contractors](https://hardpoint.app/help/contractor-jobs) ·
-[Online store](https://hardpoint.app/help/online-store) · [Tool hire](https://hardpoint.app/help/tool-hire)
+[Online store](https://hardpoint.app/help/online-store)
 
 ### Stock and purchasing
 

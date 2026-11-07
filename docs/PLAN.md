@@ -84,9 +84,7 @@ customers, staff, or reports.
 | Online store | Part of the app on the shop's own subdomain at `/store` (no separate site or theme builder), server-rendered, mobile first. On every plan: small shops want it most |
 | Store checkout | No customer accounts: name and mobile number, matched to an existing customer by the last nine digits. Orders go straight to "ordered" at the shop's prices of the moment, with an unguessable link to follow them. Out-of-stock items can still be ordered ("we'll confirm"), because hardware shops order in |
 | Store payments | Pay on collection, or ahead to the shop's Paybill with the order number as account number (matched by Phase 7). No prompt to the customer's phone from the store yet: that would need M-Pesa prompts tied to orders rather than sales |
-| Tool hire model | A hire agreement owns a confirmed customer order with source "hire". Deposits, refunds, collection at the till, receipts, eTIMS, M-Pesa matching and reports all come from the order, with no separate hire ledger. The order's lines can't be edited by hand; returns rewrite them. |
-| Hire charges | A day is 24 hours from going out, with an hour's grace, and at least one day. With a weekly rate, each full week costs the weekly rate and the remaining days cost the daily rate up to one more week's rate. Damage is charged per tool at return. |
-| Hire lines | Charges go on an inactive, untracked "Tool hire" service product (SKU HIRE), with the tool and days as line detail ("Tool hire · Concrete mixer MIX-01, 4 days"), so reports and tax work without a product per tool. |
+| Tool hire | Removed in Phase 30: not needed now. Its tools, agreements and terms were dropped; the "hire" customer orders it created stay, with their deposits, payments, receipts and KRA eTIMS invoices, as does the inactive "Tool hire" service product (SKU HIRE) their lines sold. Old texts and activity entries stay in their logs. |
 | Contractor jobs | A job belongs to one customer: name (unique per customer), their reference or LPO, site, optional materials budget, open or closed. Sales and quotes/orders carry an optional job, which must be the customer's and open when chosen. Changing the sale's customer drops the job. |
 | Job costs | Spend is completed sales less returns from them, worked out when asked rather than stored. Voided sales don't count. Materials are summed by product and pack, net of returns. Budgets warn (orange from 80%, red over) and never block a sale. The offline till doesn't tag jobs yet. |
 | Phone app | A phone-sized section of the web app at `/m` with its own install manifest, not a native app: nothing to publish or update in app stores, same sign-in and permissions. Hotwire Native can wrap it later if a store listing is wanted. |
@@ -112,7 +110,6 @@ customers, staff, or reports.
 | Offline jobs | The till snapshot carries each customer's open jobs; an offline sale names one. On sync it's tagged if the job is still the customer's and open; a job closed in the meantime is left off with a warning, so the sale still records. |
 | Rate feed | A public mid-market feed (open.er-api.com, no key; the URL is a credential so a paid feed can replace it), fetched once a morning per home currency for all shops. Every currency keeps the day's market rate; ones set to follow it take market less the shop's margin (0–50%, rounded to 8 places). A move of more than 10% from the current rate is held for an owner or manager to apply. No network in development or tests (fake transport). Exchange gain/loss accounting is still out of scope. |
 | Concurrency | Anything that checks a balance or a status and then acts on it locks the row it depends on first, inside the same transaction: a payment locks the sale (and the customer for points or account, the order for a deposit) and re-checks it's still open; a return locks the sale; a deposit refund and loading an order onto a till lock the order (an order can be on one till at a time); returning hired tools locks the agreement; points expiry locks the scheme. Stock levels, document numbers, batches, stock takes, voids, M-Pesa and eTIMS already did. Scheduled jobs run one at a time (Solid Queue concurrency limits, overlapping runs dropped); webhook retries claim each delivery before sending. Tested by handing the second request a stale copy, or by checking the lock is taken. |
-| Hire terms | Standard terms are printed on the A4 agreement with signature lines until the shop writes its own (owners and managers, one term per line, up to 20). Each agreement keeps a copy of the terms it was made under, so editing them never changes a signed agreement; older agreements print the standard terms they were signed with. Tools are managed by catalogue managers, and anyone who sells can hire out, return and settle. |
 
 | Phase | Status |
 |---|---|
@@ -127,7 +124,8 @@ customers, staff, or reports.
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
 | 28 — Daily exchange rate | **Done:** market rates fetched each morning (one request per home currency); market rate shown per currency with a one-click apply; follow the daily rate less a margin; big moves held for a manager; failures change nothing. |
-| 29 — Shop-editable hire terms | **Done:** owners and managers write the terms printed on hire agreements (one per line, up to 20, with a preview), or keep the standard ones; each agreement keeps a copy of the terms it was made under. |
+| 29 — Shop-editable hire terms | **Done:** owners and managers write the terms printed on hire agreements (one per line, up to 20, with a preview), or keep the standard ones; each agreement keeps a copy of the terms it was made under. **Removed in Phase 30.** |
+| 30 — Tool hire removed | **Done:** tool hire and hire terms removed (code, help, tables); hire orders with their payments, receipts and eTIMS kept; the activity log reads entries about removed records; labour lines dropped from the backlog. |
 | 27 — Contractor jobs, continued | **Done:** client name and markup on jobs; materials bill PDF on the contractor's letterhead; open jobs in the till snapshot, job picker and receipt line on the offline till; closed-job handling on sync. |
 | 26 — Counting by batch | **Done:** batch rows in stock takes (snapshot of batches and unbatched stock); counting by batch on the page, by scanning with a batch number and on the phone; batches found on the shelf added with expiry; approval per batch, never below zero; help and tenant sweep updated. |
 | 25 — Points on the offline till | **Done:** balances and scheme terms in the till snapshot; points tender offline with device-side tracking of points spent; shared Ruby/JS rules; server records the points payment, caps cash when points fall short, and parks the sale with a warning; checked in a browser offline and synced. |
@@ -142,7 +140,7 @@ customers, staff, or reports.
 | 16 — Batches & expiry | **Done:** batch-tracked products; batch and expiry on goods received (desktop and phone); first-expiring-first stock out; batches followed through voids, returns and transfers; expiry list per branch with value; batch pages with write-off and a recall list of buyers; batches on sales, products, the phone look-up and the ledger. |
 | 15 — Stock on the phone | **Done:** HardPoint Stock at /m (installable, QR code on the Stock page); camera scanning with typed fallback; product look-up with prices, stock per branch, on order and latest movements; blind counting with add/set and pack barcodes; receiving deliveries against purchase orders into goods received notes. |
 | 14 — Contractor jobs | **Done:** jobs per customer with reference, site and budget; job picker at the till with budget left; quotes and orders for a job, carried to the till; job on receipts, invoices and order PDFs; job page with spend against budget, materials, sales, returns and open orders; cost summary PDF; closing and reopening; jobs in the API; cross-shop sweep. |
-| 13 — Tool hire | **Done:** hire tools with asset tags, rates, deposits and status; hire agreements with customer ID, site and due-back time, a printed A4 agreement, deposits through the order, extensions, overdue list and reminder texts (daily at most); returns tool by tool with condition and damage, sending tools to maintenance when needed; settling at the till with the deposit counted; hire in the cross-shop sweep. |
+| 13 — Tool hire | **Done:** hire tools with asset tags, rates, deposits and status; hire agreements with customer ID, site and due-back time, a printed A4 agreement, deposits through the order, extensions, overdue list and reminder texts (daily at most); returns tool by tool with condition and damage, sending tools to maintenance when needed; settling at the till with the deposit counted; hire in the cross-shop sweep. **Removed in Phase 30.** |
 | 12 — Online store | **Done:** Settings › Online store; public catalogue with categories, search, stock per collection branch and a session cart; checkout without accounts; online orders marked in Orders with staff emails, customer text and email, and an order-tracking page with Paybill instructions; closed while the shop is locked; spam limits. |
 | 11 — Public API & webhooks | **Done:** API keys in Settings › Developers, REST API v1 (shop, branches, products, stock levels, customers, sales, orders with click-and-collect ordering and cancelling) with cursor paging, sync filters, idempotency keys, rate limits and read-only enforcement; webhooks for nine events with signing, retries, auto-disable with an email, redelivery and test events, public-address-only delivery; developer docs; cross-shop sweep over the API. |
 | 10 — Hardening, performance & launch | **Done in code (the rest needs real infrastructure and shops):** cross-tenant sweep of all 136 member routes, enforced CSP, HSTS, permissions policy, log filtering, shop-friendly rate limits, Dependabot and weekly scans; k6 load test (40 cashiers, p95 scan 278 ms) with the cart's N+1 fixed; every foreign key indexed; tuned PostgreSQL config and connection budget; admin Database page; encrypted backups with a restore script, drilled locally; runbook, security brief and launch plan. **Still to do:** provision the VPS, the external penetration test, the drill on the real server, sandbox certification (M-Pesa, eTIMS), and the pilot (docs/LAUNCH.md). |
@@ -614,6 +612,7 @@ collection, without a separate website.
   sane quantities). On all plans.
 
 ### Phase 13 — Tool hire
+*Removed in Phase 30.*
 **Goal:** shops that rent out concrete mixers, compactors, scaffolding and generators run hire from HardPoint
 instead of a paper book.
 - **Hire tools:** each physical tool with its asset tag, branch, daily and (optional) weekly rate, deposit, and
@@ -720,16 +719,24 @@ set of books.
 - **Following** the market less a margin, with big moves held for a manager.
 
 ### Phase 29 — Shop-editable hire terms
+*Removed in Phase 30, with tool hire.*
 **Goal:** a shop's own conditions on its hire agreements, without ever changing one already signed.
 - **Hire terms** page for owners and managers, from Tools for hire and Settings; the standard terms until the shop writes its own.
 - **Each agreement keeps its terms**, printed on every reprint.
+
+### Phase 30 — Tool hire removed
+**Goal:** a smaller HardPoint without features shops don't need now.
+- **Tool hire** and its hire terms are gone: pages, till settling, agreements, texts, help guide and tables.
+- **Kept:** the "hire" orders with their money and tax records, the "Tool hire" product they sold, and old log entries
+  (the activity log reads entries about records that no longer exist).
+- **Labour lines** on a contractor's client bill are dropped from the backlog.
 
 ### Beyond v1 (backlog)
 - ~~Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).~~ Done as a web app in Phase 15; wrap with Hotwire Native if a store listing is wanted.
 - ~~E-commerce storefront / click-and-collect per tenant.~~ Done in Phase 12.
 - ~~Public REST API with per-tenant API keys and webhooks.~~ Done in Phase 11.
-- ~~Tool hire/rental module; job/project costing for contractors.~~ Done in Phases 13 and 14.
-- ~~Job costing extras: invoicing a job's client with a markup, and tagging jobs on the offline till.~~ Done in Phase 27; labour lines on the client bill are a possible extra.
+- ~~Tool hire/rental module; job/project costing for contractors.~~ Done in Phases 13 and 14; tool hire removed in Phase 30.
+- ~~Job costing extras: invoicing a job's client with a markup, and tagging jobs on the offline till.~~ Done in Phase 27. (Labour lines on the client bill were dropped in Phase 30.)
 - FIFO costing; ~~points expiry and points by text message~~ (done in Phase 23); ~~spending points offline~~ (done in Phase 25); ~~mix-and-match bundles~~ (done in Phase 24). (~~Multi-currency~~ done in Phase 18; ~~a daily rate feed~~ done in Phase 28; exchange gain/loss is a possible extra.) (~~Batch/lot tracking~~ done in Phase 16; ~~counting by batch~~ done in Phase 26.)
 - ~~Scaling out: move Postgres to its own VPS (or managed DB), add read replica, split
   job workers onto a second VPS — Kamal handles multi-host.~~ Ready in Phase 17; PgBouncer with `SET LOCAL` isolation when there are four or more web servers.

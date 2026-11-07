@@ -1,5 +1,5 @@
 class Account < ApplicationRecord
-  include CatalogueDefaults, DailySummary, Eventable, Features, HireTerms, Isolation, LiveDashboard, LowStockDigest, Subscription, BillingCycle, Closure
+  include CatalogueDefaults, DailySummary, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Subscription, BillingCycle, Closure
   # Creation is recorded by Signup, once the new account is current.
   tracks_lifecycle only: :update
 
@@ -51,8 +51,6 @@ class Account < ApplicationRecord
   has_many :support_requests, dependent: :delete_all
   has_many :usage_counts, dependent: :delete_all
   has_one :storefront, dependent: :destroy
-  has_many :hire_items, dependent: :destroy
-  has_many :hire_agreements, dependent: :destroy
   has_many :jobs, dependent: :destroy
   has_many :currencies, dependent: :delete_all
   has_many :supplier_returns, dependent: :destroy
