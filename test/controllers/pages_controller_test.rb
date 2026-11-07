@@ -11,6 +11,28 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", new_signup_path(plan: "enterprise")
   end
 
+  test "each public page tells search engines and link previews what it is" do
+    get "/"
+    assert_select "title", "HardPoint · Point of sale and stock control for hardware stores in Kenya"
+    assert_select "link[rel=canonical][href=?]", "http://localhost/"
+    assert_select "meta[property='og:image'][content*='dashboard']"
+    assert_select "meta[name=robots]", count: 0
+    types = css_select("script[type='application/ld+json']").flat_map { JSON.parse(_1.text).pluck("@type") }
+    assert_equal %w[ Organization SoftwareApplication ], types
+
+    get pricing_path
+    assert_select "meta[name=description][content^=?]", "Starter KES 2,500, Business KES 6,500, and Enterprise KES 15,000 a month"
+    faq = css_select("script[type='application/ld+json']").flat_map { JSON.parse(_1.text) }.find { _1["@type"] == "FAQPage" }
+    assert_equal "What happens after the free trial?", faq["mainEntity"].first["name"]
+
+    get help_article_path("selling", from: "search")
+    assert_select "title", "Selling at the till · Help centre · HardPoint"
+    assert_select "link[rel=canonical][href=?]", "http://localhost/help/selling"
+
+    get help_path(q: "printer")
+    assert_select "meta[name=robots][content=noindex]"
+  end
+
   test "pricing and privacy" do
     get pricing_path
     assert_select "h1", "Pricing"

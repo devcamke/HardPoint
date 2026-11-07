@@ -1,9 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= [ content_for(:title), "HardPoint · Point of sale for hardware stores" ].compact.join(" · ") %></title>
+    <% title = content_for?(:title) ? "#{content_for(:title)} · HardPoint" : "HardPoint · Point of sale and stock control for hardware stores in Kenya" %>
+    <% description = content_for(:description) || "Point of sale, stock control, M-Pesa, Airtel Money and KRA eTIMS for hardware stores in Kenya. The till works offline. #{Plan::TRIAL.inspect.capitalize} free, no card needed." %>
+    <%# One address per page for search engines: no query strings (help searches, signup's plan, tracking links). %>
+    <% canonical = request.base_url + request.path %>
+    <title><%= title %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="<%= content_for(:description) || "Point of sale, stock control, M-Pesa and KRA eTIMS for Kenyan hardware stores. Works offline. #{Plan::TRIAL.inspect.sub(" ", "-").chomp("s")} free trial." %>">
+    <meta name="description" content="<%= description %>">
+    <link rel="canonical" href="<%= canonical %>">
+    <% if content_for?(:noindex) %><meta name="robots" content="noindex"><% end %>
+    <meta name="theme-color" content="#0F5E6E">
+
+    <%# How a link looks when shared on WhatsApp, Facebook, LinkedIn or X. %>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="HardPoint">
+    <meta property="og:locale" content="en_KE">
+    <meta property="og:title" content="<%= title %>">
+    <meta property="og:description" content="<%= description %>">
+    <meta property="og:url" content="<%= canonical %>">
+    <meta property="og:image" content="<%= image_url("marketing/dashboard.png") %>">
+    <meta property="og:image:width" content="1280">
+    <meta property="og:image:height" content="800">
+    <meta property="og:image:alt" content="The HardPoint dashboard: today's takings, sales, margin and what needs doing">
+    <meta name="twitter:card" content="summary_large_image">
+    <%= yield :structured_data %>
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="icon" href="/icon.png" type="image/png">
