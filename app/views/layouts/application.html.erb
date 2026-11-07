@@ -25,10 +25,12 @@
   <body class="min-h-screen bg-gray-50 text-gray-800">
     <% if authenticated? %>
       <%= render "shared/navigation" %>
-      <%= render "shared/impersonation_banner" if Current.session.impersonated? %>
-      <%= render "shared/subscription_banner" %>
-      <%= render "shared/announcements" %>
-      <%= render "shared/guided_tour" %>
+      <div class="print:hidden">
+        <%= render "shared/impersonation_banner" if Current.session.impersonated? %>
+        <%= render "shared/subscription_banner" %>
+        <%= render "shared/announcements" %>
+        <%= render "shared/guided_tour" %>
+      </div>
     <% else %>
       <header class="mx-auto max-w-md px-4 pt-12 text-center"><%= render "shared/logo" %></header>
     <% end %>

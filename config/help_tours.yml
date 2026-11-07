@@ -71,7 +71,7 @@ till:
       text: Quick picks are your best sellers. Press a category to see everything in it, handy on a touch screen.
     - target: products
       title: Tap to add
-      text: Each button shows the price and how many you have at this branch. Pack sizes, like a box of screws, have their own button underneath.
+      text: Each button shows the price and how many you have at this branch. Tap one and a box asks how many, with 1 ready to confirm. Pack sizes, like a box of screws, have their own button underneath.
     - target: customer
       title: Who's buying?
       text: Walk-in by default. Press Change to choose a customer, so their prices, credit and KRA PIN go on the receipt.

@@ -299,3 +299,16 @@ textarea.input {
   .walkthrough-hotspot, .walkthrough.is-touring .walkthrough-hotspot.is-active { animation: none; }
   .walkthrough-spotlight, .walkthrough-popover, .guided-tour-spotlight, .guided-tour-popover { transition: none; }
 }
+
+/* Printing a back-office page (the Print button on reports, shifts and balances): just the content, across
+   the full width of the paper, and tables shrink to fit rather than running off the right edge. Scoped to
+   the main layout (.o-main) so till receipts and labels, which set their own paper, are left alone. */
+@media print {
+  body:has(> main.o-main) { background: white; }
+  main.o-main { max-width: none; margin: 0; padding: 0; }
+  .o-main .card { border: 0; padding: 0; overflow: visible; }
+  .o-main .table { font-size: 10px; }
+  .o-main .table th, .o-main .table td { padding: 4px 6px; }
+  .o-main .table thead { display: table-header-group; }
+  .o-main .table tr { break-inside: avoid; }
+}

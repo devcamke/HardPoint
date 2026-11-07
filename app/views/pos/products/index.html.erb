@@ -18,10 +18,13 @@
   <% else %>
     <p class="mb-2 text-xs uppercase tracking-wide text-gray-500"><%= searching ? "Results" : @category&.name || "Quick picks" %></p>
     <%# Sized by the panel, not the screen, so tiles stay finger-sized beside the cart on any till. %>
-    <div class="grid grid-cols-2 gap-2 @lg:grid-cols-3 @3xl:grid-cols-4 @5xl:grid-cols-5 @7xl:grid-cols-6">
+    <div class="grid grid-cols-2 gap-2 @lg:grid-cols-3 @3xl:grid-cols-4 @5xl:grid-cols-5 @7xl:grid-cols-6" data-controller="quantity-prompt">
       <% @products.each do |product| %>
+        <% ask = ->(pack = nil) { { turbo_frame: "_top", action: "submit->quantity-prompt#ask", product_id: product.id, product_unit_id: pack&.id,
+              name: [ product.name, pack&.unit&.name ].compact.join(" · "), price: money(pack ? pack.effective_price_cents : product.price_cents),
+              unit: (pack ? pack.unit : product.unit).abbreviation, fractional: (pack.nil? && product.unit.fractional?).to_s } } %>
         <div class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white">
-          <%= button_to pos_lines_path, params: { product_id: product.id }, form_class: "flex-1", form: { data: { turbo_frame: "_top" } },
+          <%= button_to pos_lines_path, params: { product_id: product.id }, form_class: "flex-1", form: { data: ask.() },
                 class: "flex h-full min-h-24 w-full cursor-pointer flex-col items-start p-3 text-left select-none transition-colors hover:bg-gray-50 active:bg-primary-50" do %>
             <span class="line-clamp-2 font-medium leading-snug"><%= product.name %></span>
             <span class="mt-1 block text-lg font-bold tabular-nums"><%= money(product.price_cents) %></span>
@@ -33,12 +36,14 @@
             <div class="flex flex-col gap-2 px-3 pb-3">
               <% product.product_units.each do |pack| %>
                 <%= button_to pos_lines_path, params: { product_id: product.id, product_unit_id: pack.id }, class: "btn-secondary w-full px-2 py-1 text-xs select-none active:bg-primary-100",
-                      form: { data: { turbo_frame: "_top" } } do %><%= pack.unit.name %> · <%= money(pack.effective_price_cents) %><% end %>
+                      form: { data: ask.(pack) } do %><%= pack.unit.name %> · <%= money(pack.effective_price_cents) %><% end %>
               <% end %>
             </div>
           <% end %>
         </div>
       <% end %>
+
+      <%= render "pos/products/quantity_prompt" %>
     </div>
   <% end %>
 <% end %>

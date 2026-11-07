@@ -27,6 +27,12 @@ export default class extends Controller {
     this.dialogTarget.close()
   }
 
+  // The owner's dashboard redraws itself (a Turbo morph) whenever a sale comes in. Left alone, that
+  // closes this popup and wipes what's being typed, so while it's open the redraw passes it by.
+  keepWhileOpen(event) {
+    if (this.dialogTarget.open) event.preventDefault()
+  }
+
   closeOnBackdrop(event) {
     if (event.target === this.dialogTarget) this.close()
   }
@@ -49,6 +55,11 @@ export default class extends Controller {
       case "ArrowUp":
         event.preventDefault()
         this.select(this.selected - 1)
+        break
+      // A search box takes Esc to clear itself, so the popup wouldn't close on it otherwise.
+      case "Escape":
+        event.preventDefault()
+        this.close()
         break
       case "Enter": {
         event.preventDefault()

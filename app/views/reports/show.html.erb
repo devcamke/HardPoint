@@ -23,8 +23,13 @@
                    [ "Print", "#", { data: { controller: "print", action: "print#print" } } ] ],
         filters: filters %>
 </div>
-<p class="hint mb-4" data-tour="report-subtitle"><%= report.subtitle %> · amounts in <%= Current.account.currency %></p>
-<h1 class="mb-2 hidden text-xl font-medium print:block"><%= report.title %></h1>
+<p class="hint mb-4 print:hidden" data-tour="report-subtitle"><%= report.subtitle %> · amounts in <%= Current.account.currency %></p>
+<%# On paper: a centred heading saying whose report it is and for when, as the PDF's letterhead does. %>
+<header class="mb-4 hidden border-b border-gray-300 pb-3 text-center print:block">
+  <p class="font-semibold"><%= Current.account.name %></p>
+  <h1 class="text-xl font-medium"><%= report.title %></h1>
+  <p class="hint"><%= report.subtitle %> · amounts in <%= Current.account.currency %> · printed <%= l(Time.current, format: :long) %></p>
+</header>
 
 <% report.sections.each_with_index do |section, index| %>
   <section class="card mb-4 overflow-x-auto" <%= tag.attributes(data: { tour: ("report-table" if index.zero?) }) %>>
