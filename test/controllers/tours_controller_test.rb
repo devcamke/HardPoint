@@ -9,9 +9,22 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
 
     get tours_path
     assert_response :success
-    HelpTour.all.each do |tour|
-      assert_select "a[href=?][data-guided-tour-start]", "#{tour.page}?tour=#{tour.id}", text: "Start the tour"
-    end
+    assert_select "a[href=?][data-guided-tour-start]", "/?tour=home", text: "Start the tour"
+    assert_select "a[href=?][data-guided-tour-start]", "/pos?tour=till", text: "Start the tour"
+    assert_select "a[href=?][data-guided-tour-start]", "/products?tour=products", text: "Start the tour"
+    assert_select "a[href*='tour=stock-take']", count: 0
+    assert_select "a[href*='tour=receiving']", count: 0
+  end
+
+  test "stock clerks get stock takes and receiving, which start from their lists" do
+    sign_in_as users(:sara)
+    get tours_path
+
+    assert_select "a[href=?][data-guided-tour-start]", "/stock_counts?tour=stock-take", text: "Start the tour"
+    assert_select "a[href=?][data-guided-tour-start]", "/goods_receipts?tour=receiving", text: "Start the tour"
+    data = JSON.parse(css_select("a[href='/stock_counts?tour=stock-take']").first["data-guided-tour-start"])
+    assert_equal "^/stock_counts/[^/]+$", data["page_pattern"]
+    assert_match "press New", data["waiting"]
   end
 
   test "accountants aren't offered the till" do
@@ -41,9 +54,14 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
     sign_in_as users(:amina)
     post pos_till_path, params: { register_id: registers(:acme_front).id }
 
+    post stock_counts_path, params: { stock_count: { branch_id: branches(:acme_main).id, category_id: categories(:acme_fasteners).id } }
+    screens = { "stock-take" => stock_count_path(Account.without_isolation { StockCount.last }) }
+
     HelpTour.all.each do |tour|
-      get tour.page
-      assert_response :success, "#{tour.id}: #{tour.page}"
+      screen = screens.fetch(tour.id, tour.page)
+      assert tour.runs_on?(screen), "#{tour.id} should run on #{screen}"
+      get screen
+      assert_response :success, "#{tour.id}: #{screen}"
       body = response.body
       if tour.id == "till"
         # Payment only shows once something's in the sale, and the products come in after the page.
@@ -54,7 +72,7 @@ class ToursControllerTest < ActionDispatch::IntegrationTest
         body += response.body
       end
       tour.steps.each do |step|
-        assert_includes body, %(data-tour="#{step.target}"), "#{tour.id}: nothing on #{tour.page} has data-tour=\"#{step.target}\""
+        assert_includes body, %(data-tour="#{step.target}"), "#{tour.id}: nothing on #{screen} has data-tour=\"#{step.target}\""
       end
     end
   end

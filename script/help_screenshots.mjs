@@ -20,7 +20,7 @@ const tours = JSON.parse(readFileSync(toursPath, "utf8"))
 const shopUrl = process.env.HELP_SHOP_URL || "http://demo.localhost:3000"
 const viewport = { width: 1280, height: 800 }
 
-// Gets a screen into a state worth showing before its screenshot.
+// Gets a screen into a state worth showing before its screenshot. Each tour starts on its start page.
 const prepare = {
   // Leave out the setup checklist and the two-factor reminder: they're about the demo owner, not the screen.
   async home(page) {
@@ -44,6 +44,16 @@ const prepare = {
       await page.waitForTimeout(800)
     }
     await page.locator("[data-tour=take-payment]").waitFor()
+  },
+  // From the list of stock takes, into one that's being counted.
+  async "stock-take"(page) {
+    await page.locator("tr", { hasText: "Counting" }).first().locator("a").first().click()
+    await page.locator("[data-tour=count-scan]").waitFor()
+  },
+  // From Receiving, Receive on the first order waiting for delivery.
+  async receiving(page) {
+    await page.getByRole("link", { name: "Receive", exact: true }).first().click()
+    await page.locator("[data-tour=receive-lines]").waitFor()
   }
 }
 

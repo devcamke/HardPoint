@@ -636,3 +636,22 @@ Screenshots of every screen are in [screenshots](screenshots).
 ![The Home tour over the live screen](screenshots/333-guided-tour-home.png)
 
 ![The till tour, pointing at the payment methods](screenshots/334-guided-tour-till.png)
+
+## Since then: tours of stock takes and receiving goods
+
+- **Count stock:** a tour of a stock take being counted: how far it's got, scanning with Record (which replaces a count),
+  the Not counted and Differences tabs, typing counts into the table, then Submit for approval and Approve and correct
+  stock. It's in the stock takes guide as a walkthrough
+- **Receive a delivery:** the supplier and delivery note, what's still to come against what arrived, unit costs,
+  transport and duty spread by value, the note, and Receive into stock. It's in the buying guide as a walkthrough
+- Both are offered to owners, managers and stock clerks. They start from Stock takes and Receiving, with a note
+  saying what to open; the tour starts once you're there. The till's tour now says what to do too (choose the till,
+  open a shift)
+- A tour can run on any record's page (`page: /stock_counts/:id`), and long tables are shown from their top rather
+  than centred
+
+![Count stock, at the scan box](screenshots/335-guided-tour-stock-take.png)
+
+![Receive a delivery, at the lines](screenshots/336-guided-tour-receiving.png)
+
+![Waiting on Receiving for an order to be chosen](screenshots/337-guided-tour-waiting.png)

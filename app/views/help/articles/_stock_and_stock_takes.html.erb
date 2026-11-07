@@ -25,6 +25,8 @@
 </ol>
 <p>Selling carries on during a stock take; HardPoint allows for what was sold while you counted.</p>
 
+<%= render "help/walkthrough", tour: HelpTour.find("stock-take") %>
+
 <h2>Knowing what to reorder</h2>
 <p>Give products a <strong>reorder level</strong>. <strong>Stock › Reorder</strong> shows everything at or below it at a branch,
   and owners, managers and stock clerks get a low-stock email each morning. To turn the list into orders, see

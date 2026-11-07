@@ -28,6 +28,8 @@
 <p>Deliveries can also be checked in <%= link_to "on your phone", help_article_path("stock-on-your-phone"), class: "link" %>. Products
   tracked by batch ask for the batch number and expiry date.</p>
 
+<%= render "help/walkthrough", tour: HelpTour.find("receiving") %>
+
 <h2>Invoices and payments</h2>
 <p>When the supplier's invoice comes, press <strong>Record the supplier's invoice</strong> on the delivery, or <strong>Record invoice</strong>
   on the supplier. <strong>Record payment</strong> settles their oldest invoices first. <strong>Buy › What we owe</strong> shows every

@@ -889,6 +889,16 @@ Open the product and press **Adjust stock**. Choose the branch, how many to add 
 
 Selling carries on during a stock take; HardPoint allows for what was sold while you counted.
 
+**Walkthrough: Count stock**
+
+![Screenshot: Count stock](../app/assets/images/help/tours/stock-take.png)
+
+1. **How far you've got.** How many products are counted, out of how many in this stock take, and what the differences so far are worth at cost. Several people can count at once, and the till keeps selling.
+2. **Scan as you count.** Scan a barcode or type a SKU, type how many are on the shelf and press Record. Recording a product again replaces its count. Batch is only for products tracked by batch.
+3. **What's left, and what's off.** Not counted shows what nobody has counted yet. Differences shows only what's over or short. Find a product to jump to it.
+4. **Or type the counts in.** Expected is what HardPoint thinks is on the shelf. Type the count in its row and it saves by itself. The difference shows in red when you're short and green when you're over.
+5. **Submit, then approve.** When the counting's done, press Submit for approval. An owner or manager checks the differences and presses Approve and correct stock. Anything not counted stays as it was, and Cancel changes nothing.
+
 #### Knowing what to reorder
 
 Give products a **reorder level**. **Stock › Reorder** shows everything at or below it at a branch, and owners, managers and stock clerks get a low-stock email each morning. To turn the list into orders, see [Buying from suppliers](#buying-from-suppliers).
@@ -925,6 +935,16 @@ Use **Group By › Supplier** on the orders list to see what's still to come fro
 3. Press **Receive into stock**. The goods go into the branch, the extra costs are spread over the lines by value, and each product's cost becomes the average of the old and new stock.
 
 Deliveries can also be checked in [on your phone](#stock-on-your-phone). Products tracked by batch ask for the batch number and expiry date.
+
+**Walkthrough: Receive a delivery**
+
+![Screenshot: Receive a delivery](../app/assets/images/help/tours/receiving.png)
+
+1. **Where it's from, and where it goes.** Against an order, the supplier and branch come from the order. Type the supplier's delivery note number, so their invoice can be matched to it later.
+2. **Count what arrived.** Each line starts at what's still to come. Change Received now to what actually came off the lorry, and the unit cost if the price changed. Anything short stays on the order for the next delivery.
+3. **Transport and duty.** Add what it cost to get the goods here. It's shared across the lines by value, so each product carries its true cost.
+4. **Anything wrong?** Note torn bags or wrong items for whoever deals with the supplier. To send goods back, make a return to the supplier afterwards.
+5. **Receive into stock.** The goods go into the branch's stock, and each product's cost becomes the average of the old and new stock. Then record the supplier's invoice from the delivery.
 
 #### Invoices and payments
 

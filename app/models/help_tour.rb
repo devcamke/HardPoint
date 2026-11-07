@@ -1,11 +1,11 @@
 # A guided tour of one screen, defined in config/help_tours.yml. In the shop it runs over the live screen; in the help
 # centre its guide shows it as a walkthrough of a screenshot. Where each step sits on the screenshot is measured by
 # `bin/rails help:screenshots` and kept in config/help_tour_hotspots.json.
-class HelpTour < Data.define(:id, :title, :summary, :article, :page, :audience, :minutes, :steps, :image_size)
+class HelpTour < Data.define(:id, :title, :summary, :article, :page, :start, :waiting, :audience, :minutes, :steps, :image_size)
   DEFINITIONS_PATH = Rails.root.join("config/help_tours.yml")
   HOTSPOTS_PATH = Rails.root.join("config/help_tour_hotspots.json")
   IMAGES_DIRECTORY = "help/tours"
-  AUDIENCES = %w[ everyone sellers ].freeze
+  AUDIENCES = %w[ everyone sellers stock purchasing ].freeze
 
   # One step. Its box is [ x, y, width, height ]: where its target is on the screenshot, as percentages of the image.
   Step = Data.define(:target, :title, :text, :box) do
@@ -18,8 +18,8 @@ class HelpTour < Data.define(:id, :title, :summary, :article, :page, :audience, 
       YAML.load_file(DEFINITIONS_PATH).map do |id, tour|
         boxes = hotspots.dig(id, "steps") || {}
         steps = tour.fetch("steps").map { |step| Step.new(step.fetch("target"), step.fetch("title"), step.fetch("text"), boxes[step["target"]]) }
-        new(id, tour.fetch("title"), tour.fetch("summary"), tour.fetch("article"), tour.fetch("page"), tour.fetch("for"), tour.fetch("minutes"),
-          steps, hotspots.dig(id, "size") || [ 1280, 800 ])
+        new(id, tour.fetch("title"), tour.fetch("summary"), tour.fetch("article"), tour.fetch("page"), tour["start"] || tour.fetch("page"),
+          tour["waiting"], tour.fetch("for"), tour.fetch("minutes"), steps, hotspots.dig(id, "size") || [ 1280, 800 ])
       end.freeze
     end
   end
@@ -33,9 +33,15 @@ class HelpTour < Data.define(:id, :title, :summary, :article, :page, :audience, 
     case audience
     when "everyone" then membership.present?
     when "sellers" then membership&.can_sell?
+    when "stock" then membership&.can_manage_stock?
+    when "purchasing" then membership&.can_purchase?
     else raise ArgumentError, "Unknown tour audience #{audience}"
     end
   end
+
+  # The paths the tour runs on, as a pattern the browser understands too. /stock_counts/:id matches any stock take.
+  def page_pattern = "^#{Regexp.escape(page).gsub(":id", "[^/]+")}$"
+  def runs_on?(path) = Regexp.new(page_pattern).match?(path)
 
   def image = "#{IMAGES_DIRECTORY}/#{id}.png"
 

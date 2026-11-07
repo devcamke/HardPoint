@@ -33,5 +33,17 @@ class HelpTourTest < ActiveSupport::TestCase
     assert_not HelpTour.find("till").available_to?(accountant)
     assert HelpTour.find("home").available_to?(accountant)
     assert_not HelpTour.find("home").available_to?(nil)
+    assert_not HelpTour.find("stock-take").available_to?(memberships(:carl_acme))
+    assert HelpTour.find("receiving").available_to?(memberships(:sara_acme))
+  end
+
+  test "a tour can run on any record's page, and start somewhere else" do
+    tour = HelpTour.find("stock-take")
+    assert tour.runs_on?("/stock_counts/42")
+    assert_not tour.runs_on?("/stock_counts")
+    assert_not tour.runs_on?("/stock_counts/42/lines")
+    assert_equal "/stock_counts", tour.start
+    assert_equal "/", HelpTour.find("home").start
+    assert HelpTour.find("receiving").runs_on?("/goods_receipts/new")
   end
 end

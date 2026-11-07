@@ -11,8 +11,11 @@
 # re-measure where each step is (app/assets/images/help/tours and config/help_tour_hotspots.json), then
 # `bin/rails help:export`.
 #
-#   page:    where the tour runs, in the shop
-#   for:     who it's offered to in the shop: everyone, or sellers (everyone but accountants)
+#   page:    where the tour runs, in the shop. :id stands for a record's number, as in /stock_counts/:id
+#   start:   where "Start the tour" goes, when that isn't the page itself (default: the page)
+#   waiting: what to do to get to the page, shown until you're there (the till sends you to choose a till first)
+#   for:     who it's offered to in the shop: everyone, sellers (everyone but accountants), stock (owners, managers
+#            and stock clerks: stock takes) or purchasing (the same people: receiving goods)
 #   minutes: about how long it takes
 
 home:
@@ -53,6 +56,7 @@ till:
   summary: Scanning, quick picks, the customer, discounts, taking payment and parking a sale.
   article: selling
   page: /pos
+  waiting: Choose which till this computer is, and open a shift with your float.
   for: sellers
   minutes: 2
   steps:
@@ -107,3 +111,55 @@ products:
     - target: list-filters
       title: Filters and Group By
       text: Narrow the list by category, brand or branch, or group it by category or brand to see how many and what they're worth. Long lists come 50 at a time, with ‹ and › on the right.
+
+stock-take:
+  title: Count stock
+  summary: Recording counts by scanner or by typing, finding what's left and what's off, then submitting and approving.
+  article: stock-and-stock-takes
+  page: /stock_counts/:id
+  start: /stock_counts
+  waiting: Open a stock take that's being counted, or press New to start one.
+  for: stock
+  minutes: 2
+  steps:
+    - target: count-progress
+      title: How far you've got
+      text: How many products are counted, out of how many in this stock take, and what the differences so far are worth at cost. Several people can count at once, and the till keeps selling.
+    - target: count-scan
+      title: Scan as you count
+      text: Scan a barcode or type a SKU, type how many are on the shelf and press Record. Recording a product again replaces its count. Batch is only for products tracked by batch.
+    - target: count-filters
+      title: What's left, and what's off
+      text: Not counted shows what nobody has counted yet. Differences shows only what's over or short. Find a product to jump to it.
+    - target: count-lines
+      title: Or type the counts in
+      text: Expected is what HardPoint thinks is on the shelf. Type the count in its row and it saves by itself. The difference shows in red when you're short and green when you're over.
+    - target: count-actions
+      title: Submit, then approve
+      text: When the counting's done, press Submit for approval. An owner or manager checks the differences and presses Approve and correct stock. Anything not counted stays as it was, and Cancel changes nothing.
+
+receiving:
+  title: Receive a delivery
+  summary: Checking what arrived against the order, unit costs, transport and duty, and putting it into stock.
+  article: buying-from-suppliers
+  page: /goods_receipts/new
+  start: /goods_receipts
+  waiting: Press Receive next to the order that's arrived, or New for goods that came without an order.
+  for: purchasing
+  minutes: 1
+  steps:
+    - target: receive-details
+      title: Where it's from, and where it goes
+      text: Against an order, the supplier and branch come from the order. Type the supplier's delivery note number, so their invoice can be matched to it later.
+    - target: receive-lines
+      title: Count what arrived
+      text: Each line starts at what's still to come. Change Received now to what actually came off the lorry, and the unit cost if the price changed. Anything short stays on the order for the next delivery.
+    - target: receive-extra-costs
+      title: Transport and duty
+      text: Add what it cost to get the goods here. It's shared across the lines by value, so each product carries its true cost.
+    - target: receive-note
+      title: Anything wrong?
+      text: Note torn bags or wrong items for whoever deals with the supplier. To send goods back, make a return to the supplier afterwards.
+    - target: receive-submit
+      title: Receive into stock
+      text: The goods go into the branch's stock, and each product's cost becomes the average of the old and new stock. Then record the supplier's invoice from the delivery.

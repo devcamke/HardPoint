@@ -13,7 +13,7 @@ namespace :help do
   # the running demo shop. See script/help_screenshots.mjs for what it needs.
   desc "Retake the guided tours' screenshots from the running demo shop"
   task screenshots: :environment do
-    tours = HelpTour.all.map { { id: _1.id, page: _1.page, targets: _1.steps.map(&:target) } }
+    tours = HelpTour.all.map { { id: _1.id, page: _1.start, targets: _1.steps.map(&:target) } }
     input = Rails.root.join("tmp/help_tours.json").tap { _1.write(tours.to_json) }
     images = Rails.root.join("app/assets/images", HelpTour::IMAGES_DIRECTORY)
 

@@ -28,7 +28,7 @@ export default class extends Controller {
 
     if (!tour) return
     // The page's own path, from the server: after a redirect, Turbo renders before it updates the address bar.
-    if (this.pathValue === tour.page) {
+    if (new RegExp(tour.page_pattern).test(this.pathValue)) {
       this.whenDrawn(tour, () => this.start(tour))
     } else {
       this.showWaiting(tour)
@@ -129,8 +129,13 @@ export default class extends Controller {
 
     const target = this.find(step)
     const rect = target.getBoundingClientRect()
-    const offScreen = rect.top < 60 || rect.bottom > window.innerHeight - 20
-    if (offScreen) target.scrollIntoView({ block: "center", behavior: this.reducedMotion ? "auto" : "smooth" })
+    const behavior = this.reducedMotion ? "auto" : "smooth"
+    // A target taller than most of the screen (a long table) is shown from its top, just under the menus.
+    const below = (document.querySelector("nav.sticky")?.getBoundingClientRect().bottom || 0) + 16
+    const tall = rect.height > window.innerHeight * 0.6
+    const offScreen = tall ? Math.abs(rect.top - below) > 40 : rect.top < below || rect.bottom > window.innerHeight - 20
+    if (offScreen && tall) window.scrollBy({ top: rect.top - below, behavior })
+    else if (offScreen) target.scrollIntoView({ block: "center", behavior })
     this.spotlight.hidden = false
     this.place()
     if (offScreen) setTimeout(() => this.place(), 400)
@@ -171,7 +176,8 @@ export default class extends Controller {
     this.waiting.setAttribute("role", "status")
     this.waiting.innerHTML = `
       <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#e46f2f] text-xs font-bold text-white" aria-hidden="true">?</span>
-      <p><strong>${this.escape(tour.title)}</strong> starts when you get to its screen.</p>
+      <p><strong>${this.escape(tour.title)}</strong> starts when you get to its screen.
+        ${tour.waiting ? `<span class="mt-0.5 block text-gray-600">${this.escape(tour.waiting)}</span>` : ""}</p>
       <button type="button" class="link shrink-0 cursor-pointer" data-action="cancel">Cancel</button>`
     this.waiting.querySelector("[data-action=cancel]").addEventListener("click", () => { this.clearPending(); this.teardown() })
     document.body.append(this.waiting)
