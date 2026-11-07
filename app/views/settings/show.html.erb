@@ -6,10 +6,11 @@
      "Shop" => [
        ([ "Shop details", edit_account_path, "Name, time zone, currency, two-factor rule" ] if current_membership.can_manage_account?),
        ([ "Billing", billing_path, "Your HardPoint plan, invoices and payments" ] if current_membership.can_manage_account?),
+       ([ "Features", features_path, "Switch on only what your shop uses" ] if current_membership.can_manage_account?),
        ([ "Set up your shop", onboarding_path, "The first-day checklist" ] if current_membership.can_manage_account?),
        ([ "Your data", account_data_path, "Export everything, or close the account" ] if current_membership.owner?),
-       ([ "Online store", edit_storefront_path, "Sell online for collection at your branches" ] if current_membership.can_manage_account?),
-       ([ "Developers", developers_path, "API keys and webhooks for web shops and other apps" ] if current_membership.can_manage_account?),
+       ([ "Online store", edit_storefront_path, "Sell online for collection at your branches" ] if current_membership.can_manage_account? && Current.account.feature?(:online_store)),
+       ([ "Developers", developers_path, "API keys and webhooks for web shops and other apps" ] if current_membership.can_manage_account? && Current.account.feature?(:developers)),
        [ "Branches", branches_path, "Your locations" ],
        [ "Tills", registers_path, "Points of sale in each branch" ]
      ].compact,
@@ -21,15 +22,17 @@
        [ "M-Pesa", mpesa_shortcodes_path, "Paybill or Till: prompts to pay from the till, payments received" ],
        [ "KRA eTIMS", etims_devices_path, "Send sales to KRA and print signed receipts" ],
        [ "SMS", edit_account_path(anchor: "sms"), "Text receipts, order updates and balance reminders" ]
-     ] if current_membership.can_manage_account?).to_a + ([ [ "Currencies", currencies_path, "Dollars and shillings at the till, suppliers who invoice in them, and today's rates" ],
-       [ "Loyalty points", edit_loyalty_program_path, "Points customers earn on what they buy and spend at the till" ] ] if current_membership.approver?).to_a,
+     ] if current_membership.can_manage_account?).to_a + ([
+       ([ "Currencies", currencies_path, "Dollars and shillings at the till, suppliers who invoice in them, and today's rates" ] if Current.account.feature?(:currencies)),
+       ([ "Loyalty points", edit_loyalty_program_path, "Points customers earn on what they buy and spend at the till" ] if Current.account.feature?(:loyalty))
+     ].compact if current_membership.approver?).to_a,
      "Catalogue" => [
        [ "Categories", categories_path, "Group products, e.g. Plumbing › Pipes" ],
        [ "Brands", brands_path, "Makers and suppliers' brands" ],
        [ "Units", units_path, "Piece, bag, kilogram, metre…" ],
        [ "Tax rates", tax_rates_path, "VAT and other rates" ],
        [ "Price lists", price_lists_path, "Contractor and wholesale prices" ],
-       ([ "Tools for hire", hire_items_path, "Mixers, compactors, scaffolding… hired out by the day or week" ] if current_membership.can_manage_catalogue?),
+       ([ "Tools for hire", hire_items_path, "Mixers, compactors, scaffolding… hired out by the day or week" ] if current_membership.can_manage_catalogue? && Current.account.feature?(:tool_hire)),
        ([ "Import products", product_imports_path, "Load or update products from a spreadsheet" ] if current_membership.can_manage_catalogue?)
      ].compact
    } %>

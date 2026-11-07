@@ -1,5 +1,5 @@
 class Account < ApplicationRecord
-  include CatalogueDefaults, DailySummary, Eventable, Isolation, LiveDashboard, LowStockDigest, Subscription, BillingCycle, Closure
+  include CatalogueDefaults, DailySummary, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Subscription, BillingCycle, Closure
   # Creation is recorded by Signup, once the new account is current.
   tracks_lifecycle only: :update
 

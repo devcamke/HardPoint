@@ -30,22 +30,24 @@ module NavigationHelper
       apps = [ App.new(:dashboard, "Home", root_path, "#0f5e6e", :dashboard, [], []) ]
 
       if m&.can_sell?
-        menu = [ [ "Sales", sales_path ], [ "Orders & quotes", customer_orders_path ], [ "Deliveries", delivery_notes_path ],
-                 [ "Returns", returns_path ], [ "Shifts", shifts_path ], [ "Promotions", promotions_path ] ]
-        menu << [ "Tool hire", hire_agreements_path ] if Current.account.hire_items.exists? || m.can_manage_catalogue?
+        menu = [ [ "Sales", sales_path ], [ "Orders & quotes", customer_orders_path ] ]
+        menu << [ "Deliveries", delivery_notes_path ] if feature?(:deliveries)
+        menu += [ [ "Returns", returns_path ], [ "Shifts", shifts_path ] ]
+        menu << [ "Promotions", promotions_path ] if feature?(:promotions)
+        menu << [ "Tool hire", hire_agreements_path ] if feature?(:tool_hire)
         apps << App.new(:sales, "Sell", sales_path, "#e46f2f", :sales, menu, [ "/hire_items" ])
       end
 
       if m&.can_sell? || m&.can_manage_receivables?
         menu = [ [ "Customers", customers_path ] ]
         menu << [ "Who owes us", receivables_path ] if m.can_manage_receivables?
-        menu << [ "Jobs", jobs_path ]
+        menu << [ "Jobs", jobs_path ] if feature?(:jobs)
         apps << App.new(:customers, "Customers", customers_path, "#d9534f", :staff, menu, [])
       end
 
       apps << App.new(:stock, "Stock", products_path, "#26a69a", :stock,
         [ [ "Products", products_path ], [ "Stock levels", stock_path ], [ "Reorder", reorder_list_path ],
-          [ "Stock takes", stock_counts_path ], [ "Transfers", stock_transfers_path ], [ "Expiry", stock_batches_path ] ],
+          [ "Stock takes", stock_counts_path ], [ "Transfers", stock_transfers_path ], ([ "Expiry", stock_batches_path ] if feature?(:batches)) ].compact,
         [ "/labels", "/product_imports", "/stock_adjustments", "/stock_movements", "/reorder_suggestions" ])
 
       if m&.can_purchase? || m&.can_manage_payables?
@@ -68,8 +70,13 @@ module NavigationHelper
       menu += [ [ "Staff", memberships_path ], [ "Activity", events_path ] ] if current_membership&.can_manage_staff?
       App.new(:settings, "Settings", settings_path, "#6c757d", :settings, menu,
         %w[ /account /account_data /account_exports /billing /onboarding /storefront /developers /api_keys /webhook_endpoints
-            /mpesa /etims /texts /currencies /loyalty /categories /brands /units /tax_rates /price_lists /memberships /events ])
+            /mpesa /etims /texts /currencies /loyalty /features /categories /brands /units /tax_rates /price_lists /memberships /events ])
     end
+  end
+
+  # Whether this shop has switched an optional feature on (Settings › Features).
+  def feature?(key)
+    Current.account&.feature?(key)
   end
 
   def help_app

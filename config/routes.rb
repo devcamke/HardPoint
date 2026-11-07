@@ -84,6 +84,7 @@ Rails.application.routes.draw do
     resources :memberships, except: :show
     resources :events, only: :index
     resource :settings, only: :show
+    resource :features, only: %i[ show update ]
     resources :support_requests, only: %i[ new create ]
     resource :account_data, only: :show
     resource :developers, only: :show

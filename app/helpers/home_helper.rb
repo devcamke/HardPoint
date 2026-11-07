@@ -46,7 +46,7 @@ module HomeHelper
         "View", customer_orders_path(status: "ready"))
     end
 
-    if (count = dashboard.deliveries_outstanding_count).positive?
+    if account.feature?(:deliveries) && (count = dashboard.deliveries_outstanding_count).positive?
       tasks << HomeTask.new(:deliveries, :info, "#{pluralize(count, "delivery", plural: "deliveries")} to send out", "Not delivered yet",
         "View", delivery_notes_path)
     end
