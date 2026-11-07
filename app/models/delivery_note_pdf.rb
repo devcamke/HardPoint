@@ -28,6 +28,7 @@ class DeliveryNotePdf < DocumentPdf
       end)
 
       pdf.move_down 10
+      note "Transport: #{money(@note.transport_cents)}" if @note.transport_cents.positive?
       note "Note: #{@note.note}" if @note.note.present?
       pdf.move_down 40
       pdf.fill_color INK

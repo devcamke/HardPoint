@@ -30,7 +30,7 @@ class DeliveryNotesController < ApplicationController
   end
 
   def create
-    attributes = params.expect(delivery_note: %i[ sale_id address contact_phone note ])
+    attributes = params.expect(delivery_note: %i[ sale_id address contact_phone note transport_charge ])
     sale = Current.account.sales.find(attributes.delete(:sale_id))
     @delivery_note = Current.account.delivery_notes.new(attributes.merge(sale: sale))
 

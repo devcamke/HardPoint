@@ -21,6 +21,11 @@
     <p class="label">Deliver to</p>
     <p class="mb-1 text-lg font-semibold"><%= note.address %></p>
     <p class="hint mb-4"><%= [ note.contact_phone, note.note ].compact_blank.join(" · ") %></p>
+    <% if note.transport_cents.positive? %>
+      <p id="transport" class="mb-4 text-sm">Transport <strong><%= money(note.transport_cents) %></strong>
+        <% if note.transport_order %>· charged on order <%= link_to note.transport_order.reference, note.transport_order, class: "link font-mono" %>
+          <%= render "customer_orders/status", order: note.transport_order %><% else %>· on the sale<% end %></p>
+    <% end %>
     <table class="table">
       <thead><tr><th>Item</th><th class="text-right">Qty</th></tr></thead>
       <tbody>

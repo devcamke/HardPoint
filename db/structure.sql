@@ -921,7 +921,9 @@ CREATE TABLE public.delivery_notes (
     dispatched_at timestamp(6) without time zone,
     delivered_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    transport_charge_cents bigint DEFAULT 0 NOT NULL,
+    transport_order_id bigint
 );
 
 ALTER TABLE ONLY public.delivery_notes FORCE ROW LEVEL SECURITY;
@@ -6358,6 +6360,14 @@ ALTER TABLE ONLY public.stock_counts
 
 
 --
+-- Name: delivery_notes fk_rails_22240bc03a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_notes
+    ADD CONSTRAINT fk_rails_22240bc03a FOREIGN KEY (transport_order_id) REFERENCES public.customer_orders(id) DEFERRABLE;
+
+
+--
 -- Name: stock_movements fk_rails_2243dd98bb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8717,6 +8727,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107180000'),
 ('20261107170000'),
 ('20261107160000'),
 ('20261107150000'),

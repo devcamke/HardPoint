@@ -26,6 +26,18 @@
     <div class="mt-auto flex flex-wrap gap-2 text-sm">
       <%= link_to "Parked sales (#{current_shift.sales.parked.count})", pos_parked_sales_path, class: "btn-secondary" %>
       <%= link_to "Collect an order", customer_orders_path(status: "open"), class: "btn-secondary" %>
+      <% if feature?(:deliveries) %>
+      <details class="relative">
+        <summary class="btn-secondary cursor-pointer list-none">Add transport</summary>
+        <%= form_with url: pos_transport_path, class: "absolute bottom-full left-0 z-10 mb-2 w-72 space-y-2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg" do |form| %>
+          <div><%= form.label :amount, "Transport (#{Current.account.currency})", class: "label" %>
+            <%= form.number_field :amount, step: "0.01", min: 0, required: true, class: "input py-1.5" %></div>
+          <div><%= form.label :destination, "To", class: "label" %>
+            <%= form.text_field :destination, value: @sale.customer&.address, placeholder: "Site or area", class: "input py-1.5" %></div>
+          <%= form.submit "Add to sale", class: "btn-primary w-full" %>
+        <% end %>
+      </details>
+      <% end %>
       <%= button_to "Park this sale", pos_parking_path, class: "btn-secondary", form: { data: { shortcuts_target: "park" } } %>
       <%= button_to "Clear sale", pos_discard_path, class: "btn-danger", form: { data: { turbo_confirm: "Clear everything in this sale?" } } %>
     </div>

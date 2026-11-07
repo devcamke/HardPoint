@@ -177,6 +177,7 @@ Rails.application.routes.draw do
       resource :discount, only: :update
       resources :payments, only: %i[ create destroy ]
       resource :parking, only: :create
+      resource :transport, only: :create
       resources :parked_sales, only: :index
       resource :discard, only: :create
       resources :mpesa_requests, only: %i[ create show destroy ]

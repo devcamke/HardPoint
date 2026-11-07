@@ -2,27 +2,39 @@
 # (dispatched, with driver and vehicle), then delivered with the name of whoever received it and,
 # optionally, a photo of the signed note as proof of delivery.
 class DeliveryNote < ApplicationRecord
-  include AccountOwned, Eventable
+  include AccountOwned, Eventable, Monetary
 
   belongs_to :branch
   belongs_to :sale
   belongs_to :creator, class_name: "User", default: -> { Current.user }, optional: true
+  # Transport charged when the note is made after the sale: an order for the customer, collected like any other.
+  belongs_to :transport_order, class_name: "CustomerOrder", optional: true
   has_one_attached :proof_photo
 
   enum :status, %w[ pending dispatched delivered cancelled ].index_by(&:itself), default: :pending
 
+  money_attribute :transport_charge
+
   validates :address, presence: true
   validates_same_account :sale
   validate(on: :create) { errors.add :sale, "must be a completed sale" unless sale&.completed? }
+  validates :transport_charge_cents, numericality: { greater_than_or_equal_to: 0 }
+  validate(on: :create) do
+    if transport_charge_cents.positive? && sale && sale.customer.nil?
+      errors.add :transport_charge, "needs a named customer to charge it to; for a walk-in sale, add transport at the till before payment"
+    end
+  end
   validate { errors.add :proof_photo, "must be a photo (JPEG, PNG, WebP or HEIC)" if proof_photo.attached? && !proof_photo.content_type.in?(%w[ image/jpeg image/png image/webp image/heic ]) }
 
   before_validation(on: :create) do
+    self.transport_charge_cents ||= 0
     self.branch ||= sale&.branch
     self.address = sale&.customer&.address if address.blank?
     self.contact_phone = sale&.customer&.phone if contact_phone.blank?
   end
   before_create { self.number = DocumentSequence.next_number(branch, "delivery_note") }
   after_create { track_event "created", receipt_number: sale.receipt_number }
+  after_create :charge_transport, if: -> { transport_charge_cents.positive? }
 
   scope :chronologically, -> { order(created_at: :desc, id: :desc) }
   scope :outstanding, -> { where(status: %w[ pending dispatched ]) }
@@ -33,6 +45,11 @@ class DeliveryNote < ApplicationRecord
     "#{branch.code}-DN#{number.to_s.rjust(5, "0")}"
   end
   alias_method :name, :reference
+
+  # What the customer pays for transport: on the sale itself, or charged on this note.
+  def transport_cents
+    sale.transport_cents + transport_charge_cents
+  end
 
   def dispatch(driver_name:, vehicle: nil)
     return false unless pending?
@@ -62,4 +79,16 @@ class DeliveryNote < ApplicationRecord
   def cancel
     (pending? || dispatched?) && update(status: :cancelled).tap { |cancelled| track_event "cancelled" if cancelled }
   end
+
+  private
+    # A confirmed order for the trip, so it's collected at the till (cash, M-Pesa, Airtel Money or the
+    # customer's account) with its own receipt and eTIMS invoice.
+    def charge_transport
+      order = account.customer_orders.create!(branch: branch, customer: customer, job: sale.job, note: "Transport for #{reference}",
+        lines_attributes: [ { account: account, product: account.transport_product, quantity: 1, unit_price_cents: transport_charge_cents,
+                              detail: "#{reference} to #{address.first(80)}" } ])
+      order.confirm or raise ActiveRecord::RecordInvalid, order
+      update_column(:transport_order_id, order.id)
+      self.transport_order = order
+    end
 end
