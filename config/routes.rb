@@ -124,6 +124,8 @@ Rails.application.routes.draw do
       end
     end
     resources :account_exports, only: %i[ create show ]
+    resources :account_backups, only: %i[ create show destroy ]
+    resource :backup_schedule, only: :update
     resource :account_closure, only: %i[ create destroy ]
     resource :onboarding, only: :show do
       scope module: :onboardings do

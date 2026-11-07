@@ -28,6 +28,51 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: account_backups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.account_backups (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    requested_by_id bigint,
+    kind character varying NOT NULL,
+    status character varying DEFAULT 'queued'::character varying NOT NULL,
+    period character varying,
+    attempts integer DEFAULT 0 NOT NULL,
+    started_at timestamp(6) without time zone,
+    finished_at timestamp(6) without time zone,
+    expires_at timestamp(6) without time zone,
+    byte_size bigint,
+    checksum character varying,
+    manifest jsonb DEFAULT '{}'::jsonb NOT NULL,
+    failure character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.account_backups FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: account_backups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.account_backups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: account_backups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.account_backups_id_seq OWNED BY public.account_backups.id;
+
+
+--
 -- Name: account_deletions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -128,7 +173,10 @@ CREATE TABLE public.accounts (
     deletion_requested_by_id bigint,
     features character varying[] DEFAULT '{deliveries}'::character varying[] NOT NULL,
     features_reviewed_at timestamp(6) without time zone,
-    quickbooks_accounts jsonb DEFAULT '{}'::jsonb NOT NULL
+    quickbooks_accounts jsonb DEFAULT '{}'::jsonb NOT NULL,
+    backup_frequency character varying DEFAULT 'daily'::character varying NOT NULL,
+    backups_kept integer DEFAULT 7 NOT NULL,
+    backup_notifications character varying DEFAULT 'every'::character varying NOT NULL
 );
 
 
@@ -3248,6 +3296,13 @@ ALTER SEQUENCE public.webhook_endpoints_id_seq OWNED BY public.webhook_endpoints
 
 
 --
+-- Name: account_backups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_backups ALTER COLUMN id SET DEFAULT nextval('public.account_backups_id_seq'::regclass);
+
+
+--
 -- Name: account_deletions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3798,6 +3853,14 @@ ALTER TABLE ONLY public.webhook_deliveries ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.webhook_endpoints ALTER COLUMN id SET DEFAULT nextval('public.webhook_endpoints_id_seq'::regclass);
+
+
+--
+-- Name: account_backups account_backups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_backups
+    ADD CONSTRAINT account_backups_pkey PRIMARY KEY (id);
 
 
 --
@@ -4467,6 +4530,34 @@ CREATE INDEX idx_on_product_id_branch_id_created_at_dd8be66641 ON public.stock_m
 --
 
 CREATE UNIQUE INDEX idx_on_product_id_price_list_id_min_quantity_f69598ecfa ON public.price_list_items USING btree (product_id, price_list_id, min_quantity) NULLS NOT DISTINCT;
+
+
+--
+-- Name: index_account_backups_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_account_backups_on_account_id_and_created_at ON public.account_backups USING btree (account_id, created_at);
+
+
+--
+-- Name: index_account_backups_on_account_id_and_period; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_account_backups_on_account_id_and_period ON public.account_backups USING btree (account_id, period) WHERE (period IS NOT NULL);
+
+
+--
+-- Name: index_account_backups_on_requested_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_account_backups_on_requested_by_id ON public.account_backups USING btree (requested_by_id);
+
+
+--
+-- Name: index_account_backups_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_account_backups_on_status ON public.account_backups USING btree (status) WHERE ((status)::text = ANY ((ARRAY['queued'::character varying, 'running'::character varying])::text[]));
 
 
 --
@@ -7004,6 +7095,14 @@ ALTER TABLE ONLY public.goods_receipts
 
 
 --
+-- Name: account_backups fk_rails_69aed66487; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_backups
+    ADD CONSTRAINT fk_rails_69aed66487 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: customer_payments fk_rails_6a2298bcd2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7121,6 +7220,14 @@ ALTER TABLE ONLY public.sessions
 
 ALTER TABLE ONLY public.jobs
     ADD CONSTRAINT fk_rails_7629e6466c FOREIGN KEY (customer_id) REFERENCES public.customers(id) DEFERRABLE;
+
+
+--
+-- Name: account_backups fk_rails_76429ad279; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.account_backups
+    ADD CONSTRAINT fk_rails_76429ad279 FOREIGN KEY (requested_by_id) REFERENCES public.users(id) DEFERRABLE;
 
 
 --
@@ -8060,10 +8167,23 @@ ALTER TABLE ONLY public.stock_transfers
 
 
 --
+-- Name: account_backups; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.account_backups ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: account_exports; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.account_exports ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: account_backups account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.account_backups USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
 
 --
 -- Name: account_exports account_isolation; Type: POLICY; Schema: public; Owner: -
@@ -8989,6 +9109,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107210000'),
 ('20261107200000'),
 ('20261107195000'),
 ('20261107190000'),

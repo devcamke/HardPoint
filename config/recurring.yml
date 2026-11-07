@@ -45,6 +45,11 @@ production:
     class: AccountMaintenanceJob
     schedule: every day at 1am
 
+  # Shops' own scheduled backups, each at 02:00 in the shop's time zone; a missed hour is caught up.
+  account_backups:
+    class: AccountBackupScheduleJob
+    schedule: every hour at minute 5
+
   # Webhook deliveries waiting to be retried.
   webhook_retry:
     class: WebhookRetryJob

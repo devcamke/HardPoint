@@ -106,6 +106,8 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://har
   pays.
 - **A public API and webhooks** for web shops and accounting software (Business and Enterprise), documented at
   `/developers`.
+- **Backups:** every night (or weekly or monthly) and at the press of **Back up now**: a verified copy of all
+  the shop's records and files, kept for owners to download, with every owner emailed when one is ready or fails.
 - **Your data:** export everything as CSV files, or close the shop.
 - **Help in the app:** the guides, WhatsApp, and a message form that tells support which page you were on.
 
@@ -254,6 +256,7 @@ bin/kamal deploy
   `WEB_CONCURRENCY=6` Puma workers of 3 threads.
 - kamal-proxy serves `hardpoint.app` and `*.hardpoint.app` with a Cloudflare Origin CA certificate (Cloudflare SSL
   mode: Full (strict)).
+- **Shops' own backups** go to `BACKUP_STORAGE_SERVICE` (a separate bucket; see RUNBOOK §2).
 - **Backups** run from cron on the host (`config/backup/backup.sh`, set up as in [docs/RUNBOOK.md](docs/RUNBOOK.md)).
 - Secrets come from the environment (see `.kamal/secrets`): `POSTGRES_PASSWORD`, `HARDPOINT_DATABASE_PASSWORD`, and
   the Cloudflare origin certificate and key files.

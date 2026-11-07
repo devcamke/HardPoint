@@ -66,6 +66,28 @@ bucket key that can write but not delete, so a compromised server can't wipe its
 The heartbeat check should expect a ping every hour; if one is missed, check
 `/var/log/hardpoint-backup.log`.
 
+### Shops' own backups
+
+Separate from the above: each shop's owners get their own verified backups under **Settings › Your
+data › Backups** (`AccountBackup`). `AccountBackupScheduleJob` runs hourly and starts each shop's
+daily, weekly or monthly backup once 02:00 has passed in the shop's time zone (one per period, so a
+missed hour is caught up). At most two run at once across all shops (`AccountBackupJob`, queue
+`backups`), reading from the replica when there is one, in one repeatable-read snapshot. Each ZIP is
+checked against its manifest of SHA-256 checksums and row counts, uploaded, then downloaded again and
+compared before it counts as good. Failures retry three times; then the owners are emailed, support
+(`SUPPORT_EMAIL`) gets the details and `Rails.error` is reported. The nightly `AccountMaintenanceJob`
+deletes backups past their time and fails any stuck for 6 hours (a worker killed by a deploy).
+
+Storage: set `BACKUP_STORAGE_SERVICE=backups` and `BACKUP_STORAGE_ENDPOINT`, `_BUCKET`, `_REGION`,
+`_ACCESS_KEY_ID` and `_SECRET_ACCESS_KEY` (`config/storage.yml`) to keep them in a private bucket in
+another region, with server-side encryption on. Without it they go to the main Active Storage
+service, which on one VPS is the same disk as everything else. Owners download them from the app;
+restoring a shop from one is a support job (the CSVs carry every id), so for a whole-shop rollback
+use the hourly database backups above.
+
+Watching it: `AccountBackup.where(status: "failed", created_at: 1.day.ago..).count` should be 0, and
+`AccountBackup.in_progress.where(created_at: ..3.hours.ago)` empty after 05:00 Nairobi.
+
 ## 3. Disaster recovery (and the monthly drill)
 
 The same steps rebuild production after losing the server, and prove the backups work. **Do the drill

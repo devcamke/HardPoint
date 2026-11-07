@@ -4,13 +4,17 @@ require "csv"
 # the shop's settings, attached files, and a README explaining the format.
 class AccountExport::Archive
   # Internal bookkeeping (including HardPoint's own usage counts), and sign-in sessions (security data, not the shop's records).
-  SKIPPED_TABLES = %w[ account_exports document_sequences etims_item_registrations product_imports sessions usage_counts ].freeze
+  SKIPPED_TABLES = %w[ account_backups account_exports document_sequences etims_item_registrations product_imports sessions usage_counts ].freeze
   # Credentials and hashes never leave the database.
   SECRET_COLUMNS = /digest|secret|token|passkey|consumer_key|cmc_key|failed_pin_attempts/
+
+  attr_reader :checksums, :row_counts
 
   def initialize(account)
     @account = account
     @connection = ApplicationRecord.lease_connection
+    @checksums = {} # entry name => SHA-256 of its contents, for backups' manifest
+    @row_counts = {}
   end
 
   def write(path)
@@ -20,6 +24,7 @@ class AccountExport::Archive
       add zip, "staff.csv", staff_csv
       tables.each { |table| copy_table zip, table }
       add_files zip
+      finish zip
     end
   end
 
@@ -31,9 +36,22 @@ class AccountExport::Archive
   end
 
   private
+    def finish(zip)
+    end
+
     def add(zip, name, content)
+      start_entry zip, name
+      emit zip, content
+    end
+
+    def start_entry(zip, name)
       zip.put_next_entry name
-      zip.write content
+      @digest = @checksums[name] = Digest::SHA256.new
+    end
+
+    def emit(zip, chunk)
+      @digest << chunk
+      zip.write chunk
     end
 
     # Streams the table straight from Postgres with COPY; row-level security still applies.
@@ -42,13 +60,16 @@ class AccountExport::Archive
       order = @connection.columns(table).any? { _1.name == "id" } ? " ORDER BY id" : ""
       sql = "SELECT #{columns.join(", ")} FROM #{@connection.quote_table_name(table)} WHERE account_id = #{Integer(@account.id)}#{order}"
 
-      zip.put_next_entry "data/#{table}.csv"
+      start_entry zip, "data/#{table}.csv"
+      rows = -1 # the header
       raw = @connection.raw_connection
       raw.copy_data("COPY (#{sql}) TO STDOUT WITH (FORMAT csv, HEADER true)") do
         while (row = raw.get_copy_data)
-          zip.write row
+          rows += 1
+          emit zip, row
         end
       end
+      @row_counts[table] = rows
     end
 
     def shop_csv
@@ -76,8 +97,8 @@ class AccountExport::Archive
     end
 
     def add_attachment(zip, stem, attachment)
-      zip.put_next_entry "#{stem}#{File.extname(attachment.filename.to_s)}"
-      attachment.download { |chunk| zip.write chunk }
+      start_entry zip, "#{stem}#{File.extname(attachment.filename.to_s)}"
+      attachment.download { |chunk| emit zip, chunk }
     end
 
     def readme

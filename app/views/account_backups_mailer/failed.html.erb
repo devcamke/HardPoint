@@ -1,0 +1,5 @@
+<p>Hello <%= @recipient.name %>,</p>
+<p>The backup of <strong><%= @account.name %></strong> started on <%= l(@taken_at, format: :long) %> didn't work, even after trying <%= pluralize(@backup.attempts.clamp(1, AccountBackup::ATTEMPTS), "time") %>. HardPoint support has been told and is looking into it.</p>
+<p>Your shop's data is safe: nothing was changed or lost, and HardPoint's own backups of all shops carry on as usual. Your earlier backups are still there.</p>
+<p style="margin-top:24px;"><%= link_to "Try again now", account_data_url(subdomain: @account.subdomain, anchor: "backups"), style: "display:inline-block; background:#0F5E6E; color:#FFFFFF; padding:10px 16px; border-radius:6px; font-weight:700; text-decoration:none;" %></p>
+<p style="color:#6B7280; font-size:13px;">If it keeps failing, reply to this email or contact support from the Help menu, mentioning backup <%= @backup.id %>.</p>
