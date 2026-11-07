@@ -18,12 +18,13 @@
   <li>Type your email address and press <strong>Email reset instructions</strong>.</li>
   <li>Open the link in the email (it only works for a short while), type your new password twice and press <strong>Save</strong>.</li>
 </ol>
-<p>Choosing a new password signs you out everywhere, so sign in again with it. This is also how you change your password.</p>
+<p>Choosing a new password signs you out everywhere, so sign in again with it.</p>
 
 <h2>My profile</h2>
 <p>Open your name in the top right and choose <strong>My profile</strong>. It shows your name, email address and role, and these
   sections, depending on your role:</p>
 <ul>
+  <li><strong>Password</strong>, for everyone: see below.</li>
   <li><strong>Two-factor sign-in</strong>, for everyone.</li>
   <li><strong>Approval PIN</strong>, for owners and managers: press <strong>Set an approval PIN</strong>, type 4 to 6 digits and your
     password. You type it at a cashier's till to approve a big discount, a void or a return. It doesn't sign you in.</li>
@@ -33,6 +34,15 @@
     till counts, each morning at about 7:15. It's on to begin with; press <strong>Stop sending it</strong> to turn it off, or
     <strong>Send it to me</strong> to turn it back on.</li>
 </ul>
+
+<h2>Changing your password</h2>
+<ol>
+  <li>On My profile press <strong>Change password</strong>.</li>
+  <li>Type your <strong>Current password</strong>, then the <strong>New password</strong> twice. It needs at least 10 characters.</li>
+  <li>Press <strong>Change password</strong>.</li>
+</ol>
+<p>You stay signed in where you are, and you're signed out everywhere else, in case someone else knew the old password. If you work for
+  more than one shop, it's the same password for all of them.</p>
 
 <h2>Two-factor sign-in</h2>
 <ol>
@@ -44,7 +54,11 @@
   <li>HardPoint shows 10 <strong>recovery codes</strong>, once only. Write them down or print them, keep them away from your phone,
     and press <strong>I've saved them</strong>.</li>
 </ol>
-<p>If you lose your phone, type a recovery code instead of the 6-digit code. Each works once; My profile shows how many are left. To turn
+<p>If you lose your phone, type a recovery code instead of the 6-digit code. Each works once; My profile shows how many are left. If
+  you've lost your phone <em>and</em> your recovery codes, ask the shop's owner to reset your two-factor (see
+  <%= link_to "Staff, roles and PINs", help_article_path("staff-and-roles"), class: "link" %>). An owner who is the only owner, or anyone
+  who works for more than one shop, asks HardPoint support through <strong>Contact support</strong> or WhatsApp; we'll check who you are
+  first. Once it's reset you sign in with just your password and set two-factor up again on your new phone. To turn
   two-factor off, type your password and press <strong>Turn off two-factor</strong>. If the owner requires two-factor for owners and
   managers, you'll be taken to set it up before you can do anything else.</p>
 

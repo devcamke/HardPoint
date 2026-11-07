@@ -1,5 +1,6 @@
 <% more_fields = %i[ email tax_pin address price_list_id payment_terms_days notes ] %>
 <%= form_with model: customer, class: "card max-w-xl" do |form| %>
+  <%= hidden_field_tag :for_till, "1" if params[:for_till].present? %>
   <%= render "shared/errors", model: customer %>
   <div class="field"><%= form.label :name, class: "label" %><%= form.text_field :name, required: true, autofocus: true, class: "input" %></div>
   <div class="grid gap-4 sm:grid-cols-2">
@@ -28,5 +29,8 @@
     <div class="field"><%= form.label :notes, class: "label" %><%= form.text_area :notes, rows: 2, class: "input" %></div>
   <% end %>
 
-  <%= form.submit customer.new_record? ? "Add customer" : "Save", class: "btn-primary" %>
+  <div class="flex gap-3">
+    <%= form.submit customer.new_record? ? (params[:for_till].present? ? "Add and use on this sale" : "Add customer") : "Save", class: "btn-primary" %>
+    <%= link_to "Back to the till", pos_path, class: "btn-secondary" if params[:for_till].present? %>
+  </div>
 <% end %>

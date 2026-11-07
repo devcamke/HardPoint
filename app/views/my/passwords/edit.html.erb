@@ -1,0 +1,30 @@
+<% content_for :title, "Change password" %>
+
+<h1 class="mb-6 text-xl font-medium"><%= link_to "My profile", my_profile_path, class: "link" %> <span class="text-gray-400">/</span> Change password</h1>
+
+<div class="card max-w-md">
+  <%= form_with url: my_password_path, method: :patch do |form| %>
+    <% if @error %><p class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800" role="alert"><%= @error %></p><% end %>
+
+    <div class="field">
+      <%= form.label :current_password, "Current password", class: "label" %>
+      <%= form.password_field :current_password, required: true, autofocus: true, autocomplete: "current-password", class: "input" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :password, "New password", class: "label" %>
+      <%= form.password_field :password, required: true, minlength: My::PasswordsController::MINIMUM_LENGTH, maxlength: 72, autocomplete: "new-password", class: "input" %>
+      <p class="hint mt-1">At least <%= My::PasswordsController::MINIMUM_LENGTH %> characters. It's the same password for every shop you work for.</p>
+    </div>
+
+    <div class="field">
+      <%= form.label :password_confirmation, "New password again", class: "label" %>
+      <%= form.password_field :password_confirmation, required: true, maxlength: 72, autocomplete: "new-password", class: "input" %>
+    </div>
+
+    <div class="flex gap-3">
+      <%= form.submit "Change password", class: "btn-primary" %>
+      <%= link_to "Cancel", my_profile_path, class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>

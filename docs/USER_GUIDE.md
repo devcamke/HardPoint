@@ -266,6 +266,8 @@ Cashiers can give discounts up to the limit set in **Settings › Shop details**
 
 Owners and managers should turn on two-factor sign-in under **My profile**, using an authenticator app, and keep the recovery codes somewhere safe. The owner can require it for all owners and managers in **Settings › Shop details**.
 
+If someone has lost their phone and their recovery codes, the owner opens them in **Settings › Staff**, types their own password under **Two-factor sign-in** and presses **Reset two-factor**. That person is signed out everywhere, emailed, and sets two-factor up again with their password. The reset is in **Settings › Activity**. Someone who also works for another shop, or an owner with no other owner, is reset by HardPoint support instead, after we've checked who they are.
+
 #### Seeing who did what
 
 **Settings › Activity** lists every change: prices, stock adjustments, voids, approvals, settings. It can't be edited.
@@ -569,7 +571,7 @@ Make a price list, such as Contractor, in **Settings › Price lists**, and give
 2. Type part of their name or phone number and pick them. The cart is repriced at once with their price list, shown as a badge by their name.
 3. To go back to a cash sale, press **Walk-in customer**.
 
-If they're not there yet, press **New customer** under the search. It opens the customer form; save it, go back to the till, and choose them. The sale waits on the till while you do.
+If they're not there yet, press **New customer** under the search. The form opens with the name or phone number you searched for. Fill in the rest and press **Add and use on this sale**: you're back at the till with the new customer on the sale. **Back to the till** returns without adding them.
 
 #### The customer page
 
@@ -1208,16 +1210,25 @@ You stay signed in on that computer or phone until you sign out.
 2. Type your email address and press **Email reset instructions**.
 3. Open the link in the email (it only works for a short while), type your new password twice and press **Save**.
 
-Choosing a new password signs you out everywhere, so sign in again with it. This is also how you change your password.
+Choosing a new password signs you out everywhere, so sign in again with it.
 
 #### My profile
 
 Open your name in the top right and choose **My profile**. It shows your name, email address and role, and these sections, depending on your role:
 
+- **Password**, for everyone: see below.
 - **Two-factor sign-in**, for everyone.
 - **Approval PIN**, for owners and managers: press **Set an approval PIN**, type 4 to 6 digits and your password. You type it at a cashier's till to approve a big discount, a void or a return. It doesn't sign you in.
 - **Till PIN**, for cashiers and stock clerks: press **Set a PIN**, type 4 to 6 digits and your password, then **Save PIN**. Use it with Switch user (below). **Remove PIN** turns it off.
 - **Daily summary email**, for owners, managers and accountants: yesterday's takings, margin, best sellers, payments and till counts, each morning at about 7:15. It's on to begin with; press **Stop sending it** to turn it off, or **Send it to me** to turn it back on.
+
+#### Changing your password
+
+1. On My profile press **Change password**.
+2. Type your **Current password**, then the **New password** twice. It needs at least 10 characters.
+3. Press **Change password**.
+
+You stay signed in where you are, and you're signed out everywhere else, in case someone else knew the old password. If you work for more than one shop, it's the same password for all of them.
 
 #### Two-factor sign-in
 
@@ -1226,7 +1237,7 @@ Open your name in the top right and choose **My profile**. It shows your name, e
 3. Type the 6-digit code the app shows and press **Turn on**. If it doesn't match, check your phone sets its time automatically.
 4. HardPoint shows 10 **recovery codes**, once only. Write them down or print them, keep them away from your phone, and press **I've saved them**.
 
-If you lose your phone, type a recovery code instead of the 6-digit code. Each works once; My profile shows how many are left. To turn two-factor off, type your password and press **Turn off two-factor**. If the owner requires two-factor for owners and managers, you'll be taken to set it up before you can do anything else.
+If you lose your phone, type a recovery code instead of the 6-digit code. Each works once; My profile shows how many are left. If you've lost your phone _and_ your recovery codes, ask the shop's owner to reset your two-factor (see [Staff, roles and PINs](#staff-and-roles)). An owner who is the only owner, or anyone who works for more than one shop, asks HardPoint support through **Contact support** or WhatsApp; we'll check who you are first. Once it's reset you sign in with just your password and set two-factor up again on your new phone. To turn two-factor off, type your password and press **Turn off two-factor**. If the owner requires two-factor for owners and managers, you'll be taken to set it up before you can do anything else.
 
 #### Switch user
 

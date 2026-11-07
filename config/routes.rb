@@ -54,6 +54,7 @@ Rails.application.routes.draw do
           resource :trial_extension, only: :create
           resource :suspension, only: %i[ create destroy ]
           resources :payments, only: :create
+          resources :two_factor_resets, only: :create
         end
       end
       resources :impersonations, only: :create
@@ -75,6 +76,7 @@ Rails.application.routes.draw do
     end
     namespace :my do
       resource :profile, only: :show
+      resource :password, only: %i[ edit update ]
       resource :two_factor, only: %i[ new create destroy ]
       resource :recovery_codes, only: :show
       resource :approval_pin, only: %i[ edit update ]
@@ -85,7 +87,9 @@ Rails.application.routes.draw do
     resource :account, only: %i[ edit update ]
     resources :branches, except: :show
     resources :registers, except: :show
-    resources :memberships, except: :show
+    resources :memberships, except: :show do
+      resource :two_factor_reset, only: :create, module: :memberships
+    end
     resources :events, only: :index
     resource :settings, only: :show
     resource :features, only: %i[ show update ]

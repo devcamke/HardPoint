@@ -581,3 +581,13 @@ The plan and its reasons are in [SIMPLIFY.md](SIMPLIFY.md).
 ![Search](screenshots/314-search.png)
 
 Screenshots of every screen are in [screenshots](screenshots).
+
+## Since then: signing in and adding customers at the till
+
+- **Change password** on My profile: checks the current password, needs at least 10 characters, and signs the person out
+  everywhere else
+- **Lost phone and recovery codes:** an owner resets two-factor for staff who work only for their shop (Settings › Staff,
+  confirmed with the owner's password); HardPoint support resets anyone else from the admin. Either way the person is
+  signed out, emailed, and the reset is in Activity. Not while support is signed in as the shop
+- **New customer from the till** opens with the name or phone that was searched, and **Add and use on this sale** goes
+  straight back to the till with the customer on the sale

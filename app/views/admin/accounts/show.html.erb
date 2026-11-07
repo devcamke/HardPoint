@@ -87,6 +87,10 @@
             <td class="text-right">
               <%= button_to "Sign in as", admin_impersonations_path(membership_id: membership.id), class: "btn-secondary",
                     form: { data: { turbo: false, turbo_confirm: "Sign in to #{@account.name} as #{membership.user.name}? This is recorded in the shop's activity." } } %>
+              <% if membership.user.two_factor_enabled? %>
+                <%= button_to "Reset 2FA", admin_account_two_factor_resets_path(@account, membership_id: membership.id), class: "btn-danger mt-1",
+                      form: { data: { turbo_confirm: "Turn off two-factor for #{membership.user.name}? Only do this after checking who they are. They'll be signed out and emailed." } } %>
+              <% end %>
             </td>
           </tr>
         <% end %>

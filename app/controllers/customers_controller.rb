@@ -17,13 +17,17 @@ class CustomersController < ApplicationController
   end
 
   def new
-    @customer = Current.account.customers.new
+    @customer = Current.account.customers.new(params.permit(:name, :phone))
   end
 
   def create
     @customer = Current.account.customers.new(customer_params)
 
-    if @customer.save
+    if @customer.save && params[:for_till].present? && (shift = current_shift)
+      # Added from the till: put the sale being rung up in their name and go back to it.
+      shift.current_sale.change_customer(@customer)
+      redirect_to pos_path, notice: "#{@customer.name} added and chosen for this sale#{" · #{@customer.price_list.name} prices" if @customer.price_list}."
+    elsif @customer.persisted?
       redirect_to @customer, notice: "#{@customer.name} added."
     else
       render :new, status: :unprocessable_entity
