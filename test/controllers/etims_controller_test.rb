@@ -39,7 +39,7 @@ class EtimsControllerTest < ActionDispatch::IntegrationTest
     end
 
     get root_path
-    assert_select "div", /1 sale refused by KRA eTIMS/
+    assert_select "#task_etims", /1 sale refused by KRA eTIMS/
     get etims_submission_path(submission)
     assert_select "p", /Item class code does not exist/
 

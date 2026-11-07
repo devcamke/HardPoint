@@ -1,4 +1,4 @@
-<% content_for :title, "Dashboard" %>
+<% content_for :title, "Home" %>
 
 <% if current_membership.owner? && Current.account.onboarding_completed_at.nil? %>
   <%= render "onboardings/card", onboarding: Onboarding.new(Current.account) %>
@@ -14,35 +14,43 @@
 <% if @dashboard %>
   <%= render "dashboards/owner", dashboard: @dashboard %>
 <% else %>
-  <h1 class="text-xl font-medium">Welcome, <%= Current.user.name %></h1>
-  <p class="hint"><%= Current.account.name %> · <%= Time.zone.now.strftime("%A %-d %B %Y") %></p>
+  <div class="mx-auto max-w-3xl pt-6 text-center">
+    <h1 class="text-2xl font-medium">Hi <%= Current.user.name.split.first %></h1>
+    <p class="hint"><%= [ selected_branch&.name, current_till&.name ].compact.join(" · ") %> · <%= Time.zone.now.strftime("%A %-d %B") %></p>
 
-  <div class="mt-4 grid gap-3 sm:grid-cols-3">
     <% if current_membership.can_sell? %>
-      <%= link_to sales_path, class: "card block p-4 hover:border-primary-300" do %>
-        <p class="text-sm text-gray-500">Sales today</p>
-        <p class="text-3xl font-semibold tabular-nums"><%= money(@sales_today_cents) %></p>
-        <p class="text-sm text-gray-500"><%= pluralize(@sales_today_count, "sale") %></p>
+      <%= link_to pos_path, class: "mt-8 block rounded-xl bg-[#e46f2f] px-6 py-8 text-white shadow-md transition hover:bg-[#d0611f]" do %>
+        <span class="block text-2xl font-bold"><%= current_shift ? "Start selling →" : "Open a shift and start selling →" %></span>
+        <span class="mt-1 block text-sm text-white/90"><%= current_shift ? "Your shift on #{current_till.name} is open" : (current_till ? "On #{current_till.name}" : "You'll choose this computer's till first") %></span>
       <% end %>
     <% end %>
-    <%= link_to products_path, class: "card block p-4 hover:border-primary-300" do %>
-      <p class="text-sm text-gray-500">Active products</p>
-      <p class="text-3xl font-semibold tabular-nums"><%= number_with_delimiter(@products_count) %></p>
-    <% end %>
-    <%= link_to reorder_list_path, class: "card block p-4 hover:border-primary-300" do %>
-      <p class="text-sm text-gray-500">Low stock at <%= selected_branch&.name %></p>
-      <p class="text-3xl font-semibold tabular-nums <%= "text-amber-700" if @low_stock_count.positive? %>"><%= @low_stock_count %></p>
-    <% end %>
-  </div>
 
-  <div class="mt-10 grid grid-cols-3 gap-x-4 gap-y-8 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-    <% navigation_apps.reject { _1.key == :dashboard }.each do |app| %>
-      <%= link_to app.path, class: "group flex flex-col items-center gap-2 text-center" do %>
-        <span class="flex size-16 items-center justify-center rounded-xl text-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md" style="background: <%= app.color %>">
-          <%= app_icon(app, css: "size-8") %>
-        </span>
-        <span class="text-sm text-gray-700"><%= app.name %></span>
+    <div class="mt-6 grid gap-3 text-left sm:grid-cols-3">
+      <% if current_membership.can_sell? %>
+        <%= link_to sales_path, class: "card block p-4 hover:border-primary-300" do %>
+          <p class="text-sm text-gray-500">My sales today</p>
+          <p class="text-2xl font-semibold tabular-nums"><%= money(@my_sales_today_cents) %></p>
+          <p class="text-sm text-gray-500"><%= pluralize(@my_sales_today_count, "sale") %><%= " · #{@parked_count} parked" if @parked_count.positive? %></p>
+        <% end %>
+        <%= link_to customer_orders_path(status: "ready"), class: "card block p-4 hover:border-primary-300" do %>
+          <p class="text-sm text-gray-500">Orders to collect</p>
+          <p class="text-2xl font-semibold tabular-nums"><%= @orders_ready_count %></p>
+          <p class="text-sm text-gray-500">at <%= selected_branch&.name %></p>
+        <% end %>
       <% end %>
+      <%= link_to reorder_list_path, class: "card block p-4 hover:border-primary-300" do %>
+        <p class="text-sm text-gray-500">Low stock</p>
+        <p class="text-2xl font-semibold tabular-nums <%= "text-amber-700" if @low_stock_count.positive? %>"><%= @low_stock_count %></p>
+        <p class="text-sm text-gray-500">at <%= selected_branch&.name %></p>
+      <% end %>
+    </div>
+
+    <% if (actions = home_quick_actions).any? %>
+      <nav class="mt-6 flex flex-wrap justify-center gap-2" aria-label="Quick actions">
+        <% actions.each do |label, path| %><%= link_to label, path, class: "btn-secondary" %><% end %>
+      </nav>
     <% end %>
+
+    <p class="hint mt-8"><%= link_to "Switch user", new_session_switch_path, class: "link" %><% if current_shift %> · <%= link_to "End my shift", new_shift_closing_path(current_shift), class: "link" %><% end %></p>
   </div>
 <% end %>

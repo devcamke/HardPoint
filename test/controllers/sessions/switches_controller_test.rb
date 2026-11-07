@@ -16,7 +16,7 @@ class Sessions::SwitchesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to root_path
     follow_redirect!
-    assert_select "h1", "Welcome, Carl Cashier"
+    assert_select "h1", "Hi Carl"
     assert Account.without_isolation { Event.exists?(action: "switched_in", creator: users(:carl)) }
   end
 

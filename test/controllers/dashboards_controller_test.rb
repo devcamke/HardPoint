@@ -7,15 +7,38 @@ class DashboardsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_session_path
   end
 
-  test "staff without reports see the shop at a glance" do
+  test "cashiers start at the till, with their own day underneath" do
     sign_in_as users(:carl), account: accounts(:acme)
 
     get root_path
 
     assert_response :success
-    assert_select "h1", "Welcome, Carl Cashier"
-    assert_select "p.text-3xl", "5", "active products"
-    assert_select "p.text-3xl", "1", "the PVC pipe is below its reorder level"
+    assert_select "h1", "Hi Carl"
+    assert_select "a[href='#{pos_path}']", /start selling/
+    assert_select "a[href='#{reorder_list_path}'] p.text-2xl", "1", "the PVC pipe is below its reorder level"
     assert_select "turbo-cable-stream-source", 0
+    assert_select "#needs-you", 0
+  end
+
+  test "owners see what needs them today, each with the button that does it" do
+    sign_in_as users(:amina)
+
+    get root_path(branch_id: branches(:acme_main).id)
+
+    assert_select "#needs-you", /Needs you today/
+    assert_select "#task_low_stock", /1 product running low/ do
+      assert_select "a[href=?]", reorder_list_path(branch_id: branches(:acme_main).id), text: "Order them"
+    end
+    assert_select "nav[aria-label='Quick actions'] a", text: "New product"
+  end
+
+  test "a row goes away once there's nothing to do" do
+    Account.without_isolation { products(:acme_pipe).update!(reorder_level: 0) }
+    sign_in_as users(:amina)
+
+    get root_path(branch_id: branches(:acme_main).id)
+
+    assert_select "#needs-you"
+    assert_select "#task_low_stock", 0
   end
 end
