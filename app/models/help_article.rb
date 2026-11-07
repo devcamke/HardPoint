@@ -23,9 +23,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
       new("offline", "When the internet goes down", "How the till keeps selling offline and sends the sales when it's back.", "At the till",
         %w[ selling tills-and-printers ]),
       new("promotions", "Promotions and offers", "Percentages off, \"buy 10, get 1 free\" and mix-and-match bundles, applied by the till by itself.", "At the till",
-        %w[ selling loyalty-points ]),
-      new("loyalty-points", "Loyalty points", "Customers earn points on what they buy, spend them at the till, and are texted before they expire.", "At the till",
-        %w[ promotions customer-accounts ]),
+        %w[ selling customer-accounts ]),
 
       new("customer-accounts", "Customers on account, quotes and orders", "Credit limits, deposits, statements and delivery notes.", "Customers and orders",
         %w[ contractor-jobs mpesa reports ]),

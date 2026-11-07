@@ -80,7 +80,7 @@ module SearchHelper
       ]
       pages += [ [ Result.new("Returns to suppliers", "Buy", supplier_returns_path), "supplier returns debit notes purchase" ] ] if m.can_purchase?
       pages += [ [ Result.new("Supplier invoices", "Buy", supplier_invoices_path), "invoices bills purchase" ] ] if m.can_manage_payables?
-      pages += [ [ Result.new("Features", "Settings", features_path), "switch on off jobs batches loyalty online store" ] ] if m.can_manage_account?
+      pages += [ [ Result.new("Features", "Settings", features_path), "switch on off jobs batches online store" ] ] if m.can_manage_account?
       pages += %w[ Categories Brands Units ].map { [ Result.new(_1, "Settings › Catalogue", public_send("#{_1.downcase}_path")), "products catalogue" ] }
       pages += [ [ Result.new("Tax rates", "Settings › Catalogue", tax_rates_path), "vat products" ],
                  [ Result.new("Price lists", "Settings › Catalogue", price_lists_path), "contractor wholesale prices" ] ]

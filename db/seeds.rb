@@ -139,9 +139,6 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
 
     # Customer accounts: past account sales (one overdue), a payment, a quote, an order with a deposit, and a delivery.
     front_counter = account.registers.find_by!(name: "Front counter")
-    # Loyalty points from the start: a point per KES 100, worth a shilling, spendable from 100 points.
-    account.create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 100, min_redeem_points: 100)
-
     # Contractors' jobs, with their account sales tagged to them.
     towers = account.jobs.create!(customer: mwangi, name: "Mwangi Towers", reference: "LPO 4471", site: "Ruaka, off Limuru Road", budget: 450_000,
       note: "Site foreman: Peter, 0722 000 999")
@@ -321,26 +318,6 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     trio_sale = till_shift.current_sale
     %w[ TL-HAM16 TL-LVL600 TL-TAPE5 ].each { trio_sale.add(products[_1]) }
     trio_sale.pay(tender: "cash", tendered_cents: 3000_00)
-
-    # A welcome bonus for a regular, then points spent on today's paint.
-    grace.loyalty_entries.create!(account: account, kind: "adjusted", points: 150, note: "Welcome to points", creator: owner)
-    points_sale = till_shift.current_sale
-    points_sale.change_customer(grace)
-    points_sale.add(products["PNT-CRN-B4"], quantity: 1)
-    points_sale.pay(tender: "points", amount_cents: 150_00)
-    points_sale.pay(tender: "mobile_money", reference: "SKQ1ZT8P3L")
-
-    # Points run out 12 months after the month they're earned, and customers are texted about them.
-    # Backdated as though the rule had been on for two years: Otieno's points from the old stamp card
-    # mostly expired at the start of the month, and the rest run out at the end of it.
-    program = account.loyalty_program
-    program.update!(expiry_months: 12, text_points: true)
-    program.update_column(:expiry_starts_on, 2.years.ago.to_date)
-    { 13.months.ago => [ "adjusted", 420 ], 12.months.ago.beginning_of_month + 9.days => [ "adjusted", 260 ], 8.months.ago => [ "redeemed", -100 ] }.each do |at, (kind, points)|
-      otieno.loyalty_entries.create!(account: account, kind: kind, points: points, note: ("Points from the old stamp card" if kind == "adjusted"), created_at: at, creator: owner)
-    end
-    program.expire_points
-    program.warn_of_expiry
 
     # The online store, collecting from both branches.
     account.create_storefront!(enabled: true, headline: "Order online, collect in 2 hours",

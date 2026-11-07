@@ -10,7 +10,6 @@ module Account::Features
   FEATURES = [
     Feature.new("deliveries", "Deliveries", "Delivery notes, dispatch and proof of delivery", "Selling"),
     Feature.new("promotions", "Promotions", "Percent off, buy 10 get 1 free, any 3 for a price", "Selling"),
-    Feature.new("loyalty", "Loyalty points", "Customers earn points on what they buy and spend them at the till", "Selling"),
     Feature.new("currencies", "Foreign currencies", "Dollars and other notes at the till, and suppliers who invoice in them", "Selling"),
     Feature.new("online_store", "Online store", "Click-and-collect from your own web address", "Selling"),
     Feature.new("jobs", "Contractor jobs", "Tag a contractor's purchases to a project and track it against a budget", "Stock and work"),
@@ -44,8 +43,6 @@ module Account::Features
     when "promotions"
       count = promotions.running.count
       "#{count == 1 ? "A promotion is" : "#{count} promotions are"} running. End #{count == 1 ? "it" : "them"} first." if count.positive?
-    when "loyalty"
-      "Customers are earning points. Turn loyalty points off in its settings first." if loyalty_program&.enabled?
     when "currencies"
       "Foreign notes are taken at the till. Stop taking them in Currencies first." if currencies.at_till.exists?
     when "online_store"
@@ -67,7 +64,6 @@ module Account::Features
       case key
       when "deliveries" then delivery_notes.exists?
       when "promotions" then promotions.exists?
-      when "loyalty" then loyalty_program.present?
       when "currencies" then currencies.exists?
       when "online_store" then storefront.present?
       when "jobs" then jobs.exists?

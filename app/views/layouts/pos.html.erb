@@ -32,7 +32,6 @@
         <%# A dot for the connection, drawn in CSS so it survives the controller rewriting the text. %>
         <span class="inline-flex items-center gap-1.5 text-xs before:size-2 before:rounded-full before:bg-gray-400 data-[state=online]:before:bg-green-400 data-[state=offline]:text-amber-200 data-[state=offline]:before:bg-amber-400"
               data-offline-sync-target="status" role="status" aria-live="polite">Checking…</span>
-        <%= link_to "Customer display", pos_display_path, target: "hardpoint-display", class: "hidden hover:text-white lg:inline" %>
         <% if current_till&.print_mode == "qz_tray" %>
           <button type="button" class="hover:text-white" data-controller="receipt-printer" data-action="receipt-printer#openDrawer"
                   data-receipt-printer-till-value="<%= current_till.slice(:print_mode, :printer_name, :receipt_width).to_json %>"

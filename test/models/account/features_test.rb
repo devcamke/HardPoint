@@ -13,7 +13,7 @@ class Account::FeaturesTest < ActiveSupport::TestCase
     @account.update!(features: [ "jobs", "jobs", "teleporter", :promotions ])
     assert_equal %w[ jobs promotions ], @account.features
     assert @account.feature?(:jobs)
-    assert_not @account.feature?(:loyalty)
+    assert_not @account.feature?(:online_store)
   end
 
   test "a feature that's quiet can be switched off, and back on with its records intact" do

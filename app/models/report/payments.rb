@@ -15,12 +15,12 @@ class Report::Payments < Report
   end
 
   private
-    # Foreign cash only has a column for shops that take it.
+    # Foreign cash only has a column for shops that take it, and points only where old sales were paid with them.
     def tender_labels
       @tender_labels ||= TENDER_LABELS.select do |tender, _|
         case tender
         when "foreign_cash" then account.currencies.exists? || takings.keys.any? { _2 == tender }
-        when "points" then account.loyalty_program&.enabled? || takings.keys.any? { _2 == tender }
+        when "points" then takings.keys.any? { _2 == tender }
         else true
         end
       end

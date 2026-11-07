@@ -1,20 +1,18 @@
 import { Controller } from "@hotwired/stimulus"
 import * as store from "offline/store"
-import { unitPrice, bestPromotion, applyBundles, pointsPayment, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
+import { unitPrice, bestPromotion, applyBundles, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
 import { printReceipt } from "offline/printer"
 
 // The offline till: sells from the catalogue snapshot on this device while the network is down.
 // Sales are kept on the device and sent by the offline-sync controller when it's back; they get
 // their receipt numbers then. Cash, or a typed M-Pesa or card code (checked later against the
-// M-Pesa reconciliation). Customers can be chosen, for their price list and loyalty points
-// (earned when the sale is recorded); promotions apply as online. Points can be spent from the
-// customer's balance in the snapshot, less what sales on this device have spent since; the rest is
-// paid as usual. A contractor's sale can be tagged to one of their open jobs. Accounts and
-// discounts need the till online.
+// M-Pesa reconciliation). Customers can be chosen, for their price list; promotions apply as
+// online. A contractor's sale can be tagged to one of their open jobs. Accounts and discounts need
+// the till online.
 export default class extends Controller {
   static targets = [ "code", "results", "quickPicks", "cart", "total", "tax", "items", "tendered", "reference", "referenceField",
                      "tenderedField", "change", "message", "queue", "completed", "receipt", "till", "snapshot", "payButton",
-                     "customerName", "customerSearch", "customerResults", "pointsField", "usePoints", "pointsLabel", "due", "jobField", "job" ]
+                     "customerName", "customerSearch", "customerResults", "jobField", "job" ]
 
   connect() {
     this.cart = []
@@ -23,12 +21,10 @@ export default class extends Controller {
     this.renderQueue = this.renderQueue.bind(this)
     document.addEventListener("offline-sync:sent", this.renderQueue)
     document.addEventListener("offline-sync:catalogue", () => this.load())
-    this.channel = "BroadcastChannel" in window ? new BroadcastChannel("hardpoint-display") : null
   }
 
   disconnect() {
     document.removeEventListener("offline-sync:sent", this.renderQueue)
-    this.channel?.close()
   }
 
   async load() {
@@ -128,9 +124,8 @@ export default class extends Controller {
       <span class="block text-xs text-gray-500">${escape([ customer.phone, customer.price_list_name ].filter(Boolean).join(" · "))}</span></button></li>`).join("")
   }
 
-  async chooseCustomer(event) {
+  chooseCustomer(event) {
     this.customer = this.catalogue.customers.find((customer) => customer.id === Number(event.currentTarget.dataset.customerId))
-    this.pointsAvailable = await this.availablePoints(this.customer)
     this.jobTarget.innerHTML = `<option value="">No job</option>` +
       (this.customer.jobs || []).map((job) => `<option value="${job.id}">${escape(job.label)}</option>`).join("")
     this.customerSearchTarget.value = ""
@@ -144,27 +139,12 @@ export default class extends Controller {
     this.render()
   }
 
-  // The snapshot's balance less points spent by sales on this device since the snapshot was taken
-  // (sent or not: the snapshot doesn't know about either). Points earned since aren't counted
-  // until the next snapshot, so the till never offers more than the customer has.
-  async availablePoints(customer) {
-    if (!customer || !this.catalogue.till.loyalty) return 0
-    const spent = (await store.sales.all()).filter((sale) => sale.points_spent?.customer_id === customer.id && sale.happened_at > this.catalogue.generated_at)
-      .reduce((sum, sale) => sum + sale.points_spent.points, 0)
-    return Math.max((customer.points || 0) - spent, 0)
-  }
-
   get selectedJob() {
     return (this.customer?.jobs || []).find((job) => job.id === Number(this.jobTarget.value)) || null
   }
 
-  get pointsTaken() {
-    return this.customer && this.hasUsePointsTarget && this.usePointsTarget.checked ? pointsPayment(this.catalogue.till.loyalty, this.pointsAvailable, this.totals.total) : null
-  }
-
-  // What's left to pay after any points.
   get due() {
-    return this.totals.total - (this.pointsTaken?.amount_cents || 0)
+    return this.totals.total
   }
 
   switchTender() {
@@ -186,7 +166,6 @@ export default class extends Controller {
 
     const till = this.catalogue.till
     const total = this.totals.total
-    const points = this.pointsTaken
     const due = this.due
     const tender = this.tender
     const tendered = due > 0 && tender === "cash" ? Math.round(Number(this.tenderedTarget.value || due / 100) * 100) : null
@@ -199,11 +178,7 @@ export default class extends Controller {
     const happenedAt = new Date().toISOString()
     const uuid = crypto.randomUUID()
     const lines = this.pricedLines()
-    // With points, cash is sent with what it paid, so a shortfall in points stays owed rather than coming out of the change.
-    const payments = [
-      ...(points ? [ { tender: "points", amount_cents: points.amount_cents, points: points.points } ] : []),
-      ...(due > 0 ? [ { tender, amount_cents: tender === "cash" && !points ? null : due, tendered_cents: tendered, reference: reference || null } ] : [])
-    ]
+    const payments = due > 0 ? [ { tender, amount_cents: tender === "cash" ? null : due, tendered_cents: tendered, reference: reference || null } ] : []
 
     const sale = {
       uuid, status: "waiting", happened_at: happenedAt, receipt_number: null, offline_receipt_number: receiptNumber, total_cents: total,
@@ -212,7 +187,6 @@ export default class extends Controller {
                  lines: lines.map((line) => ({ product_id: line.product.id, product_unit_id: line.pack?.id ?? null, quantity: String(line.quantity),
                                                unit_price_cents: line.unit_price_cents, discount_cents: 0,
                                                promotion_id: line.promotion?.id ?? null, promotion_discount_cents: line.promotion_discount_cents })) },
-      points_spent: points ? { customer_id: this.customer.id, points: points.points } : null,
       receipt: this.receiptData(receiptNumber, lines, payments)
     }
     await store.sales.put(sale)
@@ -221,7 +195,6 @@ export default class extends Controller {
     this.lastReceipt = sale.receipt
     this.cart = []
     this.customer = null
-    if (this.hasUsePointsTarget) this.usePointsTarget.checked = false
     this.tenderedTarget.value = ""
     this.referenceTarget.value = ""
     this.codeTarget.value = ""
@@ -232,8 +205,7 @@ export default class extends Controller {
     this.renderQueue()
     this.completedTarget.hidden = false
     this.completedTarget.querySelector("[data-role=summary]").textContent =
-      `Sale ${receiptNumber} saved on this till · ${formatMoney(total, till.currency)}` + (points ? ` · ${formatQuantity(points.points)} points used` : "") + (tendered > due ? ` · Change ${formatMoney(tendered - due, till.currency)}` : "")
-    this.channel?.postMessage({ status: "complete", total: formatMoney(total, till.currency), change: tendered > due ? formatMoney(tendered - due, till.currency) : null })
+      `Sale ${receiptNumber} saved on this till · ${formatMoney(total, till.currency)}` + (tendered > due ? ` · Change ${formatMoney(tendered - due, till.currency)}` : "")
     this.print()
   }
 
@@ -301,31 +273,15 @@ export default class extends Controller {
     this.itemsTarget.textContent = formatQuantity(lines.reduce((sum, line) => sum + thousandths(line.quantity), 0) / 1000)
     this.taxTarget.textContent = formatMoney(this.totals.tax, currency)
     this.totalTarget.textContent = formatMoney(this.totals.total, currency)
-    this.renderPoints(currency)
     this.renderJobs()
     this.tenderedTarget.placeholder = (this.due / 100).toFixed(2)
     this.showChange()
-    this.channel?.postMessage({ status: lines.length ? "cart" : "idle", total: formatMoney(this.totals.total, currency), paybill: this.catalogue.till.paybill,
-      lines: lines.map((line) => ({ description: line.product.name + (line.pack ? ` (${line.pack.name})` : ""), quantity: formatQuantity(line.quantity), total: formatMoney(line.total) })) })
   }
 
   renderJobs() {
     const jobs = this.customer?.jobs || []
     this.jobFieldTarget.hidden = jobs.length === 0
     if (jobs.length === 0) this.jobTarget.value = ""
-  }
-
-  renderPoints(currency) {
-    const loyalty = this.catalogue.till.loyalty
-    const offer = this.customer ? pointsPayment(loyalty, this.pointsAvailable, this.totals.total) : null
-    this.pointsFieldTarget.hidden = !this.customer || !loyalty
-    if (!offer) this.usePointsTarget.checked = false
-    this.usePointsTarget.disabled = !offer
-    this.pointsLabelTarget.textContent = !this.customer || !loyalty ? "" : offer
-      ? `Use ${formatQuantity(offer.points)} points (${formatMoney(offer.amount_cents, currency)}) · ${formatQuantity(this.pointsAvailable)} available`
-      : `${formatQuantity(this.pointsAvailable)} points; ${formatQuantity(loyalty.min_redeem_points)} needed to spend them`
-    const points = this.pointsTaken
-    this.dueTarget.textContent = points ? `${formatMoney(this.due, currency)} to pay after points` : ""
   }
 
   renderQuickPicks() {
@@ -365,7 +321,7 @@ export default class extends Controller {
     const cash = payments.find((payment) => payment.tender === "cash")
     const change = cash ? cash.tendered_cents - this.due : 0
     const labels = { cash: "Cash", mobile_money: "M-Pesa", card: "Card" }
-    const label = (payment) => payment.tender === "points" ? `${formatQuantity(payment.points)} points` : [ labels[payment.tender], payment.reference ].filter(Boolean).join(" ")
+    const label = (payment) => [ labels[payment.tender], payment.reference ].filter(Boolean).join(" ")
     return {
       header: [ till.account_name, till.branch_name, till.branch_address, till.branch_phone && `Tel ${till.branch_phone}` ].filter(Boolean),
       receipt_number: receiptNumber, time: new Date().toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" }), register: till.register_name,

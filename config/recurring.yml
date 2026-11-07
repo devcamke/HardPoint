@@ -34,10 +34,6 @@ production:
     class: ExchangeRatesJob
     schedule: every day at 3:30am
 
-  # Loyalty points that have run out, and texts warning of points about to; 06:00 in Nairobi.
-  loyalty_expiry:
-    class: LoyaltyExpiryJob
-    schedule: every day at 3am
 
   # Trial reminders, monthly invoices, payment reminders and read-only mode for unpaid shops.
   billing:

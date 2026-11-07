@@ -8,7 +8,7 @@ This plan keeps every feature. It changes **what people see by default** and **h
 take**. The images in [`docs/simplify/`](simplify/) are mockups of the proposed screens. Screens marked
 "today" are real screenshots from `docs/screenshots/`.
 
-> Tool hire, mentioned below, was removed afterwards (PLAN.md, Phase 30).
+> Tool hire, loyalty points and the customer display, mentioned below, were removed afterwards (PLAN.md, Phase 30).
 
 > **Status: built.** All four phases are in the app. [What was built](#what-was-built) has screenshots of the real
 > screens and lists where the build differs from this plan.

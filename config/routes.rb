@@ -182,7 +182,6 @@ Rails.application.routes.draw do
       resource :catalogue, only: :show
       resources :offline_sales, only: %i[ new create ]
       resource :offline, only: :show
-      resource :display, only: :show
       resources :drawer_openings, only: :create
     end
 
@@ -208,8 +207,6 @@ Rails.application.routes.draw do
     # Customers, orders and accounts
     resources :customers, except: :destroy do
       scope module: :customers do
-        resources :loyalty_adjustments, path: "points", only: :create
-        resource :points_text, only: :create
         resources :payments, only: %i[ new create ]
         resource :statement, only: :show
         resource :statement_email, only: :create
@@ -235,7 +232,6 @@ Rails.application.routes.draw do
       resource :market_rate, only: :create, module: :currencies
     end
     resources :promotions
-    resource :loyalty_program, path: "loyalty", only: %i[ edit update ]
     resources :jobs, except: :destroy do
       scope module: :jobs do
         resource :closure, only: %i[ create destroy ]

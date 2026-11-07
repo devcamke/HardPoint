@@ -21,8 +21,6 @@
     <% tenders = [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], [ "card", "Card" ], [ "on_account", "Account" ] ]
        deposit = sale.deposit_available_cents
        tenders << [ "deposit", "Deposit" ] if deposit.positive?
-       program = sale.loyalty_program
-       tenders << [ "points", "Points" ] if program && sale.customer.points_balance >= [ program.min_redeem_points, 1 ].max
        foreign = Current.account.currencies.at_till.alphabetically.to_a
        tenders << [ "foreign_cash", "Foreign" ] if foreign.any?
        # After a refused payment (e.g. over the credit limit), the same tender stays chosen.

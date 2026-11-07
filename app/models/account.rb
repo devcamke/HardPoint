@@ -55,8 +55,6 @@ class Account < ApplicationRecord
   has_many :currencies, dependent: :delete_all
   has_many :supplier_returns, dependent: :destroy
   has_many :promotions, dependent: :delete_all
-  has_one :loyalty_program, dependent: :destroy
-  has_many :loyalty_entries, dependent: :delete_all
 
   # Promotions running today, looked up once per request (the till, the store's product lists),
   # and forgotten when one is saved.
