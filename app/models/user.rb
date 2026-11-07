@@ -8,7 +8,11 @@ class User < ApplicationRecord
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
+  MINIMUM_PASSWORD_LENGTH = 10
+
   validates :name, presence: true
+  # Every way of setting a password (sign-up, an invitation, a reset, My profile) needs at least this many characters.
+  validates :password, length: { minimum: MINIMUM_PASSWORD_LENGTH }, allow_nil: true
   validates :email_address, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
 
   private

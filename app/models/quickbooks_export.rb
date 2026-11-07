@@ -74,26 +74,26 @@ class QuickbooksExport
     end
     files << rows if rows.any?
     files.each_with_index.map do |file_rows, index|
-      [ files.size > 1 ? "journal-#{index + 1}.csv" : "journal.csv", CSV.generate { |csv| csv << JOURNAL_HEADERS; file_rows.each { csv << _1 } } ]
+      [ files.size > 1 ? "journal-#{index + 1}.csv" : "journal.csv", SafeCsv.generate { |csv| csv << JOURNAL_HEADERS; file_rows.each { csv << _1 } } ]
     end
   end
 
   def customers_csv
-    CSV.generate do |csv|
+    SafeCsv.generate do |csv|
       csv << [ "Name", "Company", "Email", "Phone", "Street", "Tax Reg. No." ]
       customers.each { csv << [ _1.name, _1.name, _1.email, PhoneNumber.display(_1.phone), _1.address, _1.tax_pin ] }
     end
   end
 
   def suppliers_csv
-    CSV.generate do |csv|
+    SafeCsv.generate do |csv|
       csv << [ "Name", "Company", "Email", "Phone", "Street", "Tax Reg. No.", "Currency" ]
       suppliers.each { csv << [ _1.name, _1.name, _1.email, PhoneNumber.display(_1.phone), _1.address, _1.tax_pin, _1.currency_code ] }
     end
   end
 
   def skipped_csv
-    CSV.generate do |csv|
+    SafeCsv.generate do |csv|
       csv << [ "Date", "What", "Amount", "Why it's not in the journal" ]
       skipped.each { csv << [ _1.date.strftime("%d/%m/%Y"), _1.what, _1.amount, _1.reason ] }
     end

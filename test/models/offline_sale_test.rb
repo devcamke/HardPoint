@@ -162,4 +162,26 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_not json[:till].key?(:loyalty)
     assert_not json[:customers].first.key?(:points)
   end
+
+  test "a sale goes only in a shift of the till it's sent from, by someone who can sell" do
+    result = accounts(:acme).sales.record_offline(payload, register: registers(:acme_yard))
+    assert_equal [ "error", "The sale's shift isn't one of this till's" ], [ result.status, result.error ]
+
+    Account.without_isolation { memberships(:carl_acme).update!(role: "accountant") }
+    result = accounts(:acme).sales.record_offline(payload, register: registers(:acme_front))
+    assert_equal "error", result.status
+    assert_match "can't sell", result.error
+  end
+
+  test "hand discounts and negative prices sent from an offline till aren't taken" do
+    data = payload.merge(discount_cents: 50000, lines: [ { product_id: products(:acme_nails).id, quantity: "4", unit_price_cents: 25000, discount_cents: 40000 } ])
+    result = record(data)
+    assert_equal 0, result.sale.discount_cents
+    assert_equal [ 0 ], result.sale.lines.map(&:discount_cents)
+    assert_equal 100000, result.sale.total_cents
+    assert result.warnings.any? { _1.include?("hand discount of KES 900.00 was ignored") }, result.warnings.inspect
+
+    result = record(payload(lines: [ { product_id: products(:acme_nails).id, quantity: "4", unit_price_cents: -25000 } ]))
+    assert_equal [ "error", "A price can't be negative" ], [ result.status, result.error ]
+  end
 end

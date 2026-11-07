@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  # Files are only uploaded through the app's own forms. Active Storage's direct uploads would let anyone, signed in
+  # or not, put files on the server, so that route answers Not Found (it's drawn after these, so this one wins).
+  post "rails/active_storage/direct_uploads", to: proc { [ 404, { "content-type" => "text/plain" }, [ "Not found" ] ] }
+
   # Subscription payments to HardPoint itself: Safaricom's answer to a prompt (found by the
   # platform's secret token) and Paystack's signed webhooks.
   post "webhooks/billing/mpesa/:token", to: "webhooks/billing_mpesa#create", as: :billing_mpesa_webhook

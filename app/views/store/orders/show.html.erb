@@ -7,7 +7,7 @@
     <h1 class="text-2xl font-bold">Order <%= @order.reference %> was cancelled</h1>
     <p class="mt-2 text-gray-500">Please call us if you have any questions.</p>
   <% else %>
-    <p class="text-sm font-semibold text-green-700"><%= @order.ordered? ? "Thank you, #{@order.customer.name.split.first}!" : "Hello #{@order.customer.name.split.first}" %></p>
+    <p class="text-sm font-semibold text-green-700"><%# No name here: the page is reached by its link alone, and shouldn't tell anyone who a phone number belongs to. %><%= @order.ordered? ? "Thank you for your order!" : "Hello again" %></p>
     <h1 class="mt-1 text-3xl font-bold">Order <%= @order.reference %></h1>
     <p class="mt-1 text-gray-500">To collect at <strong><%= @order.branch.name %></strong><%= ", #{@order.branch.address}" if @order.branch.address.present? %>. Please bring the order number.</p>
 
