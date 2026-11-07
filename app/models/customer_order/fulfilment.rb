@@ -13,7 +13,7 @@ module CustomerOrder::Fulfilment
   end
 
   def mark_ready
-    ordered? && !tools_out? && update(status: :ready).tap { |ready| track_event "ready" if ready }
+    ordered? && update(status: :ready).tap { |ready| track_event "ready" if ready }
   end
 
   # A deposit still held has to be refunded (or kept, by recording that) before cancelling.
@@ -84,12 +84,7 @@ module CustomerOrder::Fulfilment
   end
 
   def collectable?
-    ((quote? && !expired?) || ordered? || ready?) && !tools_out?
-  end
-
-  # A hire order is settled once its tools are back.
-  def tools_out?
-    source == "hire" && hire_agreement&.out?
+    (quote? && !expired?) || ordered? || ready?
   end
 
   # Puts the order into an empty cart at the prices agreed. Anything else the customer picks

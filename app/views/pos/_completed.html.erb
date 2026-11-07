@@ -1,5 +1,4 @@
-<div id="completed_sale" class="flex flex-wrap items-center gap-4 rounded-lg border-2 border-green-600 bg-green-50 p-4" data-controller="cart-broadcast"
-     data-cart-broadcast-state-value="<%= { status: "complete", total: money(sale.total_cents), change: (money(sale.change_cents) if sale.change_cents.positive?) }.to_json %>">
+<div id="completed_sale" class="flex flex-wrap items-center gap-4 rounded-lg border-2 border-green-600 bg-green-50 p-4">
   <div>
     <p class="text-sm text-green-800">Sale <strong><%= sale.receipt_number %></strong> complete · <%= money(sale.total_cents) %></p>
     <% if sale.change_cents.positive? %>

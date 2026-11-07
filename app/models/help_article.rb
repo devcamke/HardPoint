@@ -23,9 +23,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
       new("offline", "When the internet goes down", "How the till keeps selling offline and sends the sales when it's back.", "At the till",
         %w[ selling tills-and-printers ]),
       new("promotions", "Promotions and offers", "Percentages off, \"buy 10, get 1 free\" and mix-and-match bundles, applied by the till by itself.", "At the till",
-        %w[ selling loyalty-points ]),
-      new("loyalty-points", "Loyalty points", "Customers earn points on what they buy, spend them at the till, and are texted before they expire.", "At the till",
-        %w[ promotions customer-accounts ]),
+        %w[ selling customer-accounts ]),
 
       new("customer-accounts", "Customers on account, quotes and orders", "Credit limits, deposits, statements and delivery notes.", "Customers and orders",
         %w[ contractor-jobs mpesa reports ]),
@@ -33,9 +31,6 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
         %w[ customer-accounts ]),
       new("online-store", "Selling online with click-and-collect", "Your catalogue online: switching it on, what customers see, and handling their orders.", "Customers and orders",
         %w[ customer-accounts mpesa ]),
-      new("tool-hire", "Hiring out tools", "Tools for hire, hire agreements, deposits, returns and settling up at the till.", "Customers and orders",
-        %w[ selling customer-accounts ]),
-
       new("stock-and-stock-takes", "Stock levels, transfers and stock takes", "Adjusting stock, moving it between branches, counting it, and the reorder list.", "Stock and purchasing",
         %w[ stock-on-your-phone buying-from-suppliers batches-and-expiry ]),
       new("buying-from-suppliers", "Buying from suppliers", "Purchase orders, receiving deliveries, reorder suggestions, supplier invoices and what you owe.", "Stock and purchasing",

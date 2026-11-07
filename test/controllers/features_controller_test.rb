@@ -5,7 +5,7 @@ class FeaturesControllerTest < ActionDispatch::IntegrationTest
 
   test "switching features off takes them out of the menus and Settings" do
     get features_path
-    assert_select "input[type=checkbox][name='account[features][]'][value=tool_hire][checked]"
+    assert_select "input[type=checkbox][name='account[features][]'][value=jobs][checked]"
 
     patch features_path, params: { account: { features: [ "", "deliveries", "promotions" ] } }
     assert_redirected_to features_path
@@ -14,7 +14,7 @@ class FeaturesControllerTest < ActionDispatch::IntegrationTest
 
     get sales_path
     assert_select "nav [aria-label='Sell menu'] a", text: "Promotions"
-    assert_select "nav [aria-label='Sell menu'] a", text: "Tool hire", count: 0
+    assert_select "nav [aria-label='Sell menu'] a", text: "Deliveries"
     get customers_path
     assert_select "nav [aria-label='Customers menu'] a", text: "Jobs", count: 0
     get products_path

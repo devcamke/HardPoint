@@ -36,13 +36,10 @@ class Pos::OfflineControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ uuid, "duplicate", "MAIN-000001" ], result.values_at("uuid", "status", "receipt_number")
   end
 
-  test "the offline till page, the customer display, and the installable app" do
+  test "the offline till page and the installable app" do
     get pos_offline_path
     assert_select "[data-controller=offline-till]"
     assert_select "body[data-offline-sync-offline-page-value=true]"
-
-    get pos_display_path
-    assert_select "[data-controller=customer-display]"
 
     get pwa_manifest_path(format: :json)
     assert_equal "/pos", JSON.parse(response.body)["start_url"]

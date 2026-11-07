@@ -39,16 +39,12 @@ class ConcurrencyTest < ActiveSupport::TestCase
     assert_equal 1, products(:acme_nails).stock_movements.where(source: sale).count
   end
 
-  test "points and account payments lock the customer, so two tills can't spend the same balance" do
-    accounts(:acme).create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 100, min_redeem_points: 1)
-    customer = customers(:acme_contractor)
-    customer.loyalty_entries.create!(account: accounts(:acme), kind: "adjusted", points: 50, note: "Welcome")
-    sale = open_sale(customer: customer)
+  test "account payments lock the customer, so two tills can't spend the same credit" do
+    sale = open_sale(customer: customers(:acme_contractor))
 
-    sql = locks_taken { sale.pay(tender: "points") }
+    sql = locks_taken { sale.pay(tender: "on_account") }
     assert sql.any? { _1.match?(/FROM "sales".*FOR UPDATE/) }
     assert sql.any? { _1.match?(/FROM "customers".*FOR UPDATE/) }
-    assert_equal 0, customer.points_balance
   end
 
   test "a return holds the sale, so a second return (or a void) waits and counts what it took back" do
@@ -89,10 +85,5 @@ class ConcurrencyTest < ActiveSupport::TestCase
     end
     assert_equal 1, overlapping, "the run that started while the first was sending found it claimed"
     assert delivery.reload.delivered?
-  end
-
-  test "points expiry locks the scheme, so two runs at once don't expire the same points twice" do
-    accounts(:acme).create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 100, expiry_months: 6)
-    assert locks_taken { LoyaltyProgram.expire_points }.any? { _1.match?(/FROM "loyalty_programs".*FOR UPDATE/) }
   end
 end

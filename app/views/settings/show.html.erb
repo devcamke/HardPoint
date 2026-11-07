@@ -23,8 +23,7 @@
        [ "KRA eTIMS", etims_devices_path, "Send sales to KRA and print signed receipts" ],
        [ "SMS", edit_account_path(anchor: "sms"), "Text receipts, order updates and balance reminders" ]
      ] if current_membership.can_manage_account?).to_a + ([
-       ([ "Currencies", currencies_path, "Dollars and shillings at the till, suppliers who invoice in them, and today's rates" ] if Current.account.feature?(:currencies)),
-       ([ "Loyalty points", edit_loyalty_program_path, "Points customers earn on what they buy and spend at the till" ] if Current.account.feature?(:loyalty))
+       ([ "Currencies", currencies_path, "Dollars and shillings at the till, suppliers who invoice in them, and today's rates" ] if Current.account.feature?(:currencies))
      ].compact if current_membership.approver?).to_a,
      "Catalogue" => [
        [ "Categories", categories_path, "Group products, e.g. Plumbing › Pipes" ],
@@ -32,8 +31,6 @@
        [ "Units", units_path, "Piece, bag, kilogram, metre…" ],
        [ "Tax rates", tax_rates_path, "VAT and other rates" ],
        [ "Price lists", price_lists_path, "Contractor and wholesale prices" ],
-       ([ "Tools for hire", hire_items_path, "Mixers, compactors, scaffolding… hired out by the day or week" ] if current_membership.can_manage_catalogue? && Current.account.feature?(:tool_hire)),
-       ([ "Hire terms", edit_hire_terms_path, "The terms printed on your hire agreements" ] if current_membership.approver? && Current.account.feature?(:tool_hire)),
        ([ "Import products", product_imports_path, "Load or update products from a spreadsheet" ] if current_membership.can_manage_catalogue?)
      ].compact
    } %>

@@ -11,7 +11,6 @@ module NavigationHelper
     dashboard: "M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z",
     till: "M4 4h16v10H4zM2 18h20v2H2zM7 7h10M7 10h6",
     sales: "M3 3h2l2.4 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 7H6M9 20a1 1 0 1 0 0 .01M18 20a1 1 0 1 0 0 .01",
-    hire: "M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4Z",
     products: "M21 8 12 3 3 8v8l9 5 9-5V8ZM3 8l9 5 9-5M12 13v8",
     stock: "M3 21V9l9-6 9 6v12M7 21v-8h10v8M7 17h10",
     purchasing: "M6 2h9l5 5v15H6zM14 2v6h6M9 13h8M9 17h8",
@@ -34,8 +33,7 @@ module NavigationHelper
         menu << [ "Deliveries", delivery_notes_path ] if feature?(:deliveries)
         menu += [ [ "Returns", returns_path ], [ "Shifts", shifts_path ] ]
         menu << [ "Promotions", promotions_path ] if feature?(:promotions)
-        menu << [ "Tool hire", hire_agreements_path ] if feature?(:tool_hire)
-        apps << App.new(:sales, "Sell", sales_path, "#e46f2f", :sales, menu, [ "/hire_items", "/hire_terms" ])
+        apps << App.new(:sales, "Sell", sales_path, "#e46f2f", :sales, menu, [])
       end
 
       if m&.can_sell? || m&.can_manage_receivables?
@@ -70,7 +68,7 @@ module NavigationHelper
       menu += [ [ "Staff", memberships_path ], [ "Activity", events_path ] ] if current_membership&.can_manage_staff?
       App.new(:settings, "Settings", settings_path, "#6c757d", :settings, menu,
         %w[ /account /account_data /account_exports /billing /onboarding /storefront /developers /api_keys /webhook_endpoints
-            /mpesa /etims /texts /currencies /loyalty /features /categories /brands /units /tax_rates /price_lists /memberships /events ])
+            /mpesa /etims /texts /currencies /features /categories /brands /units /tax_rates /price_lists /memberships /events ])
     end
   end
 

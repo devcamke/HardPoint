@@ -139,9 +139,6 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
 
     # Customer accounts: past account sales (one overdue), a payment, a quote, an order with a deposit, and a delivery.
     front_counter = account.registers.find_by!(name: "Front counter")
-    # Loyalty points from the start: a point per KES 100, worth a shilling, spendable from 100 points.
-    account.create_loyalty_program!(enabled: true, points_per_100: 1, point_value_cents: 100, min_redeem_points: 100)
-
     # Contractors' jobs, with their account sales tagged to them.
     towers = account.jobs.create!(customer: mwangi, name: "Mwangi Towers", reference: "LPO 4471", site: "Ruaka, off Limuru Road", budget: 450_000,
       note: "Site foreman: Peter, 0722 000 999")
@@ -260,27 +257,6 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     first_invoice.payments.create!(provider: "mpesa", amount_cents: first_invoice.amount_cents, reference: "ws_CO_SEED01", phone: "254722000111", user: owner)
       .succeed(receipt: "SKA4F9T2QX")
 
-    # Tool hire: mixers, compactors, scaffolding and a generator, one hire out, one overdue, one back.
-    tools = [
-      [ main, "Concrete mixer 350L", "MIX-01", 1_500, 6_000, 5_000 ], [ main, "Concrete mixer 350L", "MIX-02", 1_500, 6_000, 5_000 ],
-      [ yard, "Plate compactor", "CMP-01", 2_500, 10_000, 8_000 ], [ yard, "Scaffolding set (10 frames)", "SCF-01", 3_000, 12_000, 15_000 ],
-      [ main, "Generator 5kVA", "GEN-01", 3_500, nil, 20_000 ], [ main, "Tile cutter", "TLC-01", 800, 3_200, 3_000 ],
-      [ yard, "Poker vibrator", "VIB-01", 1_200, 4_800, 4_000 ]
-    ].map do |branch, name, tag, daily, weekly, deposit|
-      account.hire_items.create!(branch: branch, name: name, asset_tag: tag, daily_rate: daily, weekly_rate: weekly, deposit: deposit)
-    end
-    tool = tools.index_by(&:asset_tag)
-    out = HireAgreement.hire_out(branch: main, customer: otieno, items: [ tool["MIX-01"], tool["GEN-01"] ], started_at: 2.days.ago.change(hour: 8),
-      due_back_at: 2.days.from_now.change(hour: 17), id_number: "23456789", site: "Plot 45, Kitengela")
-    out.customer_order.take_deposit(amount_cents: out.deposit_due_cents, tender: "mobile_money", reference: "SJU77KD12M")
-    late = HireAgreement.hire_out(branch: yard, customer: mwangi, items: [ tool["SCF-01"] ], started_at: 9.days.ago.change(hour: 9),
-      due_back_at: 2.days.ago.change(hour: 17), id_number: "11223344", site: "Mwangi Towers, Ruaka")
-    late.customer_order.take_deposit(amount_cents: late.deposit_due_cents, tender: "card", reference: "VISA 4242")
-    back = HireAgreement.hire_out(branch: yard, customer: grace, items: [ tool["CMP-01"] ], started_at: 4.days.ago.change(hour: 10),
-      due_back_at: 1.day.ago.change(hour: 10), id_number: "34567890", site: "Kiambu Road, Ridgeways")
-    back.customer_order.take_deposit(amount_cents: back.deposit_due_cents, tender: "mobile_money", reference: "SJV88LE23N")
-    back.return_tools({ back.lines.first.id => { condition_note: "Clean, working" } }, at: 1.day.ago.change(hour: 9, min: 30))
-
     # Products tracked by batch: tile adhesive and sealant with expiry dates, one batch already expired and two close,
     # and a contractor's sale that took adhesive from a batch (for tracing a recall).
     [ [ "Tile adhesive 20kg", "ADH-TILE20", "Bag", 1250, 980, 10 ], [ "Waterproof sealant 300ml", "SEAL-300", "Piece", 650, 420, 12 ] ].each do |name, sku, unit_name, price, cost, reorder|
@@ -343,26 +319,6 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     %w[ TL-HAM16 TL-LVL600 TL-TAPE5 ].each { trio_sale.add(products[_1]) }
     trio_sale.pay(tender: "cash", tendered_cents: 3000_00)
 
-    # A welcome bonus for a regular, then points spent on today's paint.
-    grace.loyalty_entries.create!(account: account, kind: "adjusted", points: 150, note: "Welcome to points", creator: owner)
-    points_sale = till_shift.current_sale
-    points_sale.change_customer(grace)
-    points_sale.add(products["PNT-CRN-B4"], quantity: 1)
-    points_sale.pay(tender: "points", amount_cents: 150_00)
-    points_sale.pay(tender: "mobile_money", reference: "SKQ1ZT8P3L")
-
-    # Points run out 12 months after the month they're earned, and customers are texted about them.
-    # Backdated as though the rule had been on for two years: Otieno's points from the old stamp card
-    # mostly expired at the start of the month, and the rest run out at the end of it.
-    program = account.loyalty_program
-    program.update!(expiry_months: 12, text_points: true)
-    program.update_column(:expiry_starts_on, 2.years.ago.to_date)
-    { 13.months.ago => [ "adjusted", 420 ], 12.months.ago.beginning_of_month + 9.days => [ "adjusted", 260 ], 8.months.ago => [ "redeemed", -100 ] }.each do |at, (kind, points)|
-      otieno.loyalty_entries.create!(account: account, kind: kind, points: points, note: ("Points from the old stamp card" if kind == "adjusted"), created_at: at, creator: owner)
-    end
-    program.expire_points
-    program.warn_of_expiry
-
     # The online store, collecting from both branches.
     account.create_storefront!(enabled: true, headline: "Order online, collect in 2 hours",
       intro: "Cement, steel, roofing, plumbing, paint and tools for your build, at the same prices as in our shops.",
@@ -409,7 +365,9 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
   end
 
   # The demo shop shows off everything it has records for (Settings › Features).
-  Account.find_by!(subdomain: "demo").then { _1.update_columns(features: (Account::Features::DEFAULTS + _1.features_in_use).uniq.sort) }
+  # Inside the shop's own context: row-level security hides its records from anywhere else.
+  demo = Account.find_by!(subdomain: "demo")
+  Current.set(account: demo) { demo.update_columns(features: (Account::Features::DEFAULTS + demo.features_in_use).uniq.sort) }
 
   Announcement.create!(title: "New: export all your shop's data", body: "Owners can download everything as spreadsheets from Settings → Your data.",
     starts_at: 1.day.ago, ends_at: 2.weeks.from_now)

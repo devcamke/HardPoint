@@ -1,11 +1,10 @@
 class Payment < ApplicationRecord
   include AccountOwned, Monetary
 
+  # "points": loyalty points, which HardPoint no longer has. Payments made with them are kept, as is their eTIMS code.
   TENDERS = %w[ cash card mobile_money on_account deposit foreign_cash points ].freeze
 
   belongs_to :sale
-  # Points spent are taken off the customer's balance when the payment is taken, and put back if it's removed.
-  has_one :loyalty_entry, dependent: :delete
 
   enum :tender, TENDERS.index_by(&:itself)
 
@@ -19,7 +18,6 @@ class Payment < ApplicationRecord
 
   # A code typed at the till for money that already arrived on the Paybill claims it.
   after_create_commit :claim_mpesa_transaction, if: -> { mobile_money? && reference.present? }
-  after_create :spend_points, if: :points?
 
   # Change is always given in the shop's own currency, foreign notes included.
   def change_cents
@@ -35,10 +33,6 @@ class Payment < ApplicationRecord
   end
 
   private
-    def spend_points
-      create_loyalty_entry!(account: account, customer: sale.customer, sale: sale, kind: "redeemed", points: -points)
-    end
-
     def claim_mpesa_transaction
       sale.account.mpesa_transactions.unmatched.find_by(trans_id: reference.strip.upcase)&.match(self)
     end

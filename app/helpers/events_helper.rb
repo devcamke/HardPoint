@@ -1,7 +1,8 @@
 module EventsHelper
   def event_summary(event)
     subject = event.particulars["name"]
-    thing = event.eventable_type.constantize.model_name.human.downcase
+    # Entries about records of a kind HardPoint no longer has (tool hire) still read sensibly.
+    thing = event.eventable_type.safe_constantize&.model_name&.human&.downcase || event.eventable_type.underscore.humanize(capitalize: false)
 
     case [ event.eventable_type, event.action ]
     in [ "Account", "created" ] then "opened the shop #{subject}"

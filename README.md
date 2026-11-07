@@ -20,20 +20,20 @@ to use it. For the full list of what each phase of the build added, see [docs/FE
 - A **full-screen till** built around a barcode scanner: scan, search or tap a quick-pick button; loose goods by the
   metre or kilo; pack sizes; F2 scan · F8 park · F9 pay. Each computer remembers its till.
 - **Payments** by cash with change, M-Pesa (a prompt to the customer's phone, or money paid to your Paybill), card,
-  foreign notes, loyalty points, on account, or a mix. Gap-free receipt numbers per branch.
+  foreign notes, on account, or a mix. Gap-free receipt numbers per branch.
 - **Discounts** within the shop's limit; bigger ones, voids, returns and going over a credit limit need a manager's
   **approval PIN**, which approves that one thing and signs nobody in.
 - **Shifts** with an opening float, cash drops and payouts, an X report, a blind count at close and a Z report.
-- **Promotions** (percent off, buy 10 get 1 free, any 3 for a price) and **loyalty points** apply by themselves.
+- **Promotions** (percent off, buy 10 get 1 free, any 3 for a price) apply by themselves.
 - **Offline:** when HardPoint can't be reached, the till keeps selling from its own copy of the catalogue, customers
   and promotions, and sends the sales when it's back.
 - **Hardware:** 80 mm receipts from the browser or straight to the printer through QZ Tray (with the cash drawer),
-  a customer display on a second screen, and any keyboard-style scanner.
+  and any keyboard-style scanner.
 
 Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 [When the internet goes down](https://hardpoint.app/help/offline) ·
 [Tills and printers](https://hardpoint.app/help/tills-and-printers) ·
-[Promotions](https://hardpoint.app/help/promotions) · [Loyalty points](https://hardpoint.app/help/loyalty-points)
+[Promotions](https://hardpoint.app/help/promotions)
 
 ![Till](docs/screenshots/43-till-cart.png)
 
@@ -45,11 +45,10 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 - **Jobs for contractors:** tag purchases to a project, track it against a budget, and print a cost summary or a
   marked-up bill for their client.
 - **An online store** at `yourshop.hardpoint.app/store` for click-and-collect, paid ahead by M-Pesa or on collection.
-- **Tool hire:** agreements, deposits, returns tool by tool, and settling up at the till.
 
 Guides: [Customers on account](https://hardpoint.app/help/customer-accounts) ·
 [Jobs for contractors](https://hardpoint.app/help/contractor-jobs) ·
-[Online store](https://hardpoint.app/help/online-store) · [Tool hire](https://hardpoint.app/help/tool-hire)
+[Online store](https://hardpoint.app/help/online-store)
 
 ### Stock and purchasing
 
@@ -273,5 +272,4 @@ Everything below is added with `bin/rails credentials:edit` unless it says other
   certified) before switching a device to production.
 - **Tills:** open the till once while online on each device (that's when it keeps its offline copy). For silent
   browser printing, run Chrome with `--kiosk-printing`. For QZ Tray, install it on the till's computer and set the
-  till to "Straight to the printer" with the printer's name. The customer display is the "Customer display" link,
-  dragged to a second monitor.
+  till to "Straight to the printer" with the printer's name.

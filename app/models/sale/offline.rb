@@ -83,14 +83,11 @@ module Sale::Offline
         break unless open?
 
         tender, intended = payment["tender"].to_s, payment["amount_cents"]&.to_i
-        # Cash pays what the till charged it with; if points fell short, the rest is owed, not taken from the change.
+        # Cash pays what the till charged it with.
         taken = pay(tender: tender, amount_cents: intended, tendered_cents: payment["tendered_cents"]&.to_i,
           reference: payment["reference"].presence || (tender == "mobile_money" ? "OFFLINE" : nil), cash_limit_cents: (intended if tender == "cash"))
         if taken.errors.any?
           offline_warnings << "#{taken.label} payment not recorded: #{taken.errors.full_messages.to_sentence}"
-        elsif tender == "points" && intended && taken.amount_cents < intended
-          offline_warnings << "The till took #{Money.format(intended)} in points but #{customer.name} had only #{taken.points} left " \
-            "(spent elsewhere since the till's catalogue was loaded)"
         end
       end
     end

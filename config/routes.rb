@@ -86,24 +86,11 @@ Rails.application.routes.draw do
     resources :events, only: :index
     resource :settings, only: :show
     resource :features, only: %i[ show update ]
-    resource :hire_terms, only: %i[ edit update ]
     resource :search, only: :show
     resources :support_requests, only: %i[ new create ]
     resource :account_data, only: :show
     resource :developers, only: :show
     resource :storefront, only: %i[ edit update ]
-
-    # Tool hire (the tools first, so /hire/tools isn't taken for an agreement).
-    resources :hire_items, path: "hire/tools", except: :show
-    resources :hire_agreements, path: "hire", only: %i[ index new create show ] do
-      scope module: :hire_agreements do
-        resource :return, only: %i[ new create ]
-        resource :extension, only: :create
-        resource :cancellation, only: :create
-        resource :reminder, only: :create
-        resource :document, only: :show
-      end
-    end
 
     # The shop's public online store.
     namespace :store do
@@ -195,7 +182,6 @@ Rails.application.routes.draw do
       resource :catalogue, only: :show
       resources :offline_sales, only: %i[ new create ]
       resource :offline, only: :show
-      resource :display, only: :show
       resources :drawer_openings, only: :create
     end
 
@@ -221,8 +207,6 @@ Rails.application.routes.draw do
     # Customers, orders and accounts
     resources :customers, except: :destroy do
       scope module: :customers do
-        resources :loyalty_adjustments, path: "points", only: :create
-        resource :points_text, only: :create
         resources :payments, only: %i[ new create ]
         resource :statement, only: :show
         resource :statement_email, only: :create
@@ -248,7 +232,6 @@ Rails.application.routes.draw do
       resource :market_rate, only: :create, module: :currencies
     end
     resources :promotions
-    resource :loyalty_program, path: "loyalty", only: %i[ edit update ]
     resources :jobs, except: :destroy do
       scope module: :jobs do
         resource :closure, only: %i[ create destroy ]

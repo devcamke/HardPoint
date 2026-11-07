@@ -1,21 +1,10 @@
-<%# The customer display shows the cart; right after a sale it keeps saying thank you until the next item. %>
-<% display_status = sale.lines.any? ? "cart" : ("idle" unless params[:completed]) %>
-<% display_state = display_status && { status: display_status, total: money(sale.total_cents), paybill: Mpesa::Shortcode.for_branch(sale.branch)&.label,
-     lines: sale.lines.map { |line| { description: line.description, quantity: quantity(line.quantity), total: money(line.total_cents) } } } %>
-<div id="cart" class="flex min-h-0 flex-1 flex-col" <%= tag.attributes(data: { controller: "cart-broadcast", cart_broadcast_state_value: display_state.to_json }) if display_state %>>
+<div id="cart" class="flex min-h-0 flex-1 flex-col">
   <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-3">
     <div class="min-w-0">
       <p class="text-xs uppercase tracking-wide text-gray-500">Customer</p>
       <p class="truncate font-semibold"><%= sale.customer&.name || "Walk-in" %>
         <%= tag.span(sale.customer.price_list.name, class: "badge ml-1") if sale.customer&.price_list %>
         <%= tag.span("Order #{sale.customer_order.reference}", class: "badge ml-1") if sale.customer_order %></p>
-      <% if (program = sale.loyalty_program) %>
-        <% points = sale.customer.points_balance %>
-        <p class="text-xs text-gray-500"><%= number_with_delimiter(points) %> points<%= ", worth #{money(program.value_cents(points))}" if points.positive? %>
-          <% if points.positive? && (expiry = program.next_expiry(sale.customer)) && expiry.first <= 1.month.from_now.to_date %>
-            <span class="text-amber-700">· <%= number_with_delimiter(expiry.last) %> expire <%= expiry.first.strftime("%-d %b") %></span>
-          <% end %></p>
-      <% end %>
     </div>
     <details class="relative<%= " hidden" if sale.customer_order %>">
       <summary class="btn-secondary cursor-pointer list-none py-1.5">Change</summary>

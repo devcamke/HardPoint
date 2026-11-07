@@ -123,14 +123,11 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
 
           acme.account_exports.create!
           acme.currencies.create!(code: "USD", rate: 129.5)
-          acme.create_loyalty_program!(enabled: true)
           acme.supplier_returns.create!(supplier: suppliers(:acme_cement_distributor), branch: branches(:acme_main), reason: "damaged",
             lines_attributes: [ { account: acme, product: products(:acme_cement), quantity: 1 } ])
           acme.promotions.create!(name: "Sweep offer", kind: "percent_off", percent_off: 10, product_ids: [ products(:acme_nails).id ], starts_on: Date.current, ends_on: Date.current + 1)
           products(:acme_pipe).update!(tracks_batches: true)
           products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: 5, reason: "received", batch: { number: "SWEEP-1", expires_on: 1.month.from_now.to_date })
-          tool = acme.hire_items.create!(branch: branches(:acme_main), name: "Mixer", asset_tag: "SWEEP-MIX", daily_rate: "1500")
-          HireAgreement.hire_out(branch: branches(:acme_main), customer: customers(:acme_contractor), items: [ tool ], due_back_at: 2.days.from_now)
           acme.api_keys.create!(name: "Victim key")
           endpoint = acme.webhook_endpoints.create!(url: "https://hooks.example.com/victim", event_types: %w[ sale.completed ])
           endpoint.deliveries.create!(account: acme, event: "ping", event_id: SecureRandom.uuid, payload: {}, status: "failed", attempts: 7)
