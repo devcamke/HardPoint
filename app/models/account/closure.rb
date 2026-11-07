@@ -9,6 +9,7 @@ module Account::Closure
   included do
     belongs_to :deletion_requested_by, class_name: "User", optional: true
     has_many :account_exports, dependent: :delete_all
+    has_many :account_backups, dependent: :delete_all
 
     scope :due_for_deletion, -> { where(deletion_scheduled_for: ..Time.current) }
   end
@@ -85,6 +86,7 @@ module Account::Closure
       ActiveStorage::Attachment.where(record_type: "Product", record_id: products.select(:id))
         .or(ActiveStorage::Attachment.where(record_type: "DeliveryNote", record_id: delivery_notes.select(:id)))
         .or(ActiveStorage::Attachment.where(record_type: "AccountExport", record_id: account_exports.select(:id)))
+        .or(ActiveStorage::Attachment.where(record_type: "AccountBackup", record_id: account_backups.select(:id)))
         .pluck(:blob_id)
     end
 

@@ -1,0 +1,9 @@
+# An old automatic backup, already removed (its file is gone), so the shop starts with none to download.
+acme_old:
+  account: acme
+  kind: scheduled
+  status: expired
+  period: "daily:2026-01-01"
+  attempts: 1
+  started_at: <%= 40.days.ago.to_fs(:db) %>
+  finished_at: <%= 40.days.ago.to_fs(:db) %>

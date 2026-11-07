@@ -3,6 +3,84 @@
 <h1 class="text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> Your data</h1>
 <p class="mt-1 mb-6 text-gray-500">Everything <%= Current.account.name %> keeps in HardPoint belongs to you. <%= link_to "How we handle it", privacy_url(subdomain: false), class: "link", target: "_blank", rel: "noopener" %></p>
 
+<section id="backups" class="card mb-6 scroll-mt-16">
+  <% account = Current.account %>
+  <% last_good = @backups.find(&:succeeded?) %>
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div class="max-w-2xl">
+      <h2 class="text-lg font-semibold">Backups</h2>
+      <p class="hint mt-1">A complete copy of the shop's records, product images and delivery photos, kept by HardPoint and checked file by file after it's stored. Backups run by themselves at 2 a.m. (<%= account.time_zone %> time), and you can make one whenever you like, for example before a big price change or a stock take. Every owner is emailed when one is ready or if one fails.</p>
+      <p class="mt-2 text-sm">
+        <% if last_good %>
+          Last backup: <strong><%= l(last_good.created_at.in_time_zone(account.time_zone), format: :long) %></strong>
+        <% else %>
+          <strong>No backups yet.</strong>
+        <% end %>
+        <% if account.backup_frequency == "off" %>
+          <span class="font-medium text-red-700">Automatic backups are off.</span>
+        <% end %>
+      </p>
+    </div>
+    <%= button_to "Back up now", account_backups_path, class: "btn-primary", disabled: @backups.any? { _1.queued? || _1.running? } %>
+  </div>
+
+  <%= form_with model: account, url: backup_schedule_path, method: :patch, class: "mt-4 grid max-w-3xl gap-4 sm:grid-cols-4 sm:items-end" do |form| %>
+    <div>
+      <%= form.label :backup_frequency, "Back up automatically", class: "label" %>
+      <%= form.select :backup_frequency, [ [ "Every day", "daily" ], [ "Every week (Mondays)", "weekly" ], [ "Every month (the 1st)", "monthly" ], [ "Off", "off" ] ], {}, class: "input" %>
+    </div>
+    <div>
+      <%= form.label :backups_kept, "Automatic backups to keep", class: "label" %>
+      <%= form.number_field :backups_kept, in: AccountBackup::KEPT_RANGE, required: true, class: "input" %>
+    </div>
+    <div>
+      <%= form.label :backup_notifications, "Email the owners", class: "label" %>
+      <%= form.select :backup_notifications, [ [ "After every backup", "every" ], [ "Only if one fails", "failures" ] ], {}, class: "input" %>
+    </div>
+    <div><%= form.submit "Save", class: "btn" %></div>
+  <% end %>
+  <p class="hint mt-2">Backups you make yourself are kept for <%= AccountBackup::MANUAL_RETENTION.in_days.to_i %> days. The newest good backup is never deleted to make room.</p>
+
+  <% if @backups.any? %>
+    <div class="mt-4 overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr><th>Taken</th><th>By</th><th>Contents</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% @backups.each do |backup| %>
+            <tr id="<%= dom_id(backup) %>">
+              <td><%= l(backup.created_at.in_time_zone(account.time_zone), format: :short) %></td>
+              <td><%= backup.manual? ? backup.requested_by&.name : "Automatic" %></td>
+              <td>
+                <% if backup.succeeded? %>
+                  <%= number_with_delimiter(backup.row_count) %> records, <%= pluralize(backup.file_count, "file") %>
+                  <span class="hint block" title="SHA-256 <%= backup.checksum %>">SHA-256 <%= backup.checksum.first(12) %>…</span>
+                <% end %>
+              </td>
+              <td>
+                <% if backup.queued? %><span class="text-gray-500">Waiting to start…</span>
+                <% elsif backup.running? %><span class="text-gray-500">Backing up…</span>
+                <% elsif backup.succeeded? %><span class="text-green-700">Ready</span><% if backup.expires_at %> <span class="hint">until <%= l(backup.expires_at.to_date, format: :short) %></span><% end %>
+                <% elsif backup.failed? %><span class="text-red-700">Didn't work</span>
+                <% else %><span class="text-gray-500">Deleted</span>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap text-right">
+                <% if backup.downloadable? %>
+                  <%= link_to "Download (#{number_to_human_size(backup.byte_size)})", account_backup_path(backup), class: "link", data: { turbo: false } %>
+                  <%= button_to "Delete", account_backup_path(backup), method: :delete, form_class: "inline", class: "link ml-3 text-red-700",
+                        data: { turbo_confirm: "Delete this backup? It can't be brought back." } %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
 <section id="export" class="card mb-6">
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div class="max-w-2xl">

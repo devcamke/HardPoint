@@ -82,6 +82,9 @@ class Account < ApplicationRecord
     exclusion: { in: RESERVED_SUBDOMAINS, message: "is reserved" }
   validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
   validates :max_cashier_discount_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+  validates :backup_frequency, inclusion: { in: AccountBackup::FREQUENCIES }
+  validates :backup_notifications, inclusion: { in: AccountBackup::NOTIFICATIONS }
+  validates :backups_kept, numericality: { only_integer: true, in: AccountBackup::KEPT_RANGE }
   validates :currency, format: { with: /\A[A-Z]{3}\z/, message: "must be a 3-letter ISO code" }
 
   private

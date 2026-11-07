@@ -77,7 +77,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
         %w[ your-data ]),
       new("connecting-apps", "Connecting a web shop or other apps", "API keys and webhooks, for the developer who connects your web shop or accounts.", "Your account",
         %w[ online-store billing ]),
-      new("your-data", "Exporting your data and closing your account", "Download everything, and what happens when a shop is closed.", "Your account",
+      new("your-data", "Backups, exporting your data and closing your account", "Automatic and manual backups, downloading everything, and what happens when a shop is closed.", "Your account",
         %w[ billing ])
     ].freeze
   end
