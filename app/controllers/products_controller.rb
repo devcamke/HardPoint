@@ -32,14 +32,21 @@ class ProductsController < ApplicationController
   end
 
   def new
-    @product = Current.account.products.new(unit: Current.account.default_unit, tax_rate: Current.account.default_tax_rate)
+    # "Add and start another" keeps the category and unit, for entering a shelf of similar things.
+    @product = Current.account.products.new(unit: Current.account.units.find_by(id: params[:unit_id]) || Current.account.default_unit,
+      category: Current.account.categories.find_by(id: params[:category_id]), tax_rate: Current.account.default_tax_rate)
   end
 
   def create
     @product = Current.account.products.new(product_params)
 
     if save_with_barcode(@product)
-      redirect_to @product, notice: "#{@product.name} added."
+      notice = "#{@product.name} added#{" with #{helpers.quantity(@product.stock_at(selected_branch), @product.unit)} at #{selected_branch.name}" if @product.stock_at(selected_branch).positive?}."
+      if params[:add_another]
+        redirect_to new_product_path(category_id: @product.category_id, unit_id: @product.unit_id), notice: notice
+      else
+        redirect_to @product, notice: notice
+      end
     else
       render :new, status: :unprocessable_entity
     end
@@ -86,14 +93,27 @@ class ProductsController < ApplicationController
     end
 
     # A manufacturer's barcode can be given when adding a product; otherwise it gets an in-store one.
+    # Opening stock at the current branch goes through the stock ledger like any other adjustment.
     def save_with_barcode(product)
       code = params.dig(:product, :barcode).to_s.strip
 
       Product.transaction do
         product.barcodes.build(account: Current.account, code: code) if code.present?
         product.save or raise ActiveRecord::Rollback
+        record_opening_stock(product) or raise ActiveRecord::Rollback
       end
-      product.persisted?
+      product.persisted? && product.errors.empty?
+    end
+
+    def record_opening_stock(product)
+      quantity = params.dig(:product, :opening_stock).presence&.then { BigDecimal(_1, exception: false) }
+      return true if quantity.nil? || quantity.zero? || !product.track_stock? || !current_membership.can_manage_stock?
+
+      adjustment = Current.account.stock_adjustments.new(product: product, branch: selected_branch, reason: "opening", quantity: quantity)
+      return true if adjustment.save
+
+      adjustment.errors.each { product.errors.add :base, "Opening stock #{_1.message}" }
+      false
     end
 
     # "none" picks the products without one, e.g. the "No category" group.

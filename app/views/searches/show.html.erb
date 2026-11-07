@@ -1,0 +1,8 @@
+<% content_for :title, "Search" %>
+
+<div class="mx-auto max-w-2xl">
+  <%= form_with url: search_path, method: :get, class: "mb-4", html: { role: "search" } do |form| %>
+    <%= form.search_field :q, value: @query, autofocus: true, placeholder: "Search products, customers, suppliers, receipts or pages", class: "input w-full text-lg", "aria-label": "Search" %>
+  <% end %>
+  <div class="card p-0 pb-2"><%= render "searches/results", query: @query, groups: @groups %></div>
+</div>

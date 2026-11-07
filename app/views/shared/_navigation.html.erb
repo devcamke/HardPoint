@@ -1,6 +1,6 @@
 <% app = current_app %>
 <% area_link = ->(each_app, extra = "") { link_to each_app.name, each_app.path, class: class_names("whitespace-nowrap rounded px-2.5 py-1.5 hover:bg-white/15 #{extra}", "bg-white/20" => each_app == app), aria: { current: ("page" if each_app == app) } } %>
-<nav class="sticky top-0 z-40 print:hidden">
+<nav class="sticky top-0 z-40 print:hidden" data-controller="command-palette" data-action="keydown@window->command-palette#shortcut">
   <div class="bg-primary-500 text-white shadow-sm">
     <div class="flex h-11 items-center gap-1 px-2 text-sm">
       <%= link_to root_path, class: "mr-2 flex items-center gap-2 rounded px-2 py-1 hover:bg-white/15", title: "Home" do %>
@@ -12,6 +12,12 @@
       </div>
 
       <div class="ml-auto flex items-center gap-1">
+        <button type="button" data-action="command-palette#open" aria-keyshortcuts="Control+K" aria-label="Search"
+                class="flex cursor-pointer items-center gap-2 rounded bg-white/15 px-2.5 py-1.5 text-white/80 hover:bg-white/25 lg:w-64">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4 shrink-0" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="hidden lg:inline">Search…</span>
+          <kbd class="ml-auto hidden rounded border border-white/40 px-1 text-[11px] font-sans lg:inline">Ctrl K</kbd>
+        </button>
         <% if current_membership&.can_sell? %>
           <%= link_to "Open till", pos_path, class: "rounded bg-[#e46f2f] px-3 py-1.5 font-semibold hover:bg-[#d0611f]" %>
         <% end %>
@@ -41,6 +47,22 @@
       <% navigation_apps.each do |each_app| %><%= area_link.(each_app, "py-1") %><% end %>
     </div>
   </div>
+
+  <dialog data-command-palette-target="dialog" data-action="click->command-palette#closeOnBackdrop" aria-label="Search"
+          class="mx-auto mt-[10vh] w-[min(40rem,calc(100vw-2rem))] overflow-hidden rounded-lg bg-white p-0 text-gray-800 shadow-2xl backdrop:bg-gray-900/40">
+    <%= form_with url: search_path, method: :get, data: { command_palette_target: "form", turbo_frame: "search_results",
+          action: "turbo:submit-start->command-palette#submitStart turbo:submit-end->command-palette#submitEnd" }, html: { role: "search" } do |form| %>
+      <%= form.search_field :q, autocomplete: "off", placeholder: "Search products, customers, suppliers, receipts or pages", "aria-label": "Search",
+            class: "w-full border-0 border-b border-gray-200 px-4 py-3 text-lg focus:ring-0 focus:outline-none",
+            data: { command_palette_target: "input", action: "input->command-palette#search keydown->command-palette#navigate" } %>
+    <% end %>
+    <div class="max-h-[60vh] overflow-y-auto pb-2">
+      <%= turbo_frame_tag "search_results", target: "_top" do %>
+        <p class="hint px-4 py-6 text-center">Type a product, customer, supplier, receipt number or page. Scanning a barcode works too.</p>
+      <% end %>
+    </div>
+    <p class="border-t border-gray-100 bg-gray-50 px-4 py-2 text-xs text-gray-500">↑ ↓ to choose · Enter to open · Esc to close</p>
+  </dialog>
 
   <% if app && app.menu.size > 1 %>
     <div class="flex gap-1 overflow-x-auto border-b border-gray-200 bg-white px-3 text-sm" aria-label="<%= app.name %> menu">
