@@ -68,5 +68,10 @@ accessories:
     files:
       - config/postgres/start_replica.sh:/usr/local/bin/start_replica.sh
       - config/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      # A standby doesn't archive, but once promoted to primary it must (install WAL-G here too).
+      - config/postgres/wal-g.sh:/usr/local/bin/hardpoint-wal-g
+    volumes:
+      - /opt/hardpoint/wal-g:/opt/wal-g:ro
+      - /etc/hardpoint/wal-g:/etc/wal-g:ro
     directories:
       - data:/var/lib/postgresql

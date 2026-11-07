@@ -9,8 +9,9 @@ growing onto several servers.
 
 | | Target | How |
 |---|---|---|
-| **RPO** (data that can be lost) | **1 hour** | Encrypted database dump every hour, off-site within minutes; files daily |
-| **RTO** (time to be selling again) | **2 hours** | Fresh VPS, Kamal setup, restore the latest dump (steps below) |
+| **RPO** (data that can be lost) | **about 1 minute** | WAL-G ships every WAL segment off-site as it's finished (at least every minute), on top of a daily base backup; the hourly encrypted dump is a second, independent copy (1 hour); files daily |
+| **RTO** (time to be selling again) | **2 hours** | Fresh VPS, Kamal setup, restore the latest base backup and replay WAL (steps below) |
+| **Undo a mistake** | to the second, within 35 days | Point-in-time restore (section 3) to just before a bad import or a mass delete |
 | Tills during an outage | keep selling | The offline till (Phase 8) takes cash and typed M-Pesa codes and sends the sales when the server is back |
 
 ## 1. First setup
@@ -35,6 +36,46 @@ growing onto several servers.
 
 ## 2. Backups
 
+Two independent layers, each encrypted, off-site and watched by its own heartbeat:
+
+| | What | When | Restores |
+|---|---|---|---|
+| **Continuous (WAL-G)** | Physical base backup + every WAL segment | WAL as it's written (≤1 min); base daily | The whole cluster to any second in the last 35 days (§3) |
+| **Logical dumps (`backup.sh`)** | `pg_dump` of each database, roles, and the uploads folder | Hourly; files daily | One database, or as a second opinion if WAL-G's store is damaged (§3) |
+
+### Continuous backup with WAL-G
+
+Postgres hands each finished WAL segment to WAL-G (`archive_command` in
+`config/postgres/postgresql.conf`, through `config/postgres/wal-g.sh`), which compresses it with zstd,
+encrypts it with libsodium and uploads it; `archive_timeout = 60` closes a segment at least every
+minute when anything was written. A daily base backup gives replay a starting point. The WAL-G binary
+(a pinned release, checked against its SHA-256) and its settings live on the host and are mounted
+read-only into the `db` accessory (`config/deploy.yml`). Until they're there, archiving is a no-op,
+so a fresh server never fills its disk with WAL, and `walg.sh check` fails until it's set up.
+
+1. A **separate bucket** for WAL (`hardpoint-wal`), in another region from the server, with its own key.
+2. On the database server:
+   ```sh
+   sudo install -d -m 700 /opt/hardpoint
+   sudo install -m 700 config/backup/*.sh config/postgres/wal-g.sh /opt/hardpoint/
+   sudo /opt/hardpoint/install_walg.sh            # binary + /etc/hardpoint/wal-g/env template
+   sudo editor /etc/hardpoint/wal-g/env           # bucket, keys, WALG_LIBSODIUM_KEY=$(openssl rand -hex 32)
+   ```
+   Put the whole `env` file in the password manager: **without `WALG_LIBSODIUM_KEY` the WAL can't be read.**
+3. `bin/kamal accessory reboot db` (picks up the mounts and `archive_mode = on`; a restart, so after
+   closing time), then the first base backup: `sudo /opt/hardpoint/walg.sh base`.
+4. Cron (added to the file below) and a healthchecks.io check expecting a ping every 15 minutes, as
+   `WALG_HEARTBEAT_URL` in `/etc/hardpoint/backup.env`. `walg.sh check` fails, and pings `/fail` with
+   the reason, if WAL-G isn't configured, archiving is failing, more than 100 segments are waiting
+   (WAL piling up on the server's disk), or the newest base backup is over 26 hours old.
+5. Bucket lifecycle: delete everything after **35 days**. That's safe with daily full base backups:
+   every base backup still in the bucket has all of its later WAL there too. Use a key that can write
+   but not delete. (With a key that can delete, `WALG_RETAIN_FULL=35` has WAL-G prune instead.)
+
+`sudo /opt/hardpoint/walg.sh list` shows the base backups.
+
+### Logical dumps
+
 `config/backup/backup.sh` runs on the VPS host (not in a container). It dumps the app and job databases
 with `pg_dump` inside the `hardpoint-db` container, encrypts with AES-256 under `BACKUP_PASSPHRASE`, and
 uploads to an S3-compatible bucket (Contabo Object Storage in another region, or Backblaze B2) with a
@@ -51,17 +92,26 @@ S3_REGION=default
 S3_ACCESS_KEY=...
 S3_SECRET_KEY=...
 BACKUP_HEARTBEAT_URL=https://hc-ping.com/...   # alerts if backups stop
+WALG_HEARTBEAT_URL=https://hc-ping.com/...     # continuous backup (walg.sh check), every 15 minutes
 ENV
 sudo chmod 600 /etc/hardpoint/backup.env
 sudo tee /etc/cron.d/hardpoint-backup > /dev/null <<'CRON'
 17 * * * * root /opt/hardpoint/backup.sh db    >> /var/log/hardpoint-backup.log 2>&1
 47 1 * * * root /opt/hardpoint/backup.sh files >> /var/log/hardpoint-backup.log 2>&1
+23 0 * * * root /opt/hardpoint/walg.sh base    >> /var/log/hardpoint-backup.log 2>&1
+*/15 * * * * root /opt/hardpoint/walg.sh check >> /var/log/hardpoint-backup.log 2>&1
 CRON
 ```
 
 Bucket lifecycle rules: delete `hourly/` after 2 days and `daily/` and `files/` after 35 days. Use a
 bucket key that can write but not delete, so a compromised server can't wipe its own backups
 (lifecycle rules do the deleting). The last 48 hours also stay in `/var/backups/hardpoint` on the VPS.
+
+Each run checks its own work before the heartbeat is pinged: every dump is read back with
+`pg_restore --list`, the encrypted file is decrypted and listed, and each upload's size in the bucket
+is compared with the original. A failed run pings the heartbeat's `/fail` address with the reason. A
+run with no off-site store configured **fails** (copies that never leave the server don't survive
+losing it); set `ALLOW_LOCAL_ONLY=1` only on staging.
 
 The heartbeat check should expect a ping every hour; if one is missed, check
 `/var/log/hardpoint-backup.log`.
@@ -97,7 +147,21 @@ server (`TARGET_SUFFIX=_drill`) or onto a fresh VPS, check it, and note the time
 1. **New VPS**, set up as in section 1 steps 1 and 5 (`bin/kamal setup` with the same secrets; point
    `servers` and the accessory `host` in `config/deploy.yml` at the new address). Stop the app while
    restoring: `bin/kamal app stop`.
-2. **Restore the database** from the newest hourly backup:
+2. **Restore the database** with WAL-G, to the last second the archive holds (install WAL-G first:
+   section 2, steps 2 and the `env` file from the password manager). Stop the empty `db` accessory
+   Kamal just booted and clear its data directory, then:
+   ```sh
+   bin/kamal accessory stop db
+   sudo mv ~/hardpoint-db/data ~/hardpoint-db/data.empty     # the accessory's `data` directory
+   sudo /opt/hardpoint/walg_restore.sh ~/hardpoint-db/data   # add --time "…" to stop earlier
+   bin/kamal accessory boot db
+   ```
+   Postgres replays the WAL (`bin/kamal accessory logs db` shows "archive recovery complete"), then
+   opens on a new timeline. Then, in `psql` as postgres: `ALTER SYSTEM RESET restore_command; ALTER
+   SYSTEM RESET recovery_target_time; ALTER SYSTEM RESET recovery_target_action; SELECT
+   pg_reload_conf();` and take a fresh base backup: `sudo /opt/hardpoint/walg.sh base`.
+
+   **If WAL-G's store is unusable**, restore the newest hourly dump instead (up to an hour lost):
    ```sh
    /opt/hardpoint/restore.sh s3:hourly/hardpoint-db-<newest>.tar.enc
    ```
@@ -112,13 +176,35 @@ server (`TARGET_SUFFIX=_drill`) or onto a fresh VPS, check it, and note the time
 5. **Cloudflare:** change the two DNS records to the new address (proxied, so it takes effect in
    seconds).
 6. **Tills** that sold offline send their sales by themselves once they can reach the server. Sales
-   made online in the gap between the last backup and the outage are lost: tell the affected shops
+   made online in the gap between the last archived WAL (about a minute) and the outage are lost: tell the affected shops
    (Activity shows what arrived), and they can re-enter them from their paper receipts.
+
+### Undoing a mistake (point-in-time restore)
+
+A bad product import, a mass delete, a migration gone wrong: restore the whole cluster to just
+before it. Everything after that moment is lost for **every** shop, so first try fixing it forward
+from the hourly dump (`TARGET_SUFFIX=_drill`, then copy the rows back). If you do roll back: find the
+moment in Activity or the logs, put up the maintenance notice, then follow step 2 above with
+`--time "2026-11-07 14:31:00+03"`. Tills keep selling offline meanwhile and send their sales after.
+
+**Drill (monthly, alongside the live database):** restore into a scratch directory and run it as a
+throwaway container on another port; `--drill` stops the copy archiving into production's store.
+
+```sh
+sudo /opt/hardpoint/walg_restore.sh /var/tmp/pitr-drill --drill --time "$(date -d '1 hour ago' '+%F %T%z')"
+docker run --rm -d --name pitr-drill -v /var/tmp/pitr-drill:/var/lib/postgresql \
+  -v /opt/hardpoint/wal-g:/opt/wal-g:ro -v /etc/hardpoint/wal-g:/etc/wal-g:ro \
+  -v /opt/hardpoint/wal-g.sh:/usr/local/bin/hardpoint-wal-g:ro postgres:18
+docker logs -f pitr-drill            # until "database system is ready to accept connections"
+docker exec pitr-drill psql -U postgres -d hardpoint_production -c "SELECT max(created_at) FROM sales"
+docker rm -f pitr-drill && sudo rm -rf /var/tmp/pitr-drill
+```
 
 ### Drill log
 
 | Date | Where | Backup | Restore | Checks |
 |---|---|---|---|---|
+| 2026-11-07 | Local, PostgreSQL 16, WAL-G v3.0.7, file store | WAL archived through `wal-g.sh`, encrypted; base backup 1 s | `walg_restore.sh --time` 1 s, replay under 1 s | Stopped "before commit of transaction 733" at the target; the 1,500 rows written before it present, the delete and insert after it absent; promoted to timeline 2. `walg.sh check` caught: not configured, archiving failing (and recovered), stale base backup |
 | 2026-09-24 | Local container, PostgreSQL 16, 25 MB database | 0.4 s | 0.9 s | Row counts of all 66 tables identical; RLS enabled and forced on 56 tables with 56 policies; all tables owned by the app role; 273 indexes; as the app role one shop sees its 310 sales and no shop sees none; the app boots against the copy and runs reports |
 
 Restoring grows roughly with the database size (about a minute per gigabyte on NVMe is a fair first

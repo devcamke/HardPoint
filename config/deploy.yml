@@ -121,6 +121,13 @@ accessories:
       # Creates the non-superuser "hardpoint" role the app connects as, so row-level security applies.
       - config/postgres/create_app_role.sh:/docker-entrypoint-initdb.d/10-create-app-role.sh
       - config/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      # Continuous backup: Postgres hands each WAL segment to WAL-G (archive_command).
+      - config/postgres/wal-g.sh:/usr/local/bin/hardpoint-wal-g
+    # WAL-G's binary and its settings live on the host, installed by config/backup/install_walg.sh
+    # (docs/RUNBOOK.md §2). Until then archiving is a no-op and `walg.sh check` reports it.
+    volumes:
+      - /opt/hardpoint/wal-g:/opt/wal-g:ro
+      - /etc/hardpoint/wal-g:/etc/wal-g:ro
     directories:
       # postgres:18 keeps its data under /var/lib/postgresql/18/docker inside this volume.
       - data:/var/lib/postgresql
