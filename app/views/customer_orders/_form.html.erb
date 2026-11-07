@@ -1,22 +1,16 @@
+<% more_fields = %i[ branch branch_id valid_until needed_by note ] %>
 <%= form_with model: customer_order, class: "card max-w-4xl" do |form| %>
   <%= render "shared/errors", model: customer_order %>
 
-  <div class="grid gap-4 sm:grid-cols-4">
-    <div class="field sm:col-span-2"><%= form.label :customer_id, "Customer", class: "label" %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :customer_id, "Customer", class: "label" %>
       <%= form.collection_select :customer_id, Current.account.customers.alphabetically, :id, :name, { prompt: "Choose…" }, required: true, class: "input" %>
       <p class="hint mt-1">Not listed? <%= link_to "Add a customer", new_customer_path, class: "link" %> first.</p></div>
     <% jobs = customer_order.customer ? ([ customer_order.job ] + customer_order.customer.jobs.open.alphabetically).compact.uniq : [] %>
     <% if jobs.any? %>
-      <div class="field sm:col-span-2"><%= form.label :job_id, "Job", class: "label" %>
+      <div class="field"><%= form.label :job_id, "Job", class: "label" %>
         <%= form.select :job_id, jobs.map { [ _1.label, _1.id ] }, { include_blank: "Not for a job" }, class: "input" %></div>
     <% end %>
-    <div class="field"><%= form.label :branch_id, "Branch", class: "label" %>
-      <%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %></div>
-    <% if customer_order.new_record? || customer_order.quote? %>
-      <div class="field"><%= form.label :valid_until, "Quote valid until", class: "label" %><%= form.date_field :valid_until, class: "input" %>
-        <p class="hint mt-1">Blank: <%= CustomerOrder::QUOTE_VALIDITY.in_days.to_i %> days</p></div>
-    <% end %>
-    <div class="field"><%= form.label :needed_by, "Needed by", class: "label" %><%= form.date_field :needed_by, class: "input" %></div>
   </div>
 
   <p class="label mt-2">Products</p>
@@ -44,7 +38,23 @@
   </table>
   <p class="hint mb-4">Prices are the customer's own (their price list and quantity breaks) and hold once saved.</p>
 
-  <div class="field"><%= form.label :note, "Note (shown on the quote)", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. delivery to site included" %></div>
+  <% quote = customer_order.new_record? || customer_order.quote? %>
+  <%= render "shared/more_options", open: more_fields.any? { customer_order.errors.include?(_1) },
+        summary: [ "at #{(customer_order.branch || selected_branch)&.name}",
+                   (("valid until #{customer_order.valid_until ? l(customer_order.valid_until, format: :short) : "#{CustomerOrder::QUOTE_VALIDITY.in_days.to_i} days from today"}") if quote),
+                   (customer_order.needed_by ? "needed by #{l(customer_order.needed_by, format: :short)}" : "no date needed"),
+                   (customer_order.note.present? ? "note: #{customer_order.note.truncate(40)}" : "no note") ].compact.join(" · ") do %>
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div class="field"><%= form.label :branch_id, "Branch", class: "label" %>
+        <%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %></div>
+      <% if quote %>
+        <div class="field"><%= form.label :valid_until, "Quote valid until", class: "label" %><%= form.date_field :valid_until, class: "input" %>
+          <p class="hint mt-1">Blank: <%= CustomerOrder::QUOTE_VALIDITY.in_days.to_i %> days</p></div>
+      <% end %>
+      <div class="field"><%= form.label :needed_by, "Needed by", class: "label" %><%= form.date_field :needed_by, class: "input" %></div>
+    </div>
+    <div class="field"><%= form.label :note, "Note (shown on the quote)", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. delivery to site included" %></div>
+  <% end %>
   <div class="flex flex-wrap items-center gap-3">
     <% if customer_order.new_record? %>
       <%= form.submit "Save quote", class: "btn-primary" %>

@@ -45,16 +45,12 @@
       <% end %>
     </div>
 
-    <details class="mt-2 border-t border-gray-100 pt-3" <%= "open" if more_fields.any? { product.errors.include?(_1) } %>>
-      <summary class="cursor-pointer"><span class="font-medium text-primary-700">More options</span>
-        <span class="hint block pl-4">
-        <%= [ product.sku.presence ? "SKU #{product.sku}" : "SKU made for you",
-              "tax: #{product.tax_rate&.to_s || "shop default"}",
-              (product.reorder_level.to_d.positive? ? "low stock at #{plain_number(product.reorder_level)}" : "no low-stock alert"),
-              ("brand: #{product.brand.name}" if product.brand) ].compact.join(" · ") %></span>
-      </summary>
-
-      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+    <%= render "shared/more_options", open: more_fields.any? { product.errors.include?(_1) },
+          summary: [ product.sku.presence ? "SKU #{product.sku}" : "SKU made for you",
+                     "tax: #{product.tax_rate&.to_s || "shop default"}",
+                     (product.reorder_level.to_d.positive? ? "low stock at #{plain_number(product.reorder_level)}" : "no low-stock alert"),
+                     ("brand: #{product.brand.name}" if product.brand) ].compact.join(" · ") do %>
+      <div class="grid gap-4 sm:grid-cols-2">
         <div class="field">
           <%= form.label :sku, "SKU (leave blank to generate)", class: "label" %>
           <%= form.text_field :sku, class: "input font-mono uppercase" %>
@@ -106,7 +102,7 @@
         <% end %>
         <%= form.file_field :image, accept: "image/png,image/jpeg,image/webp", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-gray-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-gray-900 hover:file:bg-gray-50" %>
       </div>
-    </details>
+    <% end %>
   </div>
 
   <div class="mt-4 flex flex-wrap gap-3">

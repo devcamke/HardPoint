@@ -41,4 +41,25 @@ class DashboardsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#needs-you"
     assert_select "#task_low_stock", 0
   end
+
+  test "a counter computer set to open straight into selling skips Home for cashiers" do
+    Account.without_isolation { registers(:acme_front).update!(opens_till: true) }
+    sign_in_as users(:carl)
+    post pos_till_path, params: { register_id: registers(:acme_front).id }
+
+    get root_path
+    assert_redirected_to pos_path
+
+    get root_path(home: 1)
+    assert_response :success, "the till's logo still reaches Home"
+  end
+
+  test "owners still get Home on a computer set to open straight into selling" do
+    Account.without_isolation { registers(:acme_front).update!(opens_till: true) }
+    sign_in_as users(:amina)
+    post pos_till_path, params: { register_id: registers(:acme_front).id }
+
+    get root_path
+    assert_response :success
+  end
 end

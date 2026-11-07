@@ -2114,7 +2114,8 @@ CREATE TABLE public.registers (
     updated_at timestamp(6) without time zone NOT NULL,
     print_mode character varying DEFAULT 'browser'::character varying NOT NULL,
     printer_name character varying,
-    receipt_width integer DEFAULT 48 NOT NULL
+    receipt_width integer DEFAULT 48 NOT NULL,
+    opens_till boolean DEFAULT false NOT NULL
 );
 
 ALTER TABLE ONLY public.registers FORCE ROW LEVEL SECURITY;
@@ -9250,6 +9251,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107130000'),
 ('20261107120000'),
 ('20261024120500'),
 ('20261024120400'),

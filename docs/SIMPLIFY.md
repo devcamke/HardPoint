@@ -220,8 +220,16 @@ Where the code lives:
 - **Movements** already had a "Full history" link on each product, so it stays reachable from there and from
   *All movements* on Stock levels, without a new tab.
 
+### Added afterwards
+
+- **More options on the other long forms:** a new customer asks for name, phone and credit limit; a new supplier for
+  name, phone and the email orders go to; a purchase order for the supplier and products; a quote for the customer
+  (and job) and products. The rest is folded under More options with a line saying what it's set to, and opens by
+  itself when something in it needs fixing (`shared/_more_options`).
+- **Open straight into selling:** a till can be set (Settings › Tills) so that, on the computer using it, cashiers
+  and stock clerks skip Home and go straight to the till when they sign in or switch user. Owners and managers still
+  get Home, and the till's logo still leads there.
+
 ### Not done yet
 
-- The same "More options" review for the customer, supplier, purchase order and quote forms.
-- A per-till setting to open straight into the till on counter computers.
-- Measuring the results in [How we'll know it worked](#how-well-know-it-worked).
+- Measuring the results in [How we'll know it worked](#how-well-know-it-worked), which needs shops using it.
