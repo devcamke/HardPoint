@@ -78,6 +78,7 @@ module SearchHelper
         [ Result.new("Import products", "Stock", product_imports_path), "spreadsheet csv upload" ],
         [ Result.new("Help", "Guides", help_path), "how do i support" ]
       ]
+      pages += [ [ Result.new("Change prices", "Stock", new_price_change_path), "bulk price increase raise lower percentage" ] ] if m.can_manage_catalogue?
       pages += [ [ Result.new("Returns to suppliers", "Buy", supplier_returns_path), "supplier returns debit notes purchase" ] ] if m.can_purchase?
       pages += [ [ Result.new("Supplier invoices", "Buy", supplier_invoices_path), "invoices bills purchase" ] ] if m.can_manage_payables?
       pages += [ [ Result.new("Features", "Settings", features_path), "switch on off jobs batches online store" ] ] if m.can_manage_account?

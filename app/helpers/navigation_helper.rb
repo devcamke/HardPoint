@@ -46,7 +46,7 @@ module NavigationHelper
       apps << App.new(:stock, "Stock", products_path, "#26a69a", :stock,
         [ [ "Products", products_path ], [ "Stock levels", stock_path ], [ "Reorder", reorder_list_path ],
           [ "Stock takes", stock_counts_path ], [ "Transfers", stock_transfers_path ], ([ "Expiry", stock_batches_path ] if feature?(:batches)) ].compact,
-        [ "/labels", "/product_imports", "/stock_adjustments", "/stock_movements", "/reorder_suggestions" ])
+        [ "/labels", "/product_imports", "/price_changes", "/stock_adjustments", "/stock_movements", "/reorder_suggestions" ])
 
       if m&.can_purchase? || m&.can_manage_payables?
         menu = []
