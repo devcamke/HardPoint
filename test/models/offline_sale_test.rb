@@ -184,4 +184,25 @@ class OfflineSaleTest < ActiveSupport::TestCase
     result = record(payload(lines: [ { product_id: products(:acme_nails).id, quantity: "4", unit_price_cents: -25000 } ]))
     assert_equal [ "error", "A price can't be negative" ], [ result.status, result.error ]
   end
+
+  test "a sale's stock change renews the till's snapshot at most every half hour; a price change at once" do
+    travel_to 1.day.from_now.beginning_of_hour + 5.minutes do
+      version = -> { PosCatalogue.new(shift: @shift, user: users(:carl)).version }
+      level = StockLevel.find_by!(branch: @shift.branch, product: products(:acme_nails))
+      level.update!(quantity: level.quantity - 1)
+      before = version.()
+      travel 10.minutes
+
+      level.update!(quantity: level.quantity - 1)
+      assert_equal before, version.(), "selling doesn't make every till download the catalogue again"
+
+      travel 20.minutes
+      level.update!(quantity: level.quantity - 1)
+      assert_not_equal before, version.(), "but stock catches up within the half hour"
+
+      before = version.()
+      products(:acme_nails).update!(price_cents: 26000)
+      assert_not_equal before, version.()
+    end
+  end
 end

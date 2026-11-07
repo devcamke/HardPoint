@@ -5,6 +5,8 @@ class SuppliersController < ApplicationController
 
   def index
     @suppliers = paginate(Current.account.suppliers.search(params[:query]).alphabetically)
+    balances = Supplier.balances_by_id
+    @suppliers.each { _1.balance_cents = balances[_1.id].to_i }
   end
 
   def show

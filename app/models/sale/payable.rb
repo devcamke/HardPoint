@@ -45,7 +45,7 @@ module Sale::Payable
   end
 
   def take_payment(tender:, amount_cents:, tendered_cents:, reference:, credit_approver:, currency:, foreign_tendered_cents:, cash_limit_cents:)
-    lines.reload
+    reload_lines
     payments.reset
     customer&.lock! if tender.to_s == "on_account"
     customer_order&.lock! if tender.to_s == "deposit"

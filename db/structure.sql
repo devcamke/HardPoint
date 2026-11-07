@@ -4911,6 +4911,13 @@ CREATE INDEX index_customer_orders_on_account_id_and_status ON public.customer_o
 
 
 --
+-- Name: index_customer_orders_on_account_id_and_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_orders_on_account_id_and_updated_at ON public.customer_orders USING btree (account_id, updated_at);
+
+
+--
 -- Name: index_customer_orders_on_branch_id_and_number; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4978,6 +4985,13 @@ CREATE INDEX index_customer_payments_on_shift_id ON public.customer_payments USI
 --
 
 CREATE INDEX index_customers_on_account_id_and_name ON public.customers USING btree (account_id, name);
+
+
+--
+-- Name: index_customers_on_account_id_and_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customers_on_account_id_and_updated_at ON public.customers USING btree (account_id, updated_at);
 
 
 --
@@ -5394,6 +5408,13 @@ CREATE INDEX index_payments_on_account_id ON public.payments USING btree (accoun
 
 
 --
+-- Name: index_payments_on_account_sales; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payments_on_account_sales ON public.payments USING btree (account_id, sale_id) WHERE ((tender)::text = 'on_account'::text);
+
+
+--
 -- Name: index_payments_on_sale_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5468,6 +5489,13 @@ CREATE INDEX index_product_units_on_unit_id ON public.product_units USING btree 
 --
 
 CREATE UNIQUE INDEX index_products_on_account_id_and_sku ON public.products USING btree (account_id, sku);
+
+
+--
+-- Name: index_products_on_account_id_and_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_products_on_account_id_and_updated_at ON public.products USING btree (account_id, updated_at);
 
 
 --
@@ -5713,6 +5741,13 @@ CREATE INDEX index_sales_on_account_id_and_completed_at ON public.sales USING bt
 --
 
 CREATE UNIQUE INDEX index_sales_on_account_id_and_offline_uuid ON public.sales USING btree (account_id, offline_uuid) WHERE (offline_uuid IS NOT NULL);
+
+
+--
+-- Name: index_sales_on_account_id_and_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sales_on_account_id_and_updated_at ON public.sales USING btree (account_id, updated_at);
 
 
 --
@@ -6014,6 +6049,13 @@ CREATE INDEX index_stock_counts_on_creator_id ON public.stock_counts USING btree
 --
 
 CREATE INDEX index_stock_levels_on_account_id_and_product_id ON public.stock_levels USING btree (account_id, product_id);
+
+
+--
+-- Name: index_stock_levels_on_account_id_and_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_levels_on_account_id_and_updated_at ON public.stock_levels USING btree (account_id, updated_at);
 
 
 --
@@ -9109,6 +9151,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261108090000'),
 ('20261107210000'),
 ('20261107200000'),
 ('20261107195000'),

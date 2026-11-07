@@ -6,6 +6,8 @@ class Api::V1::CustomersController < Api::V1::BaseController
     scope = scope.where(phone: params[:phone].to_s.gsub(/[^\d+]/, "")) if params[:phone].present?
     scope = scope.where(email: params[:email].to_s.strip.downcase) if params[:email].present?
     @customers = paginate(updated_since(scope))
+    balances = Customer.balances_by_id(@customers.map(&:id))
+    @customers.each { _1.balance_cents = balances[_1.id].to_i }
   end
 
   def show

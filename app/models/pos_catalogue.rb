@@ -5,6 +5,9 @@
 # as possible.
 class PosCatalogue
   PROMOTION_DAYS = 14
+  # Stock changes with every sale, so on its own it renews the snapshot at most this often; anything else (prices,
+  # products, customers) renews it at once. Offline stock only drives warnings; the server checks stock when sales arrive.
+  STOCK_REFRESH = 30.minutes
   def initialize(shift:, user:)
     @shift = shift
     @user = user
@@ -14,14 +17,16 @@ class PosCatalogue
 
   # Changes whenever anything in it could have: products, packs, barcodes, stock, the till's shift or cashier.
   def version
-    stamps = [ @account.products.maximum(:updated_at), @account.products.count, @account.product_units.maximum(:updated_at),
-               @account.barcodes.maximum(:id), @account.barcodes.count, @account.stock_levels.where(branch: @branch).maximum(:updated_at),
-               @account.customers.maximum(:updated_at), @account.customers.count, @account.price_list_items.maximum(:updated_at), @account.price_list_items.count,
-               @account.promotions.maximum(:updated_at), @account.promotions.count, Date.current,
-               @account.jobs.maximum(:updated_at), @account.jobs.count,
-               @account.updated_at, @shift.id, @shift.status, @user.id ]
-    # Times to the microsecond, so two changes within the same second still make a new version.
-    Digest::SHA256.hexdigest(stamps.map { _1.respond_to?(:iso8601) && !_1.is_a?(Date) ? _1.iso8601(6) : _1.to_s }.join("|")).first(20)
+    @version ||= begin
+      stamps = [ @account.products.maximum(:updated_at), @account.products.count, @account.product_units.maximum(:updated_at),
+                 @account.barcodes.maximum(:id), @account.barcodes.count, stock_stamp,
+                 @account.customers.maximum(:updated_at), @account.customers.count, @account.price_list_items.maximum(:updated_at), @account.price_list_items.count,
+                 @account.promotions.maximum(:updated_at), @account.promotions.count, Date.current,
+                 @account.jobs.maximum(:updated_at), @account.jobs.count,
+                 @account.updated_at, @shift.id, @shift.status, @user.id ]
+      # Times to the microsecond, so two changes within the same second still make a new version.
+      Digest::SHA256.hexdigest(stamps.map { _1.respond_to?(:iso8601) && !_1.is_a?(Date) ? _1.iso8601(6) : _1.to_s }.join("|")).first(20)
+    end
   end
 
   def as_json(*)
@@ -29,6 +34,12 @@ class PosCatalogue
   end
 
   private
+    # The newest stock change, rounded down to STOCK_REFRESH.
+    def stock_stamp
+      changed = @account.stock_levels.where(branch: @branch).maximum(:updated_at) or return
+      Time.at(changed.to_i - changed.to_i % STOCK_REFRESH.to_i).utc
+    end
+
     def till
       register = @shift.register
       { account_name: @account.name, currency: @account.currency, time_zone: ActiveSupport::TimeZone[@account.time_zone].tzinfo.name, receipt_footer: @account.receipt_footer, max_discount_percent: @account.max_cashier_discount_percent.to_f,

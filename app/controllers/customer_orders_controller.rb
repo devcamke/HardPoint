@@ -23,6 +23,8 @@ class CustomerOrdersController < ApplicationController
       @groups = order_groups(orders)
     else
       @customer_orders = paginate(orders)
+      balances = CustomerOrder.deposit_balances_by_id(@customer_orders.map(&:id))
+      @customer_orders.each { _1.deposit_balance_cents = balances[_1.id] }
     end
   end
 
