@@ -3,6 +3,7 @@
 <%= render "shared/control_panel",
       title: "Purchase orders",
       new_button: [ "New", new_purchase_order_path ],
+      actions: [ [ "Returns to suppliers", supplier_returns_path ], ([ "Supplier invoices", supplier_invoices_path ] if current_membership.can_manage_payables?) ].compact,
       search: { placeholder: "Supplier" },
       filters: [ search_filter(:status, label: "Status", value: params[:status],
                    options: [ [ "draft", "Drafts" ], [ "open", "Waiting for delivery" ], [ "sent", "Sent" ], [ "partially_received", "Partly received" ],
@@ -35,7 +36,7 @@
       </tbody>
     </table>
   <% else %>
-    <p class="hint">No purchase orders<%= " here" if params[:status] %>. Start one, or let <%= link_to "reorder suggestions", reorder_suggestions_path, class: "link" %> draft them for you.</p>
+    <p class="hint">No purchase orders<%= " here" if params[:status] %>. Start one, or let <%= link_to "Reorder", reorder_list_path, class: "link" %> draft them for you.</p>
   <% end %>
 </div>
 <%= render "shared/group_more" %>

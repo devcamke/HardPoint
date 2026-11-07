@@ -1,5 +1,4 @@
-# The back office is arranged as apps, the way Odoo does it: a home menu of app tiles, and
-# a top bar showing the current app's name and its own menu.
+# The back office is arranged as a few areas in the top bar, each with its own menu underneath.
 module NavigationHelper
   App = Data.define(:key, :name, :path, :color, :icon, :menu, :prefixes) do
     def match_length(path)
@@ -22,63 +21,63 @@ module NavigationHelper
     help: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"
   }.freeze
 
+  # Six areas named for the job to be done (docs/SIMPLIFY.md): Home, Sell, Customers, Stock, Buy and Reports,
+  # with Settings under the gear. Each page has one home; pages reached from inside another page are listed as
+  # that area's prefixes so the right area stays highlighted.
   def navigation_apps
     @navigation_apps ||= begin
       m = current_membership
-      apps = [ App.new(:dashboard, "Dashboard", root_path, "#5b8def", :dashboard, [], []) ]
-      apps << App.new(:till, "Point of Sale", pos_path, "#e46f2f", :till, [], []) if m&.can_sell?
+      apps = [ App.new(:dashboard, "Home", root_path, "#0f5e6e", :dashboard, [], []) ]
+
+      if m&.can_sell?
+        menu = [ [ "Sales", sales_path ], [ "Orders & quotes", customer_orders_path ], [ "Deliveries", delivery_notes_path ],
+                 [ "Returns", returns_path ], [ "Shifts", shifts_path ], [ "Promotions", promotions_path ] ]
+        menu << [ "Tool hire", hire_agreements_path ] if Current.account.hire_items.exists? || m.can_manage_catalogue?
+        apps << App.new(:sales, "Sell", sales_path, "#e46f2f", :sales, menu, [ "/hire_items" ])
+      end
 
       if m&.can_sell? || m&.can_manage_receivables?
-        menu = []
-        menu += [ [ "Sales", sales_path ], [ "Orders & quotes", customer_orders_path ], [ "Deliveries", delivery_notes_path ],
-                  [ "Returns", returns_path ], [ "Shifts", shifts_path ] ] if m.can_sell?
-        menu += [ [ "Customers", customers_path ], [ "Jobs", jobs_path ] ]
+        menu = [ [ "Customers", customers_path ] ]
         menu << [ "Who owes us", receivables_path ] if m.can_manage_receivables?
-        apps << App.new(:sales, "Sales", menu.first[1], "#d9534f", :sales, menu, [])
+        menu << [ "Jobs", jobs_path ]
+        apps << App.new(:customers, "Customers", customers_path, "#d9534f", :staff, menu, [])
       end
 
-      if m&.can_sell? && Current.account.hire_items.exists? || m&.can_manage_catalogue?
-        apps << App.new(:hire, "Tool Hire", hire_agreements_path, "#f0ad4e", :hire,
-          [ [ "Agreements", hire_agreements_path ], [ "Tools", hire_items_path ] ], [])
-      end
-
-      apps << App.new(:products, "Products", products_path, "#00a09d", :products,
-        [ [ "Products", products_path ], [ "Promotions", promotions_path ], [ "Price lists", price_lists_path ],
-          [ "Categories", categories_path ], [ "Brands", brands_path ], [ "Units", units_path ], [ "Tax rates", tax_rates_path ] ],
-        [ "/labels", "/product_imports" ])
-
-      apps << App.new(:stock, "Inventory", stock_path, "#26a69a", :stock,
-        [ [ "Overview", stock_path ], [ "Transfers", stock_transfers_path ], [ "Stock takes", stock_counts_path ],
-          [ "Reorder list", reorder_list_path ], [ "Expiry", stock_batches_path ], [ "Movements", stock_movements_path ] ],
-        [ "/stock_adjustments" ])
+      apps << App.new(:stock, "Stock", products_path, "#26a69a", :stock,
+        [ [ "Products", products_path ], [ "Stock levels", stock_path ], [ "Reorder", reorder_list_path ],
+          [ "Stock takes", stock_counts_path ], [ "Transfers", stock_transfers_path ], [ "Expiry", stock_batches_path ] ],
+        [ "/labels", "/product_imports", "/stock_adjustments", "/stock_movements", "/reorder_suggestions" ])
 
       if m&.can_purchase? || m&.can_manage_payables?
         menu = []
-        menu += [ [ "Orders", purchase_orders_path ], [ "Receiving", goods_receipts_path ], [ "Returns", supplier_returns_path ],
-                  [ "Reorder suggestions", reorder_suggestions_path ] ] if m.can_purchase?
+        menu += [ [ "Purchase orders", purchase_orders_path ], [ "Receiving", goods_receipts_path ] ] if m.can_purchase?
         menu << [ "Suppliers", suppliers_path ]
-        menu += [ [ "Invoices", supplier_invoices_path ], [ "What we owe", payables_path ] ] if m.can_manage_payables?
-        apps << App.new(:purchasing, "Purchase", menu.first[1], "#8e6bbf", :purchasing, menu, [])
+        menu << [ "What we owe", payables_path ] if m.can_manage_payables?
+        apps << App.new(:purchasing, "Buy", menu.first[1], "#8e6bbf", :purchasing, menu, [ "/supplier_invoices", "/supplier_returns" ])
       end
 
       apps << App.new(:reports, "Reports", reports_path, "#3f7fbf", :reports, [], []) if m&.can_view_reports?
-
-      if m&.can_manage_staff?
-        apps << App.new(:staff, "Employees", memberships_path, "#c2569b", :staff,
-          [ [ "Staff", memberships_path ], [ "Activity", events_path ] ], [])
-      end
-
-      apps << App.new(:settings, "Settings", settings_path, "#6c757d", :settings,
-        [ [ "General", settings_path ], [ "Branches", branches_path ], [ "Tills", registers_path ] ],
-        %w[ /account /account_data /account_exports /billing /onboarding /storefront /developers /api_keys /webhook_endpoints
-            /mpesa /etims /texts /currencies /loyalty ])
-      apps << App.new(:help, "Help", help_path, "#4d9f6f", :help, [], [ "/support_requests" ])
       apps
     end
   end
 
+  # Settings sits under the gear rather than among the areas; Staff and Activity live here too.
+  def settings_app
+    @settings_app ||= begin
+      menu = [ [ "General", settings_path ], [ "Branches", branches_path ], [ "Tills", registers_path ] ]
+      menu += [ [ "Staff", memberships_path ], [ "Activity", events_path ] ] if current_membership&.can_manage_staff?
+      App.new(:settings, "Settings", settings_path, "#6c757d", :settings, menu,
+        %w[ /account /account_data /account_exports /billing /onboarding /storefront /developers /api_keys /webhook_endpoints
+            /mpesa /etims /texts /currencies /loyalty /categories /brands /units /tax_rates /price_lists /memberships /events ])
+    end
+  end
+
+  def help_app
+    @help_app ||= App.new(:help, "Help", help_path, "#4d9f6f", :help, [], [ "/support_requests" ])
+  end
+
   def current_app
-    @current_app ||= navigation_apps
+    @current_app ||= [ *navigation_apps, settings_app, help_app ]
       .map { [ _1, _1.match_length(request.path) ] }
       .select { _2.positive? }
       .max_by { _2 }&.first

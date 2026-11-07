@@ -115,12 +115,6 @@
   .help-article code {
     @apply rounded bg-gray-200 px-1 font-mono text-sm;
   }
-
-  /* App launcher (home menu) */
-  .o-apps:popover-open {
-    @apply fixed inset-0 m-0 flex h-screen max-h-none w-screen max-w-none flex-col overflow-y-auto border-0 p-0;
-    background: linear-gradient(160deg, #2a7584 0%, #0f5462 55%, #082f37 100%);
-  }
 }
 
 /* Multi-line text keeps a box; single-line fields stay underlined. */

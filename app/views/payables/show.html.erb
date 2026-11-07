@@ -1,8 +1,11 @@
 <% content_for :title, "What we owe" %>
 
 <div class="mb-4 flex items-center justify-between">
-  <h1 class="text-xl font-medium">Purchasing</h1>
-  <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
+  <h1 class="text-xl font-medium">What we owe</h1>
+  <div class="flex gap-2 print:hidden">
+    <%= link_to "Supplier invoices", supplier_invoices_path, class: "btn-secondary" %>
+    <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
+  </div>
 </div>
 
 <p class="hint mb-4">Unpaid supplier invoices by how late they are, as of <%= l(Date.current, format: :long) %>. Payments settle each supplier's oldest invoices first.

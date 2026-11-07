@@ -13,6 +13,10 @@
        [ "Branches", branches_path, "Your locations" ],
        [ "Tills", registers_path, "Points of sale in each branch" ]
      ].compact,
+     "People" => ([
+       [ "Staff", memberships_path, "Who can sign in, their roles and till PINs" ],
+       [ "Activity", events_path, "Who did what, and when" ]
+     ] if current_membership.can_manage_staff?).to_a,
      "Payments and tax" => ([
        [ "M-Pesa", mpesa_shortcodes_path, "Paybill or Till: prompts to pay from the till, payments received" ],
        [ "KRA eTIMS", etims_devices_path, "Send sales to KRA and print signed receipts" ],
