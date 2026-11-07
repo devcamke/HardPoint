@@ -42,7 +42,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
       new("supplier-returns", "Sending goods back to a supplier", "Damaged or wrong deliveries: taking them out of stock, the debit note, and the supplier's credit note.", "Stock and purchasing",
         %w[ buying-from-suppliers ]),
 
-      new("mpesa", "M-Pesa payments", "Payment prompts to the customer's phone, and money paid straight to your Paybill or Till.", "Money and tax",
+      new("mpesa", "M-Pesa and Airtel Money", "Payment prompts to the customer's phone, money paid straight to your Paybill or Till, and Airtel Money.", "Money and tax",
         %w[ selling online-store reports ]),
       new("etims", "KRA eTIMS", "Connecting your branch's control unit and what happens when KRA is unreachable.", "Money and tax",
         %w[ selling offline reports ]),

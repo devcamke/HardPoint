@@ -19,7 +19,7 @@ to use it. For the full list of what each phase of the build added, see [docs/FE
 
 - A **full-screen till** built around a barcode scanner: scan, search or tap a quick-pick button; loose goods by the
   metre or kilo; pack sizes; F2 scan · F8 park · F9 pay. Each computer remembers its till.
-- **Payments** by cash with change, M-Pesa (a prompt to the customer's phone, or money paid to your Paybill), card,
+- **Payments** by cash with change, M-Pesa (a prompt to the customer's phone, or money paid to your Paybill), Airtel Money, card,
   foreign notes, on account, or a mix. Gap-free receipt numbers per branch.
 - **Discounts** within the shop's limit; bigger ones, voids, returns and going over a credit limit need a manager's
   **approval PIN**, which approves that one thing and signs nobody in.
@@ -72,12 +72,15 @@ Guides: [Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes
 
 ### Money, tax and reports
 
-- **M-Pesa (Daraja)** on the shop's own Paybill or Till, with a reconciliation report.
+- **M-Pesa (Daraja)** on the shop's own Paybill or Till, with a reconciliation report, and **Airtel Money** prompts.
+- **WhatsApp** buttons on receipts, quotes, statements, purchase orders and delivery notes.
+- **Bulk price changes** by category, brand or supplier, with rounding and a preview, and **transport charges** on deliveries.
 - **KRA eTIMS (OSCU)**, one control unit per branch: every sale signed, KRA's QR code on the receipt, and retries when
   KRA is down. **SMS** through Africa's Talking for receipts, order updates and reminders.
 - **Foreign currencies** at the till and with importers, with a daily market rate.
 - **A live owner's dashboard** and **reports** for any period and branch, on screen, as CSV or as PDF: sales and margin,
-  profit and loss, VAT, payments, discounts and voids, stock valuation, dead stock and shifts. A daily summary email.
+  profit and loss, VAT, payments, discounts and voids, stock valuation, dead stock and shifts. A daily summary email,
+  and a **QuickBooks Online export**.
 
 Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [KRA eTIMS](https://hardpoint.app/help/etims) ·
 [Reports](https://hardpoint.app/help/reports) · [Currencies](https://hardpoint.app/help/foreign-currencies)
