@@ -19,7 +19,15 @@ class HireAgreement < ApplicationRecord
   validates_same_account :branch, :customer
 
   before_create { self.number = DocumentSequence.next_number(branch, "hire_agreement") }
+  # A copy of the shop's terms as they stand now, so later edits never change what this customer signed.
+  before_create { self.terms ||= account.hire_terms_list.join("\n") }
   after_create { track_event "created", customer: customer.name, tools: hire_items.map(&:label).to_sentence }
+
+  # The terms this agreement was made under. Agreements from before shops could write their own were made
+  # under the standard terms.
+  def terms_list
+    terms.present? ? Account::HireTerms.split(terms) : Account::HireTerms::STANDARD
+  end
 
   scope :chronologically, -> { order(started_at: :desc, id: :desc) }
   scope :overdue, -> { out.where(due_back_at: ...Time.current) }

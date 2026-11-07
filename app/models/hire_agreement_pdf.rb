@@ -1,13 +1,6 @@
 # The hire agreement the customer signs when the tools go out.
 class HireAgreementPdf < DocumentPdf
   COLUMNS = [ [ "Tool", 190 ], [ "Asset tag", 70 ], [ "Per day", 70 ], [ "Per week", 70 ], [ "Deposit", 85 ] ].freeze
-  TERMS = [
-    "The tools remain the property of the shop. They are hired for use at the site given and may not be lent or hired to anyone else.",
-    "Charges run from the time the tools go out until they are returned, by the day (24 hours, with one hour's grace), or by the week where a weekly rate is shown.",
-    "The hirer returns the tools clean and in the condition they were received, and pays for repairs or replacement if they are damaged, lost or stolen.",
-    "The deposit is set against the charges when the tools come back; any balance is paid or refunded then.",
-    "Tools kept past the return time continue to be charged. The shop may collect tools not returned within 3 days of the return time."
-  ].freeze
 
   def initialize(agreement)
     @agreement = agreement
@@ -16,6 +9,9 @@ class HireAgreementPdf < DocumentPdf
 
   def title = "Hire agreement"
   def reference = @agreement.reference
+
+  # The terms the agreement was made under (see HireAgreement#terms_list), never the shop's current ones.
+  def terms = @agreement.terms_list
 
   private
     def columns = COLUMNS
@@ -38,7 +34,7 @@ class HireAgreementPdf < DocumentPdf
 
       pdf.move_down 16
       pdf.text "Terms", size: 10, style: :bold
-      TERMS.each.with_index(1) { |term, number| pdf.text "#{number}. #{term}", size: 8, leading: 1 }
+      terms.each.with_index(1) { |term, number| pdf.text "#{number}. #{term}", size: 8, leading: 1 }
       pdf.move_down 30
       signatures
     end

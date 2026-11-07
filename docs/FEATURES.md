@@ -32,6 +32,7 @@ to use it, the help centre (`/help` on the public site). The plan the phases cam
 - [Phase 26: counting by batch](#phase-26-counting-by-batch)
 - [Phase 27: jobs for contractors, continued](#phase-27-jobs-for-contractors-continued)
 - [Phase 28: the daily exchange rate](#phase-28-the-daily-exchange-rate)
+- [Phase 29: shop-editable hire terms](#phase-29-shop-editable-hire-terms)
 - [Since then: the new look, lists and help](#since-then-the-new-look-lists-and-help)
 
 ## Phase 1: shops, staff and sign-in
@@ -492,6 +493,14 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 - A feed that's down or returns nonsense changes nothing
 
 ![Currencies with the day's market rates](screenshots/308-currencies-market-rates.png)
+
+## Phase 29: shop-editable hire terms
+
+- **Hire terms** (owners and managers; ⚙ on Tools for hire, or Settings): the shop writes the numbered terms printed on its
+  hire agreements, one per line, with a preview of how they'll print. Until it does, the standard terms apply, and it can
+  go back to them at any time
+- **Each agreement keeps the terms it was made under**, so editing them never changes what a customer signed; agreements
+  from before this print the standard terms they were signed with
 
 ## Since then: the new look, lists and help
 
