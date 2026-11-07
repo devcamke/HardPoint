@@ -3,7 +3,7 @@
 <% if promotion %>
   <span class="<%= local_assigns[:size] || "text-lg" %> font-bold tabular-nums text-red-700"><%= money(offer) %></span>
   <s class="text-sm text-gray-500 tabular-nums"><%= money(product.price_cents) %></s>
-  <span class="badge ml-1 bg-red-50 text-red-800"><%= promotion.offer %></span>
+  <span class="ml-1 text-xs font-medium text-red-700"><%= promotion.offer %></span>
 <% else %>
   <span class="<%= local_assigns[:size] || "text-lg" %> font-bold tabular-nums"><%= money(product.price_cents) %></span>
 <% end %>

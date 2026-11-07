@@ -1,3 +1,2 @@
 <%# locals: (item:) %>
-<% tone = { "available" => "bg-green-50 text-green-800", "on_hire" => "bg-amber-100 text-amber-800", "maintenance" => "bg-red-50 text-red-800", "retired" => "bg-gray-200 text-gray-700" }[item.status] %>
-<span class="badge <%= tone %>"><%= item.status.humanize %></span>
+<%= status_dot item.status.humanize, { "available" => :success, "on_hire" => :warning, "maintenance" => :danger, "retired" => :muted }[item.status] %>

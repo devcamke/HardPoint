@@ -21,7 +21,7 @@
           <tr id="<%= dom_id(register) %>">
             <td class="font-medium"><%= register.name %></td>
             <td><%= register.branch.name %></td>
-            <td><span class="badge <%= "bg-gray-200 text-gray-500" unless register.active? %>"><%= register.active? ? "Active" : "Inactive" %></span></td>
+            <td><%= register.active? ? status_dot("Active", :success) : status_dot("Inactive", :muted) %></td>
             <td class="text-right">
               <% if current_membership.can_manage_branches? %>
                 <%= link_to "Edit", edit_register_path(register), class: "link" %>

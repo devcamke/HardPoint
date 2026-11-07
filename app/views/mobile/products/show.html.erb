@@ -6,7 +6,7 @@
         <h2 class="text-xl font-bold"><%= @product.name %></h2>
         <p class="font-mono text-xs text-gray-500"><%= @product.sku %><%= " · #{@product.category.name}" if @product.category %></p>
       </div>
-      <%= tag.span("Inactive", class: "badge") unless @product.active? %>
+      <%= status_dot("Inactive", :muted) unless @product.active? %>
     </div>
 
     <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">

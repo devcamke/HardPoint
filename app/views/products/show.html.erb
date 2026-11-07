@@ -17,8 +17,8 @@
       <p class="mt-2 flex flex-wrap gap-1">
         <%= tag.span("Kit", class: "badge") if @product.kit? %>
         <%= tag.span("Serial numbers", class: "badge") if @product.serialized? %>
-        <%= tag.span("Stock not tracked", class: "badge bg-gray-200 text-gray-500") unless @product.track_stock? || @product.kit? %>
-        <%= tag.span("Inactive", class: "badge bg-gray-200 text-gray-500") unless @product.active? %>
+        <%= status_dot("Stock not tracked", :muted, class: "ml-2") unless @product.track_stock? || @product.kit? %>
+        <%= status_dot("Inactive", :muted, class: "ml-2") unless @product.active? %>
       </p>
     </div>
   </div>

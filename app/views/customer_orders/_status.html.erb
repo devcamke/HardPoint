@@ -1,3 +1,2 @@
-<% classes = { "quote" => "bg-gray-200 text-gray-500", "ordered" => "bg-gray-50 text-gray-700", "ready" => "bg-amber-100 text-amber-800",
-               "collected" => "bg-green-50 text-green-800", "cancelled" => "bg-gray-200 text-gray-500 line-through" } %>
-<span class="badge <%= classes[order.status] %>"><%= order.expired? ? "Quote expired" : order.status.humanize %></span>
+<%= status_dot order.expired? ? "Quote expired" : order.status.humanize,
+      order.expired? ? :muted : { "quote" => :muted, "ordered" => :neutral, "ready" => :warning, "collected" => :success, "cancelled" => :muted }[order.status] %>

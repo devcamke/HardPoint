@@ -1,2 +1,2 @@
 <%# locals: (order:) %>
-<% if order.source == "online" %><span class="badge bg-amber-100 text-amber-800">Online</span><% elsif order.source == "hire" %><span class="badge bg-gray-50 text-gray-700">Hire</span><% elsif order.source == "api" %><span class="badge bg-gray-50 text-gray-700">API</span><% end %>
+<% if order.source == "online" %><%= status_dot "Online", :warning %><% elsif order.source == "hire" %><span class="badge">Hire</span><% elsif order.source == "api" %><span class="badge">API</span><% end %>

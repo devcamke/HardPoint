@@ -13,7 +13,7 @@
             <td><%= message.purpose.humanize %></td>
             <td class="max-w-md text-sm"><%= message.body %></td>
             <td><%= message.sender&.name %></td>
-            <td><span class="badge <%= { "sent" => "bg-green-50 text-green-800", "failed" => "bg-red-50 text-red-800" }[message.status] %>" title="<%= message.error %>"><%= message.status.humanize %></span>
+            <td><%= status_dot message.status.humanize, { "sent" => :success, "failed" => :danger }.fetch(message.status, :neutral), title: message.error %>
               <%= tag.span(message.cost, class: "block text-xs text-gray-500") if message.cost %></td>
           </tr>
         <% end %>

@@ -1,2 +1,1 @@
-<% classes = { "pending" => "bg-amber-100 text-amber-800", "sent" => "bg-green-50 text-green-800", "failed" => "bg-red-50 text-red-800" } %>
-<span class="badge <%= classes[submission.status] %>"><%= { "pending" => "Waiting", "sent" => "Signed", "failed" => "Refused" }[submission.status] %></span>
+<%= status_dot({ "pending" => "Waiting", "sent" => "Signed", "failed" => "Refused" }[submission.status], { "pending" => :warning, "sent" => :success, "failed" => :danger }[submission.status]) %>

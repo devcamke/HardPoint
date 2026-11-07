@@ -21,7 +21,7 @@
             <td class="whitespace-nowrap"><%= l(supplier_return.created_at.to_date, format: :short) %></td>
             <td><%= supplier_return.reason.humanize %></td>
             <td class="text-right tabular-nums"><%= money(supplier_return.total_cents, currency: supplier_return.currency) %></td>
-            <td><%= supplier_return.credited? ? tag.span(supplier_return.credit_note_number, class: "font-mono text-sm") : tag.span("Waiting", class: "badge bg-amber-100 text-amber-800") %></td>
+            <td><%= supplier_return.credited? ? tag.span(supplier_return.credit_note_number, class: "font-mono text-sm") : status_dot("Waiting", :warning) %></td>
           </tr>
         <% end %>
       </tbody>

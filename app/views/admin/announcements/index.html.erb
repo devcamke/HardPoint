@@ -17,7 +17,7 @@
             <td><%= announcement.level.humanize %></td>
             <td>
               <%= l(announcement.starts_at, format: :short) %> to <%= announcement.ends_at ? l(announcement.ends_at, format: :short) : "until removed" %>
-              <% if announcement.current? %><span class="badge ml-1 bg-green-50 text-green-800">Live</span><% end %>
+              <% if announcement.current? %><%= status_dot "Live", :success, class: "ml-2" %><% end %>
             </td>
             <td class="text-right"><%= link_to "Edit", edit_admin_announcement_path(announcement), class: "link" %></td>
           </tr>

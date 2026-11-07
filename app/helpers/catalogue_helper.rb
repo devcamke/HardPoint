@@ -18,11 +18,11 @@ module CatalogueHelper
 
   def stock_badge(product, stock, branch)
     if !product.track_stock? && !product.kit?
-      tag.span "Not tracked", class: "badge bg-gray-200 text-gray-500"
+      status_dot "Not tracked", :muted
     elsif stock <= 0
-      tag.span "Out", class: "badge bg-red-50 text-red-800"
+      status_dot "Out", :danger
     elsif product.reorder_level.positive? && stock <= product.reorder_level
-      tag.span "Low", class: "badge bg-amber-100 text-amber-800"
+      status_dot "Low", :warning
     end
   end
 

@@ -1,3 +1,1 @@
-<% classes = { "draft" => "bg-gray-200 text-gray-500", "sent" => "bg-gray-50 text-gray-700", "partially_received" => "bg-amber-100 text-amber-800",
-               "received" => "bg-green-50 text-green-800", "cancelled" => "bg-gray-200 text-gray-500 line-through" } %>
-<span class="badge <%= classes[order.status] %>"><%= order.status.humanize %></span>
+<%= status_dot order.status.humanize, { "draft" => :muted, "sent" => :neutral, "partially_received" => :warning, "received" => :success, "cancelled" => :muted }[order.status] %>

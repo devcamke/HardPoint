@@ -56,7 +56,7 @@
               <tr>
                 <td class="font-mono"><%= request.reference %></td>
                 <td><%= request.subject %></td>
-                <td><span class="badge <%= request.resolved? ? "bg-green-100 text-green-800" : "" %>"><%= request.status.humanize %></span></td>
+                <td><%= status_dot request.status.humanize, request.resolved? ? :success : :neutral %></td>
                 <td class="text-right text-gray-500"><%= time_ago_in_words(request.created_at) %> ago</td>
               </tr>
             <% end %>

@@ -9,11 +9,14 @@
   <div class="card"><p class="hint">On trial · read-only</p><p class="text-2xl font-bold tabular-nums"><%= @status_counts.fetch("trialing", 0) %> · <%= @status_counts.fetch("read_only", 0) %></p></div>
 </div>
 
-<nav class="mb-4 flex flex-wrap gap-2 text-sm" aria-label="Filter by status">
-  <%= link_to "All", admin_accounts_path, class: "rounded-full px-3 py-1 #{@status ? "bg-white" : "bg-primary-500 text-white"}" %>
+<nav class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 text-sm" aria-label="Filter by status">
+  <% active = @status.nil? %>
+  <%= link_to "All", admin_accounts_path, class: class_names("-mb-px border-b-2 px-3 py-2 hover:text-primary-700", active ? "border-primary-500 font-medium text-gray-900" : "border-transparent text-gray-600"), aria: { current: ("page" if active) } %>
   <% Account::Subscription::STATUSES.each do |status| %>
-    <%= link_to "#{status.humanize} (#{@status_counts.fetch(status, 0)})", admin_accounts_path(status: status),
-          class: "rounded-full px-3 py-1 #{@status == status ? "bg-primary-500 text-white" : "bg-white"}" %>
+    <% active = @status == status %>
+    <%= link_to admin_accounts_path(status: status), class: class_names("-mb-px border-b-2 px-3 py-2 hover:text-primary-700", active ? "border-primary-500 font-medium text-gray-900" : "border-transparent text-gray-600"), aria: { current: ("page" if active) } do %>
+      <%= status_dot "#{status.humanize} (#{@status_counts.fetch(status, 0)})", BillingsHelper::STATUS_TONES.fetch(status, :neutral) %>
+    <% end %>
   <% end %>
 </nav>
 

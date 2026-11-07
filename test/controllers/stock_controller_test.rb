@@ -9,7 +9,7 @@ class StockControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     # 60 bags of cement × 700, 25.5 kg nails × 180, 1000 screws × 3, 3 pipes × 900
     assert_select ".card", /KES 52,290.00/
-    assert_select ".badge", "✓ Balanced"
+    assert_select "span", text: "Balanced"
   end
 
   test "adjusting stock" do

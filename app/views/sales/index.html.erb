@@ -20,7 +20,7 @@
             <td><%= sale.customer&.name || "Walk-in" %></td>
             <td><%= sale.cashier.name %></td>
             <td class="text-right tabular-nums <%= "line-through text-gray-400" if sale.voided? %>"><%= money(sale.total_cents) %></td>
-            <td><%= tag.span("Voided", class: "badge bg-red-50 text-red-800") if sale.voided? %></td>
+            <td><%= status_dot("Voided", :danger) if sale.voided? %></td>
           </tr>
         <% end %>
       </tbody>

@@ -51,6 +51,10 @@ White text on `primary-500` is 7.4:1, `accent-600` on white is 9.0:1 and `gray-5
 
 - One primary (petrol) button per screen, for the main action. Everything else is `btn-secondary`.
 - Amber means "needs attention", never decoration.
+- **Statuses are a dot before plain text** (`status_dot("Received", :success)`), never a coloured capsule. Tones:
+  green success, amber warning, red danger, grey neutral, light grey muted (draft, off, cancelled). The `badge`
+  class is only for plain labels that aren't statuses (Kit, Default, Optional) and has no colour.
+- Filters across the top of a list are underlined tabs like the area menu, not pills.
 
 ## Logo
 

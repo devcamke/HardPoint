@@ -2,7 +2,7 @@
 
 <div class="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
   <div>
-    <h1 class="text-xl font-medium"><%= link_to "Shifts", shifts_path, class: "link" %> <span class="text-gray-400">/</span> <%= @shift.open? ? "X report" : "Z report" %> <span class="badge <%= @shift.open? ? "bg-green-50 text-green-800" : "bg-gray-200 text-gray-500" %>"><%= @shift.status.humanize %></span></h1>
+    <h1 class="text-xl font-medium"><%= link_to "Shifts", shifts_path, class: "link" %> <span class="text-gray-400">/</span> <%= @shift.open? ? "X report" : "Z report" %> <%= status_dot @shift.status.humanize, @shift.open? ? :success : :muted, class: "ml-2" %></h1>
   </div>
   <div class="flex flex-wrap gap-2">
     <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>

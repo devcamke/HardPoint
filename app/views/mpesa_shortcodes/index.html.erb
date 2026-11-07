@@ -15,8 +15,8 @@
       <section class="card flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 class="text-lg font-semibold"><%= shortcode.name %> · <%= shortcode.label %>
-            <span class="badge <%= shortcode.environment == "production" ? "bg-green-50 text-green-800" : "bg-amber-100 text-amber-800" %>"><%= shortcode.environment.humanize %></span>
-            <%= tag.span("Off", class: "badge bg-gray-200 text-gray-500") unless shortcode.active? %></h2>
+            <%= status_dot shortcode.environment.humanize, shortcode.environment == "production" ? :success : :warning, class: "ml-2" %>
+            <%= status_dot("Off", :muted, class: "ml-2") unless shortcode.active? %></h2>
           <p class="hint mt-1"><%= shortcode.branch ? "For #{shortcode.branch.name}" : "For every branch without its own" %> ·
             <%= shortcode.c2b_registered_at ? "Receiving payments made straight to it since #{l(shortcode.c2b_registered_at.to_date, format: :long)}" : "Not yet receiving payments made straight to it" %></p>
           <p class="hint mt-1">Daraja callback: <span class="font-mono text-xs"><%= shortcode.callback_url(:stk).sub(shortcode.callback_token, "…") %></span></p>
