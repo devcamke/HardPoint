@@ -5,10 +5,10 @@
   <div>
     <h1 class="text-xl font-medium"><%= link_to "Stock takes", stock_counts_path, class: "link" %> <span class="text-gray-400">/</span> Stock take <%= render "stock_counts/status", count: @count %></h1>
     <p class="hint mt-1"><%= @count.name %> · started by <%= @count.creator&.name %><%= " · approved by #{@count.approver.name}" if @count.approved? %></p>
-    <p class="mt-2 text-sm"><strong><%= counted %></strong> of <%= total %> counted
+    <p class="mt-2 text-sm" data-tour="count-progress"><strong><%= counted %></strong> of <%= total %> counted
       <% if current_membership.can_see_costs? && counted.positive? %> · difference at cost <strong class="<%= @count.variance_value_cents.negative? ? "text-red-700" : "" %>"><%= money(@count.variance_value_cents) %></strong><% end %></p>
   </div>
-  <div class="flex flex-wrap gap-2">
+  <div class="flex flex-wrap gap-2" data-tour="count-actions">
     <% if (@count.counting? || @count.submitted?) && current_membership.can_manage_stock? %>
       <%= button_to "Cancel", stock_count_cancellation_path(@count), class: "btn-danger", form: { data: { turbo_confirm: "Cancel this stock take? Nothing will change." } } %>
     <% end %>
@@ -24,7 +24,7 @@
 </div>
 
 <% if @count.counting? && current_membership.can_manage_stock? %>
-  <%= form_with url: stock_count_scan_path(@count), class: "card mb-4 flex flex-wrap items-end gap-3 p-4" do |form| %>
+  <%= form_with url: stock_count_scan_path(@count), class: "card mb-4 flex flex-wrap items-end gap-3 p-4", data: { tour: "count-scan" } do |form| %>
     <div class="flex-1"><%= form.label :code, "Scan a barcode or type a SKU", class: "label" %><%= form.text_field :code, required: true, autofocus: true, class: "input font-mono" %></div>
     <div class="w-40"><%= form.label :batch_number, "Batch (if tracked)", class: "label" %><%= form.text_field :batch_number, class: "input font-mono uppercase" %></div>
     <div class="w-32"><%= form.label :counted_quantity, "Counted", class: "label" %><%= form.number_field :counted_quantity, required: true, step: "any", min: 0, class: "input" %></div>
@@ -32,7 +32,7 @@
   <% end %>
 <% end %>
 
-<div class="mb-3 flex flex-wrap items-center gap-4 text-sm">
+<div class="mb-3 flex flex-wrap items-center gap-4 text-sm" data-tour="count-filters">
   <% [ [ "All", nil ], [ "Not counted", "uncounted" ], [ "Differences", "variances" ] ].each do |label, filter| %>
     <%= link_to label, stock_count_path(@count, filter: filter, query: params[:query]), class: params[:filter] == filter ? "font-semibold text-gray-900" : "link" %>
   <% end %>
@@ -42,7 +42,7 @@
   <% end %>
 </div>
 
-<div class="card overflow-x-auto">
+<div class="card overflow-x-auto" data-tour="count-lines">
   <table class="table">
     <thead><tr><th>Product</th><th class="text-right">Expected</th><th class="text-right">Counted</th><th class="text-right">Difference</th></tr></thead>
     <% @lines.each do |line| %>

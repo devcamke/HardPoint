@@ -28,6 +28,7 @@
       <%= render "shared/impersonation_banner" if Current.session.impersonated? %>
       <%= render "shared/subscription_banner" %>
       <%= render "shared/announcements" %>
+      <%= render "shared/guided_tour" %>
     <% else %>
       <header class="mx-auto max-w-md px-4 pt-12 text-center"><%= render "shared/logo" %></header>
     <% end %>

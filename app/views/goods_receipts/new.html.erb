@@ -9,7 +9,7 @@
   <%= render "shared/errors", model: @goods_receipt %>
   <%= form.hidden_field :purchase_order_id %>
 
-  <div class="grid gap-4 sm:grid-cols-3">
+  <div class="grid gap-4 sm:grid-cols-3" data-tour="receive-details">
     <% if order %>
       <div class="field"><p class="label">Supplier</p><p class="py-2"><%= order.supplier.name %></p></div>
       <div class="field"><p class="label">Into</p><p class="py-2"><%= order.branch.name %></p></div>
@@ -29,7 +29,7 @@
     <% end %>
   </div>
 
-  <table class="table mb-4">
+  <table class="table mb-4" data-tour="receive-lines">
     <thead><tr><th>Product</th><% if order %><th class="text-right">To come</th><% end %><th class="text-right">Received now</th><th class="text-right">Unit cost<%= " (#{order.supplier.currency})" if order&.supplier&.foreign? %></th><th>Batch and expiry</th></tr></thead>
     <tbody>
       <%= form.fields_for :lines do |line| %>
@@ -58,11 +58,11 @@
   </table>
 
   <div class="grid gap-4 sm:grid-cols-2">
-    <div class="field"><%= form.label :extra_costs, "Transport, duty and other costs (#{Current.account.currency})", class: "label" %>
+    <div class="field" data-tour="receive-extra-costs"><%= form.label :extra_costs, "Transport, duty and other costs (#{Current.account.currency})", class: "label" %>
       <%= form.number_field :extra_costs, value: plain_number(@goods_receipt.extra_costs), step: "0.01", min: 0, class: "input" %>
       <p class="hint mt-1">Shared across the lines by value, so each product carries its true cost.</p></div>
-    <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. 2 bags torn, set aside" %></div>
+    <div class="field" data-tour="receive-note"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. 2 bags torn, set aside" %></div>
   </div>
 
-  <%= form.submit "Receive into stock", class: "btn-primary" %>
+  <%= form.submit "Receive into stock", class: "btn-primary", data: { tour: "receive-submit" } %>
 <% end %>

@@ -111,10 +111,15 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
   # Articles are frozen, so the text is kept on the class.
   def searchable_text
     (self.class.instance_variable_get(:@searchable_texts) || self.class.instance_variable_set(:@searchable_texts, {}))[slug] ||=
-      [ title, summary, section, body_text ].join(" ").downcase
+      [ title, summary, section, body_text, *walkthrough_text ].join(" ").downcase
   end
 
   private
+    # The steps of the walkthroughs shown in the article (config/help_tours.yml).
+    def walkthrough_text
+      HelpTour.for_article(slug).flat_map { |tour| [ tour.title, *tour.steps.flat_map { [ _1.title, _1.text ] } ] }
+    end
+
     # The article's text without its markup, for searching. Links keep their wording.
     def body_text
       ARTICLES_PATH.join("_#{slug.underscore}.html.erb").read

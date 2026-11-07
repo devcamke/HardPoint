@@ -23,11 +23,11 @@
                    [ "Print", "#", { data: { controller: "print", action: "print#print" } } ] ],
         filters: filters %>
 </div>
-<p class="hint mb-4"><%= report.subtitle %> · amounts in <%= Current.account.currency %></p>
+<p class="hint mb-4" data-tour="report-subtitle"><%= report.subtitle %> · amounts in <%= Current.account.currency %></p>
 <h1 class="mb-2 hidden text-xl font-medium print:block"><%= report.title %></h1>
 
-<% report.sections.each do |section| %>
-  <section class="card mb-4 overflow-x-auto">
+<% report.sections.each_with_index do |section, index| %>
+  <section class="card mb-4 overflow-x-auto" <%= tag.attributes(data: { tour: ("report-table" if index.zero?) }) %>>
     <%= tag.h2 section.title, class: "mb-2 font-medium" if section.title %>
     <% if section.rows.any? %>
       <table class="table">

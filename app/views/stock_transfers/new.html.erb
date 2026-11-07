@@ -5,7 +5,7 @@
 <%= form_with model: @transfer, class: "card max-w-3xl" do |form| %>
   <%= render "shared/errors", model: @transfer %>
 
-  <div class="grid gap-4 sm:grid-cols-2">
+  <div class="grid gap-4 sm:grid-cols-2" data-tour="transfer-branches">
     <div class="field">
       <%= form.label :from_branch_id, "From", class: "label" %>
       <%= form.collection_select :from_branch_id, branches_for_selection, :id, :name, {}, class: "input" %>
@@ -17,7 +17,7 @@
   </div>
 
   <p class="label mt-2">Products — scan or type a barcode or SKU</p>
-  <div class="mb-4 space-y-2">
+  <div class="mb-4 space-y-2" data-tour="transfer-lines">
     <%= form.fields_for :lines do |line| %>
       <div class="flex gap-2">
         <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Barcode or SKU", class: "input flex-1 font-mono", "aria-label": "Barcode or SKU" %>
@@ -26,11 +26,11 @@
     <% end %>
   </div>
 
-  <div class="field">
+  <div class="field" data-tour="transfer-note">
     <%= form.label :note, class: "label" %>
     <%= form.text_field :note, class: "input", placeholder: "e.g. on the Tuesday lorry" %>
   </div>
 
-  <%= form.submit "Send transfer", class: "btn-primary" %>
+  <%= form.submit "Send transfer", class: "btn-primary", data: { tour: "transfer-send" } %>
   <p class="hint mt-2">Sending takes the stock out of the source branch straight away. The other branch confirms when it arrives.</p>
 <% end %>

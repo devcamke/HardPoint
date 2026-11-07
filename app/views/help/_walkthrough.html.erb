@@ -1,0 +1,65 @@
+<%# locals: (tour:) %>
+<%# A guided tour as a walkthrough of its screenshot: numbered hotspots on the screen, and a pop-up with an arrow that
+    points at each in turn. Without JavaScript it's the screenshot with numbers on it and the steps listed underneath,
+    which is also what the user guide export reads. %>
+<% width, height = tour.image_size %>
+<figure id="walkthrough-<%= tour.id %>" class="walkthrough" data-walkthrough="<%= tour.id %>" data-controller="walkthrough"
+        data-action="keydown->walkthrough#keydown" aria-label="Walkthrough: <%= tour.title %>">
+  <div class="walkthrough-bar">
+    <div class="min-w-0">
+      <p class="walkthrough-eyebrow">Interactive walkthrough · <%= pluralize(tour.placed_steps.size, "step") %></p>
+      <p class="walkthrough-title"><%= tour.title %></p>
+    </div>
+    <div class="walkthrough-controls" data-walkthrough-target="controls" hidden>
+      <button type="button" class="walkthrough-nav" data-action="walkthrough#previous" data-walkthrough-target="previous" aria-label="Previous step">‹</button>
+      <span class="walkthrough-count" data-walkthrough-target="count" aria-live="polite"></span>
+      <button type="button" class="walkthrough-nav" data-action="walkthrough#next" data-walkthrough-target="next" aria-label="Next step">›</button>
+    </div>
+  </div>
+
+  <div class="walkthrough-stage" data-walkthrough-target="stage">
+    <div class="walkthrough-screen">
+      <%= image_tag tour.image, alt: "Screenshot: #{tour.title}", width:, height:, loading: "lazy", class: "walkthrough-image" %>
+      <div class="walkthrough-spotlight" data-walkthrough-target="spotlight" hidden></div>
+
+      <% tour.placed_steps.each_with_index do |step, index| %>
+        <% x, y, w, h = step.box %>
+        <button type="button" class="walkthrough-hotspot" data-walkthrough-target="hotspot" data-action="walkthrough#show" data-index="<%= index %>"
+                data-box="<%= step.box.join(",") %>" style="left: <%= (x + w / 2).round(2) %>%; top: <%= (y + h / 2).round(2) %>%"
+                aria-label="Step <%= index + 1 %>: <%= step.title %>"><%= index + 1 %></button>
+      <% end %>
+
+      <div class="walkthrough-start" data-walkthrough-target="start" hidden>
+        <button type="button" class="walkthrough-start-button" data-action="walkthrough#begin">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="size-5" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          Show me how
+        </button>
+        <p>or press any number on the screen</p>
+      </div>
+    </div>
+
+    <div class="walkthrough-popover" data-walkthrough-target="popover" role="dialog" aria-live="polite" hidden>
+      <span class="walkthrough-arrow" data-walkthrough-target="arrow" aria-hidden="true"></span>
+      <p class="walkthrough-popover-step" data-walkthrough-target="popoverStep"></p>
+      <p class="walkthrough-popover-title" data-walkthrough-target="popoverTitle"></p>
+      <p class="walkthrough-popover-text" data-walkthrough-target="popoverText"></p>
+      <div class="walkthrough-popover-actions">
+        <button type="button" class="walkthrough-link" data-action="walkthrough#previous" data-walkthrough-target="popoverPrevious">Back</button>
+        <span class="walkthrough-dots" aria-hidden="true">
+          <% tour.placed_steps.size.times do |index| %><span data-walkthrough-target="dot" data-index="<%= index %>"></span><% end %>
+        </span>
+        <button type="button" class="walkthrough-next" data-action="walkthrough#next" data-walkthrough-target="popoverNext">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <ol class="walkthrough-steps">
+    <% tour.placed_steps.each_with_index do |step, index| %>
+      <li data-walkthrough-target="item" data-action="click->walkthrough#show" data-index="<%= index %>"><strong><%= step.title %><%= "." unless step.title.end_with?("?", "!") %></strong> <span><%= step.text %></span></li>
+    <% end %>
+  </ol>
+  <figcaption class="walkthrough-caption">
+    Use ‹ › or the arrow keys to move between steps.
+    Signed in to your shop? Take this as a live tour on your own screen: <strong>Guided tours</strong>, under your name.
+  </figcaption>
+</figure>

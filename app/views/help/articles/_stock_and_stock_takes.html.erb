@@ -13,6 +13,8 @@
   <li>While it is still in transit, <strong>Cancel transfer</strong> puts the stock back at the sending branch.</li>
 </ol>
 
+<%= render "help/walkthrough", tour: HelpTour.find("transfer") %>
+
 <h2>Stock takes</h2>
 <ol>
   <li>In <strong>Stock › Stock takes</strong>, press <strong>New</strong>. Count <strong>everything</strong>, or pick one category for a
@@ -24,6 +26,8 @@
   <li>An owner or manager presses <strong>Approve and correct stock</strong>. Anything not counted is left as it was.</li>
 </ol>
 <p>Selling carries on during a stock take; HardPoint allows for what was sold while you counted.</p>
+
+<%= render "help/walkthrough", tour: HelpTour.find("stock-take") %>
 
 <h2>Knowing what to reorder</h2>
 <p>Give products a <strong>reorder level</strong>. <strong>Stock › Reorder</strong> shows everything at or below it at a branch,

@@ -11,6 +11,8 @@
 </ul>
 <p>Each person only sees the areas their role uses: a cashier sees Home, Sell, Customers and Stock, and starts at the till.</p>
 
+<%= render "help/walkthrough", tour: HelpTour.find("staff") %>
+
 <h2>Quick switching with a PIN</h2>
 <p>On a shared till, cashiers and stock clerks don't need to sign out. Each sets a 4 to 6 digit PIN under <strong>My profile</strong>
   (open your name in the top right). Then <strong>Switch user</strong>, in the same menu, changes who's selling in a couple of taps. Five

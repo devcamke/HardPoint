@@ -1,6 +1,8 @@
 <p>The till is a full-screen page made for a barcode scanner and a busy counter. Open it from <strong>Open till</strong> in the top bar, or
   <strong>Start selling</strong> on a cashier's Home. Each computer remembers which till it is.</p>
 
+<%= render "help/walkthrough", tour: HelpTour.find("till") %>
+
 <h2>Opening the shift</h2>
 <p>Count the cash in the drawer and press <strong>Open shift</strong> with that float. Everything taken until you close is counted against it.</p>
 

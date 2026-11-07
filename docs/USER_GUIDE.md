@@ -105,6 +105,19 @@ _The six areas, Home, search, filtering lists, Group By, Settings and where Help
 
 HardPoint is arranged in six areas, named for the job: **Home**, **Sell**, **Customers**, **Stock**, **Buy** and **Reports**. You only see the areas your role uses, and only the features your shop has switched on (see [Switching features on and off](#features)).
 
+**Walkthrough: Find your way around**
+
+![Screenshot: Find your way around](../app/assets/images/help/tours/home.png)
+
+1. **Six areas, named for the job.** Home, Sell, Customers, Stock, Buy and Reports. You only see the areas your role uses. The one you're in is highlighted.
+2. **Search anything.** Products, customers, suppliers, receipt and order numbers, and pages. Press Ctrl K from anywhere, or scan a barcode into it.
+3. **Straight to the till.** Opens the point of sale. The first time on a computer, you choose which till it is, and it remembers.
+4. **One branch or all of them.** Home shows every branch together. Choose a branch to see just its numbers.
+5. **Today at a glance.** Takings, sales, margin and the cash in the drawers, live as the tills sell. Press a number to open the report behind it.
+6. **Needs you today.** Low stock, customers and suppliers overdue, stock takes to approve and orders to collect, most costly first, each with the button that deals with it.
+7. **Settings.** Everything you set up once. Shop details, branches and tills, staff, M-Pesa, KRA eTIMS, features and the catalogue lists.
+8. **You, and help.** Your profile and PINs, Switch user, Help, these Guided tours, Contact support and Sign out.
+
 #### The top bar
 
 - The areas are along the top. The one you're in is highlighted, and its own menu is underneath: in Stock, for example, **Products**, **Stock levels**, **Reorder**, **Stock takes**, **Transfers** and **Expiry**.
@@ -159,6 +172,16 @@ Owners choose what their shop uses in **Settings › Features**: deliveries, pro
 _Your shop's name, time zone and receipt footer, branches and their receipt codes, tills, features, and texting customers._
 
 Most of what you set up once lives in **Settings** (the gear in the top bar): your shop's name and time zone, your branches and tills, the features you use, and text messages to customers. Shop details, Features and SMS are for the shop's owner; owners and managers look after branches and tills.
+
+**Walkthrough: Find your way around Settings**
+
+![Screenshot: Find your way around Settings](../app/assets/images/help/tours/settings.png)
+
+1. **Jump to a section.** Settings comes in sections. Press one to go straight to it. You only see the ones your role uses.
+2. **Your shop.** Branches and tills. Owners also get Shop details (name, time zone, receipt footer and the discount limit), Billing, Features and Your data.
+3. **People.** Staff, with their roles and till PINs, and Activity, which shows who did what, and when.
+4. **Payments and tax.** M-Pesa, Airtel Money, KRA eTIMS and text messages, and currencies if your shop takes them.
+5. **The catalogue's lists.** Categories, brands, units, tax rates and price lists, set up once and used on every product.
 
 #### Shop details
 
@@ -254,6 +277,14 @@ Everyone who uses HardPoint gets their own login, so the activity log shows who 
 
 Each person only sees the areas their role uses: a cashier sees Home, Sell, Customers and Stock, and starts at the till.
 
+**Walkthrough: Add a member of staff**
+
+![Screenshot: Add a member of staff](../app/assets/images/help/tours/staff.png)
+
+1. **Who they are.** Their name and email address. Everyone gets their own login, so the activity log shows who did what.
+2. **Their role.** Owner, everything. Manager, runs the shop and approves discounts, voids and returns. Cashier, sells. Stock clerk, receives, orders, moves and counts stock. Accountant, the money side without the till.
+3. **Add staff member.** We email them a link to choose a password. Cashiers and stock clerks then set a PIN under My profile, for Switch user at a shared till. Owners and managers set an approval PIN there.
+
 #### Quick switching with a PIN
 
 On a shared till, cashiers and stock clerks don't need to sign out. Each sets a 4 to 6 digit PIN under **My profile** (open your name in the top right). Then **Switch user**, in the same menu, changes who's selling in a couple of taps. Five wrong tries lock the PIN until its owner signs in with their password and sets a new one.
@@ -305,6 +336,20 @@ USB and Bluetooth scanners that type like a keyboard work without any setup. Sca
 _Opening a shift, scanning, discounts, parking a sale, taking payment, returns and closing up._
 
 The till is a full-screen page made for a barcode scanner and a busy counter. Open it from **Open till** in the top bar, or **Start selling** on a cashier's Home. Each computer remembers which till it is.
+
+**Walkthrough: Make a sale at the till**
+
+![Screenshot: Make a sale at the till](../app/assets/images/help/tours/till.png)
+
+1. **Scan or search.** Scan a barcode and it's in the sale. No scanner? Type a few letters of the name or SKU and press the product. F2 brings you back here.
+2. **Browse by category.** Quick picks are your best sellers. Press a category to see everything in it, handy on a touch screen.
+3. **Tap to add.** Each button shows the price and how many you have at this branch. Pack sizes, like a box of screws, have their own button underneath.
+4. **Who's buying?** Walk-in by default. Press Change to choose a customer, so their prices, credit and KRA PIN go on the receipt.
+5. **The sale.** Change a quantity with − and +, or type it. Discount gives money off one line, and × removes it.
+6. **Totals and discount.** Press Discount for money off the whole sale, as an amount or a percentage. Over your shop's limit, a manager types their approval PIN.
+7. **How they're paying.** Cash, M-Pesa, card, on account or foreign notes. To split a payment, take one part, then choose the next method for the rest.
+8. **Take payment.** Press it, or F9. The receipt prints and the till is ready for the next customer. Cash shows the change to give.
+9. **Park it for later.** The customer went back for something? Park this sale (F8) and serve the next person. Parked sales brings it back.
 
 #### Opening the shift
 
@@ -398,6 +443,15 @@ Press **Shift** on the till at any time to see the **X report**: how the shift i
 
 The count is blind: the closing page doesn't show what's expected. Afterwards the **Z report** shows the expected cash, what was counted, and whether the drawer is **Over**, **Short** or **Balanced**, with the same for each foreign currency. Press **Print** to print it. Once closed, nothing more can be sold on that till until a new shift is opened.
 
+**Walkthrough: Close a shift**
+
+![Screenshot: Close a shift](../app/assets/images/help/tours/close-shift.png)
+
+1. **Count the drawer.** Count all the cash and type the total. The count is blind. This page doesn't show what's expected, so nobody counts to a number.
+2. **Foreign notes.** If the till takes dollars or other currencies, count each one's notes separately, in its own box.
+3. **Anything to report?** Add a note if the manager should know something, like a payout without a slip.
+4. **Close shift.** Press it and confirm. The Z report then shows the expected and counted cash, and whether the drawer is Over, Short or Balanced. Nothing more can be sold on this till until a new shift is opened.
+
 #### What's expected in the drawer
 
 The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds, change given for foreign notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.
@@ -435,6 +489,16 @@ Returns are done at a till with an open shift, because a cash refund comes out o
 5. Type a **Reason** if you like, then press **Process return**.
 
 The refund is what the customer actually paid for those items, including their share of any discount. HardPoint records how you paid them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.
+
+**Walkthrough: Return goods**
+
+![Screenshot: Return goods](../app/assets/images/help/tours/return.png)
+
+1. **What's coming back.** Under Returning, type how many of each item are coming back. Part of a line, some lines or the whole sale. You can't return more than was bought.
+2. **Back on the shelf?** Leave it ticked to put the goods back into stock. Untick it for damaged goods, and they're written off.
+3. **Refund by.** Cash, card, M-Pesa, Airtel Money, or credit to the customer's account. It starts as the way they paid. For card and mobile money, send the money back yourself. HardPoint records how you did.
+4. **Why.** A reason, if you like, such as "wrong size".
+5. **Process return.** The refund is what the customer paid for those items, including their share of any discount. The return gets its own number, and its page has Print for the return slip. With eTIMS, it goes to KRA as a credit note.
 
 #### Approval
 
@@ -593,6 +657,16 @@ Open a customer from the list (search by name or phone) to see:
 
 The buttons along the top are **New quote**, **Statement**, **Record payment** (when they owe something) and, with contractor jobs switched on in **Settings › Features**, **Add a job**. When SMS is set up and they owe money, **Text a reminder** sends their balance to their phone. A statement can also go by PDF, email or WhatsApp.
 
+**Walkthrough: A customer's account**
+
+![Screenshot: A customer's account](../app/assets/images/help/tours/customer.png)
+
+1. **How to reach them.** Phone, email, address and KRA PIN. The phone finds them at the till and gets texted receipts. The PIN goes on their tax invoices.
+2. **Their account at a glance.** Their prices, what they owe on account and how much of it is overdue, the credit they have left, and how many days they pay within.
+3. **What you can do.** New quote, Statement (as a PDF, by email or WhatsApp), Text a reminder when they owe and SMS is set up, and Record payment, which settles their oldest sales first.
+4. **Unpaid account sales.** Each sale they haven't paid for yet, with its due date. Their payments on account are listed alongside.
+5. **What they buy.** Their recent purchases. Open quotes, orders and jobs are listed above when they have any.
+
 #### Who owes us
 
 **Customers › Who owes us** lists every customer with a balance, split into not yet due, 1–30, 31–60, 61–90 and over 90 days late, with a **Statement** link for each. Owners, managers and accountants can see it.
@@ -625,6 +699,15 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 2. When the customer agrees, press **Confirm order**. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
 3. When the goods are in, press **Mark ready to collect** (with SMS on, the customer can be texted).
 4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted.
+
+**Walkthrough: Write a quote**
+
+![Screenshot: Write a quote](../app/assets/images/help/tours/quote.png)
+
+1. **Who it's for.** Choose the customer. Not listed? Add a customer first. With contractor jobs switched on, you can put it against one of their jobs.
+2. **The goods.** Scan or type each barcode or SKU with the quantity. Prices are the customer's own, from their price list and quantity breaks, and hold once saved. Owners and managers can type a different unit price.
+3. **Branch, dates and a note.** More options sets the branch, how long the quote is valid (14 days if left blank), when it's needed by, and a note shown on the quote.
+4. **Quote or order.** Save quote to send it as a PDF or by email. When they agree, press Confirm order on it and take a deposit. If they've already agreed, Save as confirmed order.
 
 #### Payments and statements
 
@@ -743,6 +826,16 @@ _Adding products, barcodes and pack sizes, loose goods, kits, special prices and
 
 Everything you sell lives in **Stock › Products**. Owners, managers and stock clerks can add and change products; everyone else can look them up. To bring in a whole price list at once, see [Importing products from a spreadsheet](#importing-products).
 
+**Walkthrough: Search and filter a list**
+
+![Screenshot: Search and filter a list](../app/assets/images/help/tours/products.png)
+
+1. **The area's own menu.** Each area has its pages along here. In Stock, that's Products, Stock levels, Reorder, Stock takes, Transfers and Expiry.
+2. **Add one.** New opens a blank product. To add hundreds at once, use Import from the ⚙ menu instead.
+3. **Everything else.** The ⚙ has the list's other jobs. Import, Change prices, Export CSV and Print labels.
+4. **Search.** Type part of a name or SKU, or scan a barcode, and press Enter. Filters you choose show here as tags. Press × on a tag to remove it.
+5. **Filters and Group By.** Narrow the list by category, brand or branch, or group it by category or brand to see how many and what they're worth. Long lists come 50 at a time, with ‹ and › on the right.
+
 #### Adding a product
 
 1. On **Stock › Products**, press **New**.
@@ -843,6 +936,15 @@ Open the product and press **Adjust stock**. Choose the branch, how many to add 
 2. When it arrives, the other branch presses **Mark received at …** and the stock is theirs.
 3. While it is still in transit, **Cancel transfer** puts the stock back at the sending branch.
 
+**Walkthrough: Move stock between branches**
+
+![Screenshot: Move stock between branches](../app/assets/images/help/tours/transfer.png)
+
+1. **From and to.** Choose the branch the stock leaves, and the one it's going to.
+2. **What's going.** Scan or type each product's barcode or SKU, with how many. Leave the spare rows empty.
+3. **A note for the other end.** Say how it's coming, like "on the Tuesday lorry".
+4. **Send transfer.** The stock leaves the sending branch straight away and shows as in transit. When it arrives, the other branch opens the transfer and presses Mark received at, followed by its own name. Until then, Cancel transfer puts it back.
+
 #### Stock takes
 
 1. In **Stock › Stock takes**, press **New**. Count **everything**, or pick one category for a quicker cycle count, and press **Start counting**.
@@ -851,6 +953,16 @@ Open the product and press **Adjust stock**. Choose the branch, how many to add 
 4. An owner or manager presses **Approve and correct stock**. Anything not counted is left as it was.
 
 Selling carries on during a stock take; HardPoint allows for what was sold while you counted.
+
+**Walkthrough: Count stock**
+
+![Screenshot: Count stock](../app/assets/images/help/tours/stock-take.png)
+
+1. **How far you've got.** How many products are counted, out of how many in this stock take, and what the differences so far are worth at cost. Several people can count at once, and the till keeps selling.
+2. **Scan as you count.** Scan a barcode or type a SKU, type how many are on the shelf and press Record. Recording a product again replaces its count. Batch is only for products tracked by batch.
+3. **What's left, and what's off.** Not counted shows what nobody has counted yet. Differences shows only what's over or short. Find a product to jump to it.
+4. **Or type the counts in.** Expected is what HardPoint thinks is on the shelf. Type the count in its row and it saves by itself. The difference shows in red when you're short and green when you're over.
+5. **Submit, then approve.** When the counting's done, press Submit for approval. An owner or manager checks the differences and presses Approve and correct stock. Anything not counted stays as it was, and Cancel changes nothing.
 
 #### Knowing what to reorder
 
@@ -881,6 +993,15 @@ Add each supplier in **Buy › Suppliers** with their contacts, payment terms an
 
 Use **Group By › Supplier** on the orders list to see what's still to come from each supplier.
 
+**Walkthrough: Order from a supplier**
+
+![Screenshot: Order from a supplier](../app/assets/images/help/tours/purchase-order.png)
+
+1. **The supplier.** Choose who you're ordering from. To order everything that's running low, Stock › Reorder can draft the orders for you instead.
+2. **What to order.** Scan or type each barcode or SKU with the quantity. Leave the unit cost blank to use the supplier's price.
+3. **Delivery.** More options sets the branch it's delivered to, when it's expected, and a note to the supplier.
+4. **Save draft, then send.** The order is saved as a draft. On it, press Email to … to send it with a PDF attached, or Mark sent (phoned in). When the goods come, press Receive goods.
+
 #### Receiving a delivery
 
 1. Open the order and press **Receive goods**, or go to **Buy › Receiving › New** for goods that came without an order.
@@ -888,6 +1009,16 @@ Use **Group By › Supplier** on the orders list to see what's still to come fro
 3. Press **Receive into stock**. The goods go into the branch, the extra costs are spread over the lines by value, and each product's cost becomes the average of the old and new stock.
 
 Deliveries can also be checked in [on your phone](#stock-on-your-phone). Products tracked by batch ask for the batch number and expiry date.
+
+**Walkthrough: Receive a delivery**
+
+![Screenshot: Receive a delivery](../app/assets/images/help/tours/receiving.png)
+
+1. **Where it's from, and where it goes.** Against an order, the supplier and branch come from the order. Type the supplier's delivery note number, so their invoice can be matched to it later.
+2. **Count what arrived.** Each line starts at what's still to come. Change Received now to what actually came off the lorry, and the unit cost if the price changed. Anything short stays on the order for the next delivery.
+3. **Transport and duty.** Add what it cost to get the goods here. It's shared across the lines by value, so each product carries its true cost.
+4. **Anything wrong?** Note torn bags or wrong items for whoever deals with the supplier. To send goods back, make a return to the supplier afterwards.
+5. **Receive into stock.** The goods go into the branch's stock, and each product's cost becomes the average of the old and new stock. Then record the supplier's invoice from the delivery.
 
 #### Invoices and payments
 
@@ -998,6 +1129,15 @@ _Payment prompts to the customer's phone, and money paid straight to your Paybil
 
 Connect your Paybill or Till number in **Settings › M-Pesa › Add Paybill or Till** with the Daraja API keys (consumer key, secret and passkey) from Safaricom's developer portal. Then press **Receive payments** so Safaricom tells HardPoint about money paid in. The keys are stored encrypted.
 
+**Walkthrough: Connect M-Pesa**
+
+![Screenshot: Connect M-Pesa](../app/assets/images/help/tours/mpesa.png)
+
+1. **Add Paybill or Till.** Add your Paybill or Till number with the Daraja API keys (consumer key, secret and passkey) from Safaricom's developer portal. The keys are stored encrypted.
+2. **Your number.** Which branches use it, whether it's live, and whether payments made straight to it are coming in.
+3. **Receive payments.** Press Receive payments once (it says Register again after that), so Safaricom tells HardPoint about money paid straight in. Test connection checks the keys. Then at the till, choose M-Pesa and type the customer's phone, and the sale completes when they pay.
+4. **Does it all match?** The reconciliation report lists money received but not yet used on a sale, and M-Pesa codes typed at a till that Safaricom never confirmed.
+
 #### Payment prompts
 
 At the till, choose M-Pesa and enter the customer's phone number. They get a prompt on their phone for the amount, enter their PIN, and the sale completes itself when Safaricom confirms. If it doesn't go through, the till says why.
@@ -1101,6 +1241,16 @@ Open **Reports**, choose a report, then a period (today, this week, last month, 
 - Plus **Who owes us**, **What we owe** and the stock history.
 
 Margins are worked out from what each item cost on the day it was sold, so later price changes don't rewrite the past.
+
+**Walkthrough: Read a report**
+
+![Screenshot: Read a report](../app/assets/images/help/tours/report.png)
+
+1. **Filters.** A period, branch or grouping you choose shows here as a tag. Press × on a tag to go back to the default.
+2. **Change them.** Choose today, this week, last month or your own dates, one branch, and, on reports that have it, what to group by.
+3. **What you're looking at.** The period and branch the figures cover (this month and all branches, unless you change them), and the currency.
+4. **The figures.** The rows, with totals at the bottom. Margins use what each item cost on the day it sold, so later price changes don't rewrite the past.
+5. **Take it with you.** The ⚙ has Export CSV, to open in Excel, Download PDF on your letterhead, and Print.
 
 #### QuickBooks Online
 

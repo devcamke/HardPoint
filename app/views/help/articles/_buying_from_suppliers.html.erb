@@ -17,6 +17,8 @@
   <strong>Order them</strong> on Home takes you there.</p>
 <p>Use <strong>Group By › Supplier</strong> on the orders list to see what's still to come from each supplier.</p>
 
+<%= render "help/walkthrough", tour: HelpTour.find("purchase-order") %>
+
 <h2>Receiving a delivery</h2>
 <ol>
   <li>Open the order and press <strong>Receive goods</strong>, or go to <strong>Buy › Receiving › New</strong> for goods that came
@@ -27,6 +29,8 @@
 </ol>
 <p>Deliveries can also be checked in <%= link_to "on your phone", help_article_path("stock-on-your-phone"), class: "link" %>. Products
   tracked by batch ask for the batch number and expiry date.</p>
+
+<%= render "help/walkthrough", tour: HelpTour.find("receiving") %>
 
 <h2>Invoices and payments</h2>
 <p>When the supplier's invoice comes, press <strong>Record the supplier's invoice</strong> on the delivery, or <strong>Record invoice</strong>

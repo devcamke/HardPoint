@@ -11,13 +11,13 @@
     <h1 class="text-xl font-medium">Today<%= " at #{dashboard.branch.name}" if dashboard.branch %></h1>
     <p class="hint"><%= Time.zone.now.strftime("%A %-d %B %Y") %></p>
   </div>
-  <%= form_with url: root_path, method: :get, data: { controller: "auto-submit" } do |form| %>
+  <%= form_with url: root_path, method: :get, data: { controller: "auto-submit", tour: "branch" } do |form| %>
     <%= form.collection_select :branch_id, @branches, :id, :name, { selected: dashboard.branch&.id, include_blank: "All branches" }, class: "input w-48",
           "aria-label": "Branch", data: { action: "change->auto-submit#submit" } %>
   <% end %>
 </div>
 
-<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-tour="today">
   <%= link_to report_path("sales", preset: "today", branch_id: dashboard.branch&.id), class: "card block p-4 hover:border-primary-300" do %>
     <p class="text-sm text-gray-500">Takings</p>
     <p class="mt-1 whitespace-nowrap text-2xl font-semibold tabular-nums"><%= money(totals[:takings]) %></p>
@@ -43,7 +43,7 @@
 
 <% tasks = home_tasks(dashboard) %>
 <div class="mt-4 grid items-start gap-3 lg:grid-cols-3">
-  <section class="card p-0 lg:col-span-2" aria-labelledby="needs-you">
+  <section class="card p-0 lg:col-span-2" aria-labelledby="needs-you" data-tour="needs-you">
     <div class="flex items-center justify-between gap-3 px-4 py-3">
       <h2 id="needs-you" class="font-medium">Needs you today
         <% if tasks.any? %><span class="ml-1 text-gray-500">(<%= tasks.size %>)</span><% end %></h2>

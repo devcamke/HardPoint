@@ -620,3 +620,98 @@ Screenshots of every screen are in [screenshots](screenshots).
   and whether they're emailed after every backup or only when one fails. A failure is retried three times, then every
   owner is emailed and support gets the details
 - Downloads and deletions are in Activity; backups go to their own storage bucket when `BACKUP_STORAGE_SERVICE` is set
+
+## Since then: guided tours and walkthroughs
+
+- **Walkthroughs in the help centre:** the guides to finding your way around, selling at the till and products open with
+  a screenshot of the real screen. Numbered hotspots pulse on it; **Show me how**, a hotspot, ‹ › or the arrow keys
+  light up one step at a time, dim the rest, and a pop-up with an arrow says what that button does. On phones the pop-up
+  sits under the picture. The steps are written out underneath too, for reading, searching and the printed user guide.
+  The help centre's front page has a **Show me how** row leading to each one
+- **Guided tours in the shop:** **Guided tours**, under your name (or search for it), runs the same steps over the live
+  screen: the screen dims, the real button is lit up, and the pop-up points at it. Next, Back, → ←, Esc to stop. Steps
+  for buttons someone's role or screen size hides are skipped, and accountants aren't offered the till. The till's
+  tour waits while the device chooses its till or opens a shift, then starts
+- **One source:** each tour is a few lines in `config/help_tours.yml`, pointing at `data-tour="…"` markers on the
+  screens. `bin/rails help:screenshots` retakes every tour's screenshot from the demo shop and measures where each step
+  is; tests fail if a marker goes missing from its screen or a step isn't on its screenshot
+- **Help** under your name, and in search, now opens the help centre: it used to look for it on the shop's own address
+
+![A walkthrough in the selling guide, at step 6](screenshots/330-help-walkthrough.png)
+
+![The same walkthrough on a phone](screenshots/331-help-walkthrough-phone.png)
+
+![Guided tours](screenshots/332-guided-tours.png)
+
+![The Home tour over the live screen](screenshots/333-guided-tour-home.png)
+
+![The till tour, pointing at the payment methods](screenshots/334-guided-tour-till.png)
+
+## Since then: tours of stock takes and receiving goods
+
+- **Count stock:** a tour of a stock take being counted: how far it's got, scanning with Record (which replaces a count),
+  the Not counted and Differences tabs, typing counts into the table, then Submit for approval and Approve and correct
+  stock. It's in the stock takes guide as a walkthrough
+- **Receive a delivery:** the supplier and delivery note, what's still to come against what arrived, unit costs,
+  transport and duty spread by value, the note, and Receive into stock. It's in the buying guide as a walkthrough
+- Both are offered to owners, managers and stock clerks. They start from Stock takes and Receiving, with a note
+  saying what to open; the tour starts once you're there. The till's tour now says what to do too (choose the till,
+  open a shift)
+- A tour can run on any record's page (`page: /stock_counts/:id`), and long tables are shown from their top rather
+  than centred
+
+![Count stock, at the scan box](screenshots/335-guided-tour-stock-take.png)
+
+![Receive a delivery, at the lines](screenshots/336-guided-tour-receiving.png)
+
+![Waiting on Receiving for an order to be chosen](screenshots/337-guided-tour-waiting.png)
+
+## Since then: tours of every main screen
+
+Six more guided tours, each also a walkthrough in its guide, for 11 in all:
+
+- **Close a shift** (shifts and cash): the blind count, foreign notes, the note, and what the Z report shows. Starts
+  from the till, with a note to finish the sale and press Shift, then Close shift
+- **Move stock between branches** (stock and stock takes): from and to, the products, the note, sending, and receiving
+  or cancelling at the other end
+- **Write a quote** (customers on account): the customer, their prices, validity and dates, and quote or confirmed order
+- **Order from a supplier** (buying from suppliers): the supplier, supplier prices, delivery, and sending the draft
+- **A customer's account** (customers): contact details, what they owe and can still buy on account, the buttons along
+  the top, unpaid sales and recent purchases
+- **Read a report** (reports): filters, the period and branch shown, the figures, and CSV, PDF and Print. Runs on
+  any report
+
+Guided tours are now grouped like the help centre (Getting started, At the till, and so on), and each tour is offered
+only to the roles that can open its screen. The note shown while a tour waits for its screen sits at the top, clear
+of Take payment. Pages for one record match by number, so a tour of a customer's page doesn't start on New customer.
+
+![Close a shift](screenshots/338-guided-tour-close-shift.png)
+
+![Write a quote, at More options](screenshots/339-guided-tour-quote.png)
+
+![Read a report, at the ⚙ menu](screenshots/340-guided-tour-report.png)
+
+![Guided tours, grouped like the help centre](screenshots/341-guided-tours-by-section.png)
+
+## Since then: a tour for every main guide
+
+Four more guided tours, each also a walkthrough in its guide, for 15 in all:
+
+- **Return goods** (returns and refunds): what's coming back, back on the shelf or written off, how the refund is paid,
+  the manager's approval PIN (for cashiers and stock clerks), and Process return. Starts from Sell › Sales
+- **Connect M-Pesa** (M-Pesa): adding a Paybill or Till with the Daraja keys, Receive payments and Test connection,
+  and the reconciliation report. For owners
+- **Find your way around Settings** (shop settings): each section, and what's in it for your role
+- **Add a member of staff** (staff and roles): their login, the five roles, and the PINs they set themselves. For
+  owners and managers
+
+The screenshot script can take a screen taller than usual (Settings is), and a step only some people see, like the
+approval PIN, may be left off the screenshot.
+
+![Return goods, at Refund by](screenshots/342-guided-tour-return.png)
+
+![Connect M-Pesa, at Receive payments](screenshots/343-guided-tour-mpesa.png)
+
+![Settings, at the catalogue's lists](screenshots/344-guided-tour-settings.png)
+
+![Add a member of staff, at the role](screenshots/345-guided-tour-staff.png)

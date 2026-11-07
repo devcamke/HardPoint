@@ -1,0 +1,401 @@
+# Guided tours: a few steps that point at the real buttons on one screen.
+#
+# Each tour is used twice:
+#   - in the shop, as a tour over the live screen (Guided tours, under your name, or any page with ?tour=<id>);
+#   - in the help centre, as a walkthrough of a screenshot, in the guide named by `article`.
+#
+# A step's `target` is the value of a data-tour="..." attribute on that screen. Steps whose target isn't on the
+# screen (a role or feature that hides it) are skipped in the shop. Mark a step `optional: true` when its target is
+# only there for some shops, so the tests don't expect it on every screen.
+#
+# After changing a tour, or a screen it points at, run `bin/rails help:screenshots` to retake its screenshot and
+# re-measure where each step is (app/assets/images/help/tours and config/help_tour_hotspots.json), then
+# `bin/rails help:export`.
+#
+#   page:    where the tour runs, in the shop. :id stands for a record's number, as in /stock_counts/:id, and :key for
+#            a name, as in /reports/:key
+#   start:   where "Start the tour" goes, when that isn't the page itself (default: the page)
+#   waiting: what to do to get to the page, shown until you're there (the till sends you to choose a till first)
+#   for:     who it's offered to in the shop: everyone; sellers (everyone but accountants); stock and purchasing
+#            (owners, managers and stock clerks); customers (sellers and accountants); reports (owners, managers and
+#            accountants); staff (owners and managers); account (owners). See HelpTour#available_to?
+#   minutes: about how long it takes
+
+home:
+  title: Find your way around
+  summary: The areas, search, the till, Settings, and what Home shows you each morning.
+  article: getting-around
+  page: /
+  for: everyone
+  minutes: 1
+  steps:
+    - target: areas
+      title: Six areas, named for the job
+      text: Home, Sell, Customers, Stock, Buy and Reports. You only see the areas your role uses. The one you're in is highlighted.
+    - target: search
+      title: Search anything
+      text: Products, customers, suppliers, receipt and order numbers, and pages. Press Ctrl K from anywhere, or scan a barcode into it.
+    - target: open-till
+      title: Straight to the till
+      text: Opens the point of sale. The first time on a computer, you choose which till it is, and it remembers.
+    - target: branch
+      title: One branch or all of them
+      text: Home shows every branch together. Choose a branch to see just its numbers.
+    - target: today
+      title: Today at a glance
+      text: Takings, sales, margin and the cash in the drawers, live as the tills sell. Press a number to open the report behind it.
+    - target: needs-you
+      title: Needs you today
+      text: Low stock, customers and suppliers overdue, stock takes to approve and orders to collect, most costly first, each with the button that deals with it.
+    - target: settings
+      title: Settings
+      text: Everything you set up once. Shop details, branches and tills, staff, M-Pesa, KRA eTIMS, features and the catalogue lists.
+    - target: user-menu
+      title: You, and help
+      text: Your profile and PINs, Switch user, Help, these Guided tours, Contact support and Sign out.
+
+till:
+  title: Make a sale at the till
+  summary: Scanning, quick picks, the customer, discounts, taking payment and parking a sale.
+  article: selling
+  page: /pos
+  waiting: Choose which till this computer is, and open a shift with your float.
+  for: sellers
+  minutes: 2
+  steps:
+    - target: scan
+      title: Scan or search
+      text: Scan a barcode and it's in the sale. No scanner? Type a few letters of the name or SKU and press the product. F2 brings you back here.
+    - target: categories
+      title: Browse by category
+      text: Quick picks are your best sellers. Press a category to see everything in it, handy on a touch screen.
+    - target: products
+      title: Tap to add
+      text: Each button shows the price and how many you have at this branch. Pack sizes, like a box of screws, have their own button underneath.
+    - target: customer
+      title: Who's buying?
+      text: Walk-in by default. Press Change to choose a customer, so their prices, credit and KRA PIN go on the receipt.
+    - target: lines
+      title: The sale
+      text: Change a quantity with − and +, or type it. Discount gives money off one line, and × removes it.
+    - target: totals
+      title: Totals and discount
+      text: Press Discount for money off the whole sale, as an amount or a percentage. Over your shop's limit, a manager types their approval PIN.
+    - target: tenders
+      title: How they're paying
+      text: Cash, M-Pesa, card, on account or foreign notes. To split a payment, take one part, then choose the next method for the rest.
+    - target: take-payment
+      title: Take payment
+      text: Press it, or F9. The receipt prints and the till is ready for the next customer. Cash shows the change to give.
+    - target: sale-actions
+      title: Park it for later
+      text: The customer went back for something? Park this sale (F8) and serve the next person. Parked sales brings it back.
+
+products:
+  title: Search and filter a list
+  summary: Products as an example of every list. New, search, filters, Group By, the ⚙ menu and pages.
+  article: products
+  page: /products
+  for: everyone
+  minutes: 1
+  steps:
+    - target: area-menu
+      title: The area's own menu
+      text: Each area has its pages along here. In Stock, that's Products, Stock levels, Reorder, Stock takes, Transfers and Expiry.
+    - target: list-new
+      title: Add one
+      text: New opens a blank product. To add hundreds at once, use Import from the ⚙ menu instead.
+    - target: list-actions
+      title: Everything else
+      text: The ⚙ has the list's other jobs. Import, Change prices, Export CSV and Print labels.
+    - target: list-search
+      title: Search
+      text: Type part of a name or SKU, or scan a barcode, and press Enter. Filters you choose show here as tags. Press × on a tag to remove it.
+    - target: list-filters
+      title: Filters and Group By
+      text: Narrow the list by category, brand or branch, or group it by category or brand to see how many and what they're worth. Long lists come 50 at a time, with ‹ and › on the right.
+
+stock-take:
+  title: Count stock
+  summary: Recording counts by scanner or by typing, finding what's left and what's off, then submitting and approving.
+  article: stock-and-stock-takes
+  page: /stock_counts/:id
+  start: /stock_counts
+  waiting: Open a stock take that's being counted, or press New to start one.
+  for: stock
+  minutes: 2
+  steps:
+    - target: count-progress
+      title: How far you've got
+      text: How many products are counted, out of how many in this stock take, and what the differences so far are worth at cost. Several people can count at once, and the till keeps selling.
+    - target: count-scan
+      title: Scan as you count
+      text: Scan a barcode or type a SKU, type how many are on the shelf and press Record. Recording a product again replaces its count. Batch is only for products tracked by batch.
+    - target: count-filters
+      title: What's left, and what's off
+      text: Not counted shows what nobody has counted yet. Differences shows only what's over or short. Find a product to jump to it.
+    - target: count-lines
+      title: Or type the counts in
+      text: Expected is what HardPoint thinks is on the shelf. Type the count in its row and it saves by itself. The difference shows in red when you're short and green when you're over.
+    - target: count-actions
+      title: Submit, then approve
+      text: When the counting's done, press Submit for approval. An owner or manager checks the differences and presses Approve and correct stock. Anything not counted stays as it was, and Cancel changes nothing.
+
+receiving:
+  title: Receive a delivery
+  summary: Checking what arrived against the order, unit costs, transport and duty, and putting it into stock.
+  article: buying-from-suppliers
+  page: /goods_receipts/new
+  start: /goods_receipts
+  waiting: Press Receive next to the order that's arrived, or New for goods that came without an order.
+  for: purchasing
+  minutes: 1
+  steps:
+    - target: receive-details
+      title: Where it's from, and where it goes
+      text: Against an order, the supplier and branch come from the order. Type the supplier's delivery note number, so their invoice can be matched to it later.
+    - target: receive-lines
+      title: Count what arrived
+      text: Each line starts at what's still to come. Change Received now to what actually came off the lorry, and the unit cost if the price changed. Anything short stays on the order for the next delivery.
+    - target: receive-extra-costs
+      title: Transport and duty
+      text: Add what it cost to get the goods here. It's shared across the lines by value, so each product carries its true cost.
+    - target: receive-note
+      title: Anything wrong?
+      text: Note torn bags or wrong items for whoever deals with the supplier. To send goods back, make a return to the supplier afterwards.
+    - target: receive-submit
+      title: Receive into stock
+      text: The goods go into the branch's stock, and each product's cost becomes the average of the old and new stock. Then record the supplier's invoice from the delivery.
+
+close-shift:
+  title: Close a shift
+  summary: The blind cash count, foreign notes, a note for the manager, and the Z report.
+  article: shifts-and-cash
+  page: /shifts/:id/closing/new
+  start: /pos
+  waiting: Finish or clear any sale on the till first. Then press Shift at the top of the till, and Close shift.
+  for: sellers
+  minutes: 1
+  steps:
+    - target: close-cash
+      title: Count the drawer
+      text: Count all the cash and type the total. The count is blind. This page doesn't show what's expected, so nobody counts to a number.
+    - target: close-foreign
+      optional: true # only for shops that take foreign notes
+      title: Foreign notes
+      text: If the till takes dollars or other currencies, count each one's notes separately, in its own box.
+    - target: close-note
+      title: Anything to report?
+      text: Add a note if the manager should know something, like a payout without a slip.
+    - target: close-submit
+      title: Close shift
+      text: Press it and confirm. The Z report then shows the expected and counted cash, and whether the drawer is Over, Short or Balanced. Nothing more can be sold on this till until a new shift is opened.
+
+transfer:
+  title: Move stock between branches
+  summary: Choosing the branches and products, sending, and receiving at the other end.
+  article: stock-and-stock-takes
+  page: /stock_transfers/new
+  for: stock
+  minutes: 1
+  steps:
+    - target: transfer-branches
+      title: From and to
+      text: Choose the branch the stock leaves, and the one it's going to.
+    - target: transfer-lines
+      title: What's going
+      text: Scan or type each product's barcode or SKU, with how many. Leave the spare rows empty.
+    - target: transfer-note
+      title: A note for the other end
+      text: Say how it's coming, like "on the Tuesday lorry".
+    - target: transfer-send
+      title: Send transfer
+      text: The stock leaves the sending branch straight away and shows as in transit. When it arrives, the other branch opens the transfer and presses Mark received at, followed by its own name. Until then, Cancel transfer puts it back.
+
+quote:
+  title: Write a quote
+  summary: The customer and the goods at their prices, how long it's valid, and saving it as a quote or a confirmed order.
+  article: customer-accounts
+  page: /orders/new
+  for: sellers
+  minutes: 1
+  steps:
+    - target: order-customer
+      title: Who it's for
+      text: Choose the customer. Not listed? Add a customer first. With contractor jobs switched on, you can put it against one of their jobs.
+    - target: order-lines
+      title: The goods
+      text: Scan or type each barcode or SKU with the quantity. Prices are the customer's own, from their price list and quantity breaks, and hold once saved. Owners and managers can type a different unit price.
+    - target: order-more
+      title: Branch, dates and a note
+      text: More options sets the branch, how long the quote is valid (14 days if left blank), when it's needed by, and a note shown on the quote.
+    - target: order-save
+      title: Quote or order
+      text: Save quote to send it as a PDF or by email. When they agree, press Confirm order on it and take a deposit. If they've already agreed, Save as confirmed order.
+
+purchase-order:
+  title: Order from a supplier
+  summary: The supplier and products, where and when it's delivered, then a draft to email or phone in.
+  article: buying-from-suppliers
+  page: /purchase_orders/new
+  for: purchasing
+  minutes: 1
+  steps:
+    - target: po-supplier
+      title: The supplier
+      text: Choose who you're ordering from. To order everything that's running low, Stock › Reorder can draft the orders for you instead.
+    - target: po-lines
+      title: What to order
+      text: Scan or type each barcode or SKU with the quantity. Leave the unit cost blank to use the supplier's price.
+    - target: po-more
+      title: Delivery
+      text: More options sets the branch it's delivered to, when it's expected, and a note to the supplier.
+    - target: po-save
+      title: Save draft, then send
+      text: The order is saved as a draft. On it, press Email to … to send it with a PDF attached, or Mark sent (phoned in). When the goods come, press Receive goods.
+
+customer:
+  title: A customer's account
+  summary: What a customer owes and can still buy on account, their unpaid sales and purchases, and the buttons for quotes, statements and payments.
+  article: customers
+  page: /customers/:id
+  start: /customers
+  waiting: Open a customer from the list. Search by name or phone.
+  for: customers
+  minutes: 1
+  steps:
+    - target: customer-details
+      title: How to reach them
+      text: Phone, email, address and KRA PIN. The phone finds them at the till and gets texted receipts. The PIN goes on their tax invoices.
+    - target: customer-account
+      title: Their account at a glance
+      text: Their prices, what they owe on account and how much of it is overdue, the credit they have left, and how many days they pay within.
+    - target: customer-actions
+      title: What you can do
+      text: New quote, Statement (as a PDF, by email or WhatsApp), Text a reminder when they owe and SMS is set up, and Record payment, which settles their oldest sales first.
+    - target: customer-unpaid
+      title: Unpaid account sales
+      text: Each sale they haven't paid for yet, with its due date. Their payments on account are listed alongside.
+    - target: customer-purchases
+      title: What they buy
+      text: Their recent purchases. Open quotes, orders and jobs are listed above when they have any.
+
+report:
+  title: Read a report
+  summary: Any report's period, branch and grouping, and downloading it as CSV or PDF.
+  article: reports
+  page: /reports/:key
+  start: /reports/sales
+  for: reports
+  minutes: 1
+  steps:
+    - target: list-search
+      title: Filters
+      text: A period, branch or grouping you choose shows here as a tag. Press × on a tag to go back to the default.
+    - target: list-filters
+      title: Change them
+      text: Choose today, this week, last month or your own dates, one branch, and, on reports that have it, what to group by.
+    - target: report-subtitle
+      title: What you're looking at
+      text: The period and branch the figures cover (this month and all branches, unless you change them), and the currency.
+    - target: report-table
+      title: The figures
+      text: The rows, with totals at the bottom. Margins use what each item cost on the day it sold, so later price changes don't rewrite the past.
+    - target: list-actions
+      title: Take it with you
+      text: The ⚙ has Export CSV, to open in Excel, Download PDF on your letterhead, and Print.
+
+return:
+  title: Return goods
+  summary: What's coming back, back on the shelf or written off, how the refund is paid, and approval.
+  article: returns-and-refunds
+  page: /sales/:id/returns/new
+  start: /sales
+  waiting: Find the sale by its receipt number, open it and press Return items. Returns are done at a till with an open shift.
+  for: sellers
+  minutes: 1
+  steps:
+    - target: return-lines
+      title: What's coming back
+      text: Under Returning, type how many of each item are coming back. Part of a line, some lines or the whole sale. You can't return more than was bought.
+    - target: return-restock
+      title: Back on the shelf?
+      text: Leave it ticked to put the goods back into stock. Untick it for damaged goods, and they're written off.
+    - target: return-refund
+      title: Refund by
+      text: Cash, card, M-Pesa, Airtel Money, or credit to the customer's account. It starts as the way they paid. For card and mobile money, send the money back yourself. HardPoint records how you did.
+    - target: return-reason
+      title: Why
+      text: A reason, if you like, such as "wrong size".
+    - target: return-approval
+      optional: true # only cashiers and stock clerks see it
+      title: Manager approval
+      text: A cashier or stock clerk needs an owner's or manager's approval PIN. It approves this return only, and signs nobody in.
+    - target: return-submit
+      title: Process return
+      text: The refund is what the customer paid for those items, including their share of any discount. The return gets its own number, and its page has Print for the return slip. With eTIMS, it goes to KRA as a credit note.
+
+mpesa:
+  title: Connect M-Pesa
+  summary: Your Paybill or Till, receiving money paid straight to it, testing it, and checking it all matches.
+  article: mpesa
+  page: /mpesa
+  for: account
+  minutes: 1
+  steps:
+    - target: mpesa-add
+      title: Add Paybill or Till
+      text: Add your Paybill or Till number with the Daraja API keys (consumer key, secret and passkey) from Safaricom's developer portal. The keys are stored encrypted.
+    - target: mpesa-shortcode
+      optional: true # once one is added
+      title: Your number
+      text: Which branches use it, whether it's live, and whether payments made straight to it are coming in.
+    - target: mpesa-actions
+      optional: true # once one is added
+      title: Receive payments
+      text: Press Receive payments once (it says Register again after that), so Safaricom tells HardPoint about money paid straight in. Test connection checks the keys. Then at the till, choose M-Pesa and type the customer's phone, and the sale completes when they pay.
+    - target: mpesa-reconciliation
+      title: Does it all match?
+      text: The reconciliation report lists money received but not yet used on a sale, and M-Pesa codes typed at a till that Safaricom never confirmed.
+
+settings:
+  title: Find your way around Settings
+  summary: Where your shop details, branches and tills, staff, payments, tax and the catalogue's lists are.
+  article: shop-settings
+  page: /settings
+  for: everyone
+  minutes: 1
+  steps:
+    - target: settings-index
+      title: Jump to a section
+      text: Settings comes in sections. Press one to go straight to it. You only see the ones your role uses.
+    - target: settings-shop
+      title: Your shop
+      text: Branches and tills. Owners also get Shop details (name, time zone, receipt footer and the discount limit), Billing, Features and Your data.
+    - target: settings-people
+      title: People
+      text: Staff, with their roles and till PINs, and Activity, which shows who did what, and when.
+    - target: settings-payments-and-tax
+      title: Payments and tax
+      text: M-Pesa, Airtel Money, KRA eTIMS and text messages, and currencies if your shop takes them.
+    - target: settings-catalogue
+      title: The catalogue's lists
+      text: Categories, brands, units, tax rates and price lists, set up once and used on every product.
+
+staff:
+  title: Add a member of staff
+  summary: Their own login, choosing the right role, and the PINs they set up themselves.
+  article: staff-and-roles
+  page: /memberships/new
+  for: staff
+  minutes: 1
+  steps:
+    - target: staff-person
+      title: Who they are
+      text: Their name and email address. Everyone gets their own login, so the activity log shows who did what.
+    - target: staff-role
+      title: Their role
+      text: Owner, everything. Manager, runs the shop and approves discounts, voids and returns. Cashier, sells. Stock clerk, receives, orders, moves and counts stock. Accountant, the money side without the till.
+    - target: staff-add
+      title: Add staff member
+      text: We email them a link to choose a password. Cashiers and stock clerks then set a PIN under My profile, for Switch user at a shared till. Owners and managers set an approval PIN there.

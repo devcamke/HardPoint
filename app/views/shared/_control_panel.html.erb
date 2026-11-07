@@ -7,12 +7,12 @@
 
 <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
   <div class="flex min-w-0 items-center gap-2">
-    <% if new_button %><%= link_to new_button[0], new_button[1], class: "btn-primary" %><% end %>
+    <% if new_button %><%= link_to new_button[0], new_button[1], class: "btn-primary", data: { tour: "list-new" } %><% end %>
     <h1 class="truncate text-xl font-medium"><%= title %></h1>
     <% if actions.any? %>
       <div class="relative" data-controller="dropdown" data-action="click@window->dropdown#closeOnOutsideClick keydown.esc@window->dropdown#close">
         <button type="button" class="flex size-7 cursor-pointer items-center justify-center rounded text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-                aria-label="Actions" title="Actions" aria-expanded="false" data-dropdown-target="toggle" data-action="dropdown#toggle">
+                aria-label="Actions" title="Actions" aria-expanded="false" data-tour="list-actions" data-dropdown-target="toggle" data-action="dropdown#toggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-4" aria-hidden="true"><path d="<%= NavigationHelper::ICONS.fetch(:settings) %>"/></svg>
         </button>
         <div hidden data-dropdown-target="menu" class="absolute top-full left-0 z-30 mt-1 w-52 rounded border border-gray-200 bg-white py-1 shadow-lg">
@@ -26,7 +26,7 @@
 
   <% if search || filters.any? %>
     <%= form_with url: request.path, method: :get, class: "relative order-last w-full lg:order-none lg:mx-auto lg:w-auto lg:max-w-2xl lg:flex-1",
-          data: { controller: "search-panel", action: "submit->search-panel#submit click@window->search-panel#closeOnOutsideClick keydown.esc@window->search-panel#close" }, html: { role: "search" } do |form| %>
+          data: { controller: "search-panel", tour: "list-search", action: "submit->search-panel#submit click@window->search-panel#closeOnOutsideClick keydown.esc@window->search-panel#close" }, html: { role: "search" } do |form| %>
       <% date_params = filters.select { _1.type == :date }.map(&:param) %>
       <% request.query_parameters.except("page", query_param, *date_params, *filters.flat_map(&:drops)).each do |key, value| %>
         <%= hidden_field_tag key, value unless value.is_a?(Hash) || value.is_a?(Array) %>
@@ -56,7 +56,7 @@
         </div>
         <% if filters.any?(&:menu) %>
           <button type="button" class="flex cursor-pointer items-center border-l border-gray-200 px-2.5 text-gray-500 hover:bg-gray-50 hover:text-gray-800"
-                  data-action="search-panel#toggle" aria-label="Filters" aria-expanded="false" data-search-panel-target="toggle">
+                  data-action="search-panel#toggle" data-tour="list-filters" aria-label="Filters" aria-expanded="false" data-search-panel-target="toggle">
             <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
           </button>
         <% end %>

@@ -1,7 +1,7 @@
 <div id="cart" class="flex min-h-0 flex-1 flex-col">
   <%# The lines scroll; on a short screen they keep a few rows and the whole panel scrolls instead, so payment stays reachable.
       Phones scroll the whole sale as one page. %>
-  <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-3">
+  <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-3" data-tour="customer">
     <div class="min-w-0">
       <p class="text-xs uppercase tracking-wide text-gray-500">Customer</p>
       <p class="truncate font-semibold"><%= sale.customer&.name || "Walk-in" %>
@@ -34,7 +34,7 @@
     <% end %>
   <% end %>
 
-  <div class="min-h-32 flex-1 overflow-y-auto overscroll-contain max-md:flex-none max-md:overflow-visible">
+  <div class="min-h-32 flex-1 overflow-y-auto overscroll-contain max-md:flex-none max-md:overflow-visible" data-tour="lines">
     <% if sale.lines.any? %>
       <ul class="divide-y divide-gray-100">
         <% sale.lines.includes(product: [ :unit, :product_units ], product_unit: :unit).each do |line| %>
@@ -47,7 +47,7 @@
     <% end %>
   </div>
 
-  <div class="border-t border-gray-200 px-4 py-3 text-sm">
+  <div class="border-t border-gray-200 px-4 py-3 text-sm" data-tour="totals">
     <div class="flex justify-between"><span>Items</span><span class="tabular-nums"><%= quantity(sale.item_count) %></span></div>
     <div class="flex justify-between"><span>Subtotal</span><span class="tabular-nums"><%= money(sale.subtotal_cents) %></span></div>
     <details class="group">

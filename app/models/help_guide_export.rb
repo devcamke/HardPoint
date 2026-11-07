@@ -1,6 +1,6 @@
 # Every help guide, in the help centre's order, as one Markdown document with a contents list. Links between
 # guides become links within the document. Only the HTML the guides use is converted: headings, paragraphs,
-# lists (not nested), bold, code and links.
+# lists (not nested), bold, code, links and walkthroughs (an image and its numbered steps).
 class HelpGuideExport
   def to_markdown
     [ header, contents, *HelpArticle::SECTIONS.flat_map { section(_1) } ].join("\n\n").gsub(/\n{3,}/, "\n\n").strip + "\n"
@@ -46,9 +46,18 @@ class HelpGuideExport
       when "h2" then [ (%(<a id="#{node["id"]}"></a>\n) if node["id"]), "#### #{inline(node)}" ].join
       when "ul" then node.css("> li").map { "- #{inline(_1)}" }.join("\n")
       when "ol" then node.css("> li").each_with_index.map { |item, index| "#{index + 1}. #{inline(item)}" }.join("\n")
+      when "figure" then walkthrough(node)
       when "text" then node.text.strip
       else inline(node)
       end
+    end
+
+    # A walkthrough (help/_walkthrough) becomes its screenshot and its steps, numbered as on the screen.
+    def walkthrough(node)
+      tour = HelpTour.find(node["data-walkthrough"])
+      [ "**Walkthrough: #{tour.title}**",
+        "![Screenshot: #{tour.title}](../app/assets/images/#{tour.image})",
+        block(node.at_css("ol.walkthrough-steps")) ].join("\n\n")
     end
 
     def inline(node)
