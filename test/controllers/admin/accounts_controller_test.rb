@@ -52,7 +52,7 @@ class Admin::AccountsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
 
     follow_redirect!
-    assert_select "h1", "Welcome, Carl Cashier"
+    assert_select "h1", "Hi Carl"
     assert_select "div.bg-amber-300", /HardPoint support \(Ada Admin\)/
     assert Account.without_isolation { Event.exists?(action: "impersonation_started", creator: users(:carl)) }
 

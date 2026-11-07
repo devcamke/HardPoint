@@ -125,7 +125,9 @@ CREATE TABLE public.accounts (
     taxes_confirmed_at timestamp(6) without time zone,
     test_receipt_printed_at timestamp(6) without time zone,
     deletion_scheduled_for timestamp(6) without time zone,
-    deletion_requested_by_id bigint
+    deletion_requested_by_id bigint,
+    features character varying[] DEFAULT '{deliveries}'::character varying[] NOT NULL,
+    features_reviewed_at timestamp(6) without time zone
 );
 
 
@@ -9248,6 +9250,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107120000'),
 ('20261024120500'),
 ('20261024120400'),
 ('20261024120300'),

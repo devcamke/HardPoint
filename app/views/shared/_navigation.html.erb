@@ -1,66 +1,76 @@
 <% app = current_app %>
-<nav class="sticky top-0 z-40 bg-primary-500 text-white shadow-sm print:hidden">
-  <div class="flex h-11 items-center gap-1 px-2 text-sm">
-    <button type="button" popovertarget="apps-menu" class="flex size-9 cursor-pointer items-center justify-center rounded hover:bg-white/15" title="Apps" aria-label="Apps">
-      <svg viewBox="0 0 24 24" class="size-5" fill="currentColor" aria-hidden="true">
-        <% [ 4, 10.5, 17 ].product([ 4, 10.5, 17 ]).each do |x, y| %><rect x="<%= x %>" y="<%= y %>" width="3.5" height="3.5" rx="0.6"/><% end %>
-      </svg>
-    </button>
-
-    <% if app %>
-      <%= link_to app.name, app.path, class: "mr-2 rounded px-2 py-1.5 text-[15px] font-medium hover:bg-white/15" %>
-      <div class="hidden min-w-0 items-center overflow-x-auto md:flex">
-        <% app.menu.each do |name, path| %>
-          <%= link_to name, path, class: class_names("whitespace-nowrap rounded px-2.5 py-1.5 hover:bg-white/15", "bg-white/20" => app.menu.size > 1 && app_menu_item_active?(path)) %>
-        <% end %>
-      </div>
-    <% end %>
-
-    <div class="ml-auto flex items-center gap-1">
-      <% if current_membership&.can_sell? %>
-        <%= link_to "Till", pos_path, class: "rounded px-2.5 py-1.5 font-medium hover:bg-white/15" %>
+<% area_link = ->(each_app, extra = "") { link_to each_app.name, each_app.path, class: class_names("whitespace-nowrap rounded px-2.5 py-1.5 hover:bg-white/15 #{extra}", "bg-white/20" => each_app == app), aria: { current: ("page" if each_app == app) } } %>
+<nav class="sticky top-0 z-40 print:hidden" data-controller="command-palette" data-action="keydown@window->command-palette#shortcut">
+  <div class="bg-primary-500 text-white shadow-sm">
+    <div class="flex h-11 items-center gap-1 px-2 text-sm">
+      <%= link_to root_path, class: "mr-2 flex items-center gap-2 rounded px-2 py-1 hover:bg-white/15", title: "Home" do %>
+        <svg viewBox="0 0 64 64" class="size-6 shrink-0" aria-hidden="true"><path d="M32 5 55 18.5v27L32 59 9 45.5v-27Z" fill="#FFFFFF"/><circle cx="32" cy="32" r="11" fill="#0F5E6E"/></svg>
+        <span class="hidden text-[15px] font-semibold sm:inline">HardPoint</span>
       <% end %>
-      <span class="hidden px-2 text-white/80 lg:inline"><%= Current.account.name %></span>
-      <button type="button" popovertarget="user-menu" class="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 hover:bg-white/15" aria-label="Your account">
-        <span class="flex size-7 items-center justify-center rounded bg-white/20 text-xs font-semibold"><%= Current.user.name.split.map(&:first).first(2).join.upcase %></span>
-      </button>
-      <div id="user-menu" popover class="fixed top-11 right-2 bottom-auto left-auto m-0 w-60 rounded border border-gray-200 bg-white py-1 text-sm text-gray-800 shadow-lg">
-        <div class="border-b border-gray-100 px-4 py-2">
-          <p class="font-semibold"><%= Current.user.name %></p>
-          <p class="text-xs text-gray-500"><%= current_membership&.role&.humanize %> · <%= Current.account.name %></p>
-        </div>
-        <%= link_to "My profile", my_profile_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
-        <%= link_to "Switch user", new_session_switch_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
-        <%= link_to "Help", help_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
-        <%= link_to "Contact support", new_support_request_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
-        <div class="my-1 border-t border-gray-100"></div>
-        <%= button_to "Sign out", session_path, method: :delete, class: "block w-full cursor-pointer px-4 py-1.5 text-left hover:bg-gray-100" %>
+      <div class="hidden min-w-0 items-center gap-0.5 overflow-x-auto md:flex">
+        <% navigation_apps.each do |each_app| %><%= area_link.(each_app) %><% end %>
       </div>
+
+      <div class="ml-auto flex items-center gap-1">
+        <button type="button" data-action="command-palette#open" aria-keyshortcuts="Control+K" aria-label="Search"
+                class="flex cursor-pointer items-center gap-2 rounded bg-white/15 px-2.5 py-1.5 text-white/80 hover:bg-white/25 lg:w-64">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4 shrink-0" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="hidden lg:inline">Search…</span>
+          <kbd class="ml-auto hidden rounded border border-white/40 px-1 text-[11px] font-sans lg:inline">Ctrl K</kbd>
+        </button>
+        <% if current_membership&.can_sell? %>
+          <%= link_to "Open till", pos_path, class: "rounded bg-[#e46f2f] px-3 py-1.5 font-semibold hover:bg-[#d0611f]" %>
+        <% end %>
+        <span class="hidden px-2 text-white/80 lg:inline"><%= Current.account.name %></span>
+        <%= link_to settings_path, class: class_names("flex size-9 items-center justify-center rounded hover:bg-white/15", "bg-white/20" => app == settings_app), title: "Settings", aria: { label: "Settings" } do %>
+          <%= app_icon(settings_app, css: "size-5") %>
+        <% end %>
+        <button type="button" popovertarget="user-menu" class="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 hover:bg-white/15" aria-label="Your account">
+          <span class="flex size-7 items-center justify-center rounded bg-white/20 text-xs font-semibold"><%= Current.user.name.split.map(&:first).first(2).join.upcase %></span>
+        </button>
+        <div id="user-menu" popover class="fixed top-11 right-2 bottom-auto left-auto m-0 w-60 rounded border border-gray-200 bg-white py-1 text-sm text-gray-800 shadow-lg">
+          <div class="border-b border-gray-100 px-4 py-2">
+            <p class="font-semibold"><%= Current.user.name %></p>
+            <p class="text-xs text-gray-500"><%= current_membership&.role&.humanize %> · <%= Current.account.name %></p>
+          </div>
+          <%= link_to "My profile", my_profile_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
+          <%= link_to "Switch user", new_session_switch_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
+          <%= link_to "Help", help_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
+          <%= link_to "Contact support", new_support_request_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
+          <div class="my-1 border-t border-gray-100"></div>
+          <%= button_to "Sign out", session_path, method: :delete, class: "block w-full cursor-pointer px-4 py-1.5 text-left hover:bg-gray-100" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-0.5 overflow-x-auto border-t border-white/15 px-2 py-1 text-sm md:hidden">
+      <% navigation_apps.each do |each_app| %><%= area_link.(each_app, "py-1") %><% end %>
     </div>
   </div>
 
+  <dialog data-command-palette-target="dialog" data-action="click->command-palette#closeOnBackdrop" aria-label="Search"
+          class="mx-auto mt-[10vh] w-[min(40rem,calc(100vw-2rem))] overflow-hidden rounded-lg bg-white p-0 text-gray-800 shadow-2xl backdrop:bg-gray-900/40">
+    <%= form_with url: search_path, method: :get, data: { command_palette_target: "form", turbo_frame: "search_results",
+          action: "turbo:submit-start->command-palette#submitStart turbo:submit-end->command-palette#submitEnd" }, html: { role: "search" } do |form| %>
+      <%= form.search_field :q, autocomplete: "off", placeholder: "Search products, customers, suppliers, receipts or pages", "aria-label": "Search",
+            class: "w-full border-0 border-b border-gray-200 px-4 py-3 text-lg focus:ring-0 focus:outline-none",
+            data: { command_palette_target: "input", action: "input->command-palette#search keydown->command-palette#navigate" } %>
+    <% end %>
+    <div class="max-h-[60vh] overflow-y-auto pb-2">
+      <%= turbo_frame_tag "search_results", target: "_top" do %>
+        <p class="hint px-4 py-6 text-center">Type a product, customer, supplier, receipt number or page. Scanning a barcode works too.</p>
+      <% end %>
+    </div>
+    <p class="border-t border-gray-100 bg-gray-50 px-4 py-2 text-xs text-gray-500">↑ ↓ to choose · Enter to open · Esc to close</p>
+  </dialog>
+
   <% if app && app.menu.size > 1 %>
-    <div class="flex gap-1 overflow-x-auto border-t border-white/15 px-2 py-1 text-sm md:hidden">
+    <div class="flex gap-1 overflow-x-auto border-b border-gray-200 bg-white px-3 text-sm" aria-label="<%= app.name %> menu">
       <% app.menu.each do |name, path| %>
-        <%= link_to name, path, class: class_names("whitespace-nowrap rounded px-2.5 py-1 hover:bg-white/15", "bg-white/20" => app_menu_item_active?(path)) %>
+        <% active = app_menu_item_active?(path) %>
+        <%= link_to name, path, class: class_names("-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 hover:text-primary-700",
+              active ? "border-primary-500 font-medium text-gray-900" : "border-transparent text-gray-600"), aria: { current: ("page" if active) } %>
       <% end %>
     </div>
   <% end %>
 </nav>
-
-<div id="apps-menu" popover class="o-apps text-white">
-  <div class="flex items-center justify-between px-4 py-3">
-    <span class="text-sm font-medium text-white/80"><%= Current.account.name %></span>
-    <button type="button" popovertarget="apps-menu" popovertargetaction="hide" class="cursor-pointer rounded px-2 py-1 text-xl leading-none hover:bg-white/15" aria-label="Close">×</button>
-  </div>
-  <div class="mx-auto grid w-full max-w-3xl grid-cols-3 gap-x-4 gap-y-8 px-6 py-10 sm:grid-cols-4 md:grid-cols-6">
-    <% navigation_apps.each do |each_app| %>
-      <%= link_to each_app.path, class: "group flex flex-col items-center gap-2 text-center" do %>
-        <span class="flex size-16 items-center justify-center rounded-xl text-white shadow-md transition group-hover:-translate-y-0.5 group-hover:shadow-lg" style="background: <%= each_app.color %>">
-          <%= app_icon(each_app, css: "size-8") %>
-        </span>
-        <span class="text-sm text-white drop-shadow"><%= each_app.name %></span>
-      <% end %>
-    <% end %>
-  </div>
-</div>

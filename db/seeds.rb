@@ -408,6 +408,9 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     end
   end
 
+  # The demo shop shows off everything it has records for (Settings › Features).
+  Account.find_by!(subdomain: "demo").then { _1.update_columns(features: (Account::Features::DEFAULTS + _1.features_in_use).uniq.sort) }
+
   Announcement.create!(title: "New: export all your shop's data", body: "Owners can download everything as spreadsheets from Settings → Your data.",
     starts_at: 1.day.ago, ends_at: 2.weeks.from_now)
 

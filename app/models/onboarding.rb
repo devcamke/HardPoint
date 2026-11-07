@@ -18,6 +18,7 @@ class Onboarding
       Step.new(:taxes, "Check your tax rates", account.taxes_confirmed_at.present?, false),
       Step.new(:products, "Bring in your products", account.products.exists?, false),
       Step.new(:staff, "Invite your staff", account.memberships.count > 1, false),
+      Step.new(:features, "Choose the features you use", account.features_reviewed_at.present?, true),
       Step.new(:receipt, "Print a test receipt", account.test_receipt_printed_at.present?, false),
       Step.new(:mpesa, "Connect M-Pesa", account.mpesa_shortcodes.exists?, true),
       Step.new(:etims, "Connect KRA eTIMS", account.etims_devices.exists?, true)

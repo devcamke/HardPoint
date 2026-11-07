@@ -1,0 +1,42 @@
+<% content_for :title, "Features" %>
+<% account = Current.account %>
+
+<div class="mt-2 mb-6">
+  <h1 class="text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> Features</h1>
+  <p class="mt-1 max-w-3xl text-gray-500">Switch on only what your shop uses. A feature that's off is left out of the menus, Settings, Home and forms.
+    Nothing is deleted: switch it back on and everything is where you left it.</p>
+</div>
+
+<%= form_with model: account, url: features_path, method: :patch do |form| %>
+  <%= render "shared/errors", model: account %>
+  <%= hidden_field_tag "account[features][]", "", id: nil %>
+
+  <div class="grid items-start gap-4 lg:grid-cols-2">
+    <% Account::Features::FEATURES.group_by(&:group).each do |group, features| %>
+      <section class="card p-0">
+        <h2 class="border-b border-gray-200 px-4 py-3 font-semibold"><%= group %></h2>
+        <% features.each do |feature| %>
+          <% on = account.features.include?(feature.key) %>
+          <% reason = on && account.feature_in_use_reason(feature.key) %>
+          <label for="feature_<%= feature.key %>" class="flex cursor-pointer items-center justify-between gap-4 border-b border-gray-100 px-4 py-3 last:border-b-0 hover:bg-gray-50">
+            <span>
+              <span class="block font-medium text-gray-900"><%= feature.name %></span>
+              <span class="hint block"><%= feature.description %></span>
+              <% if reason %><span class="block text-xs text-amber-700">In use: <%= reason %></span><% end %>
+            </span>
+            <span class="relative inline-flex shrink-0">
+              <%= check_box_tag "account[features][]", feature.key, on, id: "feature_#{feature.key}", class: "peer sr-only", role: "switch" %>
+              <span class="h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-primary-500 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-300" aria-hidden="true"></span>
+              <span class="absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" aria-hidden="true"></span>
+            </span>
+          </label>
+        <% end %>
+      </section>
+    <% end %>
+  </div>
+
+  <div class="mt-4 flex flex-wrap items-center gap-3">
+    <%= form.submit "Save features", class: "btn-primary" %>
+    <p class="hint">Customer accounts, quotes and orders, branches, kits and pack sizes are always on.</p>
+  </div>
+<% end %>

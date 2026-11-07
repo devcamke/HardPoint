@@ -68,6 +68,42 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "5012345678900" ], Account.without_isolation { product.barcodes.pluck(:code) }
   end
 
+  test "the form asks for the everyday fields and keeps the rest under More options" do
+    get new_product_path
+    assert_select "form > .card > .field input[name='product[name]']"
+    assert_select "input[name='product[opening_stock]']"
+    assert_select "details summary", /More options\s+SKU made for you · tax: Standard VAT/
+    assert_select "details input[name='product[sku]']"
+    assert_select "details select[name='product[tax_rate_id]']"
+  end
+
+  test "opening stock is recorded at the branch through the stock ledger" do
+    post products_path, params: { branch_id: branches(:acme_main).id,
+      product: { name: "Door hinge 4 inch", unit_id: units(:acme_piece).id, price: "150", opening_stock: "40" } }
+
+    product = Account.without_isolation { Product.find_by!(name: "Door hinge 4 inch") }
+    assert_redirected_to product_path(product)
+    assert_equal 40, Account.without_isolation { product.stock_at(branches(:acme_main)) }
+    assert_equal [ "opening" ], Account.without_isolation { product.stock_movements.pluck(:reason) }
+  end
+
+  test "opening stock that doesn't fit the unit saves nothing" do
+    assert_no_difference -> { Account.without_isolation { Product.count } } do
+      post products_path, params: { product: { name: "Door hinge 4 inch", unit_id: units(:acme_piece).id, price: "150", opening_stock: "2.5" } }
+    end
+    assert_response :unprocessable_entity
+    assert_select "#error_explanation", /Opening stock must be a whole number/
+  end
+
+  test "add and start another keeps the category and unit" do
+    post products_path, params: { add_another: "Add and start another",
+      product: { name: "Door hinge 4 inch", unit_id: units(:acme_piece).id, category_id: categories(:acme_fasteners).id, price: "150" } }
+
+    assert_redirected_to new_product_path(category_id: categories(:acme_fasteners).id, unit_id: units(:acme_piece).id)
+    follow_redirect!
+    assert_select "select[name='product[category_id]'] option[selected][value='#{categories(:acme_fasteners).id}']"
+  end
+
   test "a taken barcode is rejected and nothing is saved" do
     assert_no_difference -> { Account.without_isolation { Product.count } } do
       post products_path, params: { product: { name: "Copycat", unit_id: units(:acme_piece).id, price: "1", barcode: "6161100420017" } }

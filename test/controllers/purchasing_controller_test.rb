@@ -88,6 +88,9 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
 
   test "reorder suggestions draft an order in one click" do
     get reorder_suggestions_path(branch_id: branches(:acme_main).id)
+    assert_redirected_to reorder_list_path(branch_id: branches(:acme_main).id)
+
+    get reorder_list_path(branch_id: branches(:acme_main).id)
     assert_select "h2", /Kentube Plumbing Supplies/
     assert_select "td", "PVC pipe 2 inch 6m"
 
@@ -95,6 +98,18 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     order = Account.without_isolation { PurchaseOrder.last }
     assert order.draft?
     assert_equal [ [ "PVC-2", 10 ] ], Account.without_isolation { order.lines.map { [ _1.product.sku, _1.quantity.to_i ] } }
+  end
+
+  test "Reorder drafts one order per supplier in one click" do
+    get reorder_list_path(branch_id: branches(:acme_yard).id)
+    assert_select "button", "Draft 2 purchase orders"
+
+    assert_difference -> { Account.without_isolation { PurchaseOrder.draft.count } }, 2 do
+      post purchase_orders_path, params: { from_suggestions: 1, supplier_id: "all", branch_id: branches(:acme_yard).id }
+    end
+    assert_redirected_to purchase_orders_path(status: "draft")
+    orders = Account.without_isolation { PurchaseOrder.draft.includes(lines: :product).last(2).to_h { [ _1.supplier, _1.lines.map { |line| line.product.sku } ] } }
+    assert_equal({ suppliers(:acme_cement_distributor) => [ "CEM-50" ], suppliers(:acme_plumbing_supplies) => [ "PVC-2" ] }, orders)
   end
 
   test "supplier products are managed on the supplier page" do

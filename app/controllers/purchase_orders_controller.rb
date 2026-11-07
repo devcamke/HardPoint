@@ -41,6 +41,8 @@ class PurchaseOrdersController < ApplicationController
   end
 
   def create
+    return create_all_from_suggestions if params[:from_suggestions] && params[:supplier_id] == "all"
+
     @purchase_order = params[:from_suggestions] ? order_from_suggestions : Current.account.purchase_orders.new(purchase_order_params)
 
     if @purchase_order.save
@@ -91,11 +93,19 @@ class PurchaseOrdersController < ApplicationController
       permitted
     end
 
-    # One click from the reorder suggestions: a draft for this supplier with the suggested quantities.
-    def order_from_suggestions
-      supplier = Current.account.suppliers.find(params[:supplier_id])
+    # One draft per supplier from Stock › Reorder, in a single click.
+    def create_all_from_suggestions
       branch = Current.account.branches.find(params[:branch_id])
-      rows = ReorderSuggestion.new(Current.account, branch).rows.select { _1.supplier_product&.supplier == supplier }
+      orders = ReorderSuggestion.new(Current.account, branch).by_supplier.filter_map do |supplier, rows|
+        order_from_suggestions(supplier:, branch:, rows:) if supplier
+      end
+      PurchaseOrder.transaction { orders.each(&:save!) }
+      redirect_to purchase_orders_path(status: "draft"), notice: "#{orders.size} draft #{"order".pluralize(orders.size)} saved. Check each one, then send it to the supplier."
+    end
+
+    # One click from Stock › Reorder: a draft for this supplier with the suggested quantities.
+    def order_from_suggestions(supplier: Current.account.suppliers.find(params[:supplier_id]), branch: Current.account.branches.find(params[:branch_id]), rows: nil)
+      rows ||= ReorderSuggestion.new(Current.account, branch).rows.select { _1.supplier_product&.supplier == supplier }
 
       Current.account.purchase_orders.new(supplier: supplier, branch: branch, expected_on: Date.current + rows.map(&:lead_time).max.to_i.days,
         lines_attributes: rows.map { { account: Current.account, product: _1.product, quantity: _1.quantity, unit_cost_cents: _1.supplier_product.cost_cents } })

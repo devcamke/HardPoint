@@ -1,24 +1,25 @@
-<p>The <strong>Purchase</strong> app handles everything from ordering to paying: suppliers, purchase orders, deliveries, supplier invoices
+<p>The <strong>Buy</strong> area handles everything from ordering to paying: suppliers, purchase orders, deliveries, supplier invoices
   and what you owe. Stock clerks order and receive; accountants handle invoices and payments.</p>
 
 <h2>Suppliers</h2>
-<p>Add each supplier in <strong>Purchase › Suppliers</strong> with their contacts, payment terms and, if they invoice in dollars, their
+<p>Add each supplier in <strong>Buy › Suppliers</strong> with their contacts, payment terms and, if they invoice in dollars, their
   currency. On the supplier's page you can list the products they supply, with their code, price, lead time and minimum order, and mark
   them as the preferred supplier.</p>
 
 <h2>Ordering</h2>
 <ol>
-  <li>In <strong>Purchase › Orders</strong>, press <strong>New</strong>, choose the supplier and branch, and add the products.</li>
+  <li>In <strong>Buy › Purchase orders</strong>, press <strong>New</strong>, choose the supplier and branch, and add the products.</li>
   <li>Press <strong>Email to …</strong> to send it with a PDF attached, or <strong>Mark sent (phoned in)</strong> if you ordered by phone.</li>
 </ol>
-<p><strong>Purchase › Reorder suggestions</strong> works out what to order per branch from reorder levels, the last 30 days' sales, lead
+<p><strong>Stock › Reorder</strong> works out what to order per branch from reorder levels, the last 30 days' sales, lead
   times, what's already on order and minimum order sizes, grouped by supplier. <strong>Draft an order for …</strong> turns a supplier's
-  suggestions into a draft order to check and send.</p>
+  suggestions into a draft order to check and send, and when several suppliers have suggestions, <strong>Draft … purchase orders</strong> does them all at once.
+  <strong>Order them</strong> on Home takes you there.</p>
 <p>Use <strong>Group By › Supplier</strong> on the orders list to see what's still to come from each supplier.</p>
 
 <h2>Receiving a delivery</h2>
 <ol>
-  <li>Open the order and press <strong>Receive goods</strong>, or go to <strong>Purchase › Receiving › New</strong> for goods that came
+  <li>Open the order and press <strong>Receive goods</strong>, or go to <strong>Buy › Receiving › New</strong> for goods that came
     without an order.</li>
   <li>Enter what arrived and what it cost, the supplier's delivery note number, and any transport, duty or other costs.</li>
   <li>Press <strong>Receive into stock</strong>. The goods go into the branch, the extra costs are spread over the lines by value, and each
@@ -29,6 +30,6 @@
 
 <h2>Invoices and payments</h2>
 <p>When the supplier's invoice comes, press <strong>Record the supplier's invoice</strong> on the delivery, or <strong>Record invoice</strong>
-  on the supplier. <strong>Record payment</strong> settles their oldest invoices first. <strong>Purchase › What we owe</strong> shows every
+  on the supplier. <strong>Record payment</strong> settles their oldest invoices first. <strong>Buy › What we owe</strong> shows every
   supplier's balance by age: not yet due, 1–30, 31–60, 61–90 and over 90 days.</p>
 <p>Something wrong with a delivery? See <%= link_to "Sending goods back to a supplier", help_article_path("supplier-returns"), class: "link" %>.</p>

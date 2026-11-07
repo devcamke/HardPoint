@@ -58,7 +58,7 @@ class Dashboard
   def takings_by_branch
     return [] if branch
 
-    sales_report(date, by: "branch").sections.first.rows.map { |name, _receipts, takings, *| [ name, takings ] }
+    @takings_by_branch ||= sales_report(date, by: "branch").sections.first.rows.map { |name, _receipts, takings, *| [ name, takings ] }
   end
 
   # What should be in each open till right now.
@@ -69,18 +69,24 @@ class Dashboard
   end
 
   def owed_to_us
-    rows = account.customers.with_balances
-    { total: rows.sum(&:last), overdue: rows.sum { |customer, _| customer.overdue_cents }, customers: rows.size }
+    @owed_to_us ||= begin
+      rows = account.customers.with_balances
+      overdue = rows.map { |customer, _| customer.overdue_cents }
+      { total: rows.sum(&:last), overdue: overdue.sum, customers: rows.size, overdue_customers: overdue.count(&:positive?) }
+    end
   end
 
   def owed_by_us
-    suppliers = account.suppliers.to_a.select { _1.balance_cents.positive? }
-    { total: suppliers.sum(&:balance_cents), overdue: suppliers.sum(&:overdue_cents), suppliers: suppliers.size }
+    @owed_by_us ||= begin
+      suppliers = account.suppliers.to_a.select { _1.balance_cents.positive? }
+      overdue = suppliers.map(&:overdue_cents)
+      { total: suppliers.sum(&:balance_cents), overdue: overdue.sum, suppliers: suppliers.size, overdue_suppliers: overdue.count(&:positive?) }
+    end
   end
 
   # Products to reorder, counted once per branch that's low on them.
   def low_stock_count
-    (branch ? [ branch ] : account.branches).sum { account.products.active.below_reorder_level_at(_1).count }
+    @low_stock_count ||= (branch ? [ branch ] : account.branches).sum { account.products.active.below_reorder_level_at(_1).count }
   end
 
   def orders_ready_count

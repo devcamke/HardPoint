@@ -506,4 +506,22 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
   checked against the current screens; search over each guide's full text; and "next" and related guides at the end
   of each one
 
+## Simpler to use
+
+The plan and its reasons are in [SIMPLIFY.md](SIMPLIFY.md).
+
+- **Six areas instead of eleven apps:** Home, Sell, Customers, Stock, Buy and Reports in the top bar, each area's menu
+  underneath, Settings under the gear. Pages that were in two menus have one home; old addresses redirect
+- **Needs you today:** Home lists what to act on (low stock, overdue customers and suppliers, eTIMS refusals, stock takes to
+  approve, shifts left open, orders to collect, deliveries), each with its button. Cashiers get one big **Start selling**
+- **Settings › Features:** deliveries, promotions, loyalty, currencies, the online store, tool hire, jobs, batches, serial
+  numbers and the API are switched on per shop; one that's off leaves the menus, Settings, Home and forms
+- **One Reorder page** that drafts an order for every supplier in one click
+- **A shorter product form** with opening stock, and **Add and start another**
+- **Search (Ctrl K)** for products, customers, suppliers, document numbers and pages
+
+![Home](screenshots/310-home-owner.png)
+
+![Search](screenshots/314-search.png)
+
 Screenshots of every screen are in [screenshots](screenshots).

@@ -1,7 +1,6 @@
+# Reorder suggestions were merged into Stock › Reorder; old links and bookmarks land there.
 class ReorderSuggestionsController < ApplicationController
-  before_action :ensure_can_purchase
-
   def show
-    @suggestion = ReorderSuggestion.new(Current.account, selected_branch)
+    redirect_to reorder_list_path(request.query_parameters), status: :moved_permanently
   end
 end
