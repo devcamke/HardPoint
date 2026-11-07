@@ -88,6 +88,7 @@ Rails.application.routes.draw do
     resource :features, only: %i[ show update ]
     resource :search, only: :show
     resources :price_changes, only: %i[ new create ]
+    resource :quickbooks_export, path: "reports/quickbooks", only: %i[ show update ]
     # Documents sent by WhatsApp, opened without signing in (DocumentShare).
     get "share/:token", to: "shares#show", as: :share
     resources :support_requests, only: %i[ new create ]

@@ -127,7 +127,8 @@ CREATE TABLE public.accounts (
     deletion_scheduled_for timestamp(6) without time zone,
     deletion_requested_by_id bigint,
     features character varying[] DEFAULT '{deliveries}'::character varying[] NOT NULL,
-    features_reviewed_at timestamp(6) without time zone
+    features_reviewed_at timestamp(6) without time zone,
+    quickbooks_accounts jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -8727,6 +8728,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107190000'),
 ('20261107180000'),
 ('20261107170000'),
 ('20261107160000'),

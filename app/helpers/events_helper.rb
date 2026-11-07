@@ -37,6 +37,7 @@ module EventsHelper
     in [ "Account", "closure_requested" ] then "asked to close the shop; its data will be deleted on #{Date.parse(event.particulars["deletion_on"]).to_fs(:long)}"
     in [ "Account", "closure_cancelled" ] then "cancelled closing the shop"
     in [ "Account", "export_requested" ] then "asked for an export of all the shop's data"
+    in [ "Account", "quickbooks_exported" ] then "downloaded the QuickBooks export for #{event.particulars["month"]}"
     in [ "Account", "prices_changed" ] then "changed #{pluralize(event.particulars["count"], "product price")} (#{event.particulars["scope"]}, #{event.particulars["change"]})"
     in [ "ApiKey", "created" ] then "made the API key “#{subject}” (#{event.particulars["scope"] == "write" ? "read and write" : "read only"})"
     in [ "ApiKey", "revoked" ] then "revoked the API key “#{subject}”"
