@@ -10,5 +10,7 @@
       </li>
     <% end %>
   </ul>
-  <%= link_to "New customer", new_customer_path, class: "link mt-2 inline-block text-sm", data: { turbo_frame: "_top" } %>
+  <% query = params[:query].to_s.strip %>
+  <%= link_to "New customer", new_customer_path(for_till: 1, **(query.match?(/\A[\d +]+\z/) ? { phone: query } : { name: query.presence }).compact),
+        class: "link mt-2 inline-block text-sm", data: { turbo_frame: "_top" } %>
 <% end %>
