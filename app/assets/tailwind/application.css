@@ -59,7 +59,7 @@
 
 /* Underlined fields, as in an Odoo form. Buttons and fields are at least 44px tall on touch screens. */
 @utility input {
-  @apply block w-full rounded-none border-0 border-b border-gray-300 bg-transparent px-1 py-1.5 text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-0 placeholder:text-gray-400 pointer-coarse:min-h-11;
+  @apply block w-full rounded-none border-0 border-b border-gray-400 bg-transparent px-1 py-1.5 text-gray-900 focus:border-primary-600 focus:shadow-[0_1px_0_0_var(--color-primary-600)] focus:outline-hidden focus:ring-0 placeholder:text-gray-500 pointer-coarse:min-h-11;
 }
 
 @utility label {
@@ -104,6 +104,16 @@
   .card > .table, .card > div > .table {
     @apply -my-1;
   }
+  /* On phones a wide table scrolls inside its card rather than pushing the whole page sideways. */
+  @media (max-width: 767px) {
+    .card:has(> .table) { overflow-x: auto; }
+  }
+  /* A field Rails marks as invalid: the wrapper doesn't change the layout; the field's line turns red. */
+  .field_with_errors { display: contents; }
+  .field_with_errors .input, .field_with_errors input, .field_with_errors select, .field_with_errors textarea {
+    @apply border-red-600;
+  }
+  .field_with_errors label { @apply text-red-800; }
   /* Amounts and document numbers never break across lines. */
   .table td.tabular-nums, .table td.font-mono, .table td > a.font-mono {
     @apply whitespace-nowrap;
@@ -180,7 +190,7 @@ textarea.input {
     transition: left 0.35s ease, top 0.35s ease, width 0.35s ease, height 0.35s ease;
   }
   .walkthrough-hotspot {
-    @apply absolute z-30 flex size-7 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#e46f2f] text-xs font-bold text-white shadow-md transition hover:scale-110;
+    @apply absolute z-30 flex size-7 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#c2561c] text-xs font-bold text-white shadow-md transition hover:scale-110;
     animation: walkthrough-pulse 2s infinite;
   }
   .walkthrough.is-touring .walkthrough-hotspot {
@@ -199,7 +209,7 @@ textarea.input {
     @apply drop-shadow;
   }
   .walkthrough-start-button {
-    @apply pointer-events-auto flex cursor-pointer items-center gap-2 rounded-full bg-[#e46f2f] px-5 py-2.5 text-base font-semibold text-white shadow-lg transition hover:bg-[#d0611f] hover:shadow-xl;
+    @apply pointer-events-auto flex cursor-pointer items-center gap-2 rounded-full bg-[#c2561c] px-5 py-2.5 text-base font-semibold text-white shadow-lg transition hover:bg-[#a8471a] hover:shadow-xl;
   }
   .walkthrough-popover {
     @apply absolute z-30 w-80 max-w-[calc(100%-1.5rem)] rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700 shadow-2xl;
@@ -263,7 +273,7 @@ textarea.input {
     @apply bg-orange-50;
   }
   .walkthrough-steps li.is-active::before {
-    @apply bg-[#e46f2f] text-white;
+    @apply bg-[#c2561c] text-white;
   }
   .walkthrough-caption {
     @apply rounded-b-xl border-t border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-500;

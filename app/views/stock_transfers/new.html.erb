@@ -21,7 +21,7 @@
     <%= form.fields_for :lines do |line| %>
       <div class="flex gap-2">
         <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Barcode or SKU", class: "input flex-1 font-mono", "aria-label": "Barcode or SKU" %>
-        <%= line.number_field :quantity, step: "any", min: 0, placeholder: "Qty", class: "input w-28", "aria-label": "Quantity" %>
+        <%= line.number_field :quantity, step: "any", min: 0, inputmode: "decimal", placeholder: "Qty", class: "input w-28", "aria-label": "Quantity" %>
       </div>
     <% end %>
   </div>

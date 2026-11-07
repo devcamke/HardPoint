@@ -38,7 +38,7 @@
           <% end %>
         <% end %>
         <% if Billing::Paystack.available? %>
-          <%= button_to "Pay by card", billing_card_payments_path, class: "btn-secondary w-full", form: { data: { turbo: false } } %>
+          <%= button_to "Pay by card", billing_card_payments_path, class: "btn-secondary w-full", form: { data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } } %>
         <% end %>
         <% if (failed = @invoice.payments.failed.last) %><p class="text-sm text-red-700">Last attempt: <%= failed.failure %></p><% end %>
       </div>

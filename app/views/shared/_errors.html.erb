@@ -1,5 +1,5 @@
 <% if model.errors.any? %>
-  <div id="error_explanation" class="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
+  <div id="error_explanation" role="alert" tabindex="-1" class="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
     <p class="font-medium">Please fix the following:</p>
     <ul class="mt-1 list-disc pl-5">
       <% model.errors.full_messages.each do |message| %>

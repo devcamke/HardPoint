@@ -13,12 +13,12 @@
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="field">
         <%= form.label :price, "Selling price (#{Current.account.currency})", class: "label" %>
-        <%= form.number_field :price, value: plain_number(product.price), required: true, step: "0.01", min: 0, class: "input" %>
+        <%= form.number_field :price, value: plain_number(product.price), required: true, step: "0.01", inputmode: "decimal", min: 0, class: "input" %>
       </div>
       <% if current_membership.can_see_costs? %>
         <div class="field">
           <%= form.label :cost, "Cost price (#{Current.account.currency})", class: "label" %>
-          <%= form.number_field :cost, value: (plain_number(product.cost) unless product.new_record? && product.cost_cents.zero?), step: "0.01", min: 0, class: "input" %>
+          <%= form.number_field :cost, value: (plain_number(product.cost) unless product.new_record? && product.cost_cents.zero?), step: "0.01", inputmode: "decimal", min: 0, class: "input" %>
           <p class="hint mt-1">For profit reports</p>
         </div>
       <% end %>
@@ -39,7 +39,7 @@
       <% if opening_stock %>
         <div class="field">
           <%= label_tag "product_opening_stock", "Opening stock at #{selected_branch&.name}", class: "label" %>
-          <%= number_field_tag "product[opening_stock]", params.dig(:product, :opening_stock), id: "product_opening_stock", step: "any", min: 0, class: "input" %>
+          <%= number_field_tag "product[opening_stock]", params.dig(:product, :opening_stock), id: "product_opening_stock", step: "any", min: 0, inputmode: "decimal", class: "input" %>
           <p class="hint mt-1">What's on the shelf now. Leave blank if none.</p>
         </div>
       <% end %>
@@ -65,7 +65,7 @@
         </div>
         <div class="field">
           <%= form.label :reorder_level, class: "label" %>
-          <%= form.number_field :reorder_level, value: plain_number(product.reorder_level), step: "any", min: 0, class: "input" %>
+          <%= form.number_field :reorder_level, value: plain_number(product.reorder_level), step: "any", min: 0, inputmode: "decimal", class: "input" %>
           <p class="hint mt-1">Flag as low stock at or below this.</p>
         </div>
       </div>
@@ -98,7 +98,7 @@
       <div class="field mt-4">
         <%= form.label :image, "Photo", class: "label" %>
         <% if product.image.attached? %>
-          <%= image_tag product.image, class: "mb-3 aspect-square w-32 rounded object-cover" %>
+          <%= image_tag product.image, alt: "Current photo of #{product.name}", class: "mb-3 aspect-square w-32 rounded object-cover" %>
         <% end %>
         <%= form.file_field :image, accept: "image/png,image/jpeg,image/webp", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-gray-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-gray-900 hover:file:bg-gray-50" %>
       </div>

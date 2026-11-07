@@ -27,9 +27,9 @@
               <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Scan or type", class: "input py-1.5 font-mono", "aria-label": "Barcode or SKU" %>
             <% end %>
           </td>
-          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, class: "input w-24 py-1.5 text-right", "aria-label": "Quantity" %></td>
+          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, inputmode: "decimal", class: "input w-24 py-1.5 text-right", "aria-label": "Quantity" %></td>
           <% if current_membership.approver? %>
-            <td class="text-right"><%= line.number_field :unit_price, value: (plain_number(line.object.unit_price) if line.object.unit_price_cents.to_i.positive?), step: "0.01", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit price" %></td>
+            <td class="text-right"><%= line.number_field :unit_price, value: (plain_number(line.object.unit_price) if line.object.unit_price_cents.to_i.positive?), step: "0.01", inputmode: "decimal", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit price" %></td>
           <% end %>
           <td class="text-right"><%= line.check_box :_destroy, class: "size-4 accent-primary-500", "aria-label": "Remove line" if line.object.persisted? %></td>
         </tr>

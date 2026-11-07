@@ -81,10 +81,18 @@ export default class extends Controller {
 
   select(index) {
     const results = this.resultTargets
-    if (results.length === 0) return (this.selected = -1)
+    if (results.length === 0) {
+      this.inputTarget.removeAttribute("aria-activedescendant")
+      return (this.selected = -1)
+    }
 
     this.selected = (index + results.length) % results.length
-    results.forEach((result, i) => result.setAttribute("aria-selected", i === this.selected))
+    results.forEach((result, i) => {
+      result.id ||= `search-result-${i}`
+      result.setAttribute("aria-selected", i === this.selected)
+    })
+    // Screen readers follow the highlighted result while focus stays in the search box.
+    this.inputTarget.setAttribute("aria-activedescendant", results[this.selected].id)
     results[this.selected].scrollIntoView({ block: "nearest" })
   }
 }

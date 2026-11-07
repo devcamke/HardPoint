@@ -6,7 +6,7 @@
         <li class="flex items-center justify-between">
           <span><%= payment.label %><%= " · #{payment.reference}" if payment.reference %></span>
           <span class="flex items-center gap-2 tabular-nums"><%= money(payment.amount_cents) %>
-            <%= button_to "✕", pos_payment_path(payment), method: :delete, class: "text-gray-400 hover:text-red-700", "aria-label": "Remove payment" %></span>
+            <%= button_to "✕", pos_payment_path(payment), method: :delete, class: "inline-flex size-9 items-center justify-center rounded text-gray-500 hover:bg-red-50 hover:text-red-700 pointer-coarse:size-11", "aria-label": "Remove payment" %></span>
         </li>
       <% end %>
     </ul>
@@ -44,12 +44,12 @@
     <div class="flex items-end gap-2">
       <div class="flex-1" data-payment-target="cashFields">
         <%= form.label :tendered, "Cash received", class: "label" %>
-        <%= form.number_field :tendered, step: "0.01", min: 0, placeholder: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums",
+        <%= form.number_field :tendered, step: "0.01", inputmode: "decimal", min: 0, placeholder: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums",
               data: { payment_target: "tendered", shortcuts_target: "pay", action: "input->payment#showChange focus->payment#openKeypad" } %>
       </div>
       <div class="hidden flex-1" data-payment-target="otherFields">
         <%= form.label :amount, "Amount", class: "label" %>
-        <%= form.number_field :amount, step: "0.01", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount", action: "focus->payment#openKeypad", deposit: (plain_number(BigDecimal([ deposit, due ].min) / 100) if deposit.positive?) } %>
+        <%= form.number_field :amount, step: "0.01", inputmode: "decimal", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount", action: "focus->payment#openKeypad", deposit: (plain_number(BigDecimal([ deposit, due ].min) / 100) if deposit.positive?) } %>
       </div>
       <% if foreign.any? %>
         <div class="hidden flex-1" data-payment-target="foreignFields">
@@ -57,7 +57,7 @@
           <div class="flex gap-1">
             <%= form.select :currency, foreign.map { [ _1.code, _1.code, { data: { rate: _1.rate.to_s, decimals: Currency.decimals(_1.code) } } ] }, {},
                   class: "input w-24", "aria-label": "Currency", data: { payment_target: "currency", action: "change->payment#showChange" } %>
-            <%= form.number_field :foreign_tendered, step: "0.01", min: 0, class: "input text-lg tabular-nums", "aria-label": "Foreign amount received",
+            <%= form.number_field :foreign_tendered, step: "0.01", inputmode: "decimal", min: 0, class: "input text-lg tabular-nums", "aria-label": "Foreign amount received",
                   data: { payment_target: "foreignTendered", action: "input->payment#showChange focus->payment#openKeypad" } %>
           </div>
         </div>

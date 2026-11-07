@@ -6,7 +6,7 @@
   <p class="mt-2 mb-6 text-gray-500">Every shop has its own web address, like <span class="font-mono">yourshop.<%= request.host %></span>.</p>
 
   <div class="card">
-    <%= form_with url: shop_lookup_path, data: { turbo: false } do |form| %>
+    <%= form_with url: shop_lookup_path, data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
       <div class="field">
         <%= form.label :subdomain, "Your shop's web address", class: "label" %>
         <div class="flex items-center gap-2">

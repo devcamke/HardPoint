@@ -44,7 +44,7 @@ class TransportChargesTest < ActionDispatch::IntegrationTest
   test "transport at the till needs an amount" do
     post pos_transport_path, params: { amount: "" }, as: :turbo_stream
     assert_response :unprocessable_entity
-    assert_select "#pos_message", /Enter what the transport costs/
+    assert_select "turbo-stream[action=update][target=pos_message] [role=alert]", /Enter what the transport costs/
   end
 
   test "a charge on a delivery note after the sale becomes a confirmed order for the customer" do

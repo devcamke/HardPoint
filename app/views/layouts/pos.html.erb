@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title><%= [ content_for(:title), current_till&.name, Current.account.name ].compact.join(" · ") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -53,6 +53,9 @@
         The till can't reach HardPoint. <%= link_to "Keep selling on the offline till", pos_offline_path, class: "underline", data: { turbo: false } %>
       <% end %>
     </div>
-    <%= yield %>
+    <main class="contents">
+      <h1 class="sr-only">Till</h1>
+      <%= yield %>
+    </main>
   </body>
 </html>

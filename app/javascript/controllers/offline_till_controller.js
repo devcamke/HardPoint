@@ -108,6 +108,7 @@ export default class extends Controller {
   }
 
   clear() {
+    if (this.cart.length && !confirm("Clear everything in this sale?")) return
     this.cart = []
     this.customer = null
     this.render()
@@ -160,8 +161,21 @@ export default class extends Controller {
     this.changeTarget.textContent = this.tender === "cash" && tendered > 0 && change >= 0 ? `Change ${formatMoney(change, this.catalogue.till.currency)}` : ""
   }
 
+  // A double tap, or a scanner's second Enter, mustn't queue the same sale twice while it's being saved.
   async pay(event) {
     event.preventDefault()
+    if (this.paying) return
+    this.paying = true
+    if (this.hasPayButtonTarget) this.payButtonTarget.disabled = true
+    try {
+      await this.recordSale()
+    } finally {
+      this.paying = false
+      if (this.hasPayButtonTarget) this.payButtonTarget.disabled = false
+    }
+  }
+
+  async recordSale() {
     if (!this.cart.length) return this.show("Add something to sell first", "alert")
 
     const till = this.catalogue.till
