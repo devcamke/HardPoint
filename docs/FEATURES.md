@@ -610,3 +610,29 @@ Screenshots of every screen are in [screenshots](screenshots).
   signed out, emailed, and the reset is in Activity. Not while support is signed in as the shop
 - **New customer from the till** opens with the name or phone that was searched, and **Add and use on this sale** goes
   straight back to the till with the customer on the sale
+
+## Since then: guided tours and walkthroughs
+
+- **Walkthroughs in the help centre:** the guides to finding your way around, selling at the till and products open with
+  a screenshot of the real screen. Numbered hotspots pulse on it; **Show me how**, a hotspot, ‹ › or the arrow keys
+  light up one step at a time, dim the rest, and a pop-up with an arrow says what that button does. On phones the pop-up
+  sits under the picture. The steps are written out underneath too, for reading, searching and the printed user guide.
+  The help centre's front page has a **Show me how** row leading to each one
+- **Guided tours in the shop:** **Guided tours**, under your name (or search for it), runs the same steps over the live
+  screen: the screen dims, the real button is lit up, and the pop-up points at it. Next, Back, → ←, Esc to stop. Steps
+  for buttons someone's role or screen size hides are skipped, and accountants aren't offered the till. The till's
+  tour waits while the device chooses its till or opens a shift, then starts
+- **One source:** each tour is a few lines in `config/help_tours.yml`, pointing at `data-tour="…"` markers on the
+  screens. `bin/rails help:screenshots` retakes every tour's screenshot from the demo shop and measures where each step
+  is; tests fail if a marker goes missing from its screen or a step isn't on its screenshot
+- **Help** under your name, and in search, now opens the help centre: it used to look for it on the shop's own address
+
+![A walkthrough in the selling guide, at step 6](screenshots/330-help-walkthrough.png)
+
+![The same walkthrough on a phone](screenshots/331-help-walkthrough-phone.png)
+
+![Guided tours](screenshots/332-guided-tours.png)
+
+![The Home tour over the live screen](screenshots/333-guided-tour-home.png)
+
+![The till tour, pointing at the payment methods](screenshots/334-guided-tour-till.png)

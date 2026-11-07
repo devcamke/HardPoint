@@ -78,7 +78,7 @@ module NavigationHelper
   end
 
   def help_app
-    @help_app ||= App.new(:help, "Help", help_path, "#4d9f6f", :help, [], [ "/support_requests" ])
+    @help_app ||= App.new(:help, "Help", help_url(subdomain: false), "#4d9f6f", :help, [], [ "/support_requests" ])
   end
 
   def current_app

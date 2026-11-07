@@ -1,0 +1,37 @@
+require "test_helper"
+
+class HelpTourTest < ActiveSupport::TestCase
+  test "every tour belongs to a guide, which shows it" do
+    HelpTour.all.each do |tour|
+      article = HelpArticle.find(tour.article)
+      assert_includes HelpArticle::ARTICLES_PATH.join("_#{article.slug.underscore}.html.erb").read, %(HelpTour.find("#{tour.id}")),
+        "The #{article.slug} guide should render the #{tour.id} walkthrough"
+      assert_includes HelpTour::AUDIENCES, tour.audience
+    end
+  end
+
+  test "every step is on its screenshot (run bin/rails help:screenshots after changing a tour or its screen)" do
+    HelpTour.all.each do |tour|
+      assert Rails.root.join("app/assets/images", tour.image).exist?, "#{tour.image} is missing"
+      tour.steps.each do |step|
+        assert step.box, "#{tour.id}: #{step.target} isn't placed on the screenshot"
+        x, y, width, height = step.box
+        assert [ x, y, width, height ].all? { _1.between?(0, 100) } && x + width <= 100.1 && y + height <= 100.1,
+          "#{tour.id}: #{step.target} is off the screenshot"
+      end
+    end
+  end
+
+  test "the steps a guide's walkthroughs show can be searched for" do
+    assert_includes HelpArticle.search("park this sale"), HelpArticle.find("selling")
+  end
+
+  test "who each tour is for" do
+    accountant = memberships(:carl_acme).dup.tap { _1.role = "accountant" }
+
+    assert HelpTour.find("till").available_to?(memberships(:carl_acme))
+    assert_not HelpTour.find("till").available_to?(accountant)
+    assert HelpTour.find("home").available_to?(accountant)
+    assert_not HelpTour.find("home").available_to?(nil)
+  end
+end

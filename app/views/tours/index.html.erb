@@ -1,0 +1,32 @@
+<% content_for :title, "Guided tours" %>
+
+<div class="mx-auto max-w-5xl">
+  <h1 class="text-xl font-medium">Guided tours</h1>
+  <p class="hint mb-5">A minute or two on each screen: the screen dims, and a pop-up points at each button and says what it's for.
+    Press <strong>Next</strong> or the → key to move on, and <strong>Esc</strong> to stop. For everything else, there's the
+    <%= link_to "help centre", help_url(subdomain: false), class: "link", target: "_blank", rel: "noopener" %>.</p>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <% @tours.each do |tour| %>
+      <article class="card flex flex-col overflow-hidden p-0">
+        <%= link_to_tour tour, class: "group relative block border-b border-gray-200", "aria-hidden": true, tabindex: -1 do %>
+          <%= image_tag tour.image, alt: "", width: tour.image_size[0], height: tour.image_size[1], loading: "lazy", class: "block h-auto w-full" %>
+          <span class="absolute inset-0 flex items-center justify-center bg-gray-900/0 transition group-hover:bg-gray-900/30">
+            <span class="flex size-12 items-center justify-center rounded-full bg-[#e46f2f] text-white shadow-lg transition group-hover:scale-110">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="size-6" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            </span>
+          </span>
+        <% end %>
+        <div class="flex flex-1 flex-col p-4">
+          <h2 class="font-semibold"><%= tour.title %></h2>
+          <p class="mt-1 flex-1 text-sm text-gray-600"><%= tour.summary %></p>
+          <p class="hint mt-2"><%= pluralize(tour.steps.size, "step") %> · about <%= pluralize(tour.minutes, "minute") %></p>
+          <div class="mt-3 flex items-center justify-between gap-2">
+            <%= link_to_tour "Start the tour", tour, class: "btn-secondary" %>
+            <%= link_to "Read the guide ↗", help_article_url(tour.article, subdomain: false), class: "link text-sm", target: "_blank", rel: "noopener" %>
+          </div>
+        </div>
+      </article>
+    <% end %>
+  </div>
+</div>

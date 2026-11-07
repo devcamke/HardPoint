@@ -37,7 +37,7 @@
                   data-receipt-printer-till-value="<%= current_till.slice(:print_mode, :printer_name, :receipt_width).to_json %>"
                   data-receipt-printer-drawer-url-value="<%= pos_drawer_openings_path %>">Open drawer</button>
         <% end %>
-        <span class="hidden text-xs text-white/70 xl:inline pointer-coarse:hidden">F2 scan · F8 park · F9 pay</span>
+        <span class="hidden text-xs text-white/70 xl:inline pointer-coarse:hidden" data-tour="shortcuts">F2 scan · F8 park · F9 pay</span>
         <%= link_to new_session_switch_path, class: "hover:text-white" do %>Switch<span class="hidden sm:inline"> user</span><% end %>
         <span class="hidden font-semibold text-white md:inline"><%= Current.user.name %></span>
       </div>
@@ -45,6 +45,7 @@
     <%= render "shared/impersonation_banner" if Current.session.impersonated? %>
     <%= render "shared/subscription_banner" %>
     <%= render "shared/announcements" %>
+    <%= render "shared/guided_tour" %>
     <div hidden class="bg-amber-300 px-4 py-2 text-sm font-semibold text-gray-900" data-offline-sync-target="banner">
       <% if controller_name == "offlines" %>
         You're back online and every offline sale has been sent. <%= link_to "Go back to the till", pos_path, class: "underline" %>

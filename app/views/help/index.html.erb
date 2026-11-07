@@ -33,6 +33,23 @@
       </p>
     </div>
 
+    <h2 class="mt-10 mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">Show me how</h2>
+    <p class="mb-3 text-sm text-gray-500">Walkthroughs of real screens: press a number on the picture to see what that button does.</p>
+    <div class="grid gap-3 sm:grid-cols-3">
+      <% HelpTour.all.each do |tour| %>
+        <%= link_to help_article_path(tour.article, anchor: "walkthrough-#{tour.id}"), class: "card group block overflow-hidden p-0 hover:border-primary-300" do %>
+          <span class="relative block border-b border-gray-200">
+            <%= image_tag tour.image, alt: "", width: tour.image_size[0], height: tour.image_size[1], loading: "lazy", class: "block h-auto w-full" %>
+            <span class="absolute right-2 bottom-2 rounded-full bg-[#e46f2f] px-2 py-0.5 text-xs font-semibold text-white shadow"><%= pluralize(tour.placed_steps.size, "step") %></span>
+          </span>
+          <span class="block p-3">
+            <span class="block font-semibold group-hover:text-primary-700"><%= tour.title %></span>
+            <span class="mt-0.5 block text-sm text-gray-500"><%= tour.summary %></span>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+
     <% HelpArticle::SECTIONS.each do |section| %>
       <% articles = @articles.select { _1.section == section } %>
       <% next if articles.empty? %>

@@ -105,6 +105,19 @@ _The six areas, Home, search, filtering lists, Group By, Settings and where Help
 
 HardPoint is arranged in six areas, named for the job: **Home**, **Sell**, **Customers**, **Stock**, **Buy** and **Reports**. You only see the areas your role uses, and only the features your shop has switched on (see [Switching features on and off](#features)).
 
+**Walkthrough: Find your way around**
+
+![Screenshot: Find your way around](../app/assets/images/help/tours/home.png)
+
+1. **Six areas, named for the job.** Home, Sell, Customers, Stock, Buy and Reports. You only see the areas your role uses. The one you're in is highlighted.
+2. **Search anything.** Products, customers, suppliers, receipt and order numbers, and pages. Press Ctrl K from anywhere, or scan a barcode into it.
+3. **Straight to the till.** Opens the point of sale. The first time on a computer, you choose which till it is, and it remembers.
+4. **One branch or all of them.** Home shows every branch together. Choose a branch to see just its numbers.
+5. **Today at a glance.** Takings, sales, margin and the cash in the drawers, live as the tills sell. Press a number to open the report behind it.
+6. **Needs you today.** Low stock, customers and suppliers overdue, stock takes to approve and orders to collect, most costly first, each with the button that deals with it.
+7. **Settings.** Everything you set up once. Shop details, branches and tills, staff, M-Pesa, KRA eTIMS, features and the catalogue lists.
+8. **You, and help.** Your profile and PINs, Switch user, Help, these Guided tours, Contact support and Sign out.
+
 #### The top bar
 
 - The areas are along the top. The one you're in is highlighted, and its own menu is underneath: in Stock, for example, **Products**, **Stock levels**, **Reorder**, **Stock takes**, **Transfers** and **Expiry**.
@@ -305,6 +318,20 @@ USB and Bluetooth scanners that type like a keyboard work without any setup. Sca
 _Opening a shift, scanning, discounts, parking a sale, taking payment, returns and closing up._
 
 The till is a full-screen page made for a barcode scanner and a busy counter. Open it from **Open till** in the top bar, or **Start selling** on a cashier's Home. Each computer remembers which till it is.
+
+**Walkthrough: Make a sale at the till**
+
+![Screenshot: Make a sale at the till](../app/assets/images/help/tours/till.png)
+
+1. **Scan or search.** Scan a barcode and it's in the sale. No scanner? Type a few letters of the name or SKU and press the product. F2 brings you back here.
+2. **Browse by category.** Quick picks are your best sellers. Press a category to see everything in it, handy on a touch screen.
+3. **Tap to add.** Each button shows the price and how many you have at this branch. Pack sizes, like a box of screws, have their own button underneath.
+4. **Who's buying?** Walk-in by default. Press Change to choose a customer, so their prices, credit and KRA PIN go on the receipt.
+5. **The sale.** Change a quantity with − and +, or type it. Discount gives money off one line, and × removes it.
+6. **Totals and discount.** Press Discount for money off the whole sale, as an amount or a percentage. Over your shop's limit, a manager types their approval PIN.
+7. **How they're paying.** Cash, M-Pesa, card, on account or foreign notes. To split a payment, take one part, then choose the next method for the rest.
+8. **Take payment.** Press it, or F9. The receipt prints and the till is ready for the next customer. Cash shows the change to give.
+9. **Park it for later.** The customer went back for something? Park this sale (F8) and serve the next person. Parked sales brings it back.
 
 #### Opening the shift
 
@@ -742,6 +769,16 @@ If you've connected an M-Pesa Paybill, the customer's order page shows your busi
 _Adding products, barcodes and pack sizes, loose goods, kits, special prices and quantity breaks, and printing shelf labels._
 
 Everything you sell lives in **Stock › Products**. Owners, managers and stock clerks can add and change products; everyone else can look them up. To bring in a whole price list at once, see [Importing products from a spreadsheet](#importing-products).
+
+**Walkthrough: Search and filter a list**
+
+![Screenshot: Search and filter a list](../app/assets/images/help/tours/products.png)
+
+1. **The area's own menu.** Each area has its pages along here. In Stock, that's Products, Stock levels, Reorder, Stock takes, Transfers and Expiry.
+2. **Add one.** New opens a blank product. To add hundreds at once, use Import from the ⚙ menu instead.
+3. **Everything else.** The ⚙ has the list's other jobs. Import, Change prices, Export CSV and Print labels.
+4. **Search.** Type part of a name or SKU, or scan a barcode, and press Enter. Filters you choose show here as tags. Press × on a tag to remove it.
+5. **Filters and Group By.** Narrow the list by category, brand or branch, or group it by category or brand to see how many and what they're worth. Long lists come 50 at a time, with ‹ and › on the right.
 
 #### Adding a product
 

@@ -308,6 +308,10 @@ Rails.application.routes.draw do
 
     # Reports
     resources :reports, only: %i[ index show ], param: :key
+
+    # Guided tours of the screens (config/help_tours.yml)
+    resources :tours, only: :index
+
     resources :delivery_notes, path: "deliveries", only: %i[ index show new create ] do
       scope module: :delivery_notes do
         resource :dispatch, only: :create

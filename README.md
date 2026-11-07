@@ -107,7 +107,9 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://har
 - **A public API and webhooks** for web shops and accounting software (Business and Enterprise), documented at
   `/developers`.
 - **Your data:** export everything as CSV files, or close the shop.
-- **Help in the app:** the guides, WhatsApp, and a message form that tells support which page you were on.
+- **Help in the app:** the guides, **guided tours** that point at the real buttons on Home, the till and lists,
+  WhatsApp, and a message form that tells support which page you were on. The guides open with interactive
+  walkthroughs of the same screens.
 
 Guides: [Setting up your shop](https://hardpoint.app/help/getting-started) ·
 [Finding your way around](https://hardpoint.app/help/getting-around) ·
@@ -166,7 +168,8 @@ ending 0000 declines). Without Paystack keys, "Pay by card" goes to a simulated 
 
 | Document | For | What's in it |
 |---|---|---|
-| Help centre (`/help`, in `app/views/help`) | Shop owners and staff | How to set up and use every part of HardPoint |
+| Help centre (`/help`, in `app/views/help`) | Shop owners and staff | How to set up and use every part of HardPoint, with interactive walkthroughs of the main screens |
+| Guided tours (`/tours` in a shop, `config/help_tours.yml`) | Shop owners and staff | Step-by-step pop-ups over the live screens: Home, the till and lists |
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Shop owners and staff, trainers | Every help guide in one document, to read, print or share. Generated from the help centre by `bin/rails help:export` |
 | Developer docs (`/developers`) | Developers connecting other apps | The REST API and webhooks, with signature checks in Ruby, Node.js and Python |
 | [docs/FEATURES.md](docs/FEATURES.md) | Everyone | What each phase of the build added, with screenshots |
@@ -233,6 +236,22 @@ summary, section and related guides; the order is the reading order) and write i
 the text, and each guide links on to the next one in its section. Write for someone at the counter: what to press,
 in the order they press it, using the words on the screen. After adding or changing a guide, run
 `bin/rails help:export` to rebuild [docs/USER_GUIDE.md](docs/USER_GUIDE.md); a test fails until you do.
+
+**Adding a guided tour:** a tour points at the buttons on one screen, step by step. It runs over the live screen in the
+shop (**Guided tours**, under your name, or any page with `?tour=<id>`) and as a walkthrough of a screenshot in its
+help guide.
+
+1. Mark each thing the tour points at with `data-tour="name"` in its view.
+2. Add the tour to `config/help_tours.yml`: its page, who it's for, the guide it belongs to, and a `target`, `title` and
+   one or two sentences of `text` per step, written like the guides.
+3. Put `<%= render "help/walkthrough", tour: HelpTour.find("<id>") %>` in that guide where it should appear.
+4. With the demo shop running (`bin/dev`), run `bin/rails help:screenshots`. It signs in to the demo shop, takes the
+   screenshot (`app/assets/images/help/tours`) and measures where each step is (`config/help_tour_hotspots.json`).
+   It needs Playwright's Chromium: `npm install --no-save playwright && npx playwright install chromium`.
+5. Run `bin/rails help:export`.
+
+Changed a screen a tour points at? Run `bin/rails help:screenshots` again. Tests fail if a `data-tour` marker goes
+missing from its screen or a step isn't on its screenshot.
 
 Load testing (k6) is in [perf/README.md](perf/README.md); backups, restores and incidents in
 [docs/RUNBOOK.md](docs/RUNBOOK.md).

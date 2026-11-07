@@ -2,6 +2,8 @@
   else can look them up. To bring in a whole price list at once, see
   <%= link_to "Importing products from a spreadsheet", help_article_path("importing-products"), class: "link" %>.</p>
 
+<%= render "help/walkthrough", tour: HelpTour.find("products") %>
+
 <h2>Adding a product</h2>
 <ol>
   <li>On <strong>Stock › Products</strong>, press <strong>New</strong>.</li>

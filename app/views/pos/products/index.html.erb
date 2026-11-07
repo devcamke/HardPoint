@@ -2,7 +2,7 @@
   <% searching = params[:query].present? %>
   <% chip = "shrink-0 whitespace-nowrap rounded-full border px-4 py-2 font-medium select-none pointer-coarse:py-3" %>
   <% if @categories.any? %>
-    <nav class="-mx-1 mb-3 flex gap-2 overflow-x-auto px-1 pb-1 text-sm" aria-label="Product categories">
+    <nav class="-mx-1 mb-3 flex gap-2 overflow-x-auto px-1 pb-1 text-sm" aria-label="Product categories" data-tour="categories">
       <% [ [ "Quick picks", nil ], *@categories.map { [ _1.name, _1 ] } ].each do |name, category| %>
         <% active = !searching && @category == category %>
         <%= link_to name, pos_products_path(category_id: category&.id), aria: { current: ("page" if active) },

@@ -32,7 +32,7 @@
     <% if deposit.positive? %>
       <p class="mb-2 text-sm"><%= sale.customer_order.reference %> has a <strong><%= money(deposit) %></strong> deposit to use.</p>
     <% end %>
-    <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5", 6 => "grid-cols-3", 7 => "grid-cols-4" }.fetch(tenders.size, "grid-cols-4") %> gap-1 text-sm" data-action="change->payment#switchTender">
+    <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5", 6 => "grid-cols-3", 7 => "grid-cols-4" }.fetch(tenders.size, "grid-cols-4") %> gap-1 text-sm" data-action="change->payment#switchTender" data-tour="tenders">
       <legend class="sr-only">Payment method</legend>
       <% tenders.each do |value, label| %>
         <label class="cursor-pointer rounded-md border border-gray-300 bg-white py-2 text-center font-semibold select-none pointer-coarse:py-3 has-checked:border-primary-500 has-checked:bg-primary-500 has-checked:text-white">
@@ -96,7 +96,7 @@
     </div>
     <p class="mt-1 h-5 text-sm font-semibold text-green-800" data-payment-target="change"></p>
 
-    <%= form.submit "Take payment", class: "btn-primary mt-1 w-full py-3 text-lg" %>
+    <%= form.submit "Take payment", class: "btn-primary mt-1 w-full py-3 text-lg", data: { tour: "take-payment" } %>
   <% end %>
 
   <% if (shortcode = Mpesa::Shortcode.for_branch(sale.branch)) && !waiting %>

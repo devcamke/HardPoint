@@ -76,7 +76,8 @@ module SearchHelper
         [ Result.new("Stock movements", "Stock", stock_movements_path), "movements history inventory" ],
         [ Result.new("Barcode labels", "Stock", new_labels_path), "print labels" ],
         [ Result.new("Import products", "Stock", product_imports_path), "spreadsheet csv upload" ],
-        [ Result.new("Help", "Guides", help_path), "how do i support" ]
+        [ Result.new("Help", "Guides", help_url(subdomain: false)), "how do i support" ],
+        [ Result.new("Guided tours", "Help", tours_path), "tour walkthrough show me how learn tutorial training new" ]
       ]
       pages += [ [ Result.new("Change prices", "Stock", new_price_change_path), "bulk price increase raise lower percentage" ] ] if m.can_manage_catalogue?
       pages += [ [ Result.new("Returns to suppliers", "Buy", supplier_returns_path), "supplier returns debit notes purchase" ] ] if m.can_purchase?

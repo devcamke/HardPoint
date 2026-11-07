@@ -1,0 +1,6 @@
+<%# A guided tour over the live screen (guided_tour_controller.js). It's on every signed-in page: a link with ?tour=<id>
+    starts one, and a tour whose screen is a step or two away (choosing a till, opening a shift) waits until it's there. %>
+<% tour = HelpTour.find_by(id: params[:tour]) if params[:tour].present? %>
+<% tour = nil unless tour&.available_to?(current_membership) %>
+<%= tag.div hidden: true, data: { controller: "guided-tour", guided_tour_tours_url_value: tours_path, guided_tour_path_value: request.path,
+      guided_tour_tour_value: (guided_tour_data(tour) if tour) } %>

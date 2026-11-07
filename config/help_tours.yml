@@ -1,0 +1,109 @@
+# Guided tours: a few steps that point at the real buttons on one screen.
+#
+# Each tour is used twice:
+#   - in the shop, as a tour over the live screen (Guided tours, under your name, or any page with ?tour=<id>);
+#   - in the help centre, as a walkthrough of a screenshot, in the guide named by `article`.
+#
+# A step's `target` is the value of a data-tour="..." attribute on that screen. Steps whose target isn't on the
+# screen (a role or feature that hides it) are skipped in the shop.
+#
+# After changing a tour, or a screen it points at, run `bin/rails help:screenshots` to retake its screenshot and
+# re-measure where each step is (app/assets/images/help/tours and config/help_tour_hotspots.json), then
+# `bin/rails help:export`.
+#
+#   page:    where the tour runs, in the shop
+#   for:     who it's offered to in the shop: everyone, or sellers (everyone but accountants)
+#   minutes: about how long it takes
+
+home:
+  title: Find your way around
+  summary: The areas, search, the till, Settings, and what Home shows you each morning.
+  article: getting-around
+  page: /
+  for: everyone
+  minutes: 1
+  steps:
+    - target: areas
+      title: Six areas, named for the job
+      text: Home, Sell, Customers, Stock, Buy and Reports. You only see the areas your role uses. The one you're in is highlighted.
+    - target: search
+      title: Search anything
+      text: Products, customers, suppliers, receipt and order numbers, and pages. Press Ctrl K from anywhere, or scan a barcode into it.
+    - target: open-till
+      title: Straight to the till
+      text: Opens the point of sale. The first time on a computer, you choose which till it is, and it remembers.
+    - target: branch
+      title: One branch or all of them
+      text: Home shows every branch together. Choose a branch to see just its numbers.
+    - target: today
+      title: Today at a glance
+      text: Takings, sales, margin and the cash in the drawers, live as the tills sell. Press a number to open the report behind it.
+    - target: needs-you
+      title: Needs you today
+      text: Low stock, customers and suppliers overdue, stock takes to approve and orders to collect, most costly first, each with the button that deals with it.
+    - target: settings
+      title: Settings
+      text: Everything you set up once. Shop details, branches and tills, staff, M-Pesa, KRA eTIMS, features and the catalogue lists.
+    - target: user-menu
+      title: You, and help
+      text: Your profile and PINs, Switch user, Help, these Guided tours, Contact support and Sign out.
+
+till:
+  title: Make a sale at the till
+  summary: Scanning, quick picks, the customer, discounts, taking payment and parking a sale.
+  article: selling
+  page: /pos
+  for: sellers
+  minutes: 2
+  steps:
+    - target: scan
+      title: Scan or search
+      text: Scan a barcode and it's in the sale. No scanner? Type a few letters of the name or SKU and press the product. F2 brings you back here.
+    - target: categories
+      title: Browse by category
+      text: Quick picks are your best sellers. Press a category to see everything in it, handy on a touch screen.
+    - target: products
+      title: Tap to add
+      text: Each button shows the price and how many you have at this branch. Pack sizes, like a box of screws, have their own button underneath.
+    - target: customer
+      title: Who's buying?
+      text: Walk-in by default. Press Change to choose a customer, so their prices, credit and KRA PIN go on the receipt.
+    - target: lines
+      title: The sale
+      text: Change a quantity with − and +, or type it. Discount gives money off one line, and × removes it.
+    - target: totals
+      title: Totals and discount
+      text: Press Discount for money off the whole sale, as an amount or a percentage. Over your shop's limit, a manager types their approval PIN.
+    - target: tenders
+      title: How they're paying
+      text: Cash, M-Pesa, card, on account or foreign notes. To split a payment, take one part, then choose the next method for the rest.
+    - target: take-payment
+      title: Take payment
+      text: Press it, or F9. The receipt prints and the till is ready for the next customer. Cash shows the change to give.
+    - target: sale-actions
+      title: Park it for later
+      text: The customer went back for something? Park this sale (F8) and serve the next person. Parked sales brings it back.
+
+products:
+  title: Search and filter a list
+  summary: Products as an example of every list. New, search, filters, Group By, the ⚙ menu and pages.
+  article: products
+  page: /products
+  for: everyone
+  minutes: 1
+  steps:
+    - target: area-menu
+      title: The area's own menu
+      text: Each area has its pages along here. In Stock, that's Products, Stock levels, Reorder, Stock takes, Transfers and Expiry.
+    - target: list-new
+      title: Add one
+      text: New opens a blank product. To add hundreds at once, use Import from the ⚙ menu instead.
+    - target: list-actions
+      title: Everything else
+      text: The ⚙ has the list's other jobs. Import, Change prices, Export CSV and Print labels.
+    - target: list-search
+      title: Search
+      text: Type part of a name or SKU, or scan a barcode, and press Enter. Filters you choose show here as tags. Press × on a tag to remove it.
+    - target: list-filters
+      title: Filters and Group By
+      text: Narrow the list by category, brand or branch, or group it by category or brand to see how many and what they're worth. Long lists come 50 at a time, with ‹ and › on the right.
