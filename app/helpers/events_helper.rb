@@ -38,6 +38,10 @@ module EventsHelper
     in [ "Account", "closure_requested" ] then "asked to close the shop; its data will be deleted on #{Date.parse(event.particulars["deletion_on"]).to_fs(:long)}"
     in [ "Account", "closure_cancelled" ] then "cancelled closing the shop"
     in [ "Account", "export_requested" ] then "asked for an export of all the shop's data"
+    in [ "Account", "backup_requested" ] then "made a backup of the shop"
+    in [ "Account", "backup_downloaded" ] then "downloaded the backup taken #{backup_time(event)}"
+    in [ "Account", "backup_deleted" ] then "deleted the backup taken #{backup_time(event)}"
+    in [ "Account", "backup_failed" ] then "couldn't finish the shop's #{event.particulars["kind"] == "manual" ? "" : "automatic "}backup; the owners were emailed"
     in [ "Account", "quickbooks_exported" ] then "downloaded the QuickBooks export for #{event.particulars["month"]}"
     in [ "Account", "prices_changed" ] then "changed #{pluralize(event.particulars["count"], "product price")} (#{event.particulars["scope"]}, #{event.particulars["change"]})"
     in [ "ApiKey", "created" ] then "made the API key “#{subject}” (#{event.particulars["scope"] == "write" ? "read and write" : "read only"})"
@@ -64,6 +68,10 @@ module EventsHelper
       Plan.find(key).name
     rescue ArgumentError
       key
+    end
+
+    def backup_time(event)
+      Time.zone.parse(event.particulars["taken_at"].to_s)&.to_fs(:short) || "earlier"
     end
 
     def by_platform(event)

@@ -18,6 +18,18 @@ object_storage:
   secret_access_key: <%= ENV["OBJECT_STORAGE_SECRET_ACCESS_KEY"] %>
   force_path_style: true
 
+# Shops' own backups (AccountBackup), chosen with BACKUP_STORAGE_SERVICE=backups. Use a private bucket
+# in another region from the server, so a lost server doesn't take the backups with it; turn on the
+# provider's server-side encryption. Without it, backups use the main service (ACTIVE_STORAGE_SERVICE).
+backups:
+  service: S3
+  endpoint: <%= ENV["BACKUP_STORAGE_ENDPOINT"] %>
+  region: <%= ENV.fetch("BACKUP_STORAGE_REGION", "default") %>
+  bucket: <%= ENV["BACKUP_STORAGE_BUCKET"] %>
+  access_key_id: <%= ENV["BACKUP_STORAGE_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["BACKUP_STORAGE_SECRET_ACCESS_KEY"] %>
+  force_path_style: true
+
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
 #   service: S3

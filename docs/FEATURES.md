@@ -611,6 +611,16 @@ Screenshots of every screen are in [screenshots](screenshots).
 - **New customer from the till** opens with the name or phone that was searched, and **Add and use on this sale** goes
   straight back to the till with the customer on the sale
 
+## Since then: shops' own backups
+
+- **Backups** under Settings › Your data: automatic every day, week or month at 02:00 in the shop's time zone, and
+  **Back up now** whenever an owner likes. Each is a ZIP of every record and file with a manifest of SHA-256 checksums
+  and row counts, read from one consistent snapshot, checked before and after it's stored
+- Owners choose how many automatic backups to keep (manual ones stay 30 days; the newest good one is never deleted),
+  and whether they're emailed after every backup or only when one fails. A failure is retried three times, then every
+  owner is emailed and support gets the details
+- Downloads and deletions are in Activity; backups go to their own storage bucket when `BACKUP_STORAGE_SERVICE` is set
+
 ## Since then: guided tours and walkthroughs
 
 - **Walkthroughs in the help centre:** the guides to finding your way around, selling at the till and products open with

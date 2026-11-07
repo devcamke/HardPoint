@@ -1,0 +1,5 @@
+<p>Hello <%= @recipient.name %>,</p>
+<p><strong><%= @account.name %></strong> was backed up on <%= l(@taken_at, format: :long) %> (<%= @backup.scheduled? ? "the #{@account.backup_frequency} backup" : "asked for by #{@backup.requested_by&.name || "an owner"}" %>).</p>
+<p><%= number_with_delimiter(@backup.row_count) %> records from <%= @backup.table_count %> kinds of record, and <%= pluralize(@backup.file_count, "image and photo", plural: "images and photos") %>: <%= number_to_human_size(@backup.byte_size) %> in all. Every file was checked after it was stored.</p>
+<p style="margin-top:24px;"><%= link_to "See your backups", account_data_url(subdomain: @account.subdomain, anchor: "backups"), style: "display:inline-block; background:#0F5E6E; color:#FFFFFF; padding:10px 16px; border-radius:6px; font-weight:700; text-decoration:none;" %></p>
+<p style="color:#6B7280; font-size:13px;">Only owners can download backups, after signing in. To get an email only when something goes wrong, change it under Settings › Your data › Backups.</p>

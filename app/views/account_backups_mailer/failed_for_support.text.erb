@@ -1,0 +1,9 @@
+Backup <%= @backup.id %> of <%= @account.name %> (<%= @account.subdomain %>, account <%= @account.id %>) failed.
+
+Kind:      <%= @backup.kind %><%= " (#{@backup.period})" if @backup.period %>
+Started:   <%= @backup.started_at&.utc&.iso8601 || "never started" %>
+Attempts:  <%= @backup.attempts %>
+Failure:   <%= @backup.failure %>
+
+The shop's owners have been emailed. Check the job logs, the backup storage service
+(BACKUP_STORAGE_SERVICE) and the replica; docs/RUNBOOK.md, "Shops' own backups".

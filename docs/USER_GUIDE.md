@@ -55,7 +55,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 - [Your profile and signing in](#my-profile): Signing in at your shop's address, forgotten passwords, two-factor and recovery codes, PINs, Switch user and the daily email.
 - [Plans, billing and read-only mode](#billing): Your free trial, paying HardPoint, changing plan and what happens if an invoice is late.
 - [Connecting a web shop or other apps](#connecting-apps): API keys and webhooks, for the developer who connects your web shop or accounts.
-- [Exporting your data and closing your account](#your-data): Download everything, and what happens when a shop is closed.
+- [Backups, exporting your data and closing your account](#your-data): Automatic and manual backups, downloading everything, and what happens when a shop is closed.
 
 ## Getting started
 
@@ -1465,9 +1465,20 @@ Your developer will find everything they need in the [API and webhook documentat
 
 <a id="your-data"></a>
 
-### Exporting your data and closing your account
+### Backups, exporting your data and closing your account
 
-_Download everything, and what happens when a shop is closed._
+_Automatic and manual backups, downloading everything, and what happens when a shop is closed._
+
+#### Backups
+
+HardPoint backs up your shop by itself every night at 2 a.m.: every record, product image and delivery photo, checked file by file after it's stored. Owners find them under **Settings › Your data › Backups**.
+
+1. To make one straight away, for example before a big price change or a stock take, press **Back up now**. It usually takes a few minutes.
+2. Choose how often backups run under **Back up automatically**: every day, every week (Mondays), every month (the 1st) or off, and how many to keep under **Automatic backups to keep**. Backups you make yourself are kept for 30 days. Press **Save**.
+3. Every owner gets an email when a backup is ready. To hear only about problems, choose **Only if one fails** under **Email the owners**. Owners are always emailed if a backup fails, and HardPoint support is told too.
+4. Press **Download** next to a backup to keep your own copy. It's a ZIP of spreadsheet (CSV) files, like an export, with a **manifest.json** that lists a checksum for every file so you can check the copy is complete.
+
+Only owners can make, download or delete backups, and each one is recorded in **Activity**. Backups work while the shop is read-only. Passwords, PINs and API keys are never included. These are your shop's own copies: HardPoint also backs up every shop every hour for its own disaster recovery.
 
 #### Exporting everything
 
