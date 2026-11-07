@@ -9,6 +9,7 @@
     <%= link_to "Print receipt", sale_receipt_path(sale, print: 1), target: "_blank", class: "btn-primary", data: { controller: "receipt-printer", action: "receipt-printer#print",
           receipt_printer_till_value: current_till.slice(:print_mode, :printer_name, :receipt_width).to_json, receipt_printer_receipt_url_value: sale_receipt_path(sale, format: :json),
           receipt_printer_auto_value: current_till.print_mode == "qz_tray" } %>
+    <%= whatsapp_button sale, phone: sale.customer&.phone, label: "WhatsApp receipt" %>
     <%= form_with url: sale_receipt_email_path(sale), class: "flex gap-2" do |form| %>
       <%= form.email_field :email, value: sale.customer&.email, placeholder: "Email receipt to…", class: "input w-52 py-1.5", "aria-label": "Email receipt to" %>
       <%= form.submit "Send", class: "btn-secondary" %>

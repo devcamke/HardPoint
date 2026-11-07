@@ -11,6 +11,7 @@
   <% if @sale.completed? || @sale.voided? %>
     <div class="flex flex-wrap gap-2">
       <%= link_to "Print receipt", sale_receipt_path(@sale, print: 1), target: "_blank", class: "btn-secondary" %>
+      <%= whatsapp_button @sale, phone: @sale.customer&.phone if @sale.completed? %>
       <%= link_to "Tax invoice (A4)", sale_invoice_path(@sale), target: "_blank", class: "btn-secondary" if @sale.completed? && @sale.customer %>
       <%= link_to "Deliver", new_delivery_note_path(sale_id: @sale.id), class: "btn-secondary" if @sale.completed? && feature?(:deliveries) %>
       <% if @sale.returnable? %><%= link_to "Return items", new_sale_return_path(@sale), class: "btn-secondary" %><% end %>
