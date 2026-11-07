@@ -21,7 +21,7 @@
         data-offline-sync-token-url-value="<%= new_pos_offline_sale_path %>" data-offline-sync-offline-url-value="<%= pos_offline_path %>"
         data-offline-sync-till-url-value="<%= pos_path %>" data-offline-sync-offline-page-value="<%= controller_name == "offlines" %>">
     <header class="flex h-12 items-center gap-4 bg-primary-500 px-4 text-sm text-white/85">
-      <%= link_to root_path, title: "Back to HardPoint" do %><%= render "shared/logo", dark: true %><% end %>
+      <%= link_to root_path(home: 1), title: "Back to HardPoint" do %><%= render "shared/logo", dark: true %><% end %>
       <span class="font-semibold text-white"><%= current_till&.name %></span>
       <span class="hidden sm:inline"><%= current_till&.branch&.name %></span>
       <% if current_shift %>

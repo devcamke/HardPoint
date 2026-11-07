@@ -26,6 +26,14 @@
     </div>
   </div>
 
+  <div class="field flex items-start gap-2">
+    <%= form.check_box :opens_till, class: "mt-1 size-4 accent-primary-500" %>
+    <div>
+      <%= form.label :opens_till, "Open straight into selling", class: "text-sm font-medium text-gray-800" %>
+      <p class="hint">On the computer set to this till, cashiers and stock clerks skip Home and go straight to the till when they sign in or switch user.</p>
+    </div>
+  </div>
+
   <div class="field flex items-center gap-2">
     <%= form.check_box :active, class: "size-4 accent-primary-500" %>
     <%= form.label :active, "In use", class: "text-sm font-medium text-gray-800" %>
