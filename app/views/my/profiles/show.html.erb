@@ -27,7 +27,7 @@
     <section class="card">
       <h2 class="text-lg font-semibold">Approval PIN</h2>
       <p class="hint mt-2">Lets you approve big discounts, voids and returns at a cashier's till without signing them out.</p>
-      <p class="mt-2"><%= @membership.approval_pin_digest? ? status_dot("Set", :success) : status_dot("Not set", :muted") %></p>
+      <p class="mt-2"><%= @membership.approval_pin_digest? ? status_dot("Set", :success) : status_dot("Not set", :muted) %></p>
       <%= link_to (@membership.approval_pin_digest? ? "Change approval PIN" : "Set an approval PIN"), edit_my_approval_pin_path, class: "btn-secondary mt-4" %>
     </section>
   <% end %>
