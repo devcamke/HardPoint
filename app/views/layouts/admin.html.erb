@@ -16,12 +16,13 @@
       <div class="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3 text-sm">
         <%= link_to admin_root_path, class: "flex items-center gap-3" do %>
           <%= render "shared/logo", dark: true %>
-          <span class="badge bg-primary-500 text-white">Platform admin</span>
+          <span class="text-sm text-white/60">Platform admin</span>
         <% end %>
         <% if current_administrator %>
           <%= link_to "Shops", admin_accounts_path, class: "hover:text-white" %>
           <%= link_to "Support", admin_support_requests_path, class: "hover:text-white" %>
           <%= link_to "Announcements", admin_announcements_path, class: "hover:text-white" %>
+          <%= link_to "Adoption", admin_adoption_path, class: "hover:text-white" %>
           <%= link_to "Database", admin_database_path, class: "hover:text-white" %>
           <span class="ml-auto"><%= current_administrator.name %></span>
           <%= button_to "Sign out", admin_session_path, method: :delete, class: "cursor-pointer hover:text-white" %>

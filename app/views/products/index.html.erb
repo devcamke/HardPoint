@@ -34,7 +34,7 @@
               <td>
                 <%= link_to product.name, product, class: "font-medium hover:text-primary-700", data: { turbo_frame: "_top" } %>
                 <%= tag.span("Kit", class: "badge ml-1") if product.kit? %>
-                <%= tag.span("Inactive", class: "badge ml-1 bg-gray-200 text-gray-500") unless product.active? %>
+                <%= status_dot("Inactive", :muted, class: "ml-2") unless product.active? %>
               </td>
               <td class="font-mono text-xs"><%= product.sku %></td>
               <td><%= product.category&.name %></td>

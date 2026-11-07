@@ -1,3 +1,1 @@
-<% classes = { "pending" => "bg-gray-200 text-gray-500", "dispatched" => "bg-amber-100 text-amber-800",
-               "delivered" => "bg-green-50 text-green-800", "cancelled" => "bg-gray-200 text-gray-500 line-through" } %>
-<span class="badge <%= classes[note.status] %>"><%= note.status.humanize %></span>
+<%= status_dot note.status.humanize, { "pending" => :muted, "dispatched" => :warning, "delivered" => :success, "cancelled" => :muted }[note.status] %>

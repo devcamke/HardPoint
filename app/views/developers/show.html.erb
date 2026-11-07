@@ -61,7 +61,7 @@
           <tr id="<%= dom_id(endpoint) %>">
             <td><%= link_to endpoint.url, endpoint, class: "link font-mono text-xs [overflow-wrap:anywhere]" %><br><span class="hint"><%= endpoint.description %></span></td>
             <td><%= pluralize(endpoint.event_types.size, "event") %></td>
-            <td><% if endpoint.enabled? %><span class="badge bg-green-50 text-green-800">On</span><% else %><span class="badge bg-red-50 text-red-800">Off</span><% end %></td>
+            <td><%= endpoint.enabled? ? status_dot("On", :success) : status_dot("Off", :muted) %></td>
             <td><%= last ? "#{last.event} · #{last.status} · #{time_ago_in_words(last.created_at)} ago" : "None yet" %></td>
           </tr>
         <% end %>

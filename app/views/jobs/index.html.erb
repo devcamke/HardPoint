@@ -16,7 +16,7 @@
         <% @jobs.each do |job| %>
           <tr id="<%= dom_id(job) %>">
             <td><%= link_to job.name, job, class: "link font-semibold" %><%= tag.span(job.reference, class: "ml-1 font-mono text-xs text-gray-500") if job.reference %>
-              <%= tag.span("Closed", class: "badge ml-1") if job.closed? %></td>
+              <%= status_dot("Closed", :muted, class: "ml-2") if job.closed? %></td>
             <td><%= job.customer.name %></td>
             <td class="text-sm"><%= job.site %></td>
             <td class="text-right tabular-nums"><%= money(@spent[job.id]) %></td>

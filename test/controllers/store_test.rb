@@ -93,7 +93,7 @@ class StoreTest < ActionDispatch::IntegrationTest
 
     sign_in_as users(:amina), account: @account
     get customer_orders_path
-    assert_select ".badge", "Online"
+    assert_select "td span", text: "Online"
 
     patch storefront_path, params: { storefront: { enabled: "1", headline: "New headline", collection_branch_ids: [ "", branches(:acme_yard).id ] } }
     assert_redirected_to edit_storefront_path

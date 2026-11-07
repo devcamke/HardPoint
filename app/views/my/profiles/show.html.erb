@@ -7,7 +7,7 @@
   <section class="card">
     <h2 class="text-lg font-semibold">Two-factor sign-in</h2>
     <% if @user.two_factor_enabled? %>
-      <p class="mt-2"><span class="badge bg-green-50 text-green-800">On</span> since <%= l(@user.two_factor_enabled_at.to_date, format: :long) %></p>
+      <p class="mt-2"><%= status_dot "On", :success %> since <%= l(@user.two_factor_enabled_at.to_date, format: :long) %></p>
       <p class="hint mt-2"><%= pluralize(@user.remaining_recovery_codes, "recovery code") %> left.</p>
 
       <%= form_with url: my_two_factor_path, method: :delete, class: "mt-4" do |form| %>
@@ -27,7 +27,7 @@
     <section class="card">
       <h2 class="text-lg font-semibold">Approval PIN</h2>
       <p class="hint mt-2">Lets you approve big discounts, voids and returns at a cashier's till without signing them out.</p>
-      <p class="mt-2"><%= @membership.approval_pin_digest? ? tag.span("Set", class: "badge bg-green-50 text-green-800") : tag.span("Not set", class: "badge bg-gray-200 text-gray-500") %></p>
+      <p class="mt-2"><%= @membership.approval_pin_digest? ? status_dot("Set", :success) : status_dot("Not set", :muted) %></p>
       <%= link_to (@membership.approval_pin_digest? ? "Change approval PIN" : "Set an approval PIN"), edit_my_approval_pin_path, class: "btn-secondary mt-4" %>
     </section>
   <% end %>
@@ -36,7 +36,7 @@
     <section class="card">
       <h2 class="text-lg font-semibold">Daily summary email</h2>
       <p class="hint mt-2">Yesterday's takings, margin, best sellers, payments and till counts, each morning at about 7:15.</p>
-      <p class="mt-2"><%= @membership.daily_summary? ? tag.span("On", class: "badge bg-green-50 text-green-800") : tag.span("Off", class: "badge bg-gray-200 text-gray-500") %></p>
+      <p class="mt-2"><%= @membership.daily_summary? ? status_dot("On", :success) : status_dot("Off", :muted) %></p>
       <%= button_to (@membership.daily_summary? ? "Stop sending it" : "Send it to me"), my_daily_summary_path, method: :patch,
             params: { daily_summary: !@membership.daily_summary? }, class: "btn-secondary mt-4" %>
     </section>
@@ -48,9 +48,9 @@
       <% if @membership.pin_digest? %>
         <p class="mt-2">
           <% if @membership.pin_locked? %>
-            <span class="badge bg-red-50 text-red-800">Locked</span> after too many wrong tries. Set a new PIN to unlock it.
+            <%= status_dot "Locked", :danger %> after too many wrong tries. Set a new PIN to unlock it.
           <% else %>
-            <span class="badge bg-green-50 text-green-800">Set</span> Use it to switch in at a till that's already signed in.
+            <%= status_dot "Set", :success %> Use it to switch in at a till that's already signed in.
           <% end %>
         </p>
         <div class="mt-4 flex gap-3">

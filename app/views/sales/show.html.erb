@@ -3,9 +3,9 @@
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="text-xl font-medium"><%= link_to "Sales", sales_path, class: "link" %> <span class="text-gray-400">/</span> <%= @sale.receipt_number || "Unfinished sale" %>
-      <% if @sale.voided? %><span class="badge bg-red-50 text-red-800">Voided</span><% elsif !@sale.completed? %><span class="badge"><%= @sale.status.humanize %></span><% end %></h1>
+      <% if @sale.voided? %><%= status_dot "Voided", :danger, class: "ml-2" %><% elsif !@sale.completed? %><%= status_dot @sale.status.humanize, :neutral, class: "ml-2" %><% end %></h1>
     <p class="hint mt-1"><%= @sale.branch.name %> · <%= @sale.register.name %> · <%= @sale.cashier.name %><%= " · #{l(@sale.completed_at, format: :long)}" if @sale.completed_at %></p>
-    <% if @sale.offline_uuid %><p class="mt-1 text-sm"><span class="badge bg-amber-100 text-amber-800">Rung up offline</span> as <span class="font-mono"><%= @sale.offline_receipt_number %></span>, sent to HardPoint <%= l(@sale.updated_at, format: :short) %></p><% end %>
+    <% if @sale.offline_uuid %><p class="mt-1 text-sm"><%= status_dot "Rung up offline", :warning %> as <span class="font-mono"><%= @sale.offline_receipt_number %></span>, sent to HardPoint <%= l(@sale.updated_at, format: :short) %></p><% end %>
     <% if @sale.voided? %><p class="mt-1 text-sm text-red-800">Voided <%= l(@sale.voided_at, format: :short) %> by <%= @sale.voided_by&.name %>: <%= @sale.void_reason %></p><% end %>
   </div>
   <% if @sale.completed? || @sale.voided? %>

@@ -14,7 +14,7 @@ class DashboardsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", "Hi Carl"
-    assert_select "a[href='#{pos_path}']", /start selling/
+    assert_select "a[href=?]", pos_path(from: "home:start_selling"), text: /start selling/
     assert_select "a[href='#{reorder_list_path}'] p.text-2xl", "1", "the PVC pipe is below its reorder level"
     assert_select "turbo-cable-stream-source", 0
     assert_select "#needs-you", 0
@@ -27,7 +27,7 @@ class DashboardsControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "#needs-you", /Needs you today/
     assert_select "#task_low_stock", /1 product running low/ do
-      assert_select "a[href=?]", reorder_list_path(branch_id: branches(:acme_main).id), text: "Order them"
+      assert_select "a[href=?]", reorder_list_path(branch_id: branches(:acme_main).id, from: "home:low_stock"), text: "Order them"
     end
     assert_select "nav[aria-label='Quick actions'] a", text: "New product"
   end

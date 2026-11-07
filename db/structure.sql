@@ -3210,6 +3210,42 @@ ALTER SEQUENCE public.units_id_seq OWNED BY public.units.id;
 
 
 --
+-- Name: usage_counts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.usage_counts (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    name character varying NOT NULL,
+    "on" date NOT NULL,
+    count integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.usage_counts FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: usage_counts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.usage_counts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: usage_counts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.usage_counts_id_seq OWNED BY public.usage_counts.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3880,6 +3916,13 @@ ALTER TABLE ONLY public.units ALTER COLUMN id SET DEFAULT nextval('public.units_
 
 
 --
+-- Name: usage_counts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.usage_counts ALTER COLUMN id SET DEFAULT nextval('public.usage_counts_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4538,6 +4581,14 @@ ALTER TABLE ONLY public.tax_rates
 
 ALTER TABLE ONLY public.units
     ADD CONSTRAINT units_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: usage_counts usage_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.usage_counts
+    ADD CONSTRAINT usage_counts_pkey PRIMARY KEY (id);
 
 
 --
@@ -6406,6 +6457,20 @@ CREATE UNIQUE INDEX index_units_on_account_id_and_name ON public.units USING btr
 
 
 --
+-- Name: index_usage_counts_on_account_id_and_name_and_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_usage_counts_on_account_id_and_name_and_on ON public.usage_counts USING btree (account_id, name, "on");
+
+
+--
+-- Name: index_usage_counts_on_on_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_usage_counts_on_on_and_name ON public.usage_counts USING btree ("on", name);
+
+
+--
 -- Name: index_users_on_email_address; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7309,6 +7374,14 @@ ALTER TABLE ONLY public.stock_transfers
 
 ALTER TABLE ONLY public.stock_counts
     ADD CONSTRAINT fk_rails_74decdd260 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: usage_counts fk_rails_74fbe3f9d3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.usage_counts
+    ADD CONSTRAINT fk_rails_74fbe3f9d3 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -8799,6 +8872,13 @@ CREATE POLICY account_isolation ON public.units USING (((current_setting('app.by
 
 
 --
+-- Name: usage_counts account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.usage_counts USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: webhook_deliveries account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -9233,6 +9313,12 @@ ALTER TABLE public.tax_rates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: usage_counts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.usage_counts ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: webhook_deliveries; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9251,6 +9337,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107140000'),
 ('20261107130000'),
 ('20261107120000'),
 ('20261024120500'),

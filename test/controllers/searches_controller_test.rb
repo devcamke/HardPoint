@@ -8,7 +8,7 @@ class SearchesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "turbo-frame#search_results" do
       assert_select "h2", "Products"
-      assert_select "a[href='#{product_path(products(:acme_pipe))}']", /PVC pipe 2 inch 6m/
+      assert_select "a[href=?]", product_path(products(:acme_pipe), from: "search:products"), text: /PVC pipe 2 inch 6m/
       assert_select "h2", "Do something with PVC pipe 2 inch 6m"
       assert_select "a", /Order more/
     end
@@ -17,10 +17,10 @@ class SearchesControllerTest < ActionDispatch::IntegrationTest
 
   test "pages are found by their name and by the name they used to have" do
     get search_path(q: "reorder suggestions"), headers: { "Turbo-Frame" => "search_results" }
-    assert_select "a[href='#{reorder_list_path}']", /Reorder/
+    assert_select "a[href=?]", reorder_list_path(from: "search:pages"), text: /Reorder/
 
     get search_path(q: "tax"), headers: { "Turbo-Frame" => "search_results" }
-    assert_select "a[href='#{tax_rates_path}']", /Tax rates/
+    assert_select "a[href=?]", tax_rates_path(from: "search:pages"), text: /Tax rates/
   end
 
   test "a document number opens that document" do
@@ -28,7 +28,7 @@ class SearchesControllerTest < ActionDispatch::IntegrationTest
       lines_attributes: [ { account: accounts(:acme), product: products(:acme_cement), quantity: 10, unit_cost_cents: 68_000 } ]) }
 
     get search_path(q: Account.without_isolation { order.reference }), headers: { "Turbo-Frame" => "search_results" }
-    assert_select "a[href='#{purchase_order_path(order)}']"
+    assert_select "a[href=?]", purchase_order_path(order, from: "search:documents")
   end
 
   test "a scanned barcode goes straight to its product" do

@@ -1,2 +1,1 @@
-<% classes = { "counting" => "bg-gray-50 text-gray-700", "submitted" => "bg-amber-100 text-amber-800", "approved" => "bg-green-50 text-green-800", "cancelled" => "bg-gray-200 text-gray-500" } %>
-<span class="badge <%= classes[count.status] %>"><%= count.status == "submitted" ? "Awaiting approval" : count.status.humanize %></span>
+<%= status_dot count.status == "submitted" ? "Awaiting approval" : count.status.humanize, { "counting" => :neutral, "submitted" => :warning, "approved" => :success, "cancelled" => :muted }[count.status] %>

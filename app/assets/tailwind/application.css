@@ -73,8 +73,9 @@
   @apply text-sm text-gray-500;
 }
 
+/* A plain label for things that aren't statuses (Kit, Default, Optional). Statuses use status_dot. */
 @utility badge {
-  @apply inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700;
+  @apply inline-flex items-center rounded border border-gray-200 px-1.5 text-xs font-normal text-gray-600;
 }
 
 @layer components {

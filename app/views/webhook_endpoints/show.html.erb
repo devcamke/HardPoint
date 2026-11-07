@@ -47,9 +47,9 @@
                 <pre class="mt-1 max-h-64 max-w-xl overflow-auto rounded bg-gray-100 p-2 text-xs"><%= JSON.pretty_generate(delivery.payload) %></pre></details></td>
             <td class="whitespace-nowrap"><%= l(delivery.created_at, format: :short) %></td>
             <td>
-              <% if delivery.delivered? %><span class="badge bg-green-50 text-green-800">Delivered</span> <span class="hint"><%= delivery.response_status %></span>
-              <% elsif delivery.failed? %><span class="badge bg-red-50 text-red-800">Failed</span> <span class="hint"><%= delivery.last_error %></span>
-              <% else %><span class="badge bg-amber-100 text-amber-800">Retrying</span> <span class="hint"><%= delivery.last_error %><%= " · next #{time_ago_in_words(delivery.next_attempt_at)} from now" if delivery.attempts.positive? && delivery.next_attempt_at&.future? %></span>
+              <% if delivery.delivered? %><%= status_dot "Delivered", :success %> <span class="hint"><%= delivery.response_status %></span>
+              <% elsif delivery.failed? %><%= status_dot "Failed", :danger %> <span class="hint"><%= delivery.last_error %></span>
+              <% else %><%= status_dot "Retrying", :warning %> <span class="hint"><%= delivery.last_error %><%= " · next #{time_ago_in_words(delivery.next_attempt_at)} from now" if delivery.attempts.positive? && delivery.next_attempt_at&.future? %></span>
               <% end %>
             </td>
             <td class="tabular-nums"><%= delivery.attempts %></td>

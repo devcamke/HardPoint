@@ -1,2 +1,2 @@
 <% status = promotion.status %>
-<%= tag.span(status.humanize, class: class_names("badge", "bg-green-50 text-green-800" => status == "running", "bg-amber-100 text-amber-800" => status == "upcoming")) %>
+<%= status_dot status.humanize, { "running" => :success, "upcoming" => :warning }.fetch(status, :muted) %>

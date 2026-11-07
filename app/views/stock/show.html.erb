@@ -42,9 +42,9 @@
     </table>
     <p class="mt-3 text-sm">
       <% if @valuation.reconciled? %>
-        <span class="badge bg-green-50 text-green-800">✓ Balanced</span> <span class="hint">Every stock level equals the sum of its movements.</span>
+        <%= status_dot "Balanced", :success %> <span class="hint">Every stock level equals the sum of its movements.</span>
       <% else %>
-        <span class="badge bg-red-50 text-red-800">Needs attention</span> <span class="hint">Some stock levels don't match their movements.</span>
+        <%= status_dot "Needs attention", :danger %> <span class="hint">Some stock levels don't match their movements.</span>
       <% end %>
     </p>
   </section>

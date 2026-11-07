@@ -29,7 +29,8 @@
       <% end %>
       <%= link_to "Sales", sales_path, class: "hover:text-white" %>
       <div class="ml-auto flex items-center gap-4">
-        <span class="rounded-full px-2 py-0.5 text-xs font-semibold data-[state=online]:bg-green-700 data-[state=online]:text-white data-[state=offline]:bg-amber-300 data-[state=offline]:text-gray-900"
+        <%# A dot for the connection, drawn in CSS so it survives the controller rewriting the text. %>
+        <span class="inline-flex items-center gap-1.5 text-xs before:size-2 before:rounded-full before:bg-gray-400 data-[state=online]:before:bg-green-400 data-[state=offline]:text-amber-200 data-[state=offline]:before:bg-amber-400"
               data-offline-sync-target="status" role="status" aria-live="polite">Checking…</span>
         <%= link_to "Customer display", pos_display_path, target: "hardpoint-display", class: "hidden hover:text-white lg:inline" %>
         <% if current_till&.print_mode == "qz_tray" %>

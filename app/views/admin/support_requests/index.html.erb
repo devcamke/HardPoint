@@ -3,9 +3,10 @@
 <h1 class="mb-6 text-xl font-medium">Support requests</h1>
 <p class="hint mb-4">Each one is also emailed to <%= Rails.configuration.x.support[:email] %>; reply from there.</p>
 
-<nav class="mb-4 flex gap-2 text-sm" aria-label="Filter by status">
+<nav class="mb-4 flex gap-1 border-b border-gray-200 text-sm" aria-label="Filter by status">
   <% %w[ open resolved all ].each do |status| %>
-    <%= link_to status.humanize, admin_support_requests_path(status: status), class: "rounded-full px-3 py-1 #{@status == status ? "bg-primary-500 text-white" : "bg-white"}" %>
+    <% active = @status == status %>
+    <%= link_to status.humanize, admin_support_requests_path(status: status), class: class_names("-mb-px border-b-2 px-3 py-2 hover:text-primary-700", active ? "border-primary-500 font-medium text-gray-900" : "border-transparent text-gray-600"), aria: { current: ("page" if active) } %>
   <% end %>
 </nav>
 

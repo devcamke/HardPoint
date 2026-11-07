@@ -20,9 +20,9 @@
     <section class="card flex flex-wrap items-start justify-between gap-4">
       <div>
         <h2 class="text-lg font-semibold"><%= device.branch.name %>
-          <span class="badge <%= device.environment == "production" ? "bg-green-50 text-green-800" : "bg-amber-100 text-amber-800" %>"><%= device.environment.humanize %></span>
-          <%= device.initialized? ? tag.span("Set up", class: "badge bg-green-50 text-green-800") : tag.span("Not set up", class: "badge bg-gray-200 text-gray-500") %>
-          <%= tag.span("Off", class: "badge bg-gray-200 text-gray-500") unless device.active? %></h2>
+          <%= status_dot device.environment.humanize, device.environment == "production" ? :success : :warning, class: "ml-2" %>
+          <%= device.initialized? ? status_dot("Set up", :success, class: "ml-2") : status_dot("Not set up", :muted, class: "ml-2") %>
+          <%= status_dot("Off", :muted, class: "ml-2") unless device.active? %></h2>
         <p class="hint mt-1">PIN <%= device.tin %> · branch <%= device.bhf_id %> · serial <%= device.serial_number %>
           <%= "· control unit #{device.sdc_id}" if device.sdc_id %></p>
       </div>
