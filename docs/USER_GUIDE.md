@@ -343,7 +343,7 @@ The till is a full-screen page made for a barcode scanner and a busy counter. Op
 
 1. **Scan or search.** Scan a barcode and it's in the sale. No scanner? Type a few letters of the name or SKU and press the product. F2 brings you back here.
 2. **Browse by category.** Quick picks are your best sellers. Press a category to see everything in it, handy on a touch screen.
-3. **Tap to add.** Each button shows the price and how many you have at this branch. Pack sizes, like a box of screws, have their own button underneath.
+3. **Tap to add.** Each button shows the price and how many you have at this branch. Tap one and a box asks how many, with 1 ready to confirm. Pack sizes, like a box of screws, have their own button underneath.
 4. **Who's buying?** Walk-in by default. Press Change to choose a customer, so their prices, credit and KRA PIN go on the receipt.
 5. **The sale.** Change a quantity with − and +, or type it. Discount gives money off one line, and × removes it.
 6. **Totals and discount.** Press Discount for money off the whole sale, as an amount or a percentage. Over your shop's limit, a manager types their approval PIN.
@@ -371,7 +371,7 @@ Keyboard shortcuts: **F2** goes to the scan box, **F8** parks the sale, **F9** t
 
 The till works without a keyboard or scanner, on a touch-screen POS terminal, a tablet or a phone:
 
-- Tap **Quick picks** or a category along the top of the products, then tap a product to add it. A category shows its subcategories' products too. Products are put into categories on the product form.
+- Tap **Quick picks** or a category along the top of the products, then tap a product. A box asks how many, with 1 ready: tap **Add to sale** (or press Enter), or type the quantity or use **+** and **−** first. Scanning a barcode still adds one straight away. A category shows its subcategories' products too. Products are put into categories on the product form.
 - Use **+** and **−** on a line to change the quantity, or tap the number to type one, and **✕** to take it off.
 - Tap **Cash received** (or the amount for M-Pesa or card) and a number pad opens. **Exact** fills in the amount due, **C** clears it and **⌫** takes off a digit. The button with the dots beside the amount opens and closes the pad, and each till remembers how you left it.
 - The device's own keyboard stays out of the way while a scanner is plugged in; tap the scan box when you want to type a search.

@@ -1,24 +1,30 @@
+<% trial = Plan::TRIAL.inspect %>
+<% structured_data seo_organization, seo_software(@plans) %>
 <% features = [
-  [ "Point of Sale", "#e46f2f", :till, "Barcode scanning, sales by the metre, kilo or pack, parked sales and split payments." ],
-  [ "M-Pesa", "#4d9f6f", :sales, "Payment prompts from the till, and Paybill and Till payments matched to sales." ],
-  [ "KRA eTIMS", "#3f7fbf", :purchasing, "Sales, voids and returns go to KRA. The signed QR code prints on the receipt." ],
-  [ "Offline till", "#6c757d", :dashboard, "The till keeps selling without internet and uploads the sales when it reconnects." ],
-  [ "Inventory", "#26a69a", :stock, "Stock per branch, transfers, stock takes, reorder levels, batches and expiry dates." ],
-  [ "Purchase", "#8e6bbf", :purchasing, "Purchase orders, goods received, supplier invoices and supplier returns." ],
-  [ "Customers", "#d9534f", :staff, "Quotes, orders with deposits, credit accounts, statements and SMS reminders." ],
-  [ "Reports", "#5b8def", :reports, "Sales, margin, VAT, payments and slow-moving stock, and a daily summary email." ]
+  [ "Point of Sale", "#e46f2f", :till, "Scan, search or tap a product and confirm how many. Sell by the metre, kilo or pack, park sales and split payments." ],
+  [ "Touch screens and phones", "#c2571d", :products, "Finger-sized buttons, categories and a number pad on POS terminals and tablets. Phones show the products and the sale as two tabs." ],
+  [ "M-Pesa, Airtel Money and card", "#4d9f6f", :sales, "Payment prompts from the till, Paybill and Till payments matched to sales, and cash, card, foreign notes or on account." ],
+  [ "KRA eTIMS", "#3f7fbf", :purchasing, "Every sale, void and return signed by KRA, one control unit per branch. The QR code prints on the receipt." ],
+  [ "Offline till", "#6c757d", :dashboard, "Keeps selling from its own copy of the catalogue, customers and promotions, and sends the sales when it reconnects." ],
+  [ "Shifts and cash", "#b8860b", :settings, "Opening float, cash drops and payouts, X and Z reports, a blind count at close, and manager approval PINs." ],
+  [ "Inventory", "#26a69a", :stock, "Stock per branch, transfers, stock takes, reorder levels, batches and expiry, barcode labels and a phone app for counting." ],
+  [ "Purchasing", "#8e6bbf", :purchasing, "Purchase orders by email, reorder suggestions, goods received with landed costs, supplier invoices, payments and returns." ],
+  [ "Customers and accounts", "#d9534f", :staff, "Quotes, orders with deposits, credit limits, statements, price lists, promotions, and receipts by SMS or WhatsApp." ],
+  [ "Contractors and deliveries", "#a0522d", :sales, "Tag purchases to a contractor's job and bill their client. Delivery notes with transport charges and proof of delivery." ],
+  [ "Online store", "#0f5e6e", :products, "Your own shop page for click-and-collect, paid ahead by M-Pesa or on collection." ],
+  [ "Reports and dashboard", "#5b8def", :reports, "A live dashboard, and sales, profit, VAT, stock and shift reports to print or export. Daily summary email and QuickBooks export." ]
 ] %>
 
 <section class="bg-white">
   <div class="mx-auto max-w-4xl px-4 pt-16 pb-12 text-center lg:pt-24">
     <h1 class="text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">Point of sale and stock control for hardware stores</h1>
-    <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600">Sell at the counter, track stock across branches, take M-Pesa and send every sale to KRA eTIMS.
-      The till keeps working when the internet is down.</p>
+    <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600">Sell at the counter or on a tablet, track stock across branches, take M-Pesa and Airtel Money,
+      and send every sale to KRA eTIMS. The till keeps working when the internet is down.</p>
     <div class="mt-8 flex flex-wrap justify-center gap-3">
       <%= link_to "Start free trial", new_signup_path, class: "btn-primary px-5 py-2.5 text-base" %>
       <%= link_to "See pricing", pricing_path, class: "btn-secondary px-5 py-2.5 text-base" %>
     </div>
-    <p class="mt-3 text-sm text-gray-500">30 days free. No card needed.</p>
+    <p class="mt-3 text-sm text-gray-500"><%= trial.capitalize %> free. No card needed.</p>
   </div>
   <div class="mx-auto max-w-5xl px-4">
     <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard", class: "w-full rounded-t-lg border border-b-0 border-gray-200 shadow-xl", width: 1280, height: 800 %>
@@ -49,18 +55,21 @@
     <div>
       <h2 class="text-2xl font-semibold">Getting started</h2>
       <ol class="mt-6 space-y-5">
-        <% [ [ "Create your shop", "Choose a web address and set up the owner's login." ],
-             [ "Add products", "Import a spreadsheet or add them one at a time." ],
-             [ "Add staff and tills", "Invite staff, set their roles and connect a receipt printer." ],
-             [ "Sell", "Cash, M-Pesa, card or on account." ] ].each.with_index(1) do |(title, body), step| %>
+        <% [ [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed." ],
+             [ "Name your branches and tills", "Check your tax rates and switch on only the features you use." ],
+             [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time." ],
+             [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work." ],
+             [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till." ] ].each.with_index(1) do |(title, body), step| %>
           <li class="flex gap-4">
             <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-500 text-sm font-semibold text-white"><%= step %></span>
             <div><p class="font-semibold"><%= title %></p><p class="text-sm text-gray-600"><%= body %></p></div>
           </li>
         <% end %>
       </ol>
+      <p class="mt-6 text-sm text-gray-600">A <strong>Set up your shop</strong> checklist walks you through it, and guided tours show each screen
+        when you first use it. Help guides are at <%= link_to "hardpoint.app/help", help_url(subdomain: false), class: "link" %>.</p>
     </div>
-    <%= image_tag "marketing/till.png", alt: "The HardPoint till with a customer's cart", class: "w-full rounded-lg border border-gray-200 shadow-lg", width: 1280, height: 800 %>
+    <%= image_tag "marketing/till.png", alt: "The HardPoint till asking how many kilos of nails to add to a sale", class: "w-full rounded-lg border border-gray-200 shadow-lg", width: 1280, height: 800 %>
   </div>
 </section>
 

@@ -12,7 +12,7 @@
             <%= plan.limit(resource) ? Plan.allowance(plan.limit(resource), resource) : "Unlimited #{Plan::NOUNS[resource].pluralize}" %>
           </li>
         <% end %>
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> M-Pesa, KRA eTIMS and offline selling</li>
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> M-Pesa, Airtel Money, KRA eTIMS and offline selling</li>
         <% if plan.api? %><li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> API and webhooks for web shops and other apps</li><% end %>
       </ul>
       <%= link_to "Start free trial", new_signup_path(plan: plan.key), class: "#{plan.key == "business" ? "btn-primary" : "btn-secondary"} mt-6 w-full" %>

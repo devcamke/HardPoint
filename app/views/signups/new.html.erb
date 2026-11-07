@@ -1,8 +1,9 @@
 <% content_for :title, "Open your shop" %>
+<% content_for :description, "Open your hardware store on HardPoint: your own web address, till, stock and M-Pesa in minutes. #{Plan::TRIAL.inspect.capitalize} free, no card needed." %>
 
 <section class="mx-auto max-w-xl px-4 py-12">
 <h1 class="text-xl font-medium">Open your shop</h1>
-<p class="mt-2 mb-8 text-gray-500">Free for 30 days, no card needed. Your shop's data is private to your shop.</p>
+<p class="mt-2 mb-8 text-gray-500">Free for <%= Plan::TRIAL.inspect %>, no card needed. Your shop's data is private to your shop.</p>
 
 <div class="card">
   <%# Turbo can't follow the redirect to the new shop's subdomain (another origin), so submit normally. %>

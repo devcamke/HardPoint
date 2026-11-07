@@ -1,4 +1,5 @@
-<% content_for :title, "Pricing" %>
+<% content_for :title, "Pricing for hardware store POS in Kenya" %>
+<% content_for :description, "#{@plans.map { "#{_1.name} KES #{number_with_delimiter(_1.price_cents / 100)}" }.to_sentence} a month per shop. M-Pesa, KRA eTIMS and offline selling included. #{Plan::TRIAL.inspect.capitalize} free." %>
 <% faqs = [
   [ "What happens after the free trial?", "We email your first invoice when the trial ends. You have a week to pay it by M-Pesa or card from the Billing page, and we remind you before it's due." ],
   [ "What if an invoice isn't paid?", "After the week's grace the shop becomes read-only: you and your staff can still sign in, look up anything and export your data, but can't sell or change things until it's paid. Nothing is deleted." ],
@@ -7,6 +8,7 @@
   [ "Can I take my data with me?", "Always. Export everything as spreadsheets (CSV) from Settings, whether or not you're paying, and close your account whenever you want." ],
   [ "Do I need special hardware?", "No. HardPoint runs in the browser on any computer or tablet. USB barcode scanners work as they are, and receipts print on 58 mm or 80 mm thermal printers." ]
 ] %>
+<% structured_data seo_software(@plans), seo_faq(faqs) %>
 
 <section class="mx-auto max-w-6xl px-4 py-16">
   <h1 class="text-center text-4xl font-semibold">Pricing</h1>

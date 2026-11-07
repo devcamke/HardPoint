@@ -352,6 +352,10 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # For search engines: what they may read on this host, and the public site's pages (bare domain only).
+  get "robots.txt" => "seo#robots", as: :robots, format: false
+  get "sitemap.xml" => "seo#sitemap", as: :sitemap, format: false
+
   # The installable till (web app manifest) and its service worker, which must sit at the root to cover every page.
   get "manifest" => "pwa#manifest", as: :pwa_manifest
   get "stock-manifest" => "pwa#stock_manifest", as: :pwa_stock_manifest

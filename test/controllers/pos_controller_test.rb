@@ -88,6 +88,17 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_select "form button", text: /Claw hammer/, count: 0
   end
 
+  test "a tapped tile asks how many, and the answer goes on the sale" do
+    cement = products(:acme_cement)
+    get pos_products_path
+    assert_select "form[data-action='submit->quantity-prompt#ask'][data-product-id='#{cement.id}'][data-name='#{cement.name}']"
+    assert_select "dialog[data-quantity-prompt-target=dialog] form[action='#{pos_lines_path}'] input[name=quantity][value='1']"
+
+    post pos_lines_path, params: { product_id: cement.id, product_unit_id: "", quantity: "4" }, as: :turbo_stream
+    assert_response :success
+    assert_equal 4, Account.without_isolation { current_sale.lines.sole.quantity }
+  end
+
   test "one more, one less, and the phone's sale tab keeps count" do
     post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
     line = Account.without_isolation { current_sale.lines.sole }

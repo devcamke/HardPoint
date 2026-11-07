@@ -42,7 +42,10 @@ const prepare = {
     const buttons = page.locator("#search_results form button[type=submit], #search_results button[type=submit]")
     for (const index of [ 0, 2 ]) {
       if (await lines.count() >= 2) break
+      // A tapped tile asks how many: 2 of each, so the lines show a quantity.
       await buttons.nth(index).click()
+      await page.locator("dialog[open] input[name=quantity]").fill("2")
+      await page.locator("dialog[open]").getByRole("button", { name: "Add to sale" }).click()
       await page.waitForTimeout(800)
     }
     await page.locator("[data-tour=take-payment]").waitFor()
