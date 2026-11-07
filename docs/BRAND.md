@@ -1,14 +1,27 @@
 # HardPoint look and layout
 
-The back office follows Odoo's layout, so it looks familiar to anyone who has used a business suite, in its own petrol teal.
+The back office is arranged in a few areas named for the job to be done, in petrol teal. Lists and forms follow Odoo's
+layout, so they look familiar to anyone who has used a business suite. Why it's arranged this way: [SIMPLIFY.md](SIMPLIFY.md).
 
 ## Layout
 
-- **Home menu:** the grid button at the top left opens a full-screen menu of apps (Dashboard, Point of Sale,
-  Sales, Tool Hire, Products, Inventory, Purchase, Reports, Employees, Settings, Help). Staff who can't see the
-  dashboard land on the same tiles. The apps and their menus are defined in `app/helpers/navigation_helper.rb`.
-- **Top bar:** the current app's name followed by that app's menu. The user menu (profile, switch user, help,
-  sign out) is under the initials at the top right.
+- **Top bar:** the logo (to Home), then six areas: **Home, Sell, Customers, Stock, Buy, Reports**, limited to what
+  the person's role uses. On the right: **Search** (Ctrl K), **Open till** for those who sell, the ⚙ for Settings,
+  and the user menu (profile, switch user, help, sign out) under the initials. The areas and their menus are defined
+  in `app/helpers/navigation_helper.rb`; pages reached from inside an area are listed as its `prefixes`, so the area
+  stays highlighted.
+- **Area menu:** a white bar under the top bar with the current area's pages; the current one is underlined.
+  Each page has one home: never list a page in two menus. Settings (catalogue lists, staff, activity) is the place
+  for things set up once.
+- **Optional features:** anything only some shops use is switched on in Settings › Features
+  (`Account::Features`). Guard its menu entry, Settings tile, Home row and form fields with `feature?(:key)`.
+- **Home:** owners and managers get today's numbers and **Needs you today** (`HomeHelper#home_tasks`): one row per
+  thing to act on, with the button that does it. Every number on Home should lead to an action. Staff without
+  reports get one big **Start selling** button.
+- **Search** (`SearchesController`, `command_palette_controller.js`): products, customers, suppliers, document
+  numbers and pages. When a page is renamed or moved, add its old name to its keywords in `SearchHelper`.
+- **Forms:** the fields people fill in nine times out of ten up front; the rest under **More options** with a
+  one-line summary of the defaults it's using.
 - **Control panel on list pages** (`app/views/shared/_control_panel.html.erb`): the **New** button and title on
   the left with a ⚙ menu for other actions, the search bar in the middle, and the pager (`1-50 ‹ ›`) on the right.
   Active filters show in the search bar as facets ("Status: Open orders ×"); the ▾ opens the filters. Enter

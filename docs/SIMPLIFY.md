@@ -8,7 +8,10 @@ This plan keeps every feature. It changes **what people see by default** and **h
 take**. The images in [`docs/simplify/`](simplify/) are mockups of the proposed screens. Screens marked
 "today" are real screenshots from `docs/screenshots/`.
 
-**Contents:** [What makes it hard today](#what-makes-it-hard-today) · [Principles](#principles) ·
+> **Status: built.** All four phases are in the app. [What was built](#what-was-built) has screenshots of the real
+> screens and lists where the build differs from this plan.
+
+**Contents:** [What was built](#what-was-built) · [What makes it hard today](#what-makes-it-hard-today) · [Principles](#principles) ·
 [The seven changes](#the-seven-changes) · [Order of work](#order-of-work) · [How we'll know it worked](#how-well-know-it-worked) ·
 [Risks](#risks)
 
@@ -175,3 +178,50 @@ for the new navigation and feature switches.
 | A shop loses sight of a feature it uses | Migration switches on any feature the shop has data for; switching off never deletes data. |
 | Hiding fields hides mistakes (e.g. wrong tax rate) | Defaults come from shop settings; "More options" shows a one-line summary of the defaults it's using. |
 | Bigger shops want the detail back | Managers can still reach everything from Settings, Reports and search; the Features page is the single switch. |
+
+## What was built
+
+All seven changes shipped, in the four phases above. These are screenshots of the real app with the demo shop's data.
+
+| | |
+|---|---|
+| ![Owner home](screenshots/310-home-owner.png) Home for owners and managers | ![Cashier home](screenshots/315-home-cashier.png) Home for cashiers |
+| ![Reorder](screenshots/311-reorder.png) Stock › Reorder | ![Features](screenshots/312-features.png) Settings › Features |
+| ![Product form](screenshots/313-product-form.png) New product | ![Search](screenshots/314-search.png) Search (Ctrl K) |
+
+Where the code lives:
+
+| Change | Code |
+|---|---|
+| 1. Six areas | `NavigationHelper#navigation_apps`, `#settings_app`; `shared/_navigation` |
+| 2. Needs you today | `HomeHelper#home_tasks`, `#home_quick_actions`; `dashboards/_owner` |
+| 3. Cashier home | `DashboardsController`, `dashboards/show` |
+| 4. Feature switches | `Account::Features`, `FeaturesController`, migration `AddFeaturesToAccounts` |
+| 5. Product form | `products/_form`, `ProductsController#create` (opening stock, add another) |
+| 6. One Reorder page | `ReorderListsController`, `PurchaseOrdersController#create_all_from_suggestions`; the old address redirects |
+| 7. Search | `SearchesController`, `SearchHelper`, `command_palette_controller.js` |
+
+### Where the build differs from the plan
+
+- **Features:** customer accounts, quotes and orders, more than one branch, and kits and pack sizes are always on
+  rather than switchable, because the till and reports lean on them everywhere. Serial numbers and the API were
+  added to the list. A feature can't be switched off while it's live (a promotion running, tools out on hire,
+  products recording batches), so switching one off never changes what the till does; the page says what to
+  finish first.
+- **Setup checklist:** the new step links to Settings › Features (optional, like M-Pesa and eTIMS) instead of
+  asking four yes/no questions.
+- **Home:** the hourly chart, best sellers and takings by branch stayed on Home, below the to-do list, rather than
+  moving to a new Reports page. The overdue-customers row opens Who owes us ("See who"), where reminders are sent
+  per customer; there is no bulk "send reminders" yet.
+- **Product form:** the reorder level isn't suggested automatically; it stays 0 (no low-stock alert) until set.
+  Products that record batches get their stock through receiving, not the opening-stock field.
+- **Moved pages:** instead of a one-time "menus have moved" banner, the help guide "Getting around" has a
+  *Where things moved* section and search finds pages by their old names. Old addresses redirect.
+- **Movements** already had a "Full history" link on each product, so it stays reachable from there and from
+  *All movements* on Stock levels, without a new tab.
+
+### Not done yet
+
+- The same "More options" review for the customer, supplier, purchase order and quote forms.
+- A per-till setting to open straight into the till on counter computers.
+- Measuring the results in [How we'll know it worked](#how-well-know-it-worked).

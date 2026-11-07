@@ -4,7 +4,7 @@ Point of sale and stock control for hardware stores, as a service. A shop signs 
 (`acme.hardpoint.app`), and runs its tills, stock, suppliers, customers and books from a browser, with M-Pesa and
 KRA eTIMS built in. The till keeps selling when the internet drops. No shop can see another shop's data.
 
-![Owner dashboard](docs/screenshots/90-owner-dashboard.png)
+![Home for the owner: today's numbers and what needs doing](docs/screenshots/310-home-owner.png)
 
 **Contents:** [What it does](#what-it-does) · [Try it on your machine](#try-it-on-your-machine) ·
 [Documentation](#documentation) · [How it's built](#how-its-built) · [How shop data is kept apart](#how-shop-data-is-kept-apart) ·
@@ -69,7 +69,7 @@ Guides: [Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes
 [Stock on your phone](https://hardpoint.app/help/stock-on-your-phone) ·
 [Batches and expiry](https://hardpoint.app/help/batches-and-expiry)
 
-![Reorder suggestions](docs/screenshots/62-reorder-suggestions.png)
+![Stock › Reorder](docs/screenshots/311-reorder.png)
 
 ### Money, tax and reports
 
@@ -208,7 +208,7 @@ bin/bundler-audit
 ```
 
 **Changing a screen?** Follow [docs/BRAND.md](docs/BRAND.md), and update the help guide that describes it: the
-guides name buttons and menus exactly as they appear (for example **Inventory › Stock takes**), so a renamed button
+guides name buttons and menus exactly as they appear (for example **Stock › Stock takes**), so a renamed button
 needs its guide changed too.
 
 **Adding a help guide:** add a line to `HelpArticle.all` in `app/models/help_article.rb` (slug, title, one-line
