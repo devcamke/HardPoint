@@ -4,6 +4,7 @@
       title: "Products",
       new_button: ([ "New", new_product_path ] if current_membership.can_manage_catalogue?),
       actions: [ ([ "Import", new_product_import_path ] if current_membership.can_manage_catalogue?),
+                 ([ "Change prices", new_price_change_path ] if current_membership.can_manage_catalogue?),
                  [ "Export CSV", products_path(request.query_parameters.merge(format: :csv)), { data: { turbo: false } } ],
                  [ "Print labels", new_labels_path(query: params[:query], category_id: params[:category_id]) ] ].compact,
       search: { placeholder: "Search name, SKU or scan a barcode", autofocus: true },

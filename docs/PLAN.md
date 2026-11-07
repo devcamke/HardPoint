@@ -123,6 +123,7 @@ customers, staff, or reports.
 | 28 — Daily exchange rate | **Done:** market rates fetched each morning (one request per home currency); market rate shown per currency with a one-click apply; follow the daily rate less a margin; big moves held for a manager; failures change nothing. |
 | 29 — Shop-editable hire terms | **Done:** owners and managers write the terms printed on hire agreements (one per line, up to 20, with a preview), or keep the standard ones; each agreement keeps a copy of the terms it was made under. **Removed in Phase 30.** |
 | 30 — Tool hire, loyalty points and the customer display removed | **Done:** tool hire, hire terms, loyalty points and the customer display removed (code, help, tables); hire orders and points payments kept with their receipts and eTIMS; the activity log reads entries about removed records; labour lines dropped from the backlog. |
+| 31 — WhatsApp, transport, bulk prices, QuickBooks and Airtel Money | **Done (Airtel Money to be proven against Airtel's sandbox):** WhatsApp buttons on receipts, quotes and orders, statements, purchase orders and delivery notes, with signed 30-day links to that one document; transport charges at the till or on a delivery note (an order for the customer); bulk price changes by category, brand or supplier with rounding and a full preview; a QuickBooks Online export (journal entries, customers, suppliers, skipped items) with shop-set account names; Airtel Money prompts, callbacks, typed IDs and late payments, as a tender everywhere M-Pesa is. |
 | 27 — Contractor jobs, continued | **Done:** client name and markup on jobs; materials bill PDF on the contractor's letterhead; open jobs in the till snapshot, job picker and receipt line on the offline till; closed-job handling on sync. |
 | 26 — Counting by batch | **Done:** batch rows in stock takes (snapshot of batches and unbatched stock); counting by batch on the page, by scanning with a batch number and on the phone; batches found on the shelf added with expiry; approval per batch, never below zero; help and tenant sweep updated. |
 | 25 — Points on the offline till | **Done:** balances and scheme terms in the till snapshot; points tender offline with device-side tracking of points spent; shared Ruby/JS rules; server records the points payment, caps cash when points fall short, and parks the sale with a warning; checked in a browser offline and synced. **Removed in Phase 30.** |
@@ -733,6 +734,30 @@ set of books.
 - **Kept:** the "hire" orders with their money and tax records, the "Tool hire" product they sold, payments made with
   points, and old log entries (the activity log reads entries about records that no longer exist).
 - **Labour lines** on a contractor's client bill are dropped from the backlog.
+
+### Phase 31 — WhatsApp, transport, bulk prices, QuickBooks and Airtel Money
+**Goal:** the everyday Kenyan workflows that were missing.
+- **WhatsApp sharing:** a button that opens WhatsApp with a message and a link to the receipt, quote or order,
+  statement, purchase order or delivery note. Links are signed, name one document of one shop, and expire in 30 days.
+- **Transport charges:** a TRANSPORT line added at the till with the destination, or a charge on a delivery note that
+  becomes a confirmed order for the customer (so it is collected or put on account like any order). Not repriced,
+  not bundled.
+- **Bulk price changes:** every product, a category (with its subcategories), a brand or a supplier; up or down by a
+  percentage or an amount; rounding to 100–5,000 shillings; optional pack prices and price lists; a preview of every
+  old and new price; one activity entry.
+- **QuickBooks Online export:** a zip of journal entry CSVs (sales by branch and day, voids, returns with restock cost,
+  deposits, customer payments, supplier invoices and payments) under QuickBooks' 1,000-line limit, customer and
+  supplier lists, and a list of what was skipped and why. Account names are set per shop. Journals rather than
+  invoices because QuickBooks won't import invoices where VAT is set up.
+- **Airtel Money:** a merchant per shop or branch with encrypted Open API credentials; prompts from the till with a
+  callback (secret token in the URL, idempotent, always 200) and a status check when it's late; typed transaction IDs;
+  a payment that arrives after the till stopped waiting is kept to use on a sale; a simulator for demos. Airtel Money
+  is a tender for sales, deposits, customer and supplier payments, refunds, shifts, the payments report, QuickBooks
+  and eTIMS (payment type 06), and on the offline till as a typed ID. The API paths follow Airtel Africa's published
+  collection API and still need checking against their sandbox.
+- **Help for the whole app:** a guide for each of the above, plus guides for the parts that had none (products and the
+  catalogue, customers, shifts and cash, returns and refunds, shop settings, your profile), and all 34 guides in one
+  document, docs/USER_GUIDE.md, generated from the help centre and checked by a test.
 
 ### Beyond v1 (backlog)
 - ~~Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).~~ Done as a web app in Phase 15; wrap with Hotwire Native if a store listing is wanted.

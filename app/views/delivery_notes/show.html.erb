@@ -9,6 +9,7 @@
   </div>
   <div class="flex flex-wrap gap-2">
     <%= link_to "Print delivery note", delivery_note_path(note, format: :pdf), target: "_blank", class: "btn-secondary" %>
+    <%= whatsapp_button note, phone: note.customer&.phone %>
     <% if note.pending? || note.dispatched? %>
       <%= button_to "Cancel delivery", delivery_note_cancellation_path(note), class: "btn-danger", form: { data: { turbo_confirm: "Cancel #{note.reference}?" } } %>
     <% end %>
@@ -20,6 +21,11 @@
     <p class="label">Deliver to</p>
     <p class="mb-1 text-lg font-semibold"><%= note.address %></p>
     <p class="hint mb-4"><%= [ note.contact_phone, note.note ].compact_blank.join(" · ") %></p>
+    <% if note.transport_cents.positive? %>
+      <p id="transport" class="mb-4 text-sm">Transport <strong><%= money(note.transport_cents) %></strong>
+        <% if note.transport_order %>· charged on order <%= link_to note.transport_order.reference, note.transport_order, class: "link font-mono" %>
+          <%= render "customer_orders/status", order: note.transport_order %><% else %>· on the sale<% end %></p>
+    <% end %>
     <table class="table">
       <thead><tr><th>Item</th><th class="text-right">Qty</th></tr></thead>
       <tbody>

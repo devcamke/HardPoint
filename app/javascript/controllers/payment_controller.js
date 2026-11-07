@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Shows the right fields for the chosen tender and the change due as cash is typed.
 export default class extends Controller {
-  static targets = [ "cashFields", "otherFields", "referenceField", "approvalField", "mpesaFields", "quickCash", "tendered", "amount", "change",
+  static targets = [ "cashFields", "otherFields", "referenceField", "approvalField", "mpesaFields", "airtelFields", "quickCash", "tendered", "amount", "change",
                      "foreignFields", "currency", "foreignTendered" ]
   static values = { due: Number }
 
@@ -18,8 +18,9 @@ export default class extends Controller {
     this.quickCashTarget.classList.toggle("hidden", !cash)
     this.otherFieldsTarget.classList.toggle("hidden", cash || foreign)
     if (this.hasForeignFieldsTarget) this.foreignFieldsTarget.classList.toggle("hidden", !foreign)
-    this.referenceFieldTarget.classList.toggle("hidden", !(tender === "mobile_money" || tender === "card"))
+    this.referenceFieldTarget.classList.toggle("hidden", !(tender === "mobile_money" || tender === "airtel_money" || tender === "card"))
     if (this.hasMpesaFieldsTarget) this.mpesaFieldsTarget.classList.toggle("hidden", tender !== "mobile_money")
+    if (this.hasAirtelFieldsTarget) this.airtelFieldsTarget.classList.toggle("hidden", tender !== "airtel_money")
     if (this.hasApprovalFieldTarget) this.approvalFieldTarget.classList.toggle("hidden", tender !== "on_account")
     // A deposit can only cover what's held; otherwise the amount defaults to what's due.
     const deposit = this.amountTarget.dataset.deposit

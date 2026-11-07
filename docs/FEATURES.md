@@ -34,6 +34,7 @@ to use it, the help centre (`/help` on the public site). The plan the phases cam
 - [Phase 28: the daily exchange rate](#phase-28-the-daily-exchange-rate)
 - [Phase 29: shop-editable hire terms](#phase-29-shop-editable-hire-terms)
 - [Phase 30: tool hire, loyalty points and the customer display removed](#phase-30-tool-hire-loyalty-points-and-the-customer-display-removed)
+- [Phase 31: WhatsApp, transport, bulk prices, QuickBooks and Airtel Money](#phase-31-whatsapp-transport-bulk-prices-quickbooks-and-airtel-money)
 - [Since then: the new look, lists and help](#since-then-the-new-look-lists-and-help)
 
 ## Phase 1: shops, staff and sign-in
@@ -526,6 +527,27 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
   change has that payment refused and the sale recorded with the amount owed
 - **The customer display is gone:** the second-screen page and the till's link to it
 - **Labour lines** on a contractor's client bill are dropped from the backlog
+
+## Phase 31: WhatsApp, transport, bulk prices, QuickBooks and Airtel Money
+
+- **WhatsApp:** a button on receipts (and the till's completed sale), quotes and orders, statements, purchase orders
+  and delivery notes opens WhatsApp addressed to the customer or supplier, with a short message and a link to that
+  document. The link works for 30 days and shows only that document
+- **Transport charges:** **Add transport** on the till puts the delivery charge and destination on the sale; a
+  **Transport charge** on a delivery note made later becomes an order for the customer, collected at the till or put
+  on their account
+- **Change prices:** from the Products ⚙ menu, raise or lower prices for every product, a category, a brand or a
+  supplier by a percentage or an amount, rounded to the nearest 100, 500, 1,000 or 5,000, with or without pack prices
+  and price lists, after a preview of every old and new price
+- **QuickBooks Online export** under Reports: a zip of journal entries, customer and supplier lists and a list of
+  anything skipped, with the shop's own QuickBooks account names
+- **Airtel Money:** connect a merchant account in Settings, send a payment prompt from the till or type the transaction
+  ID, and use payments that arrive after the till stopped waiting. It is a payment method wherever M-Pesa is, and on
+  the offline till
+- **Help for the whole app:** eleven new guides (Airtel Money, QuickBooks Online export, Sending documents on WhatsApp,
+  Changing many prices at once, Deliveries and transport charges, Products and the catalogue, Customers, Shifts and
+  cash, Returns and refunds, Shop settings, and Your profile and signing in), so every menu and Settings page has one.
+  All 34 guides are also in one document, [USER_GUIDE.md](USER_GUIDE.md), rebuilt by `bin/rails help:export`
 
 ## Since then: the new look, lists and help
 

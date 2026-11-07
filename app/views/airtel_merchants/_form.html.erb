@@ -1,0 +1,21 @@
+<%= form_with model: merchant, scope: :airtel_merchant, url: (merchant.new_record? ? airtel_merchants_path : airtel_merchant_path(merchant)), class: "card max-w-2xl" do |form| %>
+  <%= render "shared/errors", model: merchant %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :name, class: "label" %><%= form.text_field :name, required: true, placeholder: "Airtel Money", class: "input" %></div>
+    <div class="field"><%= form.label :branch_id, "Used at", class: "label" %>
+      <%= form.collection_select :branch_id, Current.account.branches.alphabetically, :id, :name, { include_blank: "Every branch without its own" }, class: "input" %></div>
+    <div class="field"><%= form.label :environment, class: "label" %>
+      <%= form.select :environment, Airtel::Merchant::ENVIRONMENTS.select { _1 != "simulator" || Mpesa::Shortcode.simulator_allowed? }.map { [ _1 == "simulator" ? "Simulator (no real money)" : _1.humanize, _1 ] }, {}, class: "input" %></div>
+    <div class="field"><%= form.label :merchant_number, "Merchant or till number (optional)", class: "label" %><%= form.text_field :merchant_number, inputmode: "numeric", class: "input font-mono" %>
+      <p class="hint mt-1">Shown at the till, for customers who pay by hand.</p></div>
+  </div>
+
+  <h2 class="mt-2 mb-1 font-semibold">Open API credentials</h2>
+  <p class="hint mb-4">From your app on developers.airtel.africa (Collection, Kenya). They're stored encrypted and never shown again<%= "; leave blank to keep the saved ones" if merchant.persisted? %>.</p>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :client_id, "Client ID", class: "label" %><%= form.password_field :client_id, value: nil, autocomplete: "off", class: "input font-mono" %></div>
+    <div class="field"><%= form.label :client_secret, "Client secret", class: "label" %><%= form.password_field :client_secret, value: nil, autocomplete: "off", class: "input font-mono" %></div>
+  </div>
+  <label class="mb-4 flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-primary-500" %> In use</label>
+  <%= form.submit merchant.new_record? ? "Add" : "Save", class: "btn-primary" %>
+<% end %>

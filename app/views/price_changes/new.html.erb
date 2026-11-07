@@ -1,0 +1,65 @@
+<% content_for :title, "Change prices" %>
+<% change = @price_change %>
+<% account = Current.account %>
+
+<div class="mt-2 mb-6">
+  <h1 class="text-xl font-medium"><%= link_to "Products", products_path, class: "link" %> <span class="text-gray-400">/</span> Change prices</h1>
+  <p class="mt-1 max-w-3xl text-gray-500">Move many selling prices at once. You'll see every new price before anything changes.</p>
+</div>
+
+<%= form_with model: change, scope: :price_change, url: new_price_change_path, method: :get, class: "card max-w-3xl" do |form| %>
+  <%= render "shared/errors", model: change unless @preview || params[:price_change].blank? %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field sm:col-span-2">
+      <%= form.label :target, "Which products", class: "label" %>
+      <%= form.select :target,
+            grouped_options_for_select({ "Everything" => [ [ "All products", "all" ] ],
+                                         "Category (with its subcategories)" => account.categories.alphabetically.map { [ _1.full_name, "category:#{_1.id}" ] },
+                                         "Brand" => account.brands.alphabetically.map { [ _1.name, "brand:#{_1.id}" ] },
+                                         "Supplier's products" => account.suppliers.active.order(:name).map { [ _1.name, "supplier:#{_1.id}" ] } }, change.target),
+            { include_blank: "Choose…" }, class: "input" %>
+    </div>
+    <div class="field">
+      <%= form.label :kind, "Change", class: "label" %>
+      <%= form.select :kind, PriceChange::KINDS.invert, {}, class: "input" %>
+    </div>
+    <div class="field">
+      <%= form.label :change, "By (use − to lower)", class: "label" %>
+      <%= form.number_field :change, step: "any", class: "input", placeholder: "8 for 8%, or 50 for #{account.currency} 50" %>
+    </div>
+    <div class="field">
+      <%= form.label :round_to, "Round new prices", class: "label" %>
+      <%= form.select :round_to, PriceChange::ROUNDINGS.invert, {}, class: "input" %>
+    </div>
+    <div class="space-y-2 pt-6">
+      <label class="flex items-center gap-2 text-sm"><%= form.check_box :include_packs, class: "size-4 accent-primary-500" %> Packs with their own price too</label>
+      <label class="flex items-center gap-2 text-sm"><%= form.check_box :include_price_lists, class: "size-4 accent-primary-500" %> Contractor and wholesale prices too</label>
+    </div>
+  </div>
+  <%= form.submit "Preview", name: nil, class: "btn-secondary" %>
+<% end %>
+
+<% if @preview %>
+  <section id="preview" class="card mt-6 max-w-3xl p-0">
+    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <h2 class="font-medium"><%= pluralize(change.rows.size, "price") %> will change · <%= change.description %>, <%= change.change_description %></h2>
+      <% if change.rows.any? %>
+        <%= button_to "Apply to #{pluralize(change.rows.size, "price")}", price_changes_path, params: { price_change: change.attributes },
+              class: "btn-primary", form: { data: { turbo_confirm: "Change #{pluralize(change.rows.size, "price")}?" } } %>
+      <% end %>
+    </div>
+    <% if change.rows.any? %>
+      <table class="table">
+        <thead><tr><th>Item</th><th class="text-right">Now</th><th class="text-right">New</th></tr></thead>
+        <tbody>
+          <% change.rows.first(200).each do |row| %>
+            <tr><td><%= row.label %></td><td class="text-right tabular-nums"><%= money(row.old_cents) %></td><td class="text-right font-medium tabular-nums"><%= money(row.new_cents) %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+      <% if change.rows.size > 200 %><p class="hint px-4 py-2">…and <%= change.rows.size - 200 %> more.</p><% end %>
+    <% else %>
+      <p class="border-t border-gray-100 px-4 py-6 text-center text-gray-600">No prices would change.</p>
+    <% end %>
+  </section>
+<% end %>

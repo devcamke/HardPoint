@@ -15,6 +15,7 @@
   </div>
   <div class="flex flex-wrap gap-2">
     <%= link_to "PDF", customer_order_path(order, format: :pdf), target: "_blank", class: "btn-secondary" %>
+    <%= whatsapp_button order, phone: order.customer.phone %>
     <%= link_to "Edit", edit_customer_order_path(order), class: "btn-secondary" if order.editable? %>
     <%= button_to "Confirm order", customer_order_confirmation_path(order), class: "btn-secondary" if order.quote? %>
     <% if order.ordered? %>

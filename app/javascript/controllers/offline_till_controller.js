@@ -5,7 +5,7 @@ import { printReceipt } from "offline/printer"
 
 // The offline till: sells from the catalogue snapshot on this device while the network is down.
 // Sales are kept on the device and sent by the offline-sync controller when it's back; they get
-// their receipt numbers then. Cash, or a typed M-Pesa or card code (checked later against the
+// their receipt numbers then. Cash, or a typed M-Pesa, Airtel Money or card code (checked later against the
 // M-Pesa reconciliation). Customers can be chosen, for their price list; promotions apply as
 // online. A contractor's sale can be tagged to one of their open jobs. Accounts and discounts need
 // the till online.
@@ -171,7 +171,7 @@ export default class extends Controller {
     const tendered = due > 0 && tender === "cash" ? Math.round(Number(this.tenderedTarget.value || due / 100) * 100) : null
     const reference = this.referenceTarget.value.trim().toUpperCase()
     if (due > 0 && tender === "cash" && tendered < due) return this.show(`Cash received is less than the ${formatMoney(due, till.currency)} due`, "alert")
-    if (due > 0 && tender !== "cash" && !reference) return this.show(`Enter the ${tender === "mobile_money" ? "M-Pesa" : "card"} code; it's checked once the till is back online`, "alert")
+    if (due > 0 && tender !== "cash" && !reference) return this.show(`Enter the ${{ mobile_money: "M-Pesa", airtel_money: "Airtel Money" }[tender] || "card"} code; it's checked once the till is back online`, "alert")
 
     const counter = await store.meta.next(`receipt-counter-${till.register_id}`)
     const receiptNumber = `${till.branch_code}-OFF${till.register_id}-${String(counter).padStart(4, "0")}`
@@ -320,7 +320,7 @@ export default class extends Controller {
     const till = this.catalogue.till
     const cash = payments.find((payment) => payment.tender === "cash")
     const change = cash ? cash.tendered_cents - this.due : 0
-    const labels = { cash: "Cash", mobile_money: "M-Pesa", card: "Card" }
+    const labels = { cash: "Cash", mobile_money: "M-Pesa", airtel_money: "Airtel Money", card: "Card" }
     const label = (payment) => [ labels[payment.tender], payment.reference ].filter(Boolean).join(" ")
     return {
       header: [ till.account_name, till.branch_name, till.branch_address, till.branch_phone && `Tel ${till.branch_phone}` ].filter(Boolean),

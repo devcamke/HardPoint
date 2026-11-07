@@ -16,9 +16,13 @@
   <% if (waiting = sale.stk_requests.pending.last) %>
     <%= render "pos/mpesa_waiting", stk_request: waiting %>
   <% end %>
+  <% if (airtel_waiting = sale.airtel_requests.pending.last) %>
+    <%= render "pos/airtel_waiting", airtel_request: airtel_waiting %>
+  <% end %>
+  <% airtel = Airtel::Merchant.for_branch(sale.branch) %>
 
   <%= form_with url: pos_payments_path, data: { action: "turbo:submit-end->payment#reset" } do |form| %>
-    <% tenders = [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], [ "card", "Card" ], [ "on_account", "Account" ] ]
+    <% tenders = [ [ "cash", "Cash" ], [ "mobile_money", "M-Pesa" ], ([ "airtel_money", "Airtel" ] if airtel), [ "card", "Card" ], [ "on_account", "Account" ] ].compact
        deposit = sale.deposit_available_cents
        tenders << [ "deposit", "Deposit" ] if deposit.positive?
        foreign = Current.account.currencies.at_till.alphabetically.to_a
@@ -28,7 +32,7 @@
     <% if deposit.positive? %>
       <p class="mb-2 text-sm"><%= sale.customer_order.reference %> has a <strong><%= money(deposit) %></strong> deposit to use.</p>
     <% end %>
-    <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5", 6 => "grid-cols-3" }.fetch(tenders.size, "grid-cols-4") %> gap-1 text-sm" data-action="change->payment#switchTender">
+    <fieldset class="mb-2 grid <%= { 4 => "grid-cols-4", 5 => "grid-cols-5", 6 => "grid-cols-3", 7 => "grid-cols-4" }.fetch(tenders.size, "grid-cols-4") %> gap-1 text-sm" data-action="change->payment#switchTender">
       <legend class="sr-only">Payment method</legend>
       <% tenders.each do |value, label| %>
         <label class="cursor-pointer rounded-md border border-gray-300 bg-white py-2 text-center font-semibold has-checked:border-primary-500 has-checked:bg-primary-500 has-checked:text-white">
@@ -82,5 +86,8 @@
 
   <% if (shortcode = Mpesa::Shortcode.for_branch(sale.branch)) && !waiting %>
     <%= render "pos/mpesa", sale: sale, shortcode: shortcode, due: due %>
+  <% end %>
+  <% if airtel && !airtel_waiting %>
+    <%= render "pos/airtel", sale: sale, merchant: airtel, due: due %>
   <% end %>
 </div>

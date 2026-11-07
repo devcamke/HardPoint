@@ -3,7 +3,7 @@
 class Deposit < ApplicationRecord
   include AccountOwned, Monetary
 
-  TENDERS = %w[ cash mobile_money card bank_transfer ].freeze
+  TENDERS = %w[ cash mobile_money airtel_money card bank_transfer ].freeze
 
   belongs_to :customer_order
   belongs_to :shift, optional: true

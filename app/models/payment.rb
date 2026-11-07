@@ -2,7 +2,7 @@ class Payment < ApplicationRecord
   include AccountOwned, Monetary
 
   # "points": loyalty points, which HardPoint no longer has. Payments made with them are kept, as is their eTIMS code.
-  TENDERS = %w[ cash card mobile_money on_account deposit foreign_cash points ].freeze
+  TENDERS = %w[ cash card mobile_money airtel_money on_account deposit foreign_cash points ].freeze
 
   belongs_to :sale
 
@@ -14,6 +14,7 @@ class Payment < ApplicationRecord
   validates :tendered_cents, numericality: { greater_than_or_equal_to: :amount_cents }, if: -> { cash? || foreign_cash? }
   validates :currency, :foreign_tendered_cents, :exchange_rate, presence: true, if: :foreign_cash?
   validates :reference, presence: { message: "is needed (the M-Pesa or other transaction code)" }, if: :mobile_money?
+  validates :reference, presence: { message: "is needed (the Airtel Money transaction ID)" }, if: :airtel_money?
   validates_same_account :sale
 
   # A code typed at the till for money that already arrived on the Paybill claims it.
@@ -27,6 +28,7 @@ class Payment < ApplicationRecord
   def label
     if deposit? then "Deposit used"
     elsif points? then "#{points} points"
+    elsif airtel_money? then "Airtel Money"
     elsif foreign_cash? then "#{Money.format(foreign_tendered_cents, currency: currency)} cash @ #{exchange_rate.to_d.round(4).to_s("F")}"
     else tender.humanize
     end

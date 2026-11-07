@@ -3,7 +3,7 @@
 class CustomerPayment < ApplicationRecord
   include AccountOwned, Monetary
 
-  METHODS = %w[ cash mobile_money bank_transfer cheque card ].freeze
+  METHODS = %w[ cash mobile_money airtel_money bank_transfer cheque card ].freeze
 
   belongs_to :customer
   belongs_to :shift, optional: true

@@ -1,0 +1,56 @@
+<p>When a customer brings goods back, record a return against their receipt. When a sale was rung up by mistake and the shift is still
+  open, void it instead. Both put stock back and keep the shift's cash right.</p>
+
+<h2>Finding the sale</h2>
+<p>Press <strong>Sales</strong> in the till's top bar, or go to <strong>Sell › Sales</strong>. Type the receipt number from the customer's
+  receipt in the search box (for example MAIN-000123), or filter by date and branch, and open the sale.</p>
+
+<h2>Returning goods</h2>
+<p>Returns are done at a till with an open shift, because a cash refund comes out of that drawer.</p>
+<ol>
+  <li>On the sale, press <strong>Return items</strong>.</li>
+  <li>Under <strong>Returning</strong>, type how many of each item are coming back. You can return part of a line, some lines or the whole
+    sale. Items already returned are shown, and you can't return more than was bought.</li>
+  <li>Leave <strong>Back on the shelf?</strong> ticked to put the goods back into stock. Untick it for damaged goods: they're written off.</li>
+  <li>Choose <strong>Refund by</strong>: Cash, Card, M-Pesa, Airtel Money, or <strong>Credit to customer's account</strong>. It starts as the
+    way the customer paid. Account credit needs a sale with a customer.</li>
+  <li>Type a <strong>Reason</strong> if you like, then press <strong>Process return</strong>.</li>
+</ol>
+<p>The refund is what the customer actually paid for those items, including their share of any discount. HardPoint records how you paid
+  them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.</p>
+
+<h2>Approval</h2>
+<p>A cashier or stock clerk needs an owner's or manager's <strong>Manager approval PIN</strong> to process a return or void a sale. Owners and
+  managers don't need to type one. See <%= link_to "Staff, roles and PINs", help_article_path("staff-and-roles"), class: "link" %>.</p>
+
+<h2>The return slip</h2>
+<p>Each return gets its own number, such as MAIN-R00012. Its page shows the items, which were restocked or written off, who did it and who
+  approved it. <strong>Print</strong> prints a return slip with the refund and how it was paid. The sale also lists its returns.</p>
+
+<h2>KRA eTIMS</h2>
+<p>When the branch is connected to eTIMS and the original sale went to KRA, each return and each void is sent to KRA as a credit note
+  against it. See <%= link_to "KRA eTIMS", help_article_path("etims"), class: "link" %>.</p>
+
+<h2>Voiding a sale</h2>
+<p><strong>Void sale</strong> cancels a sale made in error, such as one rung up twice. It's only there while the sale's shift is still open and
+  nothing has been returned from it. After that, use a return.</p>
+<ol>
+  <li>On the sale, press <strong>Void sale</strong>.</li>
+  <li>Type the <strong>Reason</strong> (required) and, for a cashier, the manager approval PIN.</li>
+  <li>Press <strong>Void sale</strong>, and give back any money the customer paid.</li>
+</ol>
+<p>All the stock goes back, and the sale stops counting in the shift's takings. It stays in the sales list, crossed out and marked
+  <strong>Voided</strong>, with who voided it and why. If it was a collected order, the order is reopened.</p>
+
+<h2>The returns list</h2>
+<p><strong>Sell › Returns</strong> lists every return with its receipt, when, who did it, the refund method and the amount.</p>
+
+<h2>Stock, the shift and reports</h2>
+<ul>
+  <li>Restocked items go back into stock; written-off items don't.</li>
+  <li>The X and Z reports show refunds by method and the number of voided sales. Cash refunds come off the cash expected in the drawer.
+    See <%= link_to "Shifts, cash and closing up", help_article_path("shifts-and-cash"), class: "link" %>.</li>
+  <li>In the <strong>Sales and margin</strong> report, returns count on the day they happen. Restocked goods take their cost back out; written-off goods
+    don't. <strong>Payments by method</strong> has a refunds column. See
+    <%= link_to "Reports and the owner's dashboard", help_article_path("reports"), class: "link" %>.</li>
+</ul>

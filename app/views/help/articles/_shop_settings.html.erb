@@ -1,0 +1,72 @@
+<p>Most of what you set up once lives in <strong>Settings</strong> (the gear in the top bar): your shop's name and time zone, your
+  branches and tills, the features you use, and text messages to customers. Shop details, Features and SMS are for the shop's owner;
+  owners and managers look after branches and tills.</p>
+
+<h2>Shop details</h2>
+<p>Open <strong>Settings › Shop details</strong>. The page is called <strong>Shop settings</strong> and holds:</p>
+<ul>
+  <li><strong>Business name</strong>: printed on receipts and used in emails and texts.</li>
+  <li><strong>Time zone</strong>: sets when your day starts and ends for reports, shifts and the daily email.</li>
+  <li><strong>Currency (ISO code)</strong>: three letters, such as KES.</li>
+  <li><strong>Largest discount a cashier can give without approval (%)</strong>: see
+    <%= link_to "Staff, roles and PINs", help_article_path("staff-and-roles"), class: "link" %>.</li>
+  <li><strong>Receipt footer</strong>: a line or two at the bottom of receipts, emailed receipts and invoices, for example your returns
+    policy or KRA PIN. The footer is also sent to KRA eTIMS (the first 100 characters).</li>
+  <li><strong>Require two-factor sign-in for owners and managers</strong>: once ticked, owners and managers without it are asked to set it
+    up the next time they use HardPoint.</li>
+</ul>
+<p>The page also shows your shop's web address. To change it, contact support. Press <strong>Save settings</strong> when you're done.</p>
+
+<h2>Branches</h2>
+<p><strong>Settings › Branches</strong> lists your locations. Owners and managers can press <strong>Add branch</strong> and give it a
+  <strong>Name</strong>, <strong>Address</strong> and <strong>Phone</strong>. These are printed at the top of its receipts.</p>
+<ul>
+  <li>Each branch gets a <strong>Receipt code</strong> made from the first letters of its name. Its receipt numbers start with it, for example
+    MOI-000123. Press <strong>Edit</strong> to change it: 1 to 6 letters or numbers.</li>
+  <li>Each branch has its own tills, stock levels, sales, orders, purchase orders and stock takes. M-Pesa, Airtel Money and KRA eTIMS can be
+    set up per branch too.</li>
+  <li><strong>Remove branch</strong>, on its edit page, only works for a branch with no tills and no sales.</li>
+  <li>How many branches and tills you can have depends on your plan: see
+    <%= link_to "Plans, billing and read-only mode", help_article_path("billing"), class: "link" %>.</li>
+</ul>
+
+<h2>Tills</h2>
+<p><strong>Settings › Tills</strong> lists each point of sale and its branch. Owners and managers press <strong>Add till</strong>, give it a
+  name (such as Front counter), pick the branch and choose how receipts print. Untick <strong>In use</strong> to retire a till. Printers and
+  cash drawers are explained in
+  <%= link_to "Tills, receipt printers and cash drawers", help_article_path("tills-and-printers"), class: "link" %>.</p>
+
+<h2>Features</h2>
+<p><strong>Settings › Features</strong> switches parts of HardPoint on and off: deliveries, promotions, foreign currencies, the online store,
+  contractor jobs, batches and expiry dates, serial numbers, and the API. Press <strong>Save features</strong> after changing them. See
+  <%= link_to "Switching features on and off", help_article_path("getting-around", anchor: "features"), class: "link" %>.</p>
+
+<h2>Text messages (SMS)</h2>
+<p>HardPoint can text customers through Africa's Talking. To turn it on:</p>
+<ol>
+  <li>Open <strong>Settings › SMS</strong>. It takes you to the bottom of Shop details.</li>
+  <li>Tick <strong>Send texts to customers (SMS)</strong> and press <strong>Save settings</strong>.</li>
+</ol>
+<p>Once it's on:</p>
+<ul>
+  <li><strong>Receipts</strong>: after a sale, type the customer's number in <strong>Text receipt to…</strong> and press <strong>Text</strong>.
+    On a past sale, use <strong>Text the receipt</strong>.</li>
+  <li><strong>Order ready</strong>: on a customer order, <strong>Mark ready and text</strong> (with the customer's first name) tells them to
+    come and collect, with anything left to pay. The customer needs a phone number.</li>
+  <li><strong>Balance reminders</strong>: on a customer who owes money, <strong>Text a reminder</strong> sends their balance, what's overdue,
+    and your Paybill if you have one. Owners, managers and accountants can send these.</li>
+  <li><strong>Online orders</strong>: customers who order from your online store get a text saying you have their order.</li>
+</ul>
+<p>Texts only go to Kenyan mobile numbers. A shop can send up to 500 texts a day, so a mistake can't run up a bill.</p>
+
+<h2>Seeing what was sent</h2>
+<p>Under the SMS tick box, Shop details shows how many texts went this month and a <strong>Texts sent</strong> link. That page lists each
+  text: when, to whom, what kind, the message, who sent it and whether it was <strong>Sent</strong> or <strong>Failed</strong>, with
+  its cost where Africa's Talking reported one.</p>
+
+<h2>Elsewhere in Settings</h2>
+<p>Staff and activity are in <%= link_to "Staff, roles and PINs", help_article_path("staff-and-roles"), class: "link" %>. Payments and tax have
+  their own guides: <%= link_to "M-Pesa payments", help_article_path("mpesa"), class: "link" %>,
+  <%= link_to "Airtel Money", help_article_path("airtel-money"), class: "link" %> and
+  <%= link_to "KRA eTIMS", help_article_path("etims"), class: "link" %>. Exporting and closing the account are in
+  <%= link_to "Exporting your data and closing your account", help_article_path("your-data"), class: "link" %>.</p>

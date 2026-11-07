@@ -13,6 +13,12 @@ module ApplicationHelper
     end
   end
 
+  # How a payment method reads on screen: "M-Pesa", "Airtel Money", "Bank transfer"…
+  def payment_method_label(method)
+    { "mobile_money" => "M-Pesa", "airtel_money" => "Airtel Money", "on_account" => "On account", "foreign_cash" => "Foreign cash" }
+      .fetch(method.to_s) { method.to_s.humanize }
+  end
+
   # A link's path tagged with where it was followed from, so UsageTracking can count the shortcut.
   def tracked_path(path, from)
     uri = URI.parse(path)

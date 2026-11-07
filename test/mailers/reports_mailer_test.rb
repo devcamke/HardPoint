@@ -31,6 +31,18 @@ class ReportsMailerTest < ActionMailer::TestCase
     end
   end
 
+  test "how it was paid shows each method the shop used, and only those" do
+    sell_yesterday
+
+    Account.without_isolation do
+      Current.set(account: accounts(:acme)) do
+        html = ReportsMailer.with(account: accounts(:acme), date: Time.use_zone(accounts(:acme).time_zone) { Time.zone.yesterday }).daily_summary.html_part.body.to_s
+        assert_match %r{<td>Cash</td><td style="text-align:right;">KES 1,000.00</td>}, html
+        %w[ Foreign\ cash Points Airtel\ Money M-Pesa ].each { assert_no_match %r{<td>#{_1}</td>}, html }
+      end
+    end
+  end
+
   test "nothing is sent after a day without sales, or to people who turned it off" do
     Account.without_isolation { accounts(:acme).send_daily_summary }
     assert_no_enqueued_emails
