@@ -35,7 +35,7 @@ module NavigationHelper
         menu += [ [ "Returns", returns_path ], [ "Shifts", shifts_path ] ]
         menu << [ "Promotions", promotions_path ] if feature?(:promotions)
         menu << [ "Tool hire", hire_agreements_path ] if feature?(:tool_hire)
-        apps << App.new(:sales, "Sell", sales_path, "#e46f2f", :sales, menu, [ "/hire_items" ])
+        apps << App.new(:sales, "Sell", sales_path, "#e46f2f", :sales, menu, [ "/hire_items", "/hire_terms" ])
       end
 
       if m&.can_sell? || m&.can_manage_receivables?

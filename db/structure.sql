@@ -127,7 +127,8 @@ CREATE TABLE public.accounts (
     deletion_scheduled_for timestamp(6) without time zone,
     deletion_requested_by_id bigint,
     features character varying[] DEFAULT '{deliveries}'::character varying[] NOT NULL,
-    features_reviewed_at timestamp(6) without time zone
+    features_reviewed_at timestamp(6) without time zone,
+    hire_terms text
 );
 
 
@@ -1286,7 +1287,8 @@ CREATE TABLE public.hire_agreements (
     returned_at timestamp(6) without time zone,
     reminded_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    terms text
 );
 
 ALTER TABLE ONLY public.hire_agreements FORCE ROW LEVEL SECURITY;
@@ -9337,6 +9339,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107150000'),
 ('20261107140000'),
 ('20261107130000'),
 ('20261107120000'),

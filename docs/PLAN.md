@@ -112,7 +112,7 @@ customers, staff, or reports.
 | Offline jobs | The till snapshot carries each customer's open jobs; an offline sale names one. On sync it's tagged if the job is still the customer's and open; a job closed in the meantime is left off with a warning, so the sale still records. |
 | Rate feed | A public mid-market feed (open.er-api.com, no key; the URL is a credential so a paid feed can replace it), fetched once a morning per home currency for all shops. Every currency keeps the day's market rate; ones set to follow it take market less the shop's margin (0–50%, rounded to 8 places). A move of more than 10% from the current rate is held for an owner or manager to apply. No network in development or tests (fake transport). Exchange gain/loss accounting is still out of scope. |
 | Concurrency | Anything that checks a balance or a status and then acts on it locks the row it depends on first, inside the same transaction: a payment locks the sale (and the customer for points or account, the order for a deposit) and re-checks it's still open; a return locks the sale; a deposit refund and loading an order onto a till lock the order (an order can be on one till at a time); returning hired tools locks the agreement; points expiry locks the scheme. Stock levels, document numbers, batches, stock takes, voids, M-Pesa and eTIMS already did. Scheduled jobs run one at a time (Solid Queue concurrency limits, overlapping runs dropped); webhook retries claim each delivery before sending. Tested by handing the second request a stale copy, or by checking the lock is taken. |
-| Hire terms | Standard terms are printed on the A4 agreement with signature lines. Shop-editable terms are left for later. Tools are managed by catalogue managers, and anyone who sells can hire out, return and settle. |
+| Hire terms | Standard terms are printed on the A4 agreement with signature lines until the shop writes its own (owners and managers, one term per line, up to 20). Each agreement keeps a copy of the terms it was made under, so editing them never changes a signed agreement; older agreements print the standard terms they were signed with. Tools are managed by catalogue managers, and anyone who sells can hire out, return and settle. |
 
 | Phase | Status |
 |---|---|
@@ -127,6 +127,7 @@ customers, staff, or reports.
 | 8 — Offline mode & hardware | **Done:** installable till, service worker with the offline till, IndexedDB catalogue snapshot and sale queue, automatic idempotent sync with warnings, connection indicator, QZ Tray ESC/POS printing with drawer kick and no-sale logging, customer display. Tested end to end in a browser by stopping the server mid-shift. Weighing scales skipped. |
 | 9 — SaaS business layer | **Done (payments to be proven against Safaricom's and Paystack's sandboxes):** public site (home, pricing, privacy, help centre with 11 guides), signup with plan choice and a 30-day trial, setup checklist with test receipt, three plans with enforced limits, monthly invoices with PDF and reminders, payment by M-Pesa prompt or Paystack card checkout, read-only mode for unpaid shops, in-app help with WhatsApp and support requests, full data export (ZIP of CSVs) and 30-day account closure with a tombstone, platform admin with revenue and usage, plan changes, trial extensions, manual payments, suspend/restore, announcements and the support inbox. |
 | 28 — Daily exchange rate | **Done:** market rates fetched each morning (one request per home currency); market rate shown per currency with a one-click apply; follow the daily rate less a margin; big moves held for a manager; failures change nothing. |
+| 29 — Shop-editable hire terms | **Done:** owners and managers write the terms printed on hire agreements (one per line, up to 20, with a preview), or keep the standard ones; each agreement keeps a copy of the terms it was made under. |
 | 27 — Contractor jobs, continued | **Done:** client name and markup on jobs; materials bill PDF on the contractor's letterhead; open jobs in the till snapshot, job picker and receipt line on the offline till; closed-job handling on sync. |
 | 26 — Counting by batch | **Done:** batch rows in stock takes (snapshot of batches and unbatched stock); counting by batch on the page, by scanning with a batch number and on the phone; batches found on the shelf added with expiry; approval per batch, never below zero; help and tenant sweep updated. |
 | 25 — Points on the offline till | **Done:** balances and scheme terms in the till snapshot; points tender offline with device-side tracking of points spent; shared Ruby/JS rules; server records the points payment, caps cash when points fall short, and parks the sale with a warning; checked in a browser offline and synced. |
@@ -717,6 +718,11 @@ set of books.
 **Goal:** foreign-currency rates that keep up without anyone typing them, but never move wildly unseen.
 - **Market rates** each morning, shown beside the shop's own.
 - **Following** the market less a margin, with big moves held for a manager.
+
+### Phase 29 — Shop-editable hire terms
+**Goal:** a shop's own conditions on its hire agreements, without ever changing one already signed.
+- **Hire terms** page for owners and managers, from Tools for hire and Settings; the standard terms until the shop writes its own.
+- **Each agreement keeps its terms**, printed on every reprint.
 
 ### Beyond v1 (backlog)
 - ~~Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).~~ Done as a web app in Phase 15; wrap with Hotwire Native if a store listing is wanted.

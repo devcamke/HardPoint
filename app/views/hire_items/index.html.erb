@@ -3,6 +3,7 @@
 <%= render "shared/control_panel",
       title: "Tools for hire",
       new_button: ([ "New", new_hire_item_path ] if current_membership.can_manage_catalogue?),
+      actions: ([ [ "Hire terms", edit_hire_terms_path ] ] if current_membership.approver?).to_a,
       filters: [ search_filter(:status, label: "Status", value: @status,
                    options: HireItem::STATUSES.map { [ _1, "#{_1.humanize} (#{@counts.fetch(_1, 0)})" ] }) ] %>
 

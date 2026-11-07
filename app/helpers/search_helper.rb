@@ -78,6 +78,7 @@ module SearchHelper
         [ Result.new("Import products", "Stock", product_imports_path), "spreadsheet csv upload" ],
         [ Result.new("Help", "Guides", help_path), "how do i support" ]
       ]
+      pages += [ [ Result.new("Hire terms", "Sell › Tool hire", edit_hire_terms_path), "agreement conditions contract tool hire" ] ] if m.approver? && Current.account.feature?(:tool_hire)
       pages += [ [ Result.new("Returns to suppliers", "Buy", supplier_returns_path), "supplier returns debit notes purchase" ] ] if m.can_purchase?
       pages += [ [ Result.new("Supplier invoices", "Buy", supplier_invoices_path), "invoices bills purchase" ] ] if m.can_manage_payables?
       pages += [ [ Result.new("Features", "Settings", features_path), "switch on off tool hire jobs batches loyalty online store" ] ] if m.can_manage_account?
