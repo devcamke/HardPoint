@@ -7,6 +7,6 @@ module Billing
 
   # The platform's own details, for its invoices.
   def self.company
-    Rails.application.credentials.dig(:billing, :company) || { name: "HardPoint Ltd", address: "Nairobi, Kenya", tax_pin: nil, email: "billing@hardpoint.app" }
+    Rails.application.credentials.dig(:billing, :company) || { name: "HardPoint Ltd", address: "Nairobi, Kenya", tax_pin: nil, email: "billing@hardpoint.co.ke" }
   end
 end

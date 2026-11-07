@@ -23,7 +23,7 @@ env:
     - OBJECT_STORAGE_ACCESS_KEY_ID
     - OBJECT_STORAGE_SECRET_ACCESS_KEY
   clear:
-    APP_HOST: hardpoint.app
+    APP_HOST: hardpoint.co.ke
     DATABASE_HOST: 10.0.0.21
     DATABASE_REPLICA_HOST: 10.0.0.22
     # Jobs run on their own server, not inside Puma.

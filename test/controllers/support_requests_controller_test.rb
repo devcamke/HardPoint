@@ -27,7 +27,7 @@ class SupportRequestsControllerTest < ActionDispatch::IntegrationTest
       Current.set(account: @account) { @account.support_requests.create!(user: users(:carl), subject: "Help", body: "Please") }
     end
     email = SupportMailer.with(support_request: request).received
-    assert_equal [ "support@hardpoint.app" ], email.to
+    assert_equal [ "support@hardpoint.co.ke" ], email.to
     assert_equal [ users(:carl).email_address ], email.reply_to
     assert_match "Acme Hardware", email.subject
   end

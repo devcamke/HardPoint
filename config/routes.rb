@@ -1,4 +1,12 @@
 Rails.application.routes.draw do
+  # www.hardpoint.co.ke is the public site under another name: send it, path and all, to the bare domain, so people
+  # who type www land on the site and search engines see one address. ("www" can't be a shop's subdomain.)
+  constraints subdomain: "www" do
+    match "(*path)", via: :all, to: redirect(status: 301) { |params, request|
+      "#{request.protocol}#{request.host.delete_prefix("www.")}#{request.port_string}#{request.fullpath}"
+    }
+  end
+
   # Subscription payments to HardPoint itself: Safaricom's answer to a prompt (found by the
   # platform's secret token) and Paystack's signed webhooks.
   post "webhooks/billing/mpesa/:token", to: "webhooks/billing_mpesa#create", as: :billing_mpesa_webhook
@@ -14,8 +22,8 @@ Rails.application.routes.draw do
     post "c2b/validation", action: :validation, as: :validation
   end
 
-  # The bare domain (hardpoint.app) hosts the public site, help and signup; each shop lives on its own
-  # subdomain (acme.hardpoint.app).
+  # The bare domain (hardpoint.co.ke) hosts the public site, help and signup; each shop lives on its own
+  # subdomain (acme.hardpoint.co.ke).
   constraints ->(request) { request.subdomain.blank? } do
     resource :signup, only: %i[ new create ]
     resource :shop_lookup, only: %i[ new create ]

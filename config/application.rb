@@ -46,7 +46,7 @@ module Hardpoint
     config.x.webhooks_allow_private_addresses = !Rails.env.production?
 
     config.x.support = {
-      email: ENV.fetch("SUPPORT_EMAIL", "support@hardpoint.app"),
+      email: ENV.fetch("SUPPORT_EMAIL", "support@hardpoint.co.ke"),
       whatsapp: ENV.fetch("SUPPORT_WHATSAPP", "254700000000")
     }
   end

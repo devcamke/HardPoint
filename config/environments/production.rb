@@ -59,10 +59,12 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "hardpoint.app"), protocol: "https" }
+  app_host = ENV.fetch("APP_HOST", "hardpoint.co.ke")
+  config.action_mailer.default_url_options = { host: app_host, protocol: "https" }
 
-  # Shops live on subdomains of APP_HOST; raise the TLD length for hosts like hardpoint.co.ke.
-  config.action_dispatch.tld_length = ENV.fetch("APP_TLD_LENGTH", 1).to_i
+  # Shops live on subdomains of APP_HOST (acme.hardpoint.co.ke → "acme"). The TLD length is how many labels follow
+  # the name, worked out from APP_HOST: 2 for .co.ke, 1 for a host like hardpoint.app. APP_TLD_LENGTH overrides it.
+  config.action_dispatch.tld_length = ENV.fetch("APP_TLD_LENGTH") { app_host.count(".") }.to_i
 
   # AWS SES through its SMTP interface. Create SMTP credentials in the SES console and add them
   # with bin/rails credentials:edit under ses: { smtp_username:, smtp_password:, region: }.
@@ -87,7 +89,7 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  config.hosts = [ ENV.fetch("APP_HOST", "hardpoint.app"), ".#{ENV.fetch("APP_HOST", "hardpoint.app")}" ]
+  config.hosts = [ app_host, ".#{app_host}" ]
 
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }

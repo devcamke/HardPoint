@@ -15,12 +15,12 @@ servers:
 
 # Every shop is a subdomain, so the proxy answers for the bare domain and a wildcard.
 # Let's Encrypt can't issue wildcards over HTTP, so TLS uses a Cloudflare Origin CA
-# certificate covering hardpoint.app and *.hardpoint.app (Cloudflare SSL mode: Full (strict)).
+# certificate covering hardpoint.co.ke and *.hardpoint.co.ke (Cloudflare SSL mode: Full (strict)).
 # Requires config.assume_ssl and config.force_ssl in production.rb (both enabled).
 proxy:
   hosts:
-    - hardpoint.app
-    - "*.hardpoint.app"
+    - hardpoint.co.ke
+    - "*.hardpoint.co.ke"
   ssl:
     certificate_pem: CLOUDFLARE_ORIGIN_CERTIFICATE
     private_key_pem: CLOUDFLARE_ORIGIN_PRIVATE_KEY
@@ -45,7 +45,7 @@ env:
     - RAILS_MASTER_KEY
     - HARDPOINT_DATABASE_PASSWORD
   clear:
-    APP_HOST: hardpoint.app
+    APP_HOST: hardpoint.co.ke
     DATABASE_HOST: hardpoint-db
 
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.

@@ -1,7 +1,7 @@
 # HardPoint
 
 Point of sale and stock control for hardware stores, as a service. A shop signs up, gets its own web address
-(`acme.hardpoint.app`), and runs its tills, stock, suppliers, customers and books from a browser, with M-Pesa and
+(`acme.hardpoint.co.ke`), and runs its tills, stock, suppliers, customers and books from a browser, with M-Pesa and
 KRA eTIMS built in. The till keeps selling when the internet drops. No shop can see another shop's data.
 
 ![Home for the owner: today's numbers and what needs doing](docs/screenshots/310-home-owner.png)
@@ -34,13 +34,13 @@ phase of the build added, see [docs/FEATURES.md](docs/FEATURES.md).
 - **Hardware:** 80 mm receipts from the browser or straight to the printer through QZ Tray (with the cash drawer),
   and any keyboard-style scanner.
 
-Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
-[When the internet goes down](https://hardpoint.app/help/offline) ·
-[Tills and printers](https://hardpoint.app/help/tills-and-printers) ·
-[Promotions](https://hardpoint.app/help/promotions) ·
-[WhatsApp](https://hardpoint.app/help/whatsapp) ·
-[Shifts and cash](https://hardpoint.app/help/shifts-and-cash) ·
-[Returns and refunds](https://hardpoint.app/help/returns-and-refunds)
+Guides: [Selling at the till](https://hardpoint.co.ke/help/selling) ·
+[When the internet goes down](https://hardpoint.co.ke/help/offline) ·
+[Tills and printers](https://hardpoint.co.ke/help/tills-and-printers) ·
+[Promotions](https://hardpoint.co.ke/help/promotions) ·
+[WhatsApp](https://hardpoint.co.ke/help/whatsapp) ·
+[Shifts and cash](https://hardpoint.co.ke/help/shifts-and-cash) ·
+[Returns and refunds](https://hardpoint.co.ke/help/returns-and-refunds)
 
 ![Till](docs/screenshots/43-till-cart.png)
 
@@ -51,13 +51,13 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 - **A4 tax invoices** and **delivery notes** with dispatch and proof of delivery.
 - **Jobs for contractors:** tag purchases to a project, track it against a budget, and print a cost summary or a
   marked-up bill for their client.
-- **An online store** at `yourshop.hardpoint.app/store` for click-and-collect, paid ahead by M-Pesa or on collection.
+- **An online store** at `yourshop.hardpoint.co.ke/store` for click-and-collect, paid ahead by M-Pesa or on collection.
 
-Guides: [Customers](https://hardpoint.app/help/customers) ·
-[Customers on account](https://hardpoint.app/help/customer-accounts) ·
-[Jobs for contractors](https://hardpoint.app/help/contractor-jobs) ·
-[Online store](https://hardpoint.app/help/online-store) ·
-[Deliveries and transport](https://hardpoint.app/help/deliveries)
+Guides: [Customers](https://hardpoint.co.ke/help/customers) ·
+[Customers on account](https://hardpoint.co.ke/help/customer-accounts) ·
+[Jobs for contractors](https://hardpoint.co.ke/help/contractor-jobs) ·
+[Online store](https://hardpoint.co.ke/help/online-store) ·
+[Deliveries and transport](https://hardpoint.co.ke/help/deliveries)
 
 ### Stock and purchasing
 
@@ -71,13 +71,13 @@ Guides: [Customers](https://hardpoint.app/help/customers) ·
   suppliers with debit notes.
 - **HardPoint Stock** on the phone: look up, count and check deliveries in with the camera.
 
-Guides: [Products](https://hardpoint.app/help/products) ·
-[Stock and stock takes](https://hardpoint.app/help/stock-and-stock-takes) ·
-[Buying from suppliers](https://hardpoint.app/help/buying-from-suppliers) ·
-[Importing products](https://hardpoint.app/help/importing-products) ·
-[Stock on your phone](https://hardpoint.app/help/stock-on-your-phone) ·
-[Batches and expiry](https://hardpoint.app/help/batches-and-expiry) ·
-[Changing prices](https://hardpoint.app/help/changing-prices)
+Guides: [Products](https://hardpoint.co.ke/help/products) ·
+[Stock and stock takes](https://hardpoint.co.ke/help/stock-and-stock-takes) ·
+[Buying from suppliers](https://hardpoint.co.ke/help/buying-from-suppliers) ·
+[Importing products](https://hardpoint.co.ke/help/importing-products) ·
+[Stock on your phone](https://hardpoint.co.ke/help/stock-on-your-phone) ·
+[Batches and expiry](https://hardpoint.co.ke/help/batches-and-expiry) ·
+[Changing prices](https://hardpoint.co.ke/help/changing-prices)
 
 ![Stock › Reorder](docs/screenshots/311-reorder.png)
 
@@ -93,9 +93,9 @@ Guides: [Products](https://hardpoint.app/help/products) ·
   profit and loss, VAT, payments, discounts and voids, stock valuation, dead stock and shifts. A daily summary email,
   and a **QuickBooks Online export**.
 
-Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://hardpoint.app/help/airtel-money) ·
-[KRA eTIMS](https://hardpoint.app/help/etims) · [Reports](https://hardpoint.app/help/reports) ·
-[QuickBooks Online](https://hardpoint.app/help/quickbooks) · [Currencies](https://hardpoint.app/help/foreign-currencies)
+Guides: [M-Pesa](https://hardpoint.co.ke/help/mpesa) · [Airtel Money](https://hardpoint.co.ke/help/airtel-money) ·
+[KRA eTIMS](https://hardpoint.co.ke/help/etims) · [Reports](https://hardpoint.co.ke/help/reports) ·
+[QuickBooks Online](https://hardpoint.co.ke/help/quickbooks) · [Currencies](https://hardpoint.co.ke/help/foreign-currencies)
 
 ### Running the shop on HardPoint
 
@@ -115,11 +115,11 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://har
   WhatsApp, and a message form that tells support which page you were on. The guides open with interactive
   walkthroughs of the same screens.
 
-Guides: [Setting up your shop](https://hardpoint.app/help/getting-started) ·
-[Finding your way around](https://hardpoint.app/help/getting-around) ·
-[Shop settings](https://hardpoint.app/help/shop-settings) · [Your profile](https://hardpoint.app/help/my-profile) ·
-[Staff and roles](https://hardpoint.app/help/staff-and-roles) · [Billing](https://hardpoint.app/help/billing) ·
-[Connecting apps](https://hardpoint.app/help/connecting-apps) · [Your data](https://hardpoint.app/help/your-data)
+Guides: [Setting up your shop](https://hardpoint.co.ke/help/getting-started) ·
+[Finding your way around](https://hardpoint.co.ke/help/getting-around) ·
+[Shop settings](https://hardpoint.co.ke/help/shop-settings) · [Your profile](https://hardpoint.co.ke/help/my-profile) ·
+[Staff and roles](https://hardpoint.co.ke/help/staff-and-roles) · [Billing](https://hardpoint.co.ke/help/billing) ·
+[Connecting apps](https://hardpoint.co.ke/help/connecting-apps) · [Your data](https://hardpoint.co.ke/help/your-data)
 
 ## Try it on your machine
 
@@ -277,7 +277,7 @@ bin/kamal deploy
 - PostgreSQL 18 runs as a Kamal accessory, tuned by `config/postgres/postgresql.conf` for a 6-core, 12 GB VPS.
   `config/postgres/create_app_role.sh` creates the non-superuser `hardpoint` role on first boot. The app runs
   `WEB_CONCURRENCY=6` Puma workers of 3 threads.
-- kamal-proxy serves `hardpoint.app` and `*.hardpoint.app` with a Cloudflare Origin CA certificate (Cloudflare SSL
+- kamal-proxy serves `hardpoint.co.ke` and `*.hardpoint.co.ke` with a Cloudflare Origin CA certificate (Cloudflare SSL
   mode: Full (strict)).
 - **Shops' own backups** go to `BACKUP_STORAGE_SERVICE` (a separate bucket; see RUNBOOK §2).
 - **Backups** run from cron on the host (`config/backup/backup.sh`, set up as in [docs/RUNBOOK.md](docs/RUNBOOK.md)).
@@ -301,7 +301,7 @@ Everything below is added with `bin/rails credentials:edit` unless it says other
 - **QZ Tray** (optional, to skip its "allow" prompt on tills): `qz: { certificate:, private_key: }`.
 - **Exchange rates:** nothing to set up; the morning job uses open.er-api.com's free feed. To use another feed with
   the same JSON shape, add `exchange_rates_url: "https://…/%{base}"`.
-- **Support** (environment variables): `SUPPORT_EMAIL` receives support requests (default `support@hardpoint.app`)
+- **Support** (environment variables): `SUPPORT_EMAIL` receives support requests (default `support@hardpoint.co.ke`)
   and `SUPPORT_WHATSAPP` is the WhatsApp number, in international format without the plus.
 - Simulators are refused in production unless `ALLOW_INTEGRATION_SIMULATORS` is set (for a public demo, say).
 

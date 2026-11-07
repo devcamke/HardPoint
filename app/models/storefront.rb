@@ -1,4 +1,4 @@
-# A shop's public online store at <shop>.hardpoint.app/store: which branches take click-and-collect
+# A shop's public online store at <shop>.hardpoint.co.ke/store: which branches take click-and-collect
 # orders, what the store says about itself, and whether customers see how many are in stock.
 class Storefront < ApplicationRecord
   include AccountOwned, Eventable

@@ -34,7 +34,7 @@ class HelpGuideExport
     end
 
     def render(article)
-      ApplicationController.renderer.new(http_host: "hardpoint.app", https: true).render(partial: article.partial)
+      ApplicationController.renderer.new(http_host: "hardpoint.co.ke", https: true).render(partial: article.partial)
     end
 
     def markdown(html)
@@ -79,7 +79,7 @@ class HelpGuideExport
       elsif href.to_s.start_with?("#")
         href
       else
-        href.to_s.start_with?("/") ? "https://hardpoint.app#{href}" : href
+        href.to_s.start_with?("/") ? "https://hardpoint.co.ke#{href}" : href
       end
     end
 end

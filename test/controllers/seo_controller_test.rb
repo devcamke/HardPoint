@@ -36,4 +36,11 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     get "/sitemap.xml"
     assert_response :not_found
   end
+
+  test "www goes to the bare domain, path and query kept" do
+    host! "www.localhost"
+    get "/help/selling?from=ad"
+    assert_redirected_to "http://localhost/help/selling?from=ad"
+    assert_response :moved_permanently
+  end
 end

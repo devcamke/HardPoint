@@ -243,7 +243,7 @@ Staff and activity are in [Staff, roles and PINs](#staff-and-roles). Payments an
 
 _Bring in your whole price list at once, and update prices later the same way._
 
-Go to **Stock › Products**, choose **Import** from the **⚙** menu (or **Settings › Import products**) and choose a CSV file. A [template with the right columns](https://hardpoint.app/product-import-template.csv) is there to start from. Most spreadsheet programs save one with **File → Save as → CSV**. The first row names the columns; only `sku` and `name` are required.
+Go to **Stock › Products**, choose **Import** from the **⚙** menu (or **Settings › Import products**) and choose a CSV file. A [template with the right columns](https://hardpoint.co.ke/product-import-template.csv) is there to start from. Most spreadsheet programs save one with **File → Save as → CSV**. The first row names the columns; only `sku` and `name` are required.
 
 - `sku`: your product code. A row whose SKU already exists updates that product.
 - `name`, `category`, `brand`, `unit` (new categories, brands and units are created for you).
@@ -794,7 +794,7 @@ When the work is finished, press **Close job** so it stops showing at the till. 
 
 _Your catalogue online: switching it on, what customers see, and handling their orders._
 
-Your online store is at `yourshop.hardpoint.app/store`. Customers browse, see what's in stock at your branches, and order for collection. There's nothing to build.
+Your online store is at `yourshop.hardpoint.co.ke/store`. Customers browse, see what's in stock at your branches, and order for collection. There's nothing to build.
 
 Don't see it? It's one of the optional features: the owner switches on **Online store** in **Settings › Features**.
 
@@ -1036,7 +1036,7 @@ _Look up products, count stock takes and check deliveries in with your phone's c
 
 #### Opening it
 
-1. On a computer, go to **Stock › Stock levels** and scan the QR code at the bottom with the phone, or type `yourshop.hardpoint.app/m`.
+1. On a computer, go to **Stock › Stock levels** and scan the QR code at the bottom with the phone, or type `yourshop.hardpoint.co.ke/m`.
 2. Sign in with your own HardPoint email and password.
 3. In Chrome's menu choose **Add to home screen** (Safari: Share › Add to Home Screen) to open it like an app.
 
@@ -1356,7 +1356,7 @@ Everyone who uses HardPoint signs in with their own email address and password. 
 
 #### Signing in
 
-Every shop has its own web address, like **yourshop.hardpoint.app**. It's in your welcome email.
+Every shop has its own web address, like **yourshop.hardpoint.co.ke**. It's in your welcome email.
 
 1. Go to your shop's address. If you only remember the HardPoint website, press **Sign in**, type your shop's name as it appears in its address under **Your shop's web address** and press **Continue**.
 2. Type your **Email address** and **Password** and press **Sign in**.
@@ -1461,7 +1461,7 @@ Everything an app changes appears in **Activity** under the key's name. If a key
 
 Webhooks tell another app the moment something happens: a sale, a price change, stock running down. Your developer gives you an address for them in **Settings › Developers › Add endpoint**. If that app stops answering, HardPoint keeps trying for a day and then switches the webhook off and emails you.
 
-Your developer will find everything they need in the [API and webhook documentation](https://hardpoint.app/developers).
+Your developer will find everything they need in the [API and webhook documentation](https://hardpoint.co.ke/developers).
 
 <a id="your-data"></a>
 

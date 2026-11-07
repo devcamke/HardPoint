@@ -39,13 +39,13 @@ to use it, the help centre (`/help` on the public site). The plan the phases cam
 
 ## Phase 1: shops, staff and sign-in
 
-- **Shops on subdomains:** signup on the bare domain; each shop at `<name>.hardpoint.app`
+- **Shops on subdomains:** signup on the bare domain; each shop at `<name>.hardpoint.co.ke`
 - **Branches and tills** (registers) per shop
 - **Staff and roles:** owner, manager, cashier, stock clerk, accountant; email invitations
 - **Two-factor sign-in** (authenticator app + one-time recovery codes); shops can require it for owners and managers
 - **Till PIN quick-switch:** cashiers and stock clerks switch in at a signed-in till with a 4–6 digit PIN (locks after 5 wrong tries)
 - **Activity log:** an append-only audit trail of who changed what
-- **Platform admin** on `admin.hardpoint.app`: separate sign-in with mandatory two-factor, a list of all shops, and
+- **Platform admin** on `admin.hardpoint.co.ke`: separate sign-in with mandatory two-factor, a list of all shops, and
   support impersonation that is time-boxed to an hour, shown in a banner and recorded in the shop's Activity
 
 ## Phase 2: catalogue and stock
@@ -250,7 +250,7 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 - **API keys** made by the owner in **Settings › Developers**: read only or read and write, shown once and stored
   only as a digest, revocable, last use recorded; changes made with a key show in Activity as that key. Business and
   Enterprise plans
-- **REST API** at `https://api.hardpoint.app/v1`: the shop and branches, products (with barcodes, prices and stock per
+- **REST API** at `https://api.hardpoint.co.ke/v1`: the shop and branches, products (with barcodes, prices and stock per
   branch; create and update), stock levels, customers (create and update), sales and orders, including placing a
   **click-and-collect order** that lands in the shop's open orders. Cursor paging, `updated_since` for syncing,
   idempotency keys, 600 requests a minute per key, clear JSON errors, UTC times, amounts in cents; no writes while the
@@ -266,7 +266,7 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ## Phase 12: online store with click-and-collect
 
-- **Every shop can sell online** at `yourshop.hardpoint.app/store`, switched on in **Settings › Online store** with a
+- **Every shop can sell online** at `yourshop.hardpoint.co.ke/store`, switched on in **Settings › Online store** with a
   headline, introduction, collection note, contact number and the branches customers can collect from. Every
   active product with a price is in the store unless it's ticked off on the product
 - **For customers** (built for phones): categories, search, product pages with the price and stock at each
@@ -316,7 +316,7 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ## Phase 15: stock on the phone
 
-- **HardPoint Stock** at `yourshop.hardpoint.app/m`: a phone-sized part of the app, opened from the QR code on the
+- **HardPoint Stock** at `yourshop.hardpoint.co.ke/m`: a phone-sized part of the app, opened from the QR code on the
   Stock page and added to the home screen like an app. It scans barcodes with the phone's camera (Chrome on Android);
   on other phones you type the code or pair a Bluetooth scanner
 - **Look up:** scan anything on the shelf for its price, pack prices, cost (for those who may see it), stock at every

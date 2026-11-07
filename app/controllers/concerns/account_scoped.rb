@@ -1,4 +1,4 @@
-# Resolves the shop from the request's subdomain (acme.hardpoint.app → "acme") and scopes
+# Resolves the shop from the request's subdomain (acme.hardpoint.co.ke → "acme") and scopes
 # the request to it. Tenant data must always be reached through Current.account's
 # associations; row-level security in Postgres backs this up.
 module AccountScoped

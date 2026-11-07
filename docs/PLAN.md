@@ -235,7 +235,7 @@ The tenant is called an **`Account`** (the Rails/37signals convention). A shop's
 is one account.
 
 ### How isolation is enforced: three layers, no tenancy gem
-1. **Routing layer**: each shop gets a subdomain, `acme.hardpoint.app`. A controller
+1. **Routing layer**: each shop gets a subdomain, `acme.hardpoint.co.ke`. A controller
    concern resolves the account from the subdomain and sets `Current.account`:
    ```ruby
    # app/controllers/concerns/account_scoped.rb
@@ -409,9 +409,9 @@ sending email through SES, with CI/CD.
 - **Kamal 2** config: web + job roles, kamal-proxy, Thruster, health checks,
   secrets via `.kamal/secrets` (never committed).
 - **Cloudflare**
-  - DNS: `hardpoint.app` and wildcard `*.hardpoint.app` → VPS IP, **proxied** (orange cloud).
+  - DNS: `hardpoint.co.ke` and wildcard `*.hardpoint.co.ke` → VPS IP, **proxied** (orange cloud).
   - SSL mode **Full (strict)** with a **Cloudflare Origin CA certificate** (covers the apex and
-    `*.hardpoint.app`) installed in kamal-proxy (custom cert support), or Let's Encrypt
+    `*.hardpoint.co.ke`) installed in kamal-proxy (custom cert support), or Let's Encrypt
     via DNS-01 if you prefer.
   - WAF managed rules, rate-limiting rule on `/session`, "Always use HTTPS", HSTS,
     bot fight mode, caching rules for `/assets/*`.
@@ -419,7 +419,7 @@ sending email through SES, with CI/CD.
     subdomain reaches the app.
 - **AWS SES**
   - Verify the domain; add **DKIM** CNAMEs, **SPF** (`include:amazonses.com`) with a
-    custom MAIL FROM subdomain (`mail.hardpoint.app`), and a **DMARC** record — all in Cloudflare
+    custom MAIL FROM subdomain (`mail.hardpoint.co.ke`), and a **DMARC** record — all in Cloudflare
     DNS (DNS-only, grey cloud).
   - Request production access (leave sandbox).
   - Configuration set + SNS topic → webhook endpoint in the app for **bounces and
@@ -453,7 +453,7 @@ a test email lands in an inbox with DKIM/SPF/DMARC passing; a restore has been t
   `before_action :ensure_can_void_sales`; branch-restricted access.
 - Staff invitations by email.
 - Tenant settings: business name, logo, currency, timezone, tax PIN, receipt footer.
-- Platform **super-admin** at `admin.hardpoint.app` (separate auth, audited impersonation).
+- Platform **super-admin** at `admin.hardpoint.co.ke` (separate auth, audited impersonation).
 - Cross-tenant leak test suite (runs in CI forever after).
 - Base Tailwind layout & component set (buttons, forms, tables, modals, flash, dark mode).
 
@@ -584,7 +584,7 @@ over a documented REST API and be told about changes by webhooks.
 - **API keys** per shop, made by the owner in Settings › Developers: a name, read or read-and-write,
   shown once and stored only as a digest, revocable, with last use recorded. On the Business and
   Enterprise plans.
-- **REST API** at `https://api.hardpoint.app/v1` (JSON, bearer token): the shop and branches; products
+- **REST API** at `https://api.hardpoint.co.ke/v1` (JSON, bearer token): the shop and branches; products
   (list, show, create, update) with prices, barcodes and stock; stock levels; customers (list, show,
   create, update); sales (list, show, read-only); orders (list, show, create for click-and-collect,
   cancel). Cursor pagination, `updated_since` filters, idempotency keys on creates, rate limits per key,
@@ -596,7 +596,7 @@ over a documented REST API and be told about changes by webhooks.
 - **Developer docs** on the public site.
 
 ### Phase 12 — Online store with click-and-collect
-**Goal:** every shop can put its catalogue online at `yourshop.hardpoint.app/store` and take orders for
+**Goal:** every shop can put its catalogue online at `yourshop.hardpoint.co.ke/store` and take orders for
 collection, without a separate website.
 - **Settings › Online store:** switch it on, a headline and introduction, collection branches, a note on
   collection times, a contact number, and whether to show stock levels. Products can be left out of the store.
@@ -777,7 +777,7 @@ set of books.
                  Users (browsers / PWA tills)
                             │ HTTPS
                   ┌─────────▼──────────┐
-                  │     Cloudflare      │  DNS, *.hardpoint.app wildcard, WAF,
+                  │     Cloudflare      │  DNS, *.hardpoint.co.ke wildcard, WAF,
                   │  (proxy, TLS, CDN)  │  rate limits, DDoS protection
                   └─────────┬──────────┘
                             │ Full (strict) TLS, Origin CA cert

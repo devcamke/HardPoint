@@ -19,7 +19,7 @@ growing onto several servers.
    password logins off; `ufw` allowing 22 from your address and 80/443 only from
    [Cloudflare's ranges](https://www.cloudflare.com/ips/); `fail2ban`, `unattended-upgrades`, a 4 GB
    swap file, time sync; Docker. Turn on Contabo's snapshot for the disk as an extra safety net.
-2. **Cloudflare:** `hardpoint.app` and `*.hardpoint.app` proxied to the VPS; SSL **Full (strict)** with an
+2. **Cloudflare:** `hardpoint.co.ke` and `*.hardpoint.co.ke` proxied to the VPS; SSL **Full (strict)** with an
    Origin CA certificate for both (its PEM files go in `.kamal/secrets`); WAF managed rules; a rate
    limiting rule on `POST /session`; caching for `/assets/*`.
 3. **Email:** verify the domain in AWS SES (DKIM, SPF, DMARC), request production access, create SMTP
@@ -141,7 +141,7 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 
 | Symptom | First steps |
 |---|---|
-| Site down | `bin/kamal app details`, `bin/kamal logs`; `curl -I https://hardpoint.app/up`. Tills keep selling offline meanwhile. |
+| Site down | `bin/kamal app details`, `bin/kamal logs`; `curl -I https://hardpoint.co.ke/up`. Tills keep selling offline meanwhile. |
 | "could not obtain a connection" / "too many connections" | Pool too small for its threads, or Postgres' `max_connections` spent: see the connection budget in section 6 before raising either |
 | Slow | Admin Database page: long-running queries and connections; `bin/kamal accessory logs db` for slow-query lines (over 500 ms are logged); raise `WEB_CONCURRENCY` if CPU is spare |
 | Database full or disk full | `df -h`; old local backups are in `/var/backups/hardpoint`; `docker system prune` for old images |

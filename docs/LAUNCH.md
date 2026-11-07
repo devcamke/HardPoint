@@ -9,7 +9,7 @@ From a working staging server to paying shops. Tick each line when done.
 - [ ] SES out of the sandbox; DKIM, SPF and DMARC pass (send a test of every mailer)
 - [ ] Backups running, heartbeat alerting, bucket lifecycle and write-only key (RUNBOOK §2)
 - [ ] First restore drill on the real server, timed; RTO confirmed (RUNBOOK §3)
-- [ ] Uptime check on `https://hardpoint.app/up` and one shop's sign-in page, alerting by SMS
+- [ ] Uptime check on `https://hardpoint.co.ke/up` and one shop's sign-in page, alerting by SMS
 - [ ] Error reporting chosen and wired to `Rails.error` (e.g. Honeybadger, AppSignal or Sentry)
 - [ ] M-Pesa: every flow run against Safaricom's sandbox (prompt, callback, C2B confirmation and
       validation, register URLs); then go-live approval for the platform Paybill

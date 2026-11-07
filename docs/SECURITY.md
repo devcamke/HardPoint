@@ -1,7 +1,7 @@
 # HardPoint security
 
 What protects shops' data, what is tested automatically, and the brief for the external penetration
-test. Report vulnerabilities to security@hardpoint.app.
+test. Report vulnerabilities to security@hardpoint.co.ke.
 
 ## What matters most
 
@@ -43,7 +43,7 @@ test. Report vulnerabilities to security@hardpoint.app.
 
 ## Penetration test brief
 
-**Scope:** `https://*.hardpoint.app` (a staging deployment with production settings), the admin
+**Scope:** `https://*.hardpoint.co.ke` (a staging deployment with production settings), the admin
 subdomain, the webhooks, and the till's offline sync API. Out of scope: Cloudflare, Contabo,
 Safaricom, KRA and Paystack themselves; denial of service.
 
