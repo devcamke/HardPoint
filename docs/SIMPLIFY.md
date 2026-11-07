@@ -170,6 +170,11 @@ for the new navigation and feature switches.
 - **Features switched on per shop:** if most shops leave a feature off, it's correctly hidden by default.
 - A short session with 3–5 shop owners and cashiers before and after each phase, timing the same five tasks.
 
+The first four are on the platform admin's **Adoption** page (`admin.<domain>/adoption`, `Adoption` and
+`UsageCount`). Shortcuts are counted per shop and day from a `from=` tag on Home's buttons, quick actions and search
+results, plus drafting every reorder at once, "Add and start another" and tills that open straight into selling.
+Only counts are kept: no user, no search text. The sessions with shop staff are still to do by hand.
+
 ## Risks
 
 | Risk | Mitigation |
@@ -230,6 +235,8 @@ Where the code lives:
   and stock clerks skip Home and go straight to the till when they sign in or switch user. Owners and managers still
   get Home, and the till's logo still leads there.
 
+- **Measuring:** the Adoption page described in [How we'll know it worked](#how-well-know-it-worked).
+
 ### Not done yet
 
-- Measuring the results in [How we'll know it worked](#how-well-know-it-worked), which needs shops using it.
+- Reading the Adoption page once shops have used the new layout for a few weeks, and the sessions with shop staff.

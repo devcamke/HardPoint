@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   include Authorization
   include TwoFactorRequirement
   include SubscriptionEnforcement
-  include BranchSelection, Pagination, TillSelection
+  include BranchSelection, Pagination, TillSelection, UsageTracking
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern

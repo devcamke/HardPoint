@@ -3,8 +3,8 @@ require "csv"
 # Writes the ZIP: every table that belongs to the shop as a CSV (secrets left out), the staff list,
 # the shop's settings, attached files, and a README explaining the format.
 class AccountExport::Archive
-  # Internal bookkeeping, and sign-in sessions (security data, not the shop's records).
-  SKIPPED_TABLES = %w[ account_exports document_sequences etims_item_registrations product_imports sessions ].freeze
+  # Internal bookkeeping (including HardPoint's own usage counts), and sign-in sessions (security data, not the shop's records).
+  SKIPPED_TABLES = %w[ account_exports document_sequences etims_item_registrations product_imports sessions usage_counts ].freeze
   # Credentials and hashes never leave the database.
   SECRET_COLUMNS = /digest|secret|token|passkey|consumer_key|cmc_key|failed_pin_attempts/
 

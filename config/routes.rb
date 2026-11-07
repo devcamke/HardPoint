@@ -57,6 +57,7 @@ Rails.application.routes.draw do
       resources :announcements, except: :show
       resources :support_requests, only: %i[ index update ]
       resource :database, only: :show
+      resource :adoption, only: :show
       root "accounts#index"
     end
   end

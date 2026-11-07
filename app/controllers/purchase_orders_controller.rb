@@ -100,6 +100,7 @@ class PurchaseOrdersController < ApplicationController
         order_from_suggestions(supplier:, branch:, rows:) if supplier
       end
       PurchaseOrder.transaction { orders.each(&:save!) }
+      UsageCount.record("reorder_draft_all")
       redirect_to purchase_orders_path(status: "draft"), notice: "#{orders.size} draft #{"order".pluralize(orders.size)} saved. Check each one, then send it to the supplier."
     end
 

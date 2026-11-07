@@ -39,6 +39,11 @@ module SearchHelper
     groups
   end
 
+  # The short name a results group is counted under (UsageCount): products, customers, … or actions.
+  def search_group_key(heading)
+    heading.start_with?("Do something") ? "actions" : heading.downcase
+  end
+
   private
     # A receipt, order or purchase order number typed or scanned in full: MAI-000123, MAI-O00012, MAI-PO00007.
     def search_documents(query)

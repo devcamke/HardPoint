@@ -43,6 +43,7 @@ class ProductsController < ApplicationController
     if save_with_barcode(@product)
       notice = "#{@product.name} added#{" with #{helpers.quantity(@product.stock_at(selected_branch), @product.unit)} at #{selected_branch.name}" if @product.stock_at(selected_branch).positive?}."
       if params[:add_another]
+        UsageCount.record("product_add_another")
         redirect_to new_product_path(category_id: @product.category_id, unit_id: @product.unit_id), notice: notice
       else
         redirect_to @product, notice: notice

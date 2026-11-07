@@ -11,7 +11,7 @@
         <ul>
           <% results.each do |result| %>
             <li>
-              <%= link_to result.path, class: "flex items-baseline justify-between gap-4 px-4 py-2 hover:bg-primary-50 focus:bg-primary-50 focus:outline-none aria-selected:bg-primary-50",
+              <%= link_to tracked_path(result.path, "search:#{search_group_key(heading)}"), class: "flex items-baseline justify-between gap-4 px-4 py-2 hover:bg-primary-50 focus:bg-primary-50 focus:outline-none aria-selected:bg-primary-50",
                     data: { search_result: true, command_palette_target: "result" } do %>
                 <span class="min-w-0 truncate font-medium text-gray-900"><%= result.label %></span>
                 <span class="hint shrink-0 truncate"><%= result.detail %></span>

@@ -19,7 +19,7 @@
     <p class="hint"><%= [ selected_branch&.name, current_till&.name ].compact.join(" · ") %> · <%= Time.zone.now.strftime("%A %-d %B") %></p>
 
     <% if current_membership.can_sell? %>
-      <%= link_to pos_path, class: "mt-8 block rounded-xl bg-[#e46f2f] px-6 py-8 text-white shadow-md transition hover:bg-[#d0611f]" do %>
+      <%= link_to tracked_path(pos_path, "home:start_selling"), class: "mt-8 block rounded-xl bg-[#e46f2f] px-6 py-8 text-white shadow-md transition hover:bg-[#d0611f]" do %>
         <span class="block text-2xl font-bold"><%= current_shift ? "Start selling →" : "Open a shift and start selling →" %></span>
         <span class="mt-1 block text-sm text-white/90"><%= current_shift ? "Your shift on #{current_till.name} is open" : (current_till ? "On #{current_till.name}" : "You'll choose this computer's till first") %></span>
       <% end %>
@@ -47,7 +47,7 @@
 
     <% if (actions = home_quick_actions).any? %>
       <nav class="mt-6 flex flex-wrap justify-center gap-2" aria-label="Quick actions">
-        <% actions.each do |label, path| %><%= link_to label, path, class: "btn-secondary" %><% end %>
+        <% actions.each do |label, path| %><%= link_to label, tracked_path(path, "quick:#{label.parameterize(separator: "_")}"), class: "btn-secondary" %><% end %>
       </nav>
     <% end %>
 

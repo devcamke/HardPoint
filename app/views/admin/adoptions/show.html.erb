@@ -1,0 +1,71 @@
+<% content_for :title, "Adoption" %>
+
+<h1 class="text-xl font-medium">Adoption</h1>
+<p class="hint mb-6 max-w-3xl">Is the simpler layout working? The measures from <span class="font-mono">docs/SIMPLIFY.md</span>, across every shop.
+  The six areas, Home's to-do list, feature switches and search went live on <%= Adoption::SIMPLIFIED_ON.to_fs(:long) %>.</p>
+
+<section id="first-sale" class="card mb-6">
+  <h2 class="mb-1 text-lg font-semibold">Time to first sale</h2>
+  <p class="hint mb-3">From signing up to the first completed sale. Shorter means new shops find their way faster.</p>
+  <table class="table">
+    <thead><tr><th>Shops</th><th class="text-right">Signed up</th><th class="text-right">Have sold</th><th class="text-right">Within a week</th><th class="text-right">Median days</th></tr></thead>
+    <tbody>
+      <% @cohorts.each do |cohort| %>
+        <tr>
+          <td><%= cohort.label %></td>
+          <td class="text-right tabular-nums"><%= cohort.shops %></td>
+          <td class="text-right tabular-nums"><%= cohort.selling %></td>
+          <td class="text-right tabular-nums"><%= cohort.shops.zero? ? "–" : "#{(100.0 * cohort.within_week / cohort.shops).round}%" %></td>
+          <td class="text-right tabular-nums"><%= cohort.median_days || "–" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
+
+<div class="grid items-start gap-6 lg:grid-cols-2">
+  <section id="shortcuts" class="card">
+    <h2 class="mb-1 text-lg font-semibold">Shortcuts used</h2>
+    <p class="hint mb-3">Last 30 days. Counts only: no search text, no names.</p>
+    <% if @shortcuts.any? %>
+      <table class="table">
+        <thead><tr><th>Shortcut</th><th class="text-right">Times</th><th class="text-right">Shops</th></tr></thead>
+        <tbody>
+          <% @shortcuts.each do |name, times, shops| %>
+            <tr><td><%= Adoption.label(name) %></td><td class="text-right tabular-nums"><%= number_with_delimiter(times) %></td><td class="text-right tabular-nums"><%= shops %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="hint">Nothing yet.</p>
+    <% end %>
+  </section>
+
+  <div class="space-y-6">
+    <section id="features" class="card">
+      <h2 class="mb-1 text-lg font-semibold">Features switched on</h2>
+      <p class="hint mb-3">Of <%= pluralize(@shops_count, "shop") %>. A feature few shops use is rightly off by default.</p>
+      <table class="table">
+        <tbody>
+          <% @features.each do |feature, count| %>
+            <tr><td><%= feature.name %></td><td class="text-right tabular-nums"><%= count %></td>
+              <td class="w-40"><div class="h-2 overflow-hidden rounded-full bg-gray-200"><div class="h-full bg-primary-500" style="width: <%= @shops_count.zero? ? 0 : (100.0 * count / @shops_count).round %>%"></div></div></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="lost" class="card">
+      <h2 class="mb-1 text-lg font-semibold">"Where is…" support requests</h2>
+      <p class="hint mb-3">Requests that read like someone couldn't find their way ("where is", "how do I", "can't find").</p>
+      <p><span class="text-2xl font-bold tabular-nums"><%= @lost[:recent] %></span> in the last 30 days
+        <span class="hint">· <%= @lost[:before] %> in the 30 before</span></p>
+      <% if @lost[:examples].any? %>
+        <ul class="mt-3 space-y-1 text-sm">
+          <% @lost[:examples].each do |subject, created_at| %><li><%= subject %> <span class="hint">· <%= l(created_at.to_date, format: :short) %></span></li><% end %>
+        </ul>
+        <p class="mt-2"><%= link_to "All support requests", admin_support_requests_path, class: "link text-sm" %></p>
+      <% end %>
+    </section>
+  </div>
+</div>

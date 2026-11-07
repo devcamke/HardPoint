@@ -60,7 +60,7 @@
               <p class="font-medium text-gray-900"><%= task.title %></p>
               <p class="hint"><%= task.detail %></p>
             </div>
-            <%= link_to task.action, task.path, class: index.zero? ? "btn-primary" : "btn-secondary" %>
+            <%= link_to task.action, tracked_path(task.path, "home:#{task.key}"), class: index.zero? ? "btn-primary" : "btn-secondary" %>
           </li>
         <% end %>
       </ul>
@@ -81,7 +81,7 @@
     <% if (actions = home_quick_actions).any? %>
       <nav class="grid grid-cols-2 gap-3" aria-label="Quick actions">
         <% actions.each do |label, path| %>
-          <%= link_to label, path, class: "card block p-3 text-center font-medium hover:border-primary-300" %>
+          <%= link_to label, tracked_path(path, "quick:#{label.parameterize(separator: "_")}"), class: "card block p-3 text-center font-medium hover:border-primary-300" %>
         <% end %>
       </nav>
     <% end %>
