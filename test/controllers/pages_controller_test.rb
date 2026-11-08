@@ -38,9 +38,11 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", "Pricing"
     assert_select "#plan_business", /15 staff logins/
     assert_select "#plan_starter", /Unlimited products/
-    assert_select "#plan_starter", /KES 25,000.00 a year/
-    assert_select "#plan_starter", /extra till is KES 750.00/
-    assert_select "#plan_enterprise", { text: /extra till/, count: 0 }
+    assert_select "#plan_starter", /KES 25,000 a year/
+    assert_select "#plan_starter", /A till is KES 750 and a branch KES 2,000/
+    assert_select "#plan_enterprise", { text: /Need one more/, count: 0 }
+    assert_select "#plan_business", /Recommended/
+    assert_select "input[type=radio][name=billing][value=yearly]"
     assert_select "#setup", /from KES 15,000.00/
 
     get privacy_path

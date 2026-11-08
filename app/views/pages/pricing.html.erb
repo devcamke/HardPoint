@@ -27,20 +27,20 @@
       <h3 class="text-lg font-semibold">Setup and training visit</h3>
       <p class="mt-1"><span class="text-2xl font-semibold tabular-nums">from <%= Money.format(Plan::SETUP_CENTS, currency: "KES") %></span> <span class="text-gray-500">one-off · free with a year paid upfront</span></p>
       <ul class="mt-4 space-y-2 text-sm">
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Your product list imported from a spreadsheet or your old system, with prices, barcodes and stock</li>
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Tills, receipt printers, cash drawers and scanners connected</li>
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> M-Pesa on your own Paybill or Till, and KRA eTIMS registered for each branch</li>
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Staff, roles and PINs set up, and an hour at the counter with your cashiers</li>
+        <li class="flex gap-2"><%= render "pages/check" %> Your product list imported from a spreadsheet or your old system, with prices, barcodes and stock</li>
+        <li class="flex gap-2"><%= render "pages/check" %> Tills, receipt printers, cash drawers and scanners connected</li>
+        <li class="flex gap-2"><%= render "pages/check" %> M-Pesa on your own Paybill or Till, and KRA eTIMS registered for each branch</li>
+        <li class="flex gap-2"><%= render "pages/check" %> Staff, roles and PINs set up, and an hour at the counter with your cashiers</li>
       </ul>
     </div>
     <div class="card">
       <h3 class="text-lg font-semibold">Till kit</h3>
       <p class="mt-1"><span class="text-2xl font-semibold">Quoted</span> <span class="text-gray-500">for your shop · pay once or over 12 months</span></p>
       <ul class="mt-4 space-y-2 text-sm">
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> 80 mm thermal receipt printer and cash drawer</li>
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> USB barcode scanner</li>
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> A touch screen or tablet for the till, if you want one</li>
-        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Delivered set up and tested with HardPoint</li>
+        <li class="flex gap-2"><%= render "pages/check" %> 80 mm thermal receipt printer and cash drawer</li>
+        <li class="flex gap-2"><%= render "pages/check" %> USB barcode scanner</li>
+        <li class="flex gap-2"><%= render "pages/check" %> A touch screen or tablet for the till, if you want one</li>
+        <li class="flex gap-2"><%= render "pages/check" %> Delivered set up and tested with HardPoint</li>
       </ul>
     </div>
   </div>

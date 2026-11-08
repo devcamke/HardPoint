@@ -2,7 +2,7 @@
 
 <%# Fills the screen under the header and any banners. Phones get one pane at a time (pos/_pane_tabs); tablets and
     tills get the products beside the sale, with the sale widening as the screen does. %>
-<div class="group grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_22rem] md:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_26rem] xl:grid-cols-[minmax(0,1fr)_30rem]"
+<div class="group grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_22rem] md:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_26rem] xl:grid-cols-[minmax(0,1fr)_minmax(30rem,38%)]"
      data-controller="till-panes" data-pane="products">
   <%= render "pos/pane_tabs", sale: @sale %>
 
@@ -49,7 +49,7 @@
     </div>
   </section>
 
-  <aside id="till_cart" class="flex min-h-0 flex-col overflow-y-auto border-gray-200 bg-white md:border-l group-data-[pane=products]:max-md:hidden">
+  <aside id="till_cart" class="@container flex min-h-0 flex-col overflow-y-auto border-gray-200 bg-white md:border-l group-data-[pane=products]:max-md:hidden">
     <%= render "pos/cart", sale: @sale %>
   </aside>
 </div>
