@@ -145,10 +145,12 @@ textarea.input {
 }
 
 /* Walkthroughs in the help guides (help/_walkthrough, walkthrough_controller.js) and guided tours in the shop
-   (shared/_guided_tour, guided_tour_controller.js). Hotspots are the till's orange, so they stand out on the teal. */
+   (shared/_guided_tour, guided_tour_controller.js). The walkthrough is a grey tile like the rest of the public
+   site: near-black hotspots on the screenshot, and, once the tour starts, a white spotlight ring and a dark
+   pop-up on the dimmed screen. */
 @layer components {
   .walkthrough {
-    @apply my-8 rounded-xl border border-gray-200 bg-white shadow-sm;
+    @apply my-10 rounded-3xl bg-gray-100;
   }
   /* Wider than the guide's text on big screens, so the screenshot is readable. */
   @media (min-width: 64rem) {
@@ -157,13 +159,13 @@ textarea.input {
     }
   }
   .walkthrough-bar {
-    @apply flex items-center justify-between gap-3 rounded-t-xl border-b border-gray-200 bg-gray-50 px-4 py-3;
+    @apply flex items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-6;
   }
   .walkthrough-eyebrow {
-    @apply text-xs font-semibold tracking-wide text-[#c2561c] uppercase;
+    @apply text-xs font-semibold tracking-wide text-gray-500 uppercase;
   }
   .walkthrough-title {
-    @apply font-semibold text-gray-900;
+    @apply mt-0.5 text-lg font-semibold tracking-tight text-gray-950;
   }
   .walkthrough-controls {
     @apply flex shrink-0 items-center gap-1 text-sm text-gray-600;
@@ -172,57 +174,57 @@ textarea.input {
     @apply min-w-14 text-center tabular-nums;
   }
   .walkthrough-nav {
-    @apply flex size-8 cursor-pointer items-center justify-center rounded border border-gray-200 bg-white text-lg leading-none hover:bg-gray-100 disabled:cursor-default disabled:opacity-40;
+    @apply flex size-9 cursor-pointer items-center justify-center rounded-full bg-white text-lg leading-none text-gray-900 shadow-sm hover:bg-gray-50 disabled:cursor-default disabled:opacity-40;
   }
   .walkthrough-stage {
-    @apply relative p-3 sm:p-4;
+    @apply relative px-3 pb-3 sm:px-5 sm:pb-5;
   }
   .walkthrough-screen {
-    @apply relative overflow-hidden rounded-lg border border-gray-200;
+    @apply relative overflow-hidden rounded-2xl shadow-lg ring-1 ring-gray-950/5;
   }
   .walkthrough-image {
     @apply block h-auto w-full;
   }
   /* The rest of the screen dims around the current step. */
   .walkthrough-spotlight {
-    @apply pointer-events-none absolute rounded-md ring-2 ring-[#e46f2f];
-    box-shadow: 0 0 0 9999px rgb(15 23 42 / 0.5);
+    @apply pointer-events-none absolute rounded-md ring-2 ring-white outline-2 outline-offset-2 outline-gray-950/40;
+    box-shadow: 0 0 0 9999px rgb(3 7 18 / 0.55);
     transition: left 0.35s ease, top 0.35s ease, width 0.35s ease, height 0.35s ease;
   }
   .walkthrough-hotspot {
-    @apply absolute z-30 flex size-7 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#c2561c] text-xs font-bold text-white shadow-md transition hover:scale-110;
+    @apply absolute z-30 flex size-7 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-gray-950 text-xs font-bold text-white shadow-md transition hover:scale-110;
     animation: walkthrough-pulse 2s infinite;
   }
   .walkthrough.is-touring .walkthrough-hotspot {
-    @apply bg-gray-700/80;
+    @apply border-white/60 bg-gray-950/60;
     animation: none;
   }
   .walkthrough.is-touring .walkthrough-hotspot.is-active {
-    @apply scale-110 bg-[#e46f2f];
-    animation: walkthrough-pulse 2s infinite;
+    @apply scale-110 border-white bg-gray-950 text-white;
+    animation: walkthrough-pulse-light 2s infinite;
   }
   .walkthrough-start {
-    @apply absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-gray-900/35 text-sm text-white;
+    @apply absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-gray-950/40 text-sm text-white backdrop-blur-[2px];
     pointer-events: none;
   }
   .walkthrough-start p {
     @apply drop-shadow;
   }
   .walkthrough-start-button {
-    @apply pointer-events-auto flex cursor-pointer items-center gap-2 rounded-full bg-[#c2561c] px-5 py-2.5 text-base font-semibold text-white shadow-lg transition hover:bg-[#a8471a] hover:shadow-xl;
+    @apply pointer-events-auto flex cursor-pointer items-center gap-2 rounded-full bg-white px-5 py-2.5 text-base font-semibold text-gray-950 shadow-lg transition hover:bg-gray-100 hover:shadow-xl;
   }
   .walkthrough-popover {
-    @apply absolute z-30 w-80 max-w-[calc(100%-1.5rem)] rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700 shadow-2xl;
+    @apply absolute z-30 w-80 max-w-[calc(100%-1.5rem)] rounded-2xl bg-gray-950 p-5 text-sm text-gray-300 shadow-2xl;
     transition: left 0.35s ease, top 0.35s ease;
   }
   .walkthrough-popover.is-docked {
     @apply relative m-0 mt-3 w-full max-w-none shadow-md;
   }
   .walkthrough-popover-step {
-    @apply text-xs font-semibold tracking-wide text-[#c2561c] uppercase;
+    @apply text-xs font-semibold tracking-wide text-primary-300 uppercase;
   }
   .walkthrough-popover-title {
-    @apply mt-1 text-base font-semibold text-gray-900;
+    @apply mt-1 text-base font-semibold tracking-tight text-white;
   }
   .walkthrough-popover-text {
     @apply mt-1 leading-relaxed;
@@ -231,52 +233,59 @@ textarea.input {
     @apply mt-4 flex items-center justify-between gap-2;
   }
   .walkthrough-link {
-    @apply cursor-pointer text-sm text-gray-600 hover:text-gray-900 disabled:invisible;
+    @apply cursor-pointer text-sm text-gray-400 hover:text-white disabled:invisible;
   }
   .walkthrough-next {
-    @apply cursor-pointer rounded bg-primary-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-primary-600;
+    @apply cursor-pointer rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-gray-950 hover:bg-gray-200;
   }
   .walkthrough-dots {
     @apply flex flex-wrap justify-center gap-1;
   }
   .walkthrough-dots > span {
-    @apply size-1.5 rounded-full bg-gray-300 transition;
+    @apply size-1.5 rounded-full bg-white/30 transition;
   }
   .walkthrough-dots > span.is-active {
-    @apply w-4 bg-[#e46f2f];
+    @apply w-4 bg-white;
   }
   /* The arrow: a square turned 45°, half hidden behind the pop-up's edge. */
-  .walkthrough-arrow, .guided-tour-arrow {
+  .walkthrough-arrow {
+    @apply absolute size-3.5 rotate-45 bg-gray-950;
+  }
+  .guided-tour-arrow {
     @apply absolute size-3.5 rotate-45 border-gray-200 bg-white;
   }
   .walkthrough-arrow[data-edge=top], .guided-tour-arrow[data-edge=top] { @apply -top-[7px] -translate-x-1/2 border-t border-l; }
   .walkthrough-arrow[data-edge=bottom], .guided-tour-arrow[data-edge=bottom] { @apply -bottom-[7px] -translate-x-1/2 border-r border-b; }
   .walkthrough-arrow[data-edge=left], .guided-tour-arrow[data-edge=left] { @apply -left-[7px] -translate-y-1/2 border-b border-l; }
   .walkthrough-arrow[data-edge=right], .guided-tour-arrow[data-edge=right] { @apply -right-[7px] -translate-y-1/2 border-t border-r; }
+  .walkthrough-arrow[data-edge] { @apply border-gray-950; }
 
   .help-article .walkthrough-steps, .walkthrough-steps {
     @apply m-0 list-none space-y-0 border-t border-gray-200 p-0 text-sm;
     counter-reset: step;
   }
   .walkthrough-steps li {
-    @apply relative border-b border-gray-100 py-2.5 pr-4 pl-12 last:border-b-0;
+    @apply relative border-b border-gray-200/70 py-3 pr-6 pl-14 text-gray-600 last:border-b-0;
     counter-increment: step;
   }
+  .walkthrough-steps li strong {
+    @apply text-gray-950;
+  }
   .walkthrough-steps li::before {
-    @apply absolute top-2.5 left-4 flex size-5 items-center justify-center rounded-full bg-gray-200 text-[11px] font-bold text-gray-700;
+    @apply absolute top-3 left-5 flex size-5 items-center justify-center rounded-full bg-white text-[11px] font-bold text-gray-700 shadow-sm;
     content: counter(step);
   }
   .walkthrough.is-interactive .walkthrough-steps li {
-    @apply cursor-pointer hover:bg-gray-50;
+    @apply cursor-pointer hover:bg-gray-200/50;
   }
   .walkthrough-steps li.is-active {
-    @apply bg-orange-50;
+    @apply bg-white;
   }
   .walkthrough-steps li.is-active::before {
-    @apply bg-[#c2561c] text-white;
+    @apply bg-gray-950 text-white;
   }
   .walkthrough-caption {
-    @apply rounded-b-xl border-t border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-500;
+    @apply rounded-b-3xl border-t border-gray-200 px-5 py-4 text-xs text-gray-500 sm:px-6;
   }
 
   /* Guided tours over the live screen. */
@@ -301,9 +310,14 @@ textarea.input {
 }
 
 @keyframes walkthrough-pulse {
-  0% { box-shadow: 0 0 0 0 rgb(228 111 47 / 0.6); }
-  70% { box-shadow: 0 0 0 12px rgb(228 111 47 / 0); }
-  100% { box-shadow: 0 0 0 0 rgb(228 111 47 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(3 7 18 / 0.45); }
+  70% { box-shadow: 0 0 0 12px rgb(3 7 18 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(3 7 18 / 0); }
+}
+@keyframes walkthrough-pulse-light {
+  0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.7); }
+  70% { box-shadow: 0 0 0 12px rgb(255 255 255 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .walkthrough-hotspot, .walkthrough.is-touring .walkthrough-hotspot.is-active { animation: none; }
