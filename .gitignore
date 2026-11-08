@@ -32,3 +32,7 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 perf/loadtest.json
+
+# Editor tooling the Impeccable design skill installs per machine (Cursor and Grok hooks).
+/.cursor
+/.grok
