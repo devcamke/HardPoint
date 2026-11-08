@@ -323,7 +323,7 @@ Any printer your computer can print to will work. Receipts open in the browser's
 
 #### Printing silently through QZ Tray
 
-[QZ Tray](https://qz.io) is a small free program that lets HardPoint send receipts straight to a thermal printer, without the print window, and open the cash drawer on cash sales. Install it on the till computer, then set the till to **Straight to the printer with QZ Tray** and type the printer's name exactly as the computer shows it. Choose the paper width: 58 mm printers fit 32 characters a line, 80 mm printers 42 or 48.
+[QZ Tray](https://qz.io) is a small free program that lets HardPoint send receipts straight to a thermal printer, without the print window, and open the cash drawer on cash sales. Install it on the till computer, then set the till to **Straight to the printer with QZ Tray** and type the printer's name exactly as the computer shows it. Choose the paper width: 58 mm printers fit 32 characters a line, 80 mm printers 42 or 48. The first time a till prints, QZ Tray may ask whether to allow your shop's HardPoint address: tick **Remember this decision** and press **Allow**, once per till. Each shop has its own signing certificate, so no other shop's till can print through yours.
 
 #### Barcode scanners
 
@@ -574,13 +574,17 @@ Most customers and suppliers would rather get a document on WhatsApp than by ema
 
 #### What the customer sees
 
-The message has a short line from your shop and a link. The link opens that one document: the receipt as a page, and quotes, orders, statements, purchase orders and delivery notes as a PDF on your letterhead. It needs no password, shows nothing else from your shop, and stops working after **30 days**. To send it again after that, press the button again for a fresh link.
+The message has a short line from your shop and a link. The link opens that one document: the receipt as a page, and quotes, orders, statements, purchase orders and delivery notes as a PDF on your letterhead. It needs no password, shows nothing else from your shop, and stops working after **30 days**. A statement always opens with the period it was sent for, however long ago that was. To send it again after that, press the button again for a fresh link.
+
+#### Links you've sent
+
+Each document's page lists the links sent for it under **Links sent on WhatsApp**: when, by whom, and whether the link has been opened. If a link went to the wrong person, press **Take back** next to it: it stops opening at once, and **Activity** records who took it back. Then press the WhatsApp button again for a fresh link to the right person.
 
 #### Tips
 
 - Keep customers' and suppliers' mobile numbers up to date so the chat opens with the right person.
 - Use a WhatsApp Business account on the shop phone, so messages come from the shop rather than a member of staff.
-- Anyone you forward a link to can open it until it expires, so send it only to the person it's for.
+- Anyone you forward a link to can open it until it expires or you take it back, so send it only to the person it's for.
 
 <a id="promotions"></a>
 
@@ -1364,7 +1368,7 @@ Every shop has its own web address, like **yourshop.hardpoint.app**. It's in you
 2. Type your **Email address** and **Password** and press **Sign in**.
 3. If you use two-factor sign-in, type the 6-digit code from your authenticator app and press **Verify**.
 
-You stay signed in on that computer or phone until you sign out.
+You stay signed in on that computer or phone until you sign out, for up to two weeks without using it (three months in all); after that HardPoint asks you to sign in again.
 
 #### Forgotten your password?
 
@@ -1379,6 +1383,7 @@ Choosing a new password signs you out everywhere, so sign in again with it.
 Open your name in the top right and choose **My profile**. It shows your name, email address and role, and these sections, depending on your role:
 
 - **Password**, for everyone: see below.
+- **Signed-in devices**, for everyone: press **See devices** for every computer and phone you're signed in on at this shop, with when it was last used and where from. Press **Sign out** next to a till that was replaced or a phone that went missing, or **Sign out everywhere else** to keep only the device you're on. If you see a device you don't recognise, sign it out and change your password.
 - **Two-factor sign-in**, for everyone.
 - **Approval PIN**, for owners and managers: press **Set an approval PIN**, type 4 to 6 digits and your password. You type it at a cashier's till to approve a big discount, a void or a return. It doesn't sign you in.
 - **Till PIN**, for cashiers and stock clerks: press **Set a PIN**, type 4 to 6 digits and your password, then **Save PIN**. Use it with Switch user (below). **Remove PIN** turns it off.

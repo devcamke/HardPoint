@@ -9,14 +9,18 @@
     [ "Whose data it is", "Your shop's products, sales, customers and staff belong to your shop. HardPoint processes them on your behalf, to run the service, and for nothing else. We don't sell data or show advertising." ],
     [ "Kept apart from other shops", "Each shop's data is separated inside the database itself, so one shop can never see another's, even through a fault in the application." ],
     [ "What we collect", "What you enter: your products and prices, sales and payments, customers you record (names, phone numbers, KRA PINs, balances) and your staff's names and email addresses. We also keep a log of sign-ins and important changes, so you can see who did what." ],
-    [ "Who else handles it", "Our servers are with Contabo (Germany) behind Cloudflare. Email goes through Amazon SES. When you use them: Safaricom (M-Pesa), KRA (eTIMS), Paystack (card payments to HardPoint) and Africa's Talking (text messages). Each receives only what it needs for that job." ],
+    [ "Who else handles it", "Our servers are with Contabo (Germany) behind Cloudflare. Email goes through Amazon SES. When you use them: Safaricom (M-Pesa), Airtel Africa (Airtel Money), KRA (eTIMS), Paystack (card payments to HardPoint) and Africa's Talking (text messages). Each receives only what it needs for that job. The full list, and what we promise as your data processor, is in the data processing terms." ],
+    [ "How it's protected", "Connections are encrypted; passwords are stored as one-way hashes; M-Pesa, eTIMS and API credentials and two-factor secrets are encrypted at rest; backups are encrypted before they leave the server and kept in a different place. Phone numbers, PINs and payers' names are kept out of our logs. Sessions end by themselves after two weeks unused, and you can see and sign out every device under My profile." ],
+    [ "If something goes wrong", "If we learn of a breach affecting your shop's personal data we tell the shop's owners without undue delay, within 72 hours of learning of it, and notify the Data Commissioner where the law requires." ],
     [ "Support access", "HardPoint staff only sign in to your shop to help you, and every time they do it's recorded in your shop's activity log." ],
     [ "Taking your data with you", "The shop's owner can export all of the shop's data from Settings at any time, as spreadsheets in a ZIP file, including while the shop is read-only." ],
-    [ "Closing your account", "The owner can close the shop from Settings. We wait 30 days, in case it was a mistake, then delete the shop's data for good. We keep the invoices HardPoint issued to you, because tax law requires it." ],
+    [ "Closing your account", "The owner can close the shop from Settings. We wait 30 days, in case it was a mistake, then delete the shop's data for good; it leaves our backups within a further 35 days. We keep the invoices HardPoint issued to you, because tax law requires it." ],
     [ "Your customers' rights", "Your customers can ask you to see, correct or delete what you hold about them. You can edit or remove a customer in HardPoint; sales stay on record because they're needed for tax." ],
     [ "Contact", "Questions or requests about personal data: #{Rails.configuration.x.support[:email]}." ]
   ].each do |heading, body| %>
     <h2 class="mt-10 text-xl font-bold"><%= heading %></h2>
     <p class="mt-2 leading-relaxed text-gray-700"><%= body %></p>
   <% end %>
+
+  <p class="mt-10 text-sm text-gray-500">See also: <%= link_to "data processing terms", data_processing_path, class: "link" %> · <%= link_to "terms of service", terms_path, class: "link" %>.</p>
 </article>

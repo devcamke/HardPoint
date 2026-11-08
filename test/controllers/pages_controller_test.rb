@@ -47,6 +47,44 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
 
     get privacy_path
     assert_select "h2", "Closing your account"
+    assert_select "h2", "If something goes wrong"
+  end
+
+  test "the terms, data processing terms and service level agreement" do
+    get terms_path
+    assert_select "h1", "Terms of service"
+    assert_select "h2", "The free trial"
+    assert_select "p", /#{Plan::GRACE.inspect} after its date makes the shop read-only/
+    assert_select "p", /HardPoint Ltd, Nairobi, Kenya/
+
+    get data_processing_path
+    assert_select "h1", "Data processing terms"
+    assert_select "p", /within 72 hours/
+    assert_select "p", /Airtel Africa \(Airtel Money\)/
+
+    get sla_path
+    assert_select "h1", "Service level agreement"
+    assert_select "p", /99\.9% of each calendar month/
+    assert_select "td", /Within 2 hours/
+
+    get pricing_path
+    assert_select "summary", "Is there an uptime guarantee?"
+    assert_select "footer a[href=?]", sla_path
+    assert_select "footer a[href=?]", terms_path
+
+    get "/sitemap.xml"
+    assert_match "http://localhost/sla", response.body
+  end
+
+  test "security.txt says where to report a vulnerability, on every host" do
+    get "/.well-known/security.txt"
+    assert_response :success
+    assert_match "Contact: mailto:security@hardpoint.app", response.body
+    assert_match(/Expires: \d{4}-\d{2}-\d{2}T/, response.body)
+
+    use_account accounts(:acme)
+    get "/.well-known/security.txt"
+    assert_response :success
   end
 
   test "the help centre, and searching it" do

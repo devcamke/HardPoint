@@ -32,7 +32,7 @@ Rails.application.configure do
   config.force_ssl = true
 
   # Skip http-to-https redirect for the default health check endpoint. HSTS covers every shop's subdomain.
-  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } }, hsts: { subdomains: true, expires: 1.year } }
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path.in?(%w[ /up /health ]) } }, hsts: { subdomains: true, expires: 1.year } }
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
@@ -64,9 +64,10 @@ Rails.application.configure do
   # Shops live on subdomains of APP_HOST; raise the TLD length for hosts like hardpoint.co.ke.
   config.action_dispatch.tld_length = ENV.fetch("APP_TLD_LENGTH", 1).to_i
 
-  # AWS SES through its SMTP interface. Create SMTP credentials in the SES console and add them
-  # with bin/rails credentials:edit under ses: { smtp_username:, smtp_password:, region: }.
-  config.action_mailer.delivery_method = :smtp
+  # AWS SES (app/models/ses.rb): through its API with an access key under credentials ses: { access_key_id:,
+  # secret_access_key:, region:, configuration_set: }, or through its SMTP endpoint with ses: { smtp_username:,
+  # smtp_password:, region: }. bin/rails ses:setup verifies the domain and wires bounces back (docs/RUNBOOK.md §1).
+  config.action_mailer.delivery_method = Rails.application.credentials.dig(:ses, :access_key_id).present? ? :ses : :smtp
   config.action_mailer.smtp_settings = {
     address: "email-smtp.#{Rails.application.credentials.dig(:ses, :region) || "eu-west-1"}.amazonaws.com",
     port: 587,
@@ -90,7 +91,7 @@ Rails.application.configure do
   config.hosts = [ ENV.fetch("APP_HOST", "hardpoint.app"), ".#{ENV.fetch("APP_HOST", "hardpoint.app")}" ]
 
   # Skip DNS rebinding protection for the default health check endpoint.
-  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path.in?(%w[ /up /health ]) } }
 
   # Requests arrive through Cloudflare and kamal-proxy. Trusting Cloudflare's published ranges
   # makes request.remote_ip the visitor's address (for sign-in records and M-Pesa callback checks).
@@ -105,4 +106,7 @@ Rails.application.configure do
     196.201.214.200 196.201.214.206 196.201.213.114 196.201.214.207 196.201.214.208 196.201.213.44
     196.201.212.127 196.201.212.138 196.201.212.129 196.201.212.136 196.201.212.74 196.201.212.69
   ].join(",")).split(",").map { IPAddr.new(_1.strip) }
+  # Airtel Money callbacks: Airtel doesn't publish its addresses, so none are required unless AIRTEL_CALLBACK_IPS
+  # is set (comma-separated addresses or ranges); every "paid" callback is confirmed with Airtel regardless.
+  config.x.airtel_callback_ips = ENV.fetch("AIRTEL_CALLBACK_IPS", "").split(",").map(&:strip).reject(&:blank?).map { IPAddr.new(_1) }
 end

@@ -3,7 +3,7 @@
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="text-xl font-medium"><%= link_to "Customers", customers_path, class: "link" %> <span class="text-gray-400">/</span> <%= @customer.name %></h1>
-    <p class="hint mt-1" data-tour="customer-details"><%= [ @customer.phone, @customer.email, @customer.address, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %></p>
+    <p class="hint mt-1" data-tour="customer-details"><%= [ @customer.phone, @customer.email, @customer.address, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %> <%= email_status(@customer.email) %></p>
   </div>
   <div class="flex flex-wrap gap-2" data-tour="customer-actions">
     <% if current_membership.can_sell? %>

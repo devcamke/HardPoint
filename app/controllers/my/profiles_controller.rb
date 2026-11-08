@@ -5,5 +5,6 @@ class My::ProfilesController < ApplicationController
   def show
     @user = Current.user
     @membership = Current.membership
+    @sessions_count = Current.account.sessions.where(user: Current.user).count
   end
 end

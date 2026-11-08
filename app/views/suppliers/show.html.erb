@@ -4,7 +4,7 @@
   <div>
     <h1 class="text-xl font-medium"><%= link_to "Suppliers", suppliers_path, class: "link" %> <span class="text-gray-400">/</span> <%= @supplier.name %></h1>
     <p class="hint mt-1"><%= [ @supplier.contact_name, @supplier.phone, @supplier.email, ("PIN #{@supplier.tax_pin}" if @supplier.tax_pin.present?),
-                             (@supplier.payment_terms_days.zero? ? "cash on delivery" : "pay within #{@supplier.payment_terms_days} days") ].compact_blank.join(" · ") %></p>
+                             (@supplier.payment_terms_days.zero? ? "cash on delivery" : "pay within #{@supplier.payment_terms_days} days") ].compact_blank.join(" · ") %> <%= email_status(@supplier.email) %></p>
   </div>
   <div class="flex flex-wrap gap-2">
     <% if current_membership.can_manage_payables? %>

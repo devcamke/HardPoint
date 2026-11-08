@@ -51,6 +51,15 @@
       <p class="hint mt-1">You can change plan at any time. <%= link_to "Compare plans", pricing_path, class: "link", target: "_blank" %></p>
     </fieldset>
 
+    <div class="field">
+      <label class="flex items-start gap-2 text-sm">
+        <%= form.check_box :terms_accepted, required: true, class: "mt-1" %>
+        <span>I agree to the <%= link_to "terms of service", terms_path, class: "link", target: "_blank" %> and the
+          <%= link_to "data processing terms", data_processing_path, class: "link", target: "_blank" %>, and I've read
+          <%= link_to "how HardPoint handles data", privacy_path, class: "link", target: "_blank" %>.</span>
+      </label>
+    </div>
+
     <%= form.submit "Create my shop", class: "btn-primary w-full" %>
   <% end %>
 </div>

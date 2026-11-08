@@ -22,6 +22,6 @@ class SignupsController < ApplicationController
 
   private
     def signup_params
-      params.expect(signup: %i[ shop_name subdomain owner_name email_address password plan ])
+      params.expect(signup: %i[ shop_name subdomain owner_name email_address password plan terms_accepted ])
     end
 end

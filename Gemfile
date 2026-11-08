@@ -12,6 +12,9 @@ gem "rqrcode", "~> 3.2"
 
 # Uploads on S3-compatible object storage once there's more than one web server [docs/RUNBOOK.md]
 gem "aws-sdk-s3", "~> 1.232", require: false
+# Email through AWS SES's API, and the SNS topic that brings bounces and complaints back (app/models/ses.rb).
+gem "aws-sdk-sesv2", "~> 1.119"
+gem "aws-sdk-sns", "~> 1.128"
 # Barcode images for shelf labels.
 gem "barby", "~> 0.7"
 # Product spreadsheets. CSV is Ruby's own library but ships as a separate gem since Ruby 3.4.
@@ -60,6 +63,15 @@ gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
+
+# Refuses migrations that would lock a busy table or break the version still running during a deploy
+# (docs/RUNBOOK.md, "Deploying"). Checked in development and test; production runs what passed.
+gem "strong_migrations", "~> 2.8"
+
+# Error reporting to Sentry when SENTRY_DSN is set; without it the gems stay quiet and
+# config/initializers/error_reporting.rb emails the operators instead.
+gem "sentry-ruby", "~> 6.2"
+gem "sentry-rails", "~> 6.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

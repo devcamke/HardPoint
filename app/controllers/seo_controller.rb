@@ -18,7 +18,7 @@ class SeoController < ActionController::Base
     return head :not_found if request.subdomain.present?
 
     @urls = [ marketing_root_url, pricing_url, new_signup_url, help_url, *HelpArticle.all.map { help_article_url(_1) },
-              developer_docs_url, privacy_url ]
+              developer_docs_url, privacy_url, terms_url, data_processing_url, sla_url ]
     expires_in 1.day, public: true
     render formats: :xml
   end

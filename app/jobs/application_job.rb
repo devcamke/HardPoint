@@ -1,9 +1,11 @@
 class ApplicationJob < ActiveJob::Base
-  # Automatically retry jobs that encountered a deadlock
-  # retry_on ActiveRecord::Deadlocked
-
-  # Most jobs are safe to ignore if the underlying records are no longer available
-  # discard_on ActiveJob::DeserializationError
+  # A job that gives up, because it raised something it doesn't retry or ran out of retries, is reported
+  # (Sentry, or an email to the operators) before Solid Queue records it as failed; a retry that will be
+  # tried again isn't, so a provider's bad minute doesn't page anyone.
+  after_discard do |job, error|
+    Rails.error.report(error, handled: true, severity: :error, source: "application.active_job",
+      context: { job: job.class.name, job_id: job.job_id, executions: job.executions, account_id: Current.account&.id })
+  end
 
   # For scheduled jobs: a run still going when the next is due (a slow provider, a big night) isn't
   # joined by a second one doing the same work; the next run is dropped, and the one after picks up

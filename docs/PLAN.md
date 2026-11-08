@@ -799,6 +799,25 @@ set of books.
 - ~~Scaling out: move Postgres to its own VPS (or managed DB), add read replica, split
   job workers onto a second VPS — Kamal handles multi-host.~~ Ready in Phase 17; PgBouncer with `SET LOCAL` isolation when there are four or more web servers.
 
+### Phase 33 — Ready to sell: alerts, redundancy, staging, security items, paper, safe deploys
+**Goal:** close the six gaps docs/GO_TO_MARKET.md found between "works" and "sellable".
+- **Alerts:** `Rails.error` goes to Sentry (`SENTRY_DSN`) or, without it, to the operators by email, throttled per error;
+  jobs that give up are reported; `PlatformHealth` checks the database, replica, workers, stuck and failed jobs, eTIMS
+  queues, shop backups and disk every 10 minutes (`PlatformHealthJob`), on the admin Database page and at `/health` for
+  the uptime monitor (docs/RUNBOOK.md §7).
+- **Redundancy:** continuous WAL archiving (`archive_timeout` 5 minutes) shipped off-site every minute
+  (`config/backup/wal_ship.sh`), weekly base backups, point-in-time restore (`restore_pitr.sh`), and a rehearsed
+  replica promotion (`config/postgres/promote_replica.sh`): RPO 5 minutes, RTO 30 minutes with a standby.
+- **Staging:** `config/deploy.staging.yml`, refreshed from production's backups and scrambled (`staging:anonymise`),
+  with every email redirected and a banner on every page.
+- **Security items:** sessions expire (14 days idle, 90 in all) with a Signed-in devices page; a QZ Tray key and
+  certificate per shop; Airtel "paid" callbacks confirmed with Airtel before crediting (plus an optional address list);
+  WhatsApp share links as revocable rows, statements fixed to their period.
+- **Paper:** terms of service, data processing terms and a service level agreement on the public site, agreed at
+  signup (`accounts.terms_accepted_at`); `/.well-known/security.txt`; privacy page updated.
+- **Safe deploys:** migrations run once per deploy from `.kamal/hooks/pre-deploy`, never from booting containers;
+  `strong_migrations` refuses unsafe migrations.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -807,13 +826,11 @@ set of books.
    20,000 products, on every keystroke at the till). Move search into a `SECURITY DEFINER` SQL function that takes the
    shop's id, or search a leakproof prefix/`tsvector` column. Grow `perf/setup.rb` to 20,000 products and add the
    catalogue download, category tabs, dashboard and a year's report to the k6 scenario.
-2. **A QZ Tray certificate per shop.** QZ Tray sends only a hash to sign, so the platform's key can't check what it
-   signs; one shop's till can obtain signatures another shop's QZ Tray would trust.
-3. **Session lifetime and devices.** Sessions last until sign-out; add an idle limit (e.g. 14 days) and an absolute one,
-   and a "Signed-in devices" list on My profile with sign-out per device.
-4. **Airtel Money callbacks:** accept only Airtel's published addresses (as M-Pesa does), or confirm each callback
-   with a status check before crediting. Share links: revocable, and statements fixed to the dates they were sent with.
-5. **Error reporting and uptime alerts** wired to `Rails.error` (LAUNCH.md), so pilot problems are seen first.
+2. ~~**A QZ Tray certificate per shop.**~~ Done (Phase 33): each shop signs with its own key (`Account::QzSigning`).
+3. ~~**Session lifetime and devices.**~~ Done (Phase 33): 14 days idle, 90 days in all, Signed-in devices on My profile.
+4. ~~**Airtel Money callbacks**~~ confirmed with Airtel before crediting, and ~~share links~~ revocable with statements
+   fixed to their period. Done (Phase 33).
+5. ~~**Error reporting and uptime alerts**~~ Done (Phase 33): Sentry or email alerts, `PlatformHealth`, `/health`.
 6. **Remaining query hot spots:** a customer's page works out its balance several times; reorder suggestions load
    every product with a reorder level; the eTIMS retry job sends shop after shop in one run.
 7. **Accessibility checks in CI:** an axe scan of the main screens in the system tests, so regressions are caught.

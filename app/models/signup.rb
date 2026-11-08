@@ -9,11 +9,13 @@ class Signup
   attribute :email_address, :string
   attribute :password, :string
   attribute :plan, :string, default: "business"
+  attribute :terms_accepted, :boolean, default: false
 
   attr_reader :account
 
   validates :shop_name, :subdomain, :owner_name, :email_address, :password, presence: true
   validates :plan, inclusion: { in: Plan.all.map(&:key) }
+  validates :terms_accepted, acceptance: { message: "must be agreed to open a shop" }
   validates :password, length: { minimum: 10 }, allow_blank: true, unless: :existing_user
   validate :existing_user_password_matches
 
@@ -21,7 +23,7 @@ class Signup
     return false unless valid?
 
     Account.transaction do
-      @account = Account.create!(name: shop_name, subdomain: subdomain, plan: plan)
+      @account = Account.create!(name: shop_name, subdomain: subdomain, plan: plan, terms_accepted_at: Time.current)
 
       Current.set(account: @account, user: owner) do
         @account.track_event "created"

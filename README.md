@@ -185,6 +185,7 @@ ending 0000 declines). Without Paystack keys, "Pay by card" goes to a simulated 
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Whoever runs production | Deploys, backups and restores, incidents, scaling out |
 | [docs/SECURITY.md](docs/SECURITY.md) | Security reviewers | Controls and the penetration test brief |
 | [docs/LAUNCH.md](docs/LAUNCH.md) | The team | The pilot and go-live checklist |
+| [docs/GO_TO_MARKET.md](docs/GO_TO_MARKET.md) | The team | How to package, price and sell HardPoint, and the redundancy, security and support it needs to be relied on |
 | [perf/README.md](perf/README.md) | Anyone changing the till or the database | Load testing with k6, and the results |
 | [docs/screenshots](docs/screenshots) | Everyone | A screenshot of every screen |
 
@@ -282,7 +283,14 @@ bin/kamal deploy
 - kamal-proxy serves `hardpoint.app` and `*.hardpoint.app` with a Cloudflare Origin CA certificate (Cloudflare SSL
   mode: Full (strict)).
 - **Shops' own backups** go to `BACKUP_STORAGE_SERVICE` (a separate bucket; see RUNBOOK §2).
-- **Backups** run from cron on the host (`config/backup/backup.sh`, set up as in [docs/RUNBOOK.md](docs/RUNBOOK.md)).
+- **Backups** run from cron on the host: WAL segments shipped off-site every minute, hourly dumps and weekly base
+  backups (`config/backup`, set up as in [docs/RUNBOOK.md](docs/RUNBOOK.md) §2), restorable to any minute.
+- **Alerts:** errors go to Sentry (`SENTRY_DSN`) or to `ALERTS_EMAIL`; `/health` is for the uptime monitor; the platform
+  checks are on the admin Database page ([docs/RUNBOOK.md](docs/RUNBOOK.md) §7).
+- **Migrations** run once per deploy from `.kamal/hooks/pre-deploy`, not from booting containers, and `strong_migrations`
+  refuses migrations that would lock a busy table or break the version still running ([docs/RUNBOOK.md](docs/RUNBOOK.md) §9).
+- **Staging** is `bin/kamal deploy -d staging` (`config/deploy.staging.yml`), a scrambled copy of production
+  ([docs/RUNBOOK.md](docs/RUNBOOK.md) §8).
 - Secrets come from the environment (see `.kamal/secrets`): `POSTGRES_PASSWORD`, `HARDPOINT_DATABASE_PASSWORD`, and
   the Cloudflare origin certificate and key files.
 - Two-factor secrets are encrypted with Active Record Encryption. Run `bin/rails db:encryption:init` and add the
@@ -293,7 +301,12 @@ bin/kamal deploy
 
 Everything below is added with `bin/rails credentials:edit` unless it says otherwise.
 
-- **Email** goes through AWS SES's SMTP interface: `ses: { smtp_username:, smtp_password:, region: }`.
+- **Email** goes through AWS SES: `ses: { region:, access_key_id:, secret_access_key:, configuration_set:, sns_topic_arn: }`
+  for the API (preferred: SES's standing shows on the admin Email page and in the platform checks), or
+  `ses: { smtp_username:, smtp_password:, region: }` for its SMTP endpoint. `bin/rails ses:setup` verifies the sending
+  domain, makes the configuration set and wires bounces and complaints back to `/webhooks/ses`, where addresses that
+  bounce or complain are stopped (`EmailSuppression`); `bin/rails ses:status` lists the DNS records to add. See
+  [docs/RUNBOOK.md](docs/RUNBOOK.md) §1 step 3.
 - **SMS:** `africas_talking: { username:, api_key:, sender_id: }` (username `sandbox` for their sandbox).
 - **Billing HardPoint's own subscriptions:** `billing: { mpesa: { environment:, shortcode:, passkey:, consumer_key:,
   consumer_secret:, callback_token: }, paystack_secret_key: }`. Safaricom calls back to
