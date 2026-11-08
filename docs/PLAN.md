@@ -107,6 +107,14 @@ customers, staff, or reports.
 | Offline jobs | The till snapshot carries each customer's open jobs; an offline sale names one. On sync it's tagged if the job is still the customer's and open; a job closed in the meantime is left off with a warning, so the sale still records. |
 | Rate feed | A public mid-market feed (open.er-api.com, no key; the URL is a credential so a paid feed can replace it), fetched once a morning per home currency for all shops. Every currency keeps the day's market rate; ones set to follow it take market less the shop's margin (0–50%, rounded to 8 places). A move of more than 10% from the current rate is held for an owner or manager to apply. No network in development or tests (fake transport). Exchange gain/loss accounting is still out of scope. |
 | Concurrency | Anything that checks a balance or a status and then acts on it locks the row it depends on first, inside the same transaction: a payment locks the sale (and the customer for points or account, the order for a deposit) and re-checks it's still open; a return locks the sale; a deposit refund and loading an order onto a till lock the order (an order can be on one till at a time); returning hired tools locks the agreement; points expiry locks the scheme. Stock levels, document numbers, batches, stock takes, voids, M-Pesa and eTIMS already did. Scheduled jobs run one at a time (Solid Queue concurrency limits, overlapping runs dropped); webhook retries claim each delivery before sending. Tested by handing the second request a stale copy, or by checking the lock is taken. |
+| Staff roles | Only an owner can add, change or remove an owner; managers manage everyone else. Removing someone signs them out of every device, and a session whose membership has gone is refused |
+| Approval PIN guessing | Wrong approval PINs are counted per shop (a wrong guess doesn't say whose PIN it aimed at): after 10 in 15 minutes none is accepted until the window passes. Owners and managers can still approve by signing in |
+| Offline sync trust | A sale is recorded only in a shift of the till it's sent from, by someone who can still sell at the shop. Hand discounts need the till online, so one arriving from the offline till is ignored with a warning (the sale is parked if that leaves it short); negative prices are refused |
+| Online checkout | A phone number finds an existing customer, but the store never changes their record or shows their name: the name and email typed go on the order's note for staff to check |
+| CSV safety | Exports (reports, products, QuickBooks) write a cell that a spreadsheet would run as a formula (starting `=`, `+`, `-`, `@`, tab, CR, and not a number) with a leading apostrophe; product import strips it. The full data export stays raw (it's for machines) |
+| Uploads | Only through the app's forms: Active Storage's direct-upload route answers Not Found. Product photos are JPEG, PNG, WebP or GIF up to 5 MB |
+| Balances in lists | Lists (dashboard, Who owes us, What we owe, suppliers, the API) work out balances and ageing for everyone in a few grouped queries with the same oldest-first settling; one record's page still works its own out |
+| Offline catalogue freshness | Stock on its own renews the snapshot at most every 30 minutes (every sale changes stock); any change to products, prices, customers, promotions or jobs renews it at once |
 
 | Phase | Status |
 |---|---|
@@ -124,6 +132,7 @@ customers, staff, or reports.
 | 29 — Shop-editable hire terms | **Done:** owners and managers write the terms printed on hire agreements (one per line, up to 20, with a preview), or keep the standard ones; each agreement keeps a copy of the terms it was made under. **Removed in Phase 30.** |
 | 30 — Tool hire, loyalty points and the customer display removed | **Done:** tool hire, hire terms, loyalty points and the customer display removed (code, help, tables); hire orders and points payments kept with their receipts and eTIMS; the activity log reads entries about removed records; labour lines dropped from the backlog. |
 | 31 — WhatsApp, transport, bulk prices, QuickBooks and Airtel Money | **Done (Airtel Money to be proven against Airtel's sandbox):** WhatsApp buttons on receipts, quotes and orders, statements, purchase orders and delivery notes, with signed 30-day links to that one document; transport charges at the till or on a delivery note (an order for the customer); bulk price changes by category, brand or supplier with rounding and a full preview; a QuickBooks Online export (journal entries, customers, suppliers, skipped items) with shop-set account names; Airtel Money prompts, callbacks, typed IDs and late payments, as a tender everywhere M-Pesa is. |
+| 32 — Security, performance and accessibility review | **Done:** owner-only owner roles, approval-PIN lockout, offline-sync checks, store checkout privacy, CSV formula escaping, sign-out on removal, 10-character passwords everywhere, upload limits, rate limits on payment prompts; grouped balances, one stock query per till panel, calmer offline catalogue, `updated_at` indexes; screen-reader announcements, skip link, visible focus, field errors, decimal keypads, phone-width tables, double-submit guards. Next steps in §5 "Roadmap from here" |
 | 27 — Contractor jobs, continued | **Done:** client name and markup on jobs; materials bill PDF on the contractor's letterhead; open jobs in the till snapshot, job picker and receipt line on the offline till; closed-job handling on sync. |
 | 26 — Counting by batch | **Done:** batch rows in stock takes (snapshot of batches and unbatched stock); counting by batch on the page, by scanning with a batch number and on the phone; batches found on the shelf added with expiry; approval per batch, never below zero; help and tenant sweep updated. |
 | 25 — Points on the offline till | **Done:** balances and scheme terms in the till snapshot; points tender offline with device-side tracking of points spent; shared Ruby/JS rules; server records the points payment, caps cash when points fall short, and parks the sale with a warning; checked in a browser offline and synced. **Removed in Phase 30.** |
@@ -759,6 +768,24 @@ set of books.
   catalogue, customers, shifts and cash, returns and refunds, shop settings, your profile), and all 34 guides in one
   document, docs/USER_GUIDE.md, generated from the help centre and checked by a test.
 
+### Phase 32 — Security, performance and accessibility review
+**Goal:** close the gaps a review of the whole app found before pilot shops depend on it.
+- **Security:** only owners give, change or take away the owner role (a manager could promote themselves); approval
+  PINs stop working for a shop after 10 wrong ones in 15 minutes; offline sales go only into the sending till's shifts,
+  by staff who can sell, without hand discounts or negative prices; the online store never edits an existing
+  customer or shows their name; CSV exports escape spreadsheet formulas; removed staff are signed out everywhere;
+  10-character passwords on every path; product photos are images under 5 MB and direct uploads are closed; rate
+  limits on M-Pesa and Airtel prompts and on setting PINs; QZ Tray signs only for tills set up to print with it.
+- **Performance:** balances and ageing for lists in grouped queries (the dashboard, which refreshes on every sale,
+  ran several queries per customer and supplier); one stock query per till product panel; the offline catalogue no
+  longer re-downloads after every sale; the sales-by-product report is no longer quadratic; cart and payment preload
+  their lines; `(account_id, updated_at)` indexes for API syncs and the catalogue version.
+- **Accessibility and touch:** language set on every page, skip link and landmarks; flash, validation, till and
+  stock-app messages announced; invalid fields marked; stronger field lines and focus; search announced as a list;
+  tables scroll inside their card on phones; decimal keypads on money fields; bigger remove, filter and pager targets;
+  AA contrast for the till's orange; double-submit guards on the offline till and forms outside Turbo; confirmations
+  on the remaining Remove buttons.
+
 ### Beyond v1 (backlog)
 - ~~Native/mobile companion app (stock counts via phone camera scanning — Hotwire Native).~~ Done as a web app in Phase 15; wrap with Hotwire Native if a store listing is wanted.
 - ~~E-commerce storefront / click-and-collect per tenant.~~ Done in Phase 12.
@@ -768,6 +795,43 @@ set of books.
 - FIFO costing; ~~points expiry and points by text message~~ (done in Phase 23); ~~spending points offline~~ (done in Phase 25); ~~mix-and-match bundles~~ (done in Phase 24). (~~Multi-currency~~ done in Phase 18; ~~a daily rate feed~~ done in Phase 28; exchange gain/loss is a possible extra.) (~~Batch/lot tracking~~ done in Phase 16; ~~counting by batch~~ done in Phase 26.)
 - ~~Scaling out: move Postgres to its own VPS (or managed DB), add read replica, split
   job workers onto a second VPS — Kamal handles multi-host.~~ Ready in Phase 17; PgBouncer with `SET LOCAL` isolation when there are four or more web servers.
+
+### Roadmap from here
+
+**Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
+1. **Product and customer search under row-level security.** `ILIKE` and `similarity` aren't leakproof, so Postgres
+   won't use the trigram indexes under forced RLS and every search reads the shop's whole catalogue (24–36 ms at
+   20,000 products, on every keystroke at the till). Move search into a `SECURITY DEFINER` SQL function that takes the
+   shop's id, or search a leakproof prefix/`tsvector` column. Grow `perf/setup.rb` to 20,000 products and add the
+   catalogue download, category tabs, dashboard and a year's report to the k6 scenario.
+2. **A QZ Tray certificate per shop.** QZ Tray sends only a hash to sign, so the platform's key can't check what it
+   signs; one shop's till can obtain signatures another shop's QZ Tray would trust.
+3. **Session lifetime and devices.** Sessions last until sign-out; add an idle limit (e.g. 14 days) and an absolute one,
+   and a "Signed-in devices" list on My profile with sign-out per device.
+4. **Airtel Money callbacks:** accept only Airtel's published addresses (as M-Pesa does), or confirm each callback
+   with a status check before crediting. Share links: revocable, and statements fixed to the dates they were sent with.
+5. **Error reporting and uptime alerts** wired to `Rails.error` (LAUNCH.md), so pilot problems are seen first.
+6. **Remaining query hot spots:** a customer's page works out its balance several times; reorder suggestions load
+   every product with a reorder level; the eTIMS retry job sends shop after shop in one run.
+7. **Accessibility checks in CI:** an axe scan of the main screens in the system tests, so regressions are caught.
+
+**Features to consider next**, chosen for Kenyan hardware shops and ordered by likely value:
+1. **Customer portal by link:** a signed link (WhatsApp or SMS) to a contractor's statement, open invoices and quotes,
+   with "Pay with M-Pesa" (STK) for the balance. Speeds up collections, the biggest cash-flow pain for credit shops.
+2. **Credit control:** put an account on hold automatically past N days overdue or over the limit, with an owner's
+   override, and a weekly reminder run by WhatsApp/SMS.
+3. **Loss prevention alerts:** daily exceptions to owners (voids, discounts, returns and no-sale drawer openings per
+   cashier against their usual; cash variances by shift), built on the Activity log already kept.
+4. **Stock reserved for confirmed orders**, so a deposit-paid order's goods aren't sold to a walk-in (deferred "until
+   shops ask"; pilot shops with yards are likely to).
+5. **Cutting and weighing:** sell by length or weight from a bulk item with offcut tracking, and Web Serial scales.
+6. **Branch rebalancing:** suggested transfers from a branch with excess to one below its reorder level, before ordering.
+7. **Supplier invoices from eTIMS:** pull purchase invoices KRA already holds, to receive and pay without retyping.
+8. **Shelf-label queue:** products whose price changed (bulk changes, receiving) wait in a print queue for new labels.
+9. **Kiswahili** throughout the till and receipts (the screens are English-only today).
+10. **Custom roles:** choose what a role can do (e.g. a cashier who can take customer payments but not returns).
+11. **Live accounting sync** (QuickBooks Online / Xero API) replacing the monthly CSV journal export.
+12. **FIFO costing**, passkeys for owners and managers, XLSX exports, and returns on the offline till.
 
 ---
 
@@ -811,6 +875,8 @@ for dozens of shops. Keep staging on a smaller instance.
 - Cloudflare-only origin access; SSH hardened; automatic security updates.
 - Backups encrypted, off-site, restore-tested quarterly.
 - Brakeman + `bin/importmap audit` in CI (as generated by `rails new`); Dependabot.
+- Role changes checked for privilege escalation (managers vs owners); every short secret (till PIN, approval PIN)
+  has a lockout or a per-shop failure limit; anything a visitor can type is escaped in CSV exports.
 
 ---
 

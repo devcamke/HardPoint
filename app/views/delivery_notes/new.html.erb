@@ -14,7 +14,7 @@
     <% if (on_sale = sale.transport_cents).positive? %>
       <p class="hint">Transport of <%= money(on_sale) %> is already on the sale.</p>
     <% elsif sale.customer %>
-      <%= form.number_field :transport_charge, value: (plain_number(@delivery_note.transport_charge) if @delivery_note.transport_charge_cents.positive?), step: "0.01", min: 0, class: "input" %>
+      <%= form.number_field :transport_charge, value: (plain_number(@delivery_note.transport_charge) if @delivery_note.transport_charge_cents.positive?), step: "0.01", inputmode: "decimal", min: 0, class: "input" %>
       <p class="hint mt-1">Leave blank if delivery is free. A charge becomes an order for <%= sale.customer.name %>, collected at the till or put on their account.</p>
     <% else %>
       <p class="hint">A walk-in sale can't be charged afterwards; add transport at the till before payment.</p>

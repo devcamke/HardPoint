@@ -1,4 +1,4 @@
 <div class="field" data-tour="staff-role">
   <%= form.label :role, class: "label" %>
-  <%= form.select :role, Membership.roles.keys.map { |role| [ role.humanize, role ] }, {}, class: "input" %>
+  <%= form.select :role, Membership.roles.keys.excluding(("owner" unless current_membership.owner? || form.object.owner?)).map { |role| [ role.humanize, role ] }, {}, class: "input" %>
 </div>

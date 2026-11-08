@@ -18,7 +18,7 @@
               <% if current_membership.approver? %>
                 <%= form_with model: currency, class: "flex flex-wrap items-center gap-2" do |form| %>
                   <span class="text-sm">1 <%= currency.code %> =</span>
-                  <%= form.number_field :rate, value: currency.rate.to_d.round(6).to_s("F"), step: "any", min: 0, class: "input w-32 py-1 text-right tabular-nums", "aria-label": "#{base} per #{currency.code}" %>
+                  <%= form.number_field :rate, value: currency.rate.to_d.round(6).to_s("F"), step: "any", min: 0, inputmode: "decimal", class: "input w-32 py-1 text-right tabular-nums", "aria-label": "#{base} per #{currency.code}" %>
                   <span class="text-sm"><%= base %></span>
                   <%= form.hidden_field :accepted_at_till, value: currency.accepted_at_till %>
                   <%= form.submit "Save", class: "btn-secondary py-1" %>
@@ -42,7 +42,7 @@
                   <%= form.hidden_field :rate, value: currency.rate %>
                   <%= form.hidden_field :accepted_at_till, value: currency.accepted_at_till %>
                   <label class="flex items-center gap-1"><%= form.check_box :follows_market, class: "size-4 accent-primary-500", data: { action: "change->auto-submit#submit" } %> Follow the daily rate, less</label>
-                  <%= form.number_field :margin_percent, value: plain_number(currency.margin_percent), step: "any", min: 0, max: 49, class: "input w-16 py-0.5 text-right",
+                  <%= form.number_field :margin_percent, value: plain_number(currency.margin_percent), step: "any", min: 0, inputmode: "decimal", max: 49, class: "input w-16 py-0.5 text-right",
                         "aria-label": "Margin below the market rate for #{currency.code}", data: { action: "change->auto-submit#submit" } %> %
                 <% end %>
               <% elsif currency.follows_market? %>
@@ -78,7 +78,7 @@
       <div class="field"><%= form.label :code, "Currency", class: "label" %>
         <%= form.text_field :code, list: "currency_codes", required: true, maxlength: 3, placeholder: "USD", class: "input font-mono uppercase" %>
         <datalist id="currency_codes"><% Currency::COMMON.except(base).each do |code, name| %><option value="<%= code %>"><%= name %></option><% end %></datalist></div>
-      <div class="field"><%= form.label :rate, "1 unit is worth (#{base})", class: "label" %><%= form.number_field :rate, step: "any", min: 0, required: true, class: "input", placeholder: "129.50" %></div>
+      <div class="field"><%= form.label :rate, "1 unit is worth (#{base})", class: "label" %><%= form.number_field :rate, step: "any", min: 0, inputmode: "decimal", required: true, class: "input", placeholder: "129.50" %></div>
       <div class="field flex items-end gap-2 pb-2"><%= form.check_box :accepted_at_till, class: "size-4 accent-primary-500" %><%= form.label :accepted_at_till, "Take it at the till", class: "text-sm" %></div>
     </div>
     <%= form.submit "Add currency", class: "btn-primary" %>

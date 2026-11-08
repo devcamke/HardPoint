@@ -32,7 +32,7 @@ module PosSale
           render turbo_stream: [
             turbo_stream.replace("cart", partial: "pos/cart", locals: { sale: sale }),
             turbo_stream.replace("pane_tabs", partial: "pos/pane_tabs", locals: { sale: sale }),
-            turbo_stream.replace("pos_message", partial: "pos/message", locals: { message: message, alert: alert }),
+            turbo_stream.update("pos_message", partial: "pos/message", locals: { message: message, alert: alert }),
             turbo_stream.remove("completed_sale")
           ], status: status
         end

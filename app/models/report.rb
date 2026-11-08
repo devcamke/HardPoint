@@ -58,7 +58,7 @@ class Report
   end
 
   def to_csv
-    CSV.generate do |csv|
+    SafeCsv.generate do |csv|
       csv << [ "#{account.name}: #{title}", subtitle ]
       sections.each do |section|
         csv << []

@@ -32,9 +32,21 @@ module CustomerOrder::Fulfilment
     quote? || ordered? || ready?
   end
 
+  class_methods do
+    # { order id => deposit balance } for a page of orders, in two queries rather than two per order.
+    def deposit_balances_by_id(ids)
+      paid = Deposit.where(customer_order_id: ids).group(:customer_order_id).sum(:amount_cents)
+      used = Payment.deposit.joins(:sale).where(sales: { customer_order_id: ids, status: "completed" }).group("sales.customer_order_id").sum(:amount_cents)
+      ids.index_with { paid[_1].to_i - used[_1].to_i }
+    end
+  end
+
+  # Set when worked out for a list of orders at once.
+  attr_writer :deposit_balance_cents
+
   # Deposits paid, less refunds, less what's been used towards the sale that collected the order.
   def deposit_balance_cents
-    deposits.sum(:amount_cents) - Payment.deposit.joins(:sale).where(sales: { customer_order_id: id, status: "completed" }).sum(:amount_cents)
+    @deposit_balance_cents || (deposits.sum(:amount_cents) - Payment.deposit.joins(:sale).where(sales: { customer_order_id: id, status: "completed" }).sum(:amount_cents))
   end
 
   def deposits_paid_cents

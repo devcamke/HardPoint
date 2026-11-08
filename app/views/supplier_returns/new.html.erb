@@ -36,8 +36,8 @@
             <% end %>
           </td>
           <% if receipt %><td class="text-right tabular-nums"><%= quantity(receipt.lines.find { _1.product_id == product&.id }&.quantity) %></td><% end %>
-          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, class: "input w-24 py-1.5 text-right", "aria-label": "Quantity going back" %></td>
-          <td class="text-right"><%= line.number_field :unit_cost, value: (plain_number(line.object.unit_cost) if line.object.unit_cost_cents), step: "0.01", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit cost" %></td>
+          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, inputmode: "decimal", class: "input w-24 py-1.5 text-right", "aria-label": "Quantity going back" %></td>
+          <td class="text-right"><%= line.number_field :unit_cost, value: (plain_number(line.object.unit_cost) if line.object.unit_cost_cents), step: "0.01", inputmode: "decimal", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit cost" %></td>
           <td>
             <% if product&.tracks_batches? %>
               <%= line.select :stock_batch_id, product.stock_batches.in_stock.where(branch: supplier_return.branch).by_expiry.map { [ "#{_1.number} (#{plain_number(_1.quantity)})", _1.id ] },

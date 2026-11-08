@@ -715,3 +715,24 @@ approval PIN, may be left off the screenshot.
 ![Settings, at the catalogue's lists](screenshots/344-guided-tour-settings.png)
 
 ![Add a member of staff, at the role](screenshots/345-guided-tour-staff.png)
+
+## Since then: a security, performance and accessibility review
+
+- **Safer roles and approvals:** only owners can make, change or remove an owner. After 10 wrong approval PINs in 15
+  minutes a shop accepts no approval PIN until the time passes (owners and managers can still approve by signing in).
+  Removing someone signs them out of every till and phone at once. Every password needs 10 characters
+- **Offline sales checked on arrival:** each goes only into a shift of the till that sends it, by someone who can sell;
+  a hand discount (which the offline till never sends) is ignored and noted
+- **The online store** finds a returning customer by phone but never changes their details or shows their name; what
+  was typed is on the order's note
+- **Spreadsheets:** exported names that look like formulas open as plain text in Excel and Google Sheets
+- **Faster:** the dashboard, Who owes us, What we owe and the supplier list work out balances in a few queries for the
+  whole shop; the till's product tiles read stock in one query; offline tills stop re-downloading the catalogue after
+  every sale (stock refreshes within half an hour, everything else at once); the sales-by-product report is much faster
+  for big catalogues
+- **Easier to use with a screen reader or keyboard:** a Skip to content link, announced messages at the till and in
+  the stock app, fields with errors marked in red and announced, a visible focus line, search results read out as you
+  arrow through them
+- **On phones and tablets:** wide tables scroll inside their card, money fields bring up the number keypad, and small
+  buttons (remove a payment, filters, pager) are finger-sized; the offline till can't record a sale twice on a double
+  tap

@@ -17,6 +17,8 @@ class Pos::ProductsController < ApplicationController
       @products = products.where(quick_pick: true).alphabetically.limit(24).to_a
       @products = products.alphabetically.limit(12).to_a if @products.empty?
     end
+    # One query for every tile's stock here, rather than one per tile (kits work theirs out from their parts).
+    @stock = @branch ? StockLevel.where(branch: @branch, product_id: @products.map(&:id)).pluck(:product_id, :quantity).to_h : {}
   end
 
   private
@@ -24,7 +26,7 @@ class Pos::ProductsController < ApplicationController
     def till_categories
       categories = Current.account.categories.alphabetically.to_a
       children = categories.group_by(&:parent_id)
-      selling = Current.account.products.active.where.not(category_id: nil).distinct.pluck(:category_id).to_set
+      selling = categories_selling
 
       subtrees = (children[nil] || []).to_h do |top|
         ids, queue = Set[top.id], [ top.id ]
@@ -34,5 +36,13 @@ class Pos::ProductsController < ApplicationController
         [ top.id, ids.to_a ]
       end
       [ (children[nil] || []).select { subtrees[_1.id].any? { |id| selling.include?(id) } }, subtrees ]
+    end
+
+    # Which categories have something active in them: worked out once per change to the catalogue, not on every tile panel.
+    def categories_selling
+      products = Current.account.products
+      Rails.cache.fetch([ "till-categories", Current.account.id, products.maximum(:updated_at), products.count ], expires_in: 1.day) do
+        products.active.where.not(category_id: nil).distinct.pluck(:category_id)
+      end.to_set
     end
 end

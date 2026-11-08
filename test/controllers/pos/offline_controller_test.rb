@@ -71,6 +71,9 @@ class Pos::OfflineControllerTest < ActionDispatch::IntegrationTest
     get qz_certificate_path
     assert_equal "-----BEGIN CERTIFICATE-----", response.body
     post qz_signature_path, params: { request: "to sign" }
+    assert_response :forbidden, "only for a till that prints through QZ Tray"
+    Account.without_isolation { registers(:acme_front).update_columns(print_mode: "qz_tray", printer_name: "EPSON") }
+    post qz_signature_path, params: { request: "to sign" }
     assert key.public_key.verify(OpenSSL::Digest.new("SHA512"), Base64.decode64(response.body), "to sign")
 
     post pos_drawer_openings_path

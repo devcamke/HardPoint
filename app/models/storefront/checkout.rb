@@ -37,7 +37,7 @@ class Storefront::Checkout
 
     CustomerOrder.transaction do
       @order = account.customer_orders.create!(branch: branch, customer: customer, status: :ordered, ordered_at: Time.current,
-        source: "online", note: note.presence, lines_attributes: @cart.lines.map { { account: account, product_id: _1.product.id, quantity: _1.quantity } })
+        source: "online", note: order_note, lines_attributes: @cart.lines.map { { account: account, product_id: _1.product.id, quantity: _1.quantity } })
     end
     @cart.clear
     notify
@@ -50,10 +50,20 @@ class Storefront::Checkout
   private
     def account = @storefront.account
 
+    # Anyone can type any phone number here, so a customer the shop already has is never changed from the store:
+    # the name and email typed go on the order's note for the shop to check, rather than onto their record.
     def customer
-      number = PhoneNumber.normalize(phone)
-      account.customers.find_by_account_number(number)&.tap { |known| known.update!(email: email) if known.email.blank? && email.present? } ||
-        account.customers.create!(name: name.squish, phone: number, email: email.presence)
+      @customer ||= known_customer || account.customers.create!(name: name.squish, phone: PhoneNumber.normalize(phone), email: email.presence)
+    end
+
+    def known_customer
+      return @known_customer if defined?(@known_customer)
+      @known_customer = account.customers.find_by_account_number(PhoneNumber.normalize(phone))
+    end
+
+    def order_note
+      typed = ("Ordered online as #{[ name.squish, email.presence ].compact.join(", ")}" if known_customer)
+      [ typed, note.presence ].compact.join(". ").first(500).presence
     end
 
     def notify

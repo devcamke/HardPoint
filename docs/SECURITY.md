@@ -19,7 +19,11 @@ test. Report vulnerabilities to security@hardpoint.app.
 | | Session cookies are per subdomain (not shared across shops); sessions are looked up within the shop | `app/controllers/concerns/authentication.rb` |
 | Authentication | `has_secure_password` (bcrypt); TOTP two-factor with recovery codes, required for platform admins and optionally for a shop's owners and managers; password reset ends every session | |
 | | Rate limits: sign-in 10 per 3 minutes per login and 60 per address (a shop's tills share one address); two-factor codes per person; PIN switching per till with PIN lockout after repeated failures; sign-up, password reset | controllers' `rate_limit` |
-| Authorisation | Roles (owner, manager, cashier, stock clerk) checked in controllers; approvals by PIN for discounts, voids, returns and credit | `app/controllers/concerns/authorization.rb` |
+| Authorisation | Roles (owner, manager, cashier, stock clerk, accountant) checked in controllers; only owners give, change or remove the owner role; approvals by PIN for discounts, voids, returns and credit, with at most 10 wrong approval PINs per shop in 15 minutes | `app/controllers/concerns/authorization.rb`, `app/controllers/memberships_controller.rb`, `app/models/approval.rb` |
+| Sessions | Removing a member of staff deletes their sessions; a session without a membership is refused. Passwords need 10 characters on every path (sign-up, invitation, reset, profile) | `app/models/membership.rb`, `app/controllers/concerns/authentication.rb`, `app/models/user.rb` |
+| Offline sync | A sale goes only into a shift of the till sending it, by staff who can sell; hand discounts from the offline till are ignored with a warning; negative prices refused | `app/models/sale/offline.rb` |
+| Exports | CSV cells that a spreadsheet would run as a formula are written as text (leading apostrophe) in reports, product and QuickBooks exports | `app/models/safe_csv.rb` |
+| Uploads | Only through the app's forms (Active Storage direct uploads closed); product photos are images up to 5 MB; delivery proof photos images only | `config/routes.rb`, `app/models/product.rb` |
 | Platform staff | Separate admin subdomain and sign-in with two-factor; impersonation is time-boxed and recorded in the shop's activity; every plan change, suspension, trial extension and manual payment is recorded with the administrator's email | `app/controllers/admin` |
 | Web | Content security policy enforced (scripts only from the app, nonce for the importmap, no inline handlers, no plugins, no framing, forms only to the app, shop subdomains and Paystack); HSTS including subdomains; Permissions-Policy; CSRF protection; Rails' default headers | `config/initializers/content_security_policy.rb`, `permissions_policy.rb` |
 | Public API | Keys stored as SHA-256 digests, shown once, revocable; the key decides the shop and requests run under row-level security; read-only keys can't write; 600 requests a minute per key; no writes while a shop is locked; changes recorded in Activity under the key's name; an API sweep test aims another shop's key at every record route | `app/controllers/api/v1` |
@@ -70,3 +74,21 @@ credentials (sandbox).
 
 **Reporting:** findings with steps to reproduce and severity; retest after fixes. Findings and fixes are
 kept in this file's history.
+
+## Internal review, November 2026
+
+Found by reading the code before the external test, and fixed (Phase 32 in docs/PLAN.md):
+
+| Severity | Finding | Fix |
+|---|---|---|
+| High | A manager could make themselves owner, add owners, or demote and remove an owner | Owner role only given, changed or removed by owners; the role picker hides it |
+| High | Approval PINs (4–6 digits) could be guessed with no limit, then used to approve discounts, voids, returns and credit | 10 wrong approval PINs per shop in 15 minutes, then none accepted until the window passes |
+| High | Offline sync took the cashier, shift and hand discounts from the request | Shift must be the sending till's; the cashier must be able to sell; hand discounts ignored with a warning; negative prices refused |
+| Medium | Store checkout wrote a visitor's email onto the existing customer with that phone number and showed their name | The record is never changed from the store; what was typed goes on the order's note; no name on the order page |
+| Medium | CSV exports could carry spreadsheet formulas typed by customers or staff | Formula-like cells escaped; import strips the escape |
+| Medium | Product images had no type or size check; direct uploads were open to anyone | Image types and 5 MB limit; direct-upload route closed |
+| Medium-low | Removed staff kept working sessions | Sessions deleted on removal; sessions without a membership refused |
+| Low-medium | Reset and invitation links accepted a one-character password | 10-character minimum on the user |
+| Low | No rate limit on M-Pesa/Airtel prompts or on setting PINs (which checks the password) | Rate limits per till session |
+| Medium (open) | QZ Tray signing uses one platform key and QZ Tray sends only a hash to sign | Limited to tills set up for QZ Tray; a certificate per shop is planned |
+| Low (open) | Sessions don't expire; Airtel callbacks aren't limited to Airtel's addresses; share links can't be revoked | Planned in docs/PLAN.md, "Roadmap from here" |

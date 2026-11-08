@@ -13,8 +13,10 @@ class Pos::OfflineSalesController < ApplicationController
   end
 
   def create
+    return render(json: { error: "Choose this device's till first" }, status: :unprocessable_entity) unless current_till
+
     sales = Array(params.to_unsafe_h[:sales]).first(MAX_PER_REQUEST)
-    results = sales.map { Current.account.sales.record_offline(_1) }
+    results = sales.map { Current.account.sales.record_offline(_1, register: current_till) }
     render json: { results: results }
   end
 end

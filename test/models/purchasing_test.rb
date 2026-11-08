@@ -100,6 +100,8 @@ class PurchasingTest < ActiveSupport::TestCase
       assert_equal [ [ "INV-1", 3_000_000 ], [ "INV-2", 5_000_000 ], [ "INV-3", 2_000_000 ] ],
         supplier.open_invoices.map { [ _1.invoice.number, _1.outstanding_cents ] }
       assert_equal({ "current" => 2_000_000, "1_30" => 5_000_000, "31_60" => 0, "61_90" => 3_000_000, "over_90" => 0 }, supplier.ageing)
+      assert_equal supplier.ageing, Supplier.ageing_by_id([ supplier ])[supplier.id], "lists work it out for every supplier at once"
+      assert_equal 10_000_000, Supplier.balances_by_id[supplier.id]
     end
   end
 

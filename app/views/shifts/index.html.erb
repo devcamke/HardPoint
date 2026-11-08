@@ -5,6 +5,9 @@
       new_button: [ "Go to till", pos_path ],
       records: @shifts %>
 
+<% if @shifts.none? %>
+  <p class="card hint text-center">No shifts yet. A shift opens when someone starts selling at a till.</p>
+<% else %>
 <div class="card">
   <table class="table">
     <thead><tr><th>Till</th><th>Opened</th><th>Closed</th><th class="text-right">Variance</th><th>Status</th></tr></thead>
@@ -21,3 +24,4 @@
     </tbody>
   </table>
 </div>
+<% end %>

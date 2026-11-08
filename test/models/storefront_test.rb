@@ -65,6 +65,16 @@ class StorefrontTest < ActiveSupport::TestCase
     assert_equal customer, checkout_.order.customer
   end
 
+  test "checking out under someone's phone number never changes their record" do
+    customer = @account.customers.create!(name: "Grace W.", phone: "0711222333")
+    @cart.add(products(:acme_nails), 1)
+    checkout_ = checkout(name: "Mallory", email: "mallory@evil.test")
+    assert checkout_.place
+    assert_nil customer.reload.email, "the email typed isn't put on their record"
+    assert_equal "Grace W.", customer.name
+    assert_match "Ordered online as Mallory, mallory@evil.test", checkout_.order.note
+  end
+
   test "checking out needs a Kenyan mobile number, a collection branch and something in the cart" do
     assert_not checkout.place
     assert_match "cart is empty", checkout.tap(&:place).errors.full_messages.to_sentence

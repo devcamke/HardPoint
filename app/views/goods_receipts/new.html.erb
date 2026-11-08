@@ -21,11 +21,11 @@
     <% if order&.supplier&.foreign? %>
       <% supplier = order.supplier %>
       <div class="field"><%= form.label :exchange_rate, "Rate today (#{Current.account.currency} per #{supplier.currency})", class: "label" %>
-        <%= form.number_field :exchange_rate, value: (@goods_receipt.exchange_rate || supplier.current_rate).to_d.round(6).to_s("F"), step: "any", min: 0, required: true, class: "input" %>
+        <%= form.number_field :exchange_rate, value: (@goods_receipt.exchange_rate || supplier.current_rate).to_d.round(6).to_s("F"), step: "any", min: 0, inputmode: "decimal", required: true, class: "input" %>
         <p class="hint mt-1">Costs below are in <%= supplier.currency %>; stock is costed in <%= Current.account.currency %> at this rate.</p></div>
     <% elsif order.nil? && Current.account.currencies.any? %>
       <div class="field"><%= form.label :exchange_rate, "Rate, for a supplier in another currency", class: "label" %>
-        <%= form.number_field :exchange_rate, step: "any", min: 0, class: "input", placeholder: "Today's rate if left blank" %></div>
+        <%= form.number_field :exchange_rate, step: "any", min: 0, inputmode: "decimal", class: "input", placeholder: "Today's rate if left blank" %></div>
     <% end %>
   </div>
 
@@ -42,8 +42,8 @@
             <% end %>
           </td>
           <% if order %><td class="text-right tabular-nums"><%= quantity(line.object.purchase_order_line&.outstanding_quantity) %></td><% end %>
-          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, class: "input w-24 py-1.5 text-right", "aria-label": "Quantity received" %></td>
-          <td class="text-right"><%= line.number_field :unit_cost, value: plain_number(line.object.unit_cost), step: "0.01", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit cost" %></td>
+          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, inputmode: "decimal", class: "input w-24 py-1.5 text-right", "aria-label": "Quantity received" %></td>
+          <td class="text-right"><%= line.number_field :unit_cost, value: plain_number(line.object.unit_cost), step: "0.01", inputmode: "decimal", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit cost" %></td>
           <td>
             <% if line.object.product.nil? || line.object.product.tracks_batches? %>
               <div class="flex gap-1">
@@ -59,7 +59,7 @@
 
   <div class="grid gap-4 sm:grid-cols-2">
     <div class="field" data-tour="receive-extra-costs"><%= form.label :extra_costs, "Transport, duty and other costs (#{Current.account.currency})", class: "label" %>
-      <%= form.number_field :extra_costs, value: plain_number(@goods_receipt.extra_costs), step: "0.01", min: 0, class: "input" %>
+      <%= form.number_field :extra_costs, value: plain_number(@goods_receipt.extra_costs), step: "0.01", inputmode: "decimal", min: 0, class: "input" %>
       <p class="hint mt-1">Shared across the lines by value, so each product carries its true cost.</p></div>
     <div class="field" data-tour="receive-note"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. 2 bags torn, set aside" %></div>
   </div>

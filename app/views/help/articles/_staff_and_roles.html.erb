@@ -10,6 +10,8 @@
   <li><strong>Accountant</strong>: the money side without the till: customer accounts and statements, supplier invoices and payments, and reports.</li>
 </ul>
 <p>Each person only sees the areas their role uses: a cashier sees Home, Sell, Customers and Stock, and starts at the till.</p>
+<p>Managers can add staff and change their roles, but only an owner can make someone an owner, or change or remove an owner.
+  Removing someone signs them out of every till and phone straight away.</p>
 
 <%= render "help/walkthrough", tour: HelpTour.find("staff") %>
 
@@ -22,7 +24,8 @@
 <p>Cashiers can give discounts up to the limit set in <strong>Settings › Shop details</strong> (5% to begin with). Anything bigger, voids,
   returns and going over a customer's credit limit ask for an owner's or manager's <strong>approval PIN</strong> at the till. Owners and
   managers set theirs under <strong>My profile › Approval PIN</strong>. It authorises that one action only and signs nobody in; who
-  approved it is recorded.</p>
+  approved it is recorded. After 10 wrong approval PINs in 15 minutes the shop accepts none for a while, so a PIN can't be guessed;
+  an owner or manager can still approve by signing in at the till themselves.</p>
 
 <h2>Two-factor sign-in</h2>
 <p>Owners and managers should turn on two-factor sign-in under <strong>My profile</strong>, using an authenticator app, and keep the

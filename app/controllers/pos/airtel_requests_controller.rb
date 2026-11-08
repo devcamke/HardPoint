@@ -1,6 +1,9 @@
 # Prompts sent to a customer's phone to pay with Airtel Money, and the till checking on them.
 class Pos::AirtelRequestsController < ApplicationController
   include PosSale
+  # A prompt lands on a customer's phone; a till can't be used to keep pushing them at someone.
+  rate_limit to: 10, within: 1.minute, only: :create, by: -> { cookies.signed[:session_id] || request.remote_ip },
+    with: -> { render plain: "Too many payment prompts from this till; wait a minute and try again.", status: :too_many_requests }
 
   def create
     merchant = Airtel::Merchant.for_branch(@sale.branch)

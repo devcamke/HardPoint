@@ -10,11 +10,10 @@
     <% if @completed_sale %>
       <%= render "pos/completed", sale: @completed_sale %>
     <% end %>
-    <% if notice || alert %>
+    <%# The live region stays put; only what's inside it changes, so screen readers announce each message. %>
+    <div id="pos_message" aria-live="polite">
       <%= render "pos/message", message: notice, alert: alert %>
-    <% else %>
-      <%= render "pos/message", message: nil, alert: nil %>
-    <% end %>
+    </div>
 
     <%= form_with url: pos_lines_path, class: "flex gap-2", data: { controller: "scanner", scanner_search_url_value: pos_products_path,
           action: "turbo:submit-end->scanner#reset", tour: "scan" } do |form| %>
@@ -38,7 +37,7 @@
         <summary class="btn-secondary w-full cursor-pointer list-none">Add transport</summary>
         <%= form_with url: pos_transport_path, class: "absolute bottom-full left-0 z-10 mb-2 w-72 space-y-2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg" do |form| %>
           <div><%= form.label :amount, "Transport (#{Current.account.currency})", class: "label" %>
-            <%= form.number_field :amount, step: "0.01", min: 0, required: true, class: "input py-1.5" %></div>
+            <%= form.number_field :amount, step: "0.01", inputmode: "decimal", min: 0, required: true, class: "input py-1.5" %></div>
           <div><%= form.label :destination, "To", class: "label" %>
             <%= form.text_field :destination, value: @sale.customer&.address, placeholder: "Site or area", class: "input py-1.5" %></div>
           <%= form.submit "Add to sale", class: "btn-primary w-full" %>
