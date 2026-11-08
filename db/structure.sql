@@ -4565,7 +4565,7 @@ CREATE INDEX index_account_backups_on_requested_by_id ON public.account_backups 
 -- Name: index_account_backups_on_status; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_account_backups_on_status ON public.account_backups USING btree (status) WHERE ((status)::text = ANY ((ARRAY['queued'::character varying, 'running'::character varying])::text[]));
+CREATE INDEX index_account_backups_on_status ON public.account_backups USING btree (status) WHERE (((status)::text = 'queued'::text) OR ((status)::text = 'running'::text));
 
 
 --
@@ -9159,6 +9159,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261108110000'),
 ('20261108100000'),
 ('20261108090000'),
 ('20261107210000'),
