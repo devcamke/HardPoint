@@ -10,27 +10,99 @@ class BillingTest < ActiveSupport::TestCase
     @account.update!(trial_ends_at: 10.days.from_now)
   end
 
-  test "plans limit branches, tills, staff and products" do
+  test "plans limit branches, tills and staff, never products" do
     @account.update!(plan: "starter")
 
     branch = Branch.create(name: "Third branch")
-    assert_match "Your Starter plan allows 1 branch.", branch.errors.full_messages.to_sentence
+    assert_match "Your Starter plan allows 1 branch. Add branches or upgrade on the Billing page", branch.errors.full_messages.to_sentence
     till = Register.create(branch: branches(:acme_main), name: "Back office")
     assert_match "allows 2 tills", till.errors.full_messages.to_sentence
     spare = Register.create(branch: branches(:acme_main), name: "Spare", active: false)
     assert spare.persisted?, spare.errors.full_messages.to_sentence
+    product = Product.create(name: "Yet another screw", sku: "SCR-9999", unit: units(:acme_piece), price_cents: 100)
+    assert product.persisted?, product.errors.full_messages.to_sentence
 
     @account.update!(plan: "enterprise")
     third = Branch.create(name: "Third branch")
     assert third.persisted?, third.errors.full_messages.to_sentence
   end
 
-  test "a smaller plan only if what's in use fits it" do
+  test "an extra till or branch bought as an add-on makes room and goes on the invoice" do
+    @account.update!(plan: "starter")
+    assert_not Register.create(branch: branches(:acme_main), name: "Back office").persisted?
+
+    assert @account.change_add_ons(extra_registers: 1)
+    assert_equal 3, @account.limit(:registers)
+    till = Register.create(branch: branches(:acme_main), name: "Back office")
+    assert till.persisted?, till.errors.full_messages.to_sentence
+    assert_equal 2_500_00 + 750_00, @account.monthly_price_cents
+    assert_equal "add_ons_changed", @account.events.last.action
+
+    assert_not @account.change_add_ons(extra_registers: 0), "the extra till is in use"
+    assert_match "more than 2 tills in use", @account.errors.full_messages.to_sentence
+    assert_equal 1, @account.reload.extra_registers
+
+    invoice = @account.start_subscription_now
+    assert_equal [ 3_250_00, 1, "monthly" ], [ invoice.amount_cents, invoice.extra_registers, invoice.interval ]
+    assert_equal [ [ "HardPoint Starter plan", 1, 2_500_00 ], [ "Extra till × 1", 1, 750_00 ] ], invoice.lines
+    assert_match "Starter plan and add-ons, a month from", invoice.description
+  end
+
+  test "a smaller plan only if what's in use fits it, counting add-ons; Enterprise drops them" do
     assert_not @account.change_plan("starter")
     assert_match "Starter allows 1 branch;", @account.errors.full_messages.to_sentence
 
-    assert @account.change_plan("enterprise")
+    @account.update!(extra_branches: 1)
+    assert @account.change_plan("starter"), @account.errors.full_messages.to_sentence
     assert_equal "plan_changed", @account.events.last.action
+
+    assert @account.change_plan("enterprise")
+    assert_equal 0, @account.extra_branches
+    assert_not @account.change_add_ons(extra_registers: 1)
+    assert_match "no limits", @account.errors.full_messages.to_sentence
+    assert @account.change_add_ons(billing_interval: "yearly")
+  end
+
+  test "yearly billing: one invoice for twelve months at ten months' price" do
+    @account.update!(billing_interval: "yearly")
+
+    travel_to 11.days.from_now do
+      @account.bill
+      invoice = @account.open_invoice
+      assert_equal [ 65_000_00, "yearly", invoice.period_start + 1.year ], [ invoice.amount_cents, invoice.interval, invoice.period_end ]
+      assert_equal [ [ "HardPoint Business plan", 12, 65_000_00 ] ], invoice.lines
+      assert_match "a year from", invoice.description
+
+      invoice.payments.create!(account: @account, provider: "manual", amount_cents: invoice.amount_cents, reference: "EFT-Y").succeed(receipt: "EFT-Y")
+      assert_equal invoice.period_end, @account.reload.current_period_ends_at.in_time_zone(@account.time_zone).to_date
+    end
+
+    travel_to 200.days.from_now do
+      @account.bill
+      assert_equal 1, @account.billing_invoices.count, "nothing more is billed during the year"
+    end
+  end
+
+  test "a one-off invoice is paid like any other, locks the shop when overdue, and leaves the subscription alone" do
+    invoice = @account.issue_one_off_invoice("Setup and training visit", 15_000_00)
+    assert invoice.one_off?
+    assert_equal [ "Setup and training visit", Date.current + 7 ], [ invoice.description, invoice.due_on ]
+    assert_equal [ [ "Setup and training visit", nil, 15_000_00 ] ], invoice.lines
+    assert @account.trialing?
+
+    travel_to 8.days.from_now do
+      @account.bill
+      assert @account.reload.read_only?
+    end
+
+    assert @account.record_manual_payment("EFT-SETUP")
+    assert @account.reload.trialing?, "paid, the shop is back to its trial"
+    assert_nil @account.current_period_ends_at
+
+    travel_to 11.days.from_now do
+      @account.bill
+      assert_equal 6_500_00, @account.open_invoice.amount_cents, "the trial still ends with a normal first invoice"
+    end
   end
 
   test "trial reminder, first invoice at the end of the trial, reminder, then read-only" do

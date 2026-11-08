@@ -12,7 +12,7 @@
     <% elsif @account.read_only? %>
       <span class="font-semibold text-red-700">Read-only until the invoice below is paid.</span> Everything can still be seen and exported.
     <% elsif @account.current_period_ends_at %>
-      <%= plan.name %> plan, paid until <%= l(@account.current_period_ends_at.to_date, format: :long) %>.
+      <%= plan.name %> plan, billed <%= @account.billing_interval %>, paid until <%= l(@account.current_period_ends_at.to_date, format: :long) %>.
     <% end %>
   </p>
 </div>
@@ -58,13 +58,17 @@
     <section class="card flex flex-col <%= "border-2 border-primary-500" if current %>">
       <p class="text-lg font-semibold"><%= option.name %> <%= status_dot("Your plan", :info, class: "ml-2") if current %></p>
       <p class="hint"><%= option.blurb %></p>
-      <p class="my-3 text-2xl font-bold"><%= option.price %><span class="text-sm font-normal text-gray-500"> / month</span></p>
+      <p class="my-3 text-2xl font-bold"><%= option.price %><span class="text-sm font-normal text-gray-500"> / month, or <%= option.yearly_price %> a year</span></p>
       <ul class="mb-4 space-y-1 text-sm">
         <% Plan::RESOURCES.each do |resource| %>
           <% limit = option.limit(resource) %>
-          <% over = limit && usage[resource] > limit %>
-          <li class="flex justify-between <%= "text-red-700" if over %>"><span><%= { branches: "Branches", registers: "Tills", users: "Staff", products: "Products" }[resource] %></span>
+          <% over = limit && usage[resource] > (@account.limit(resource, on: option) || usage[resource]) %>
+          <li class="flex justify-between <%= "text-red-700" if over %>"><span><%= { branches: "Branches", registers: "Tills", users: "Staff" }[resource] %></span>
             <span class="tabular-nums"><%= limit ? number_with_delimiter(limit) : "No limit" %></span></li>
+        <% end %>
+        <li class="flex justify-between"><span>Products</span><span>No limit</span></li>
+        <% if option.add_ons? %>
+          <li class="hint pt-1">Extra till <%= Money.format(option.add_on_cents(:registers), currency: "KES") %>, extra branch <%= Money.format(option.add_on_cents(:branches), currency: "KES") %> a month</li>
         <% end %>
       </ul>
       <% unless current %>
@@ -75,13 +79,42 @@
   <% end %>
 </div>
 
+<section id="add_ons" class="card mb-6">
+  <h2 class="mb-1 text-lg font-semibold">Add-ons and how often you pay</h2>
+  <p class="hint mb-4">
+    <% if plan.add_ons? %>
+      One more till or branch than <%= plan.name %> allows? Add it here instead of moving up a plan. More room applies straight away; prices change from your next invoice.
+    <% else %>
+      <%= plan.name %> has no limits, so there's nothing to add. You can still choose to pay yearly.
+    <% end %>
+  </p>
+  <%= form_with model: @account, url: billing_add_ons_path, method: :patch, class: "flex flex-wrap items-end gap-4" do |form| %>
+    <% if plan.add_ons? %>
+      <div><%= form.label :extra_registers, "Extra tills (#{Money.format(plan.add_on_cents(:registers), currency: "KES")} a month each)", class: "label" %>
+        <%= form.number_field :extra_registers, min: 0, max: 99, class: "input w-28" %></div>
+      <div><%= form.label :extra_branches, "Extra branches (#{Money.format(plan.add_on_cents(:branches), currency: "KES")} a month each)", class: "label" %>
+        <%= form.number_field :extra_branches, min: 0, max: 99, class: "input w-28" %></div>
+    <% end %>
+    <fieldset>
+      <legend class="label">Pay</legend>
+      <div class="flex gap-4">
+        <label class="flex items-center gap-2"><%= form.radio_button :billing_interval, "monthly" %> Monthly</label>
+        <label class="flex items-center gap-2"><%= form.radio_button :billing_interval, "yearly" %> Yearly, <%= 12 - Plan::YEARLY_MONTHS_CHARGED %> months free</label>
+      </div>
+    </fieldset>
+    <%= form.submit "Save", class: "btn-secondary" %>
+  <% end %>
+  <p class="hint mt-3">Your next invoice: <strong class="tabular-nums"><%= money(@account.period_price_cents, currency: "KES") %></strong> for <%= @account.yearly? ? "a year" : "a month" %>
+    (<%= plan.name %> plan<%= " with #{@account.add_ons.select { |_, n| n.positive? }.map { |resource, n| Plan.allowance(n, resource) }.to_sentence} extra" if @account.add_ons.values.any?(&:positive?) %>).</p>
+</section>
+
 <div class="grid gap-6 lg:grid-cols-2">
   <section class="card">
     <h2 class="mb-3 text-lg font-semibold">In use</h2>
     <% Plan::RESOURCES.each do |resource| %>
-      <% limit = plan.limit(resource) %>
+      <% limit = @account.limit(resource) %>
       <div class="mb-3">
-        <p class="flex justify-between text-sm"><span><%= { branches: "Branches", registers: "Active tills", users: "Staff", products: "Active products" }[resource] %></span>
+        <p class="flex justify-between text-sm"><span><%= { branches: "Branches", registers: "Active tills", users: "Staff" }[resource] %></span>
           <span class="tabular-nums"><%= number_with_delimiter(usage[resource]) %><%= " of #{number_with_delimiter(limit)}" if limit %></span></p>
         <% if limit %>
           <div class="mt-1 h-2 rounded-full bg-gray-200"><div class="h-2 rounded-full <%= usage[resource] >= limit ? "bg-red-600" : "bg-primary-500" %>" style="width: <%= [ usage[resource] * 100 / [ limit, 1 ].max, 100 ].min %>%"></div></div>
@@ -97,7 +130,7 @@
         <tbody>
           <% @invoices.each do |invoice| %>
             <tr><td><%= link_to invoice.number, billing_invoice_path(invoice), target: "_blank", class: "link font-mono" %></td>
-              <td class="text-sm"><%= invoice.period_start.strftime("%-d %b") %> – <%= (invoice.period_end - 1).strftime("%-d %b %Y") %></td>
+              <td class="text-sm"><%= invoice.one_off? ? invoice.description : "#{invoice.period_start.strftime("%-d %b")} – #{(invoice.period_end - 1).strftime("%-d %b %Y")}" %></td>
               <td class="tabular-nums"><%= money(invoice.amount_cents, currency: invoice.currency) %></td>
               <td><%= status_dot invoice.paid? ? "Paid" : (invoice.overdue? ? "Overdue" : "Due"), invoice.paid? ? :success : (invoice.overdue? ? :danger : :warning) %></td></tr>
           <% end %>

@@ -5,6 +5,7 @@
       <h3 class="text-lg font-semibold"><%= plan.name %></h3>
       <p class="mt-1 text-sm text-gray-500"><%= plan.blurb %></p>
       <p class="mt-4"><span class="text-3xl font-semibold tabular-nums"><%= plan.price %></span> <span class="text-gray-500">/ month</span></p>
+      <p class="mt-1 text-sm text-gray-500">or <span class="tabular-nums"><%= plan.yearly_price %></span> a year, <%= 12 - Plan::YEARLY_MONTHS_CHARGED %> months free</p>
       <ul class="mt-5 flex-1 space-y-2 text-sm">
         <% Plan::RESOURCES.each do |resource| %>
           <li class="flex gap-2">
@@ -12,11 +13,16 @@
             <%= plan.limit(resource) ? Plan.allowance(plan.limit(resource), resource) : "Unlimited #{Plan::NOUNS[resource].pluralize}" %>
           </li>
         <% end %>
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Unlimited products</li>
         <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> M-Pesa, Airtel Money, KRA eTIMS and offline selling</li>
         <% if plan.api? %><li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> API and webhooks for web shops and other apps</li><% end %>
+        <% if plan.add_ons? %>
+          <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span>
+            Need more? An extra till is <%= Money.format(plan.add_on_cents(:registers), currency: "KES") %> and an extra branch <%= Money.format(plan.add_on_cents(:branches), currency: "KES") %> a month</li>
+        <% end %>
       </ul>
       <%= link_to "Start free trial", new_signup_path(plan: plan.key), class: "#{plan.key == "business" ? "btn-primary" : "btn-secondary"} mt-6 w-full" %>
     </div>
   <% end %>
 </div>
-<p class="mt-4 text-center text-sm text-gray-500">Prices in Kenya shillings, per shop, billed monthly. <%= Plan::TRIAL.inspect %> free, no card needed. Pay by M-Pesa or card.</p>
+<p class="mt-4 text-center text-sm text-gray-500">Prices in Kenya shillings, per shop, billed monthly or yearly. <%= Plan::TRIAL.inspect %> free, no card needed. Pay by M-Pesa or card.</p>

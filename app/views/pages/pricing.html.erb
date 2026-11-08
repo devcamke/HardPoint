@@ -1,19 +1,50 @@
 <% content_for :title, "Pricing for hardware store POS in Kenya" %>
-<% content_for :description, "#{@plans.map { "#{_1.name} KES #{number_with_delimiter(_1.price_cents / 100)}" }.to_sentence} a month per shop. M-Pesa, KRA eTIMS and offline selling included. #{Plan::TRIAL.inspect.capitalize} free." %>
+<% content_for :description, "#{@plans.map { "#{_1.name} KES #{number_with_delimiter(_1.price_cents / 100)}" }.to_sentence} a month per shop, or pay yearly and get #{12 - Plan::YEARLY_MONTHS_CHARGED} months free. M-Pesa, KRA eTIMS and offline selling included. #{Plan::TRIAL.inspect.capitalize} free." %>
 <% faqs = [
   [ "What happens after the free trial?", "We email your first invoice when the trial ends. You have a week to pay it by M-Pesa or card from the Billing page, and we remind you before it's due." ],
   [ "What if an invoice isn't paid?", "After the week's grace the shop becomes read-only: you and your staff can still sign in, look up anything and export your data, but can't sell or change things until it's paid. Nothing is deleted." ],
   [ "Can I change plan?", "Yes, whenever you like, from the Billing page. A bigger plan applies at once; a smaller one if what you use fits it. The new price applies from the next invoice." ],
-  [ "What counts towards the limits?", "Branches, active tills, staff logins and active products. Retired tills and archived products don't count." ],
+  [ "What counts towards the limits?", "Branches, active tills and staff logins. Retired tills don't count, and products never do: every plan takes as many as you stock." ],
+  [ "What if I need one more till or branch?", "Add it from the Billing page for a small monthly amount instead of moving up a plan. The extra applies straight away and is on your next invoice." ],
+  [ "Is it cheaper to pay for a year?", "Yes. Choose yearly billing on the Billing page and each invoice covers twelve months for the price of #{Plan::YEARLY_MONTHS_CHARGED}." ],
+  [ "Can you set the shop up for us?", "Yes. Our setup and training visit imports your product list, connects your printers, scanner, M-Pesa and KRA eTIMS, and trains your staff at the counter. It's from KES #{number_with_delimiter(Plan::SETUP_CENTS / 100)}, and free when you pay a year upfront." ],
   [ "Can I take my data with me?", "Always. Export everything as spreadsheets (CSV) from Settings, whether or not you're paying, and close your account whenever you want." ],
-  [ "Do I need special hardware?", "No. HardPoint runs in the browser on any computer or tablet. USB barcode scanners work as they are, and receipts print on 58 mm or 80 mm thermal printers." ]
+  [ "Do I need special hardware?", "No. HardPoint runs in the browser on any computer or tablet. USB barcode scanners work as they are, and receipts print on 58 mm or 80 mm thermal printers. If you'd rather have it all arrive ready to plug in, we quote a till kit: printer, cash drawer, scanner and, if you want one, a touch screen." ]
 ] %>
 <% structured_data seo_software(@plans), seo_faq(faqs) %>
 
 <section class="mx-auto max-w-6xl px-4 py-16">
   <h1 class="text-center text-4xl font-semibold">Pricing</h1>
-  <p class="mx-auto mt-3 mb-10 max-w-xl text-center text-gray-500">Every plan has every feature. Pick one for the size of your shop, and try it free for 30 days.</p>
+  <p class="mx-auto mt-3 mb-10 max-w-xl text-center text-gray-500">Every plan has every feature and unlimited products. Pick one for the size of your shop, and try it free for 30 days.</p>
   <%= render "pages/plans", plans: @plans %>
+</section>
+
+<section id="setup" class="mx-auto max-w-6xl px-4 pb-16">
+  <h2 class="mb-2 text-center text-2xl font-semibold">Getting set up</h2>
+  <p class="mx-auto mb-8 max-w-xl text-center text-gray-500">You can do it all yourself with the setup checklist and the help centre. Or we come to the shop and do it with you.</p>
+  <div class="grid gap-6 md:grid-cols-2">
+    <div class="card">
+      <h3 class="text-lg font-semibold">Setup and training visit</h3>
+      <p class="mt-1"><span class="text-2xl font-semibold tabular-nums">from <%= Money.format(Plan::SETUP_CENTS, currency: "KES") %></span> <span class="text-gray-500">one-off · free with a year paid upfront</span></p>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Your product list imported from a spreadsheet or your old system, with prices, barcodes and stock</li>
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Tills, receipt printers, cash drawers and scanners connected</li>
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> M-Pesa on your own Paybill or Till, and KRA eTIMS registered for each branch</li>
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Staff, roles and PINs set up, and an hour at the counter with your cashiers</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="text-lg font-semibold">Till kit</h3>
+      <p class="mt-1"><span class="text-2xl font-semibold">Quoted</span> <span class="text-gray-500">for your shop · pay once or over 12 months</span></p>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> 80 mm thermal receipt printer and cash drawer</li>
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> USB barcode scanner</li>
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> A touch screen or tablet for the till, if you want one</li>
+        <li class="flex gap-2"><span class="text-primary-600" aria-hidden="true">✓</span> Delivered set up and tested with HardPoint</li>
+      </ul>
+    </div>
+  </div>
+  <p class="mt-6 text-center text-sm text-gray-500">Ask about either from the message form in HardPoint or on WhatsApp. Both are invoiced in HardPoint and paid by M-Pesa, card or bank transfer.</p>
 </section>
 
 <section class="mx-auto max-w-3xl px-4 pb-16">

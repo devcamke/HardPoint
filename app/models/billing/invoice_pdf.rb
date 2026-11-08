@@ -1,6 +1,7 @@
 # HardPoint's invoice to a shop, on HardPoint's letterhead rather than the shop's.
 class Billing::InvoicePdf < DocumentPdf
   COLUMNS = [ [ "Description", 335 ], [ "Period", 100 ], [ "Amount", 80 ] ].freeze
+  ONE_OFF_COLUMNS = [ [ "Description", 335 ], [ "Date", 100 ], [ "Amount", 80 ] ].freeze
 
   def initialize(invoice)
     @invoice = invoice
@@ -11,7 +12,7 @@ class Billing::InvoicePdf < DocumentPdf
   def reference = @invoice.number
 
   private
-    def columns = COLUMNS
+    def columns = @invoice.one_off? ? ONE_OFF_COLUMNS : COLUMNS
 
     def details
       [ "Date #{date(@invoice.created_at)}", (@invoice.paid? ? "Paid #{date(@invoice.paid_at)}" : "Due #{date(@invoice.due_on)}") ]
@@ -34,9 +35,17 @@ class Billing::InvoicePdf < DocumentPdf
     end
 
     def content
-      two_blocks "Billed to", [ account.name, "#{account.subdomain}.#{Rails.configuration.x.webhook_url_options[:host]}", *account.billing_recipients ],
-        "Plan", [ "#{@invoice.plan_name} plan", Plan.find(@invoice.plan).price + " a month" ]
-      table [ [ "HardPoint #{@invoice.plan_name} plan", "#{@invoice.period_start.strftime("%-d %b")} – #{(@invoice.period_end - 1).strftime("%-d %b %Y")}", money(@invoice.amount_cents) ] ]
+      billed_to = [ account.name, "#{account.subdomain}.#{Rails.configuration.x.webhook_url_options[:host]}", *account.billing_recipients ]
+      if @invoice.one_off?
+        two_blocks "Billed to", billed_to, "For", [ @invoice.description ]
+        table [ [ @invoice.description, date(@invoice.period_start), money(@invoice.amount_cents) ] ]
+      else
+        plan = Plan.find(@invoice.plan)
+        two_blocks "Billed to", billed_to,
+          "Plan", [ "#{plan.name} plan, billed #{@invoice.interval}", "#{plan.price} a month" + (@invoice.yearly? ? ", #{Plan::YEARLY_MONTHS_CHARGED} months charged for 12" : "") ]
+        period = "#{@invoice.period_start.strftime("%-d %b")} – #{(@invoice.period_end - 1).strftime("%-d %b %Y")}"
+        table @invoice.lines.map { |line, _months, cents| [ line, period, money(cents) ] }
+      end
       total "Total (#{@invoice.currency})", @invoice.amount_cents
       pdf.move_down 20
       note @invoice.paid? ? "Paid with thanks." : "Pay by M-Pesa or card from the Billing page in HardPoint, quoting #{@invoice.number}."

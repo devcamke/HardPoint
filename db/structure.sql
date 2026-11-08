@@ -176,7 +176,10 @@ CREATE TABLE public.accounts (
     quickbooks_accounts jsonb DEFAULT '{}'::jsonb NOT NULL,
     backup_frequency character varying DEFAULT 'daily'::character varying NOT NULL,
     backups_kept integer DEFAULT 7 NOT NULL,
-    backup_notifications character varying DEFAULT 'every'::character varying NOT NULL
+    backup_notifications character varying DEFAULT 'every'::character varying NOT NULL,
+    extra_branches integer DEFAULT 0 NOT NULL,
+    extra_registers integer DEFAULT 0 NOT NULL,
+    billing_interval character varying DEFAULT 'monthly'::character varying NOT NULL
 );
 
 
@@ -608,7 +611,12 @@ CREATE TABLE public.billing_invoices (
     paid_at timestamp(6) without time zone,
     reminded_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    kind character varying DEFAULT 'subscription'::character varying NOT NULL,
+    "interval" character varying DEFAULT 'monthly'::character varying NOT NULL,
+    extra_branches integer DEFAULT 0 NOT NULL,
+    extra_registers integer DEFAULT 0 NOT NULL,
+    description character varying
 );
 
 ALTER TABLE ONLY public.billing_invoices FORCE ROW LEVEL SECURITY;
@@ -9109,6 +9117,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261108090000'),
 ('20261107210000'),
 ('20261107200000'),
 ('20261107195000'),

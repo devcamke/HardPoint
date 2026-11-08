@@ -51,7 +51,9 @@ Rails.application.routes.draw do
       resources :accounts, only: %i[ index show ] do
         scope module: :accounts do
           resource :plan, only: :update
+          resource :add_ons, only: :update
           resource :trial_extension, only: :create
+          resources :invoices, only: :create
           resource :suspension, only: %i[ create destroy ]
           resources :payments, only: :create
           resources :two_factor_resets, only: :create
@@ -271,6 +273,7 @@ Rails.application.routes.draw do
     resource :billing, only: :show do
       scope module: :billings do
         resource :plan, only: :update
+        resource :add_ons, only: :update
         resource :subscription_start, only: :create
         resources :mpesa_payments, only: %i[ create show ]
         resources :card_payments, only: :create

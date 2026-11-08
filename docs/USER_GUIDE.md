@@ -1431,9 +1431,21 @@ New shops get **30 days free** on the plan they chose when signing up. The owner
 
 When the trial ends HardPoint emails the first invoice, due a week later. Pay it from the Billing page with an M-Pesa prompt to your phone, or by card. A reminder comes two days before it's due, and a receipt when it's paid. You can also start paying before the trial ends.
 
+#### Monthly or yearly
+
+Under **Add-ons and how often you pay**, choose **Monthly** or **Yearly**. A yearly invoice covers twelve months for the price of ten. The change applies from your next invoice.
+
 #### Changing plan
 
-Pick another plan on the Billing page. A bigger plan applies straight away. A smaller one only if your branches, tills, staff and products fit within it. The new price applies from the next invoice.
+Pick another plan on the Billing page. A bigger plan applies straight away. A smaller one only if your branches, tills and staff fit within it. The new price applies from the next invoice. Products never count towards a plan.
+
+#### One more till or branch
+
+If you only need one more till or branch than your plan allows, add it under **Add-ons and how often you pay** rather than moving up a plan. Type how many extra you want and press **Save**. The room is there straight away, and the price is on your next invoice. You can give an extra back the same way once you've retired the till or branch that used it.
+
+#### Setup visits and till kits
+
+If HardPoint set your shop up on site, trained your staff or supplied a till kit, that comes as its own invoice on the Billing page, paid the same way as your subscription.
 
 #### If an invoice isn't paid
 
