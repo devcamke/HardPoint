@@ -1,9 +1,9 @@
 <div id="cart" class="flex min-h-0 flex-1 flex-col">
   <%# The lines scroll; on a short screen they keep a few rows and the whole panel scrolls instead, so payment stays reachable.
       Phones scroll the whole sale as one page. %>
-  <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-3" data-tour="customer">
-    <div class="min-w-0">
-      <p class="text-xs uppercase tracking-wide text-gray-500">Customer</p>
+  <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-2" data-tour="customer">
+    <div class="flex min-w-0 items-baseline gap-2">
+      <p class="shrink-0 text-xs uppercase tracking-wide text-gray-500">Customer</p>
       <p class="truncate font-semibold"><%= sale.customer&.name || "Walk-in" %>
         <%= tag.span(sale.customer.price_list.name, class: "badge ml-1") if sale.customer&.price_list %>
         <%= tag.span("Order #{sale.customer_order.reference}", class: "badge ml-1") if sale.customer_order %></p>
@@ -47,9 +47,10 @@
     <% end %>
   </div>
 
-  <div class="border-t border-gray-200 px-4 py-3 text-sm" data-tour="totals">
-    <div class="flex justify-between"><span>Items</span><span class="tabular-nums"><%= quantity(sale.item_count) %></span></div>
-    <div class="flex justify-between"><span>Subtotal</span><span class="tabular-nums"><%= money(sale.subtotal_cents) %></span></div>
+  <%# Kept short so the lines above get the height: items and tax share a quiet row. %>
+  <div class="border-t border-gray-200 px-4 py-2 text-sm leading-snug" data-tour="totals">
+    <div class="flex justify-between text-gray-500"><span>Items <span class="tabular-nums text-gray-900"><%= quantity(sale.item_count) %></span></span><span>incl. tax <span class="tabular-nums"><%= money(sale.tax_cents) %></span></span></div>
+    <div class="mt-0.5 flex justify-between"><span>Subtotal</span><span class="tabular-nums"><%= money(sale.subtotal_cents) %></span></div>
     <details class="group">
       <summary class="flex cursor-pointer list-none justify-between select-none pointer-coarse:py-2">
         <span class="link">Discount</span><span class="tabular-nums"><%= sale.discount_cents.positive? ? "−#{money(sale.discount_cents)}" : "—" %></span>
@@ -60,8 +61,7 @@
         <%= form.submit "Apply", class: "btn-secondary py-1" %>
       <% end %>
     </details>
-    <div class="flex justify-between text-gray-500"><span>incl. tax</span><span class="tabular-nums"><%= money(sale.tax_cents) %></span></div>
-    <div class="mt-1 flex items-baseline justify-between text-2xl font-extrabold"><span>Total</span><span class="tabular-nums"><%= money(sale.total_cents) %></span></div>
+    <div class="mt-0.5 flex items-baseline justify-between text-2xl font-extrabold"><span>Total</span><span class="tabular-nums"><%= money(sale.total_cents) %></span></div>
   </div>
 
   <% if sale.lines.any? %>
