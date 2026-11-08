@@ -1212,6 +1212,41 @@ ALTER SEQUENCE public.document_shares_id_seq OWNED BY public.document_shares.id;
 
 
 --
+-- Name: email_suppressions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.email_suppressions (
+    id bigint NOT NULL,
+    email character varying NOT NULL,
+    reason character varying NOT NULL,
+    detail character varying,
+    count integer DEFAULT 0 NOT NULL,
+    event_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: email_suppressions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.email_suppressions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: email_suppressions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.email_suppressions_id_seq OWNED BY public.email_suppressions.id;
+
+
+--
 -- Name: etims_devices; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3554,6 +3589,13 @@ ALTER TABLE ONLY public.document_shares ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: email_suppressions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.email_suppressions ALTER COLUMN id SET DEFAULT nextval('public.email_suppressions_id_seq'::regclass);
+
+
+--
 -- Name: etims_devices id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4155,6 +4197,14 @@ ALTER TABLE ONLY public.document_sequences
 
 ALTER TABLE ONLY public.document_shares
     ADD CONSTRAINT document_shares_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: email_suppressions email_suppressions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.email_suppressions
+    ADD CONSTRAINT email_suppressions_pkey PRIMARY KEY (id);
 
 
 --
@@ -5181,6 +5231,13 @@ CREATE INDEX index_document_shares_on_created_by_id ON public.document_shares US
 --
 
 CREATE UNIQUE INDEX index_document_shares_on_token ON public.document_shares USING btree (token);
+
+
+--
+-- Name: index_email_suppressions_on_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_email_suppressions_on_email ON public.email_suppressions USING btree (email);
 
 
 --
@@ -9278,6 +9335,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261108130000'),
 ('20261108123000'),
 ('20261108122000'),
 ('20261108121000'),

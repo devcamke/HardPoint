@@ -18,7 +18,7 @@ class PlatformHealth
   def self.check = new.tap(&:checks)
 
   def checks
-    @checks ||= %i[ database replica queue stuck_jobs failed_jobs etims backups disk ].filter_map { run(_1) }
+    @checks ||= %i[ database replica queue stuck_jobs failed_jobs etims backups email disk ].filter_map { run(_1) }
   end
 
   def ok? = checks.none?(&:failing?)
@@ -99,6 +99,21 @@ class PlatformHealth
       return Check.new(:backups, :warning, "#{stuck} shop backups have been running for more than 3 hours") if stuck.positive?
 
       Check.new(:backups, :ok, "no shop backup failed in the last day")
+    end
+
+    # SES: whether it will still send for us (a bounce or complaint rate past Amazon's limits pauses an account) and how
+    # much of today's quota is used; spam complaints in the last day are worth a look even while SES is content.
+    def email
+      return unless Ses.api?
+
+      account = Ses.account
+      complaints = EmailSuppression.where(reason: "complaint", event_at: 1.day.ago..).count
+      return Check.new(:email, :failing, "SES has paused sending for this account") unless account.sending_enabled
+      return Check.new(:email, :failing, "SES reputation is #{account.enforcement_status.to_s.downcase}: bounces or complaints are too high") unless account.healthy?
+      return Check.new(:email, :warning, "#{account.quota_used_percent}% of today's SES sending quota used") if account.quota_used_percent >= 80
+      return Check.new(:email, :warning, "#{complaints} spam #{"complaint".pluralize(complaints)} in the last day") if complaints.positive?
+
+      Check.new(:email, :ok, "SES sending, #{account.quota_used_percent}% of today's quota used#{", still in the sandbox" unless account.production}")
     end
 
     # Where uploads and scratch files go (the Kamal storage volume in production).

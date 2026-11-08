@@ -1,0 +1,52 @@
+<% content_for :title, "Email" %>
+
+<h1 class="mb-6 text-xl font-medium">Email</h1>
+
+<section class="card mb-6 <%= "border-red-200" if @error || (@account && !@account.healthy?) %>">
+  <h2 class="mb-1 text-lg font-semibold">AWS SES</h2>
+  <% if !@configured %>
+    <p class="text-red-800">Not configured: add the SES credentials (<code>ses:</code>) and run <code>bin/rails ses:setup</code>. Email is going nowhere.</p>
+  <% elsif @error %>
+    <p class="font-semibold text-red-800">SES couldn't be asked: <%= @error %></p>
+  <% elsif @account.nil? %>
+    <p>Sending through SES's SMTP endpoint. <span class="hint">With an access key in the credentials, HardPoint sends through the API and this page shows how the account is doing.</span></p>
+  <% else %>
+    <div class="grid gap-4 sm:grid-cols-4">
+      <div><p class="hint">Sending</p><p class="font-semibold"><%= @account.sending_enabled ? status_dot("Enabled", :success) : status_dot("Paused by SES", :danger) %></p></div>
+      <div><p class="hint">Access</p><p class="font-semibold"><%= @account.production ? "Production" : status_dot("Sandbox: verified addresses only", :warning) %></p></div>
+      <div><p class="hint">Reputation</p><p class="font-semibold"><%= status_dot @account.enforcement_status.to_s.humanize, (@account.enforcement_status == "HEALTHY" ? :success : :danger) %></p></div>
+      <div><p class="hint">Today's quota</p><p class="font-semibold tabular-nums"><%= number_with_delimiter @account.sent_last_24h.to_i %> of <%= number_with_delimiter @account.max_24h.to_i %> (<%= @account.quota_used_percent %>%)</p></div>
+    </div>
+    <% if @identity %>
+      <% dkim = @identity.dkim_attributes %>
+      <p class="mt-4 text-sm">Domain <strong><%= @domain %></strong>:
+        <%= @identity.verified_for_sending_status ? status_dot("verified", :success) : status_dot("not verified", :danger) %> ·
+        DKIM <%= status_dot dkim&.status.to_s.humanize.presence || "unknown", (dkim&.status == "SUCCESS" ? :success : :warning) %> ·
+        custom MAIL FROM <%= status_dot @identity.mail_from_attributes&.mail_from_domain_status.to_s.humanize.presence || "not set", (@identity.mail_from_attributes&.mail_from_domain_status == "SUCCESS" ? :success : :warning) %>
+        <span class="hint">(<code>bin/rails ses:status</code> lists the DNS records)</span></p>
+    <% end %>
+  <% end %>
+</section>
+
+<section class="card">
+  <h2 class="mb-1 text-lg font-semibold">Addresses we've stopped writing to</h2>
+  <p class="hint mb-3">Permanent bounces and spam complaints, as SES reports them. Every email drops these addresses before it's sent, and the customer's or supplier's page in the shop says so. Lift one once you know the address works.</p>
+  <% if @suppressions.empty? %>
+    <p class="text-gray-600">None.</p>
+  <% else %>
+    <table class="table text-sm">
+      <thead><tr><th>Address</th><th>Why</th><th>Detail</th><th>Last reported</th><th></th></tr></thead>
+      <tbody>
+        <% @suppressions.each do |suppression| %>
+          <tr id="<%= dom_id(suppression) %>">
+            <td class="font-mono"><%= suppression.email %></td>
+            <td><%= status_dot suppression.reason.humanize, (suppression.reason == "complaint" ? :danger : :warning) %></td>
+            <td class="max-w-md text-gray-600"><%= suppression.detail %><%= " (×#{suppression.count})" if suppression.count > 1 %></td>
+            <td><%= l(suppression.event_at, format: :short) %></td>
+            <td class="text-right"><%= button_to "Lift", admin_email_suppression_path(suppression), method: :delete, class: "btn-secondary py-1", form: { data: { turbo_confirm: "Email #{suppression.email} again?" } } %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>

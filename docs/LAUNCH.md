@@ -6,7 +6,7 @@ From a working staging server to paying shops. Tick each line when done.
 
 - [ ] Production and staging VPSs set up and hardened (docs/RUNBOOK.md §1)
 - [ ] Cloudflare DNS, Full (strict) TLS, WAF, rate-limiting rule on `/session`
-- [ ] SES out of the sandbox; DKIM, SPF and DMARC pass (send a test of every mailer)
+- [ ] SES set up with `bin/rails ses:setup`; DKIM, MAIL FROM and DMARC records in and showing SUCCESS in `ses:status`; out of the sandbox; a test of every mailer sent; a bounce to a bad address seen to arrive on the admin Email page
 - [ ] Backups running: WAL shipping every minute, hourly dumps, weekly base backups, both heartbeats alerting, bucket lifecycle and write-only key (RUNBOOK §2)
 - [ ] First restore drill on the real server, timed, with `restore_pitr.sh` to a chosen minute; RTO confirmed (RUNBOOK §3)
 - [ ] Staging deployed (`bin/kamal setup -d staging`) and refreshed from a production backup (RUNBOOK §8)

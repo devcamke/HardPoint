@@ -38,6 +38,7 @@ test. Report vulnerabilities to security@hardpoint.app.
 | Shared links | A row per link, random 32-character token, 30 days, revocable from the document's page, opens counted; statements fixed to their period | `app/models/document_share.rb` |
 | Alerting | Unhandled errors, exhausted job retries and failing platform checks reach the operators within minutes (Sentry or email), and `/health` tells the uptime monitor; see docs/RUNBOOK.md §7 | `config/initializers/error_reporting.rb`, `app/models/platform_health.rb` |
 | Staging | A scrambled copy of production (`staging:anonymise`): no real names, numbers, credentials or outbound connections; every email redirected | `lib/tasks/staging.rake`, `config/initializers/staging.rb` |
+| Email | Through AWS SES, DKIM-signed with a custom MAIL FROM; bounces and complaints come back through an SNS topic whose messages are verified against Amazon's signing certificate (and the known topic ARN) before anything in them is believed; addresses that bounce or complain are never written to again | `app/models/sns/message.rb`, `app/controllers/webhooks/ses_controller.rb`, `app/models/email_suppression.rb` |
 | Disclosure | `/.well-known/security.txt` names the security address; the data processing terms promise breach notice within 72 hours | `app/controllers/pages_controller.rb`, `/data-processing` |
 | Dependencies | Dependabot weekly (gems, GitHub Actions, the Docker base image); Brakeman, bundler-audit and importmap audit on every push and weekly | `.github` |
 

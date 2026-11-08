@@ -64,9 +64,10 @@ Rails.application.configure do
   # Shops live on subdomains of APP_HOST; raise the TLD length for hosts like hardpoint.co.ke.
   config.action_dispatch.tld_length = ENV.fetch("APP_TLD_LENGTH", 1).to_i
 
-  # AWS SES through its SMTP interface. Create SMTP credentials in the SES console and add them
-  # with bin/rails credentials:edit under ses: { smtp_username:, smtp_password:, region: }.
-  config.action_mailer.delivery_method = :smtp
+  # AWS SES (app/models/ses.rb): through its API with an access key under credentials ses: { access_key_id:,
+  # secret_access_key:, region:, configuration_set: }, or through its SMTP endpoint with ses: { smtp_username:,
+  # smtp_password:, region: }. bin/rails ses:setup verifies the domain and wires bounces back (docs/RUNBOOK.md §1).
+  config.action_mailer.delivery_method = Rails.application.credentials.dig(:ses, :access_key_id).present? ? :ses : :smtp
   config.action_mailer.smtp_settings = {
     address: "email-smtp.#{Rails.application.credentials.dig(:ses, :region) || "eu-west-1"}.amazonaws.com",
     port: 587,

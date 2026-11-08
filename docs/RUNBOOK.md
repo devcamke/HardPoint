@@ -23,8 +23,20 @@ growing onto several servers.
 2. **Cloudflare:** `hardpoint.app` and `*.hardpoint.app` proxied to the VPS; SSL **Full (strict)** with an
    Origin CA certificate for both (its PEM files go in `.kamal/secrets`); WAF managed rules; a rate
    limiting rule on `POST /session`; caching for `/assets/*`.
-3. **Email:** verify the domain in AWS SES (DKIM, SPF, DMARC), request production access, create SMTP
-   credentials and add them with `bin/rails credentials:edit` under `ses:`.
+3. **Email (AWS SES):** in the SES console pick a region (eu-west-1 is close enough; af-south-1 if the
+   account has it) and create an IAM user with `ses:SendEmail`, `ses:Get*`, `ses:Put*`,
+   `ses:Create*`, `ses:Update*`, `ses:DeleteSuppressedDestination`, `sns:CreateTopic` and
+   `sns:Subscribe`. Add its key with `bin/rails credentials:edit` under `ses: { region:, access_key_id:,
+   secret_access_key:, configuration_set: hardpoint }`, deploy, then run
+   `bin/kamal app exec "bin/rails ses:setup"`: it verifies the sending domain (the domain of
+   `MAILER_FROM`), sets a custom MAIL FROM, switches on the account suppression list, makes the
+   configuration set and an SNS topic that delivers bounces, complaints and rejections to
+   `/webhooks/ses` (the app confirms the subscription itself), and prints the DNS records to add at
+   Cloudflare (DNS only, not proxied): three DKIM CNAMEs, an MX and SPF TXT for `mail.<domain>`, and a
+   DMARC TXT. Put the printed topic ARN in the credentials as `ses.sns_topic_arn`. Then request
+   production access in the SES console (the sandbox only sends to verified addresses) and send a test
+   of every mailer (`bin/rails runner` or the mailer previews). `bin/rails ses:status` shows when every
+   record has been picked up; the admin **Email** page shows the account's standing from then on.
 4. **Secrets:** `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `HARDPOINT_DATABASE_PASSWORD` and the origin
    certificate in the environment `.kamal/secrets` reads. Run `bin/rails db:encryption:init` once and
    store the keys in credentials. Keep a copy of the master key and the backup passphrase in the team
@@ -182,7 +194,8 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 | "could not obtain a connection" / "too many connections" | Pool too small for its threads, or Postgres' `max_connections` spent: see the connection budget in section 6 before raising either |
 | Slow | Admin Database page: long-running queries and connections; `bin/kamal accessory logs db` for slow-query lines (over 500 ms are logged); raise `WEB_CONCURRENCY` if CPU is spare |
 | Database full or disk full | `df -h`; old local backups are in `/var/backups/hardpoint`; `docker system prune` for old images |
-| Emails not arriving | SES sending statistics and suppression list; bounces |
+| Emails not arriving | Admin **Email** page: is SES sending enabled, still in the sandbox, reputation healthy, quota left? Is the address on the suppression list (lift it there once it works)? `bin/rails ses:status` for the domain's DKIM and MAIL FROM. SES's own console for sending statistics. |
+| SES paused sending, or reputation not healthy | Bounces or complaints went past Amazon's limits. The admin Email page lists what bounced and complained; stop whatever mailer caused it (a bad import of customer emails, a shop texting receipts to typed addresses), lift nothing until it's fixed, then ask SES to review in the console. The `email` platform check alerts on this. |
 | M-Pesa payments not arriving | Shop's Settings › M-Pesa "Test connection"; Safaricom's callback IP list (`MPESA_CALLBACK_IPS`) |
 | eTIMS queue growing | Settings › KRA eTIMS › Submissions shows the errors; KRA outages retry by themselves |
 | A shop reports seeing another shop's data | Treat as a security incident (docs/SECURITY.md): take screenshots, suspend the affected shops from the admin, check the Activity logs, then fix |
@@ -282,7 +295,8 @@ Somebody is told within minutes when something breaks, in three layers:
    answers; the replica is streaming and under a minute behind; Solid Queue has a live worker,
    dispatcher and scheduler; no job has waited more than 15 minutes; no job failed in the last hour;
    no shop has a sale waiting more than 2 hours for KRA; no shop backup failed in the last day or has
-   run for more than 3 hours; the disk is under 80% (warning) or 90% (failing). A failing check is
+   run for more than 3 hours; SES will still send for us (not paused, reputation healthy, under 80% of
+   today's quota, no spam complaints in the last day); the disk is under 80% (warning) or 90% (failing). A failing check is
    emailed (throttled the same way). The same checks are the **Platform checks** panel at the top of
    the admin Database page.
 3. **From outside.** `GET /health` (any host, no sign-in) answers 200 while every check passes and 503

@@ -301,7 +301,12 @@ bin/kamal deploy
 
 Everything below is added with `bin/rails credentials:edit` unless it says otherwise.
 
-- **Email** goes through AWS SES's SMTP interface: `ses: { smtp_username:, smtp_password:, region: }`.
+- **Email** goes through AWS SES: `ses: { region:, access_key_id:, secret_access_key:, configuration_set:, sns_topic_arn: }`
+  for the API (preferred: SES's standing shows on the admin Email page and in the platform checks), or
+  `ses: { smtp_username:, smtp_password:, region: }` for its SMTP endpoint. `bin/rails ses:setup` verifies the sending
+  domain, makes the configuration set and wires bounces and complaints back to `/webhooks/ses`, where addresses that
+  bounce or complain are stopped (`EmailSuppression`); `bin/rails ses:status` lists the DNS records to add. See
+  [docs/RUNBOOK.md](docs/RUNBOOK.md) §1 step 3.
 - **SMS:** `africas_talking: { username:, api_key:, sender_id: }` (username `sandbox` for their sandbox).
 - **Billing HardPoint's own subscriptions:** `billing: { mpesa: { environment:, shortcode:, passkey:, consumer_key:,
   consumer_secret:, callback_token: }, paystack_secret_key: }`. Safaricom calls back to

@@ -8,6 +8,9 @@ Rails.application.routes.draw do
   post "webhooks/billing/mpesa/:token", to: "webhooks/billing_mpesa#create", as: :billing_mpesa_webhook
   post "webhooks/paystack", to: "webhooks/paystack#create", as: :paystack_webhook
 
+  # Bounces and complaints from AWS SES, through its SNS topic (signature-checked), on any host.
+  post "webhooks/ses", to: "webhooks/ses#create", as: :ses_webhook
+
   # Callbacks from Airtel, on any host; the shop is found by the secret token in the path.
   post "webhooks/airtel/:token", to: "webhooks/airtel#create", as: :airtel_webhook
 
@@ -70,6 +73,8 @@ Rails.application.routes.draw do
       resources :announcements, except: :show
       resources :support_requests, only: %i[ index update ]
       resource :database, only: :show
+      resource :email, only: :show
+      resources :email_suppressions, only: :destroy
       resource :adoption, only: :show
       root "accounts#index"
     end
