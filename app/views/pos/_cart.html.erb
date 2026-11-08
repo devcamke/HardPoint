@@ -1,7 +1,7 @@
 <div id="cart" class="flex min-h-0 flex-1 flex-col">
   <%# The lines scroll; on a short screen they keep a few rows and the whole panel scrolls instead, so payment stays reachable.
       Phones scroll the whole sale as one page. %>
-  <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-2" data-tour="customer">
+  <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-2 @lg:px-6" data-tour="customer">
     <div class="flex min-w-0 items-baseline gap-2">
       <p class="shrink-0 text-xs uppercase tracking-wide text-gray-500">Customer</p>
       <p class="truncate font-semibold"><%= sale.customer&.name || "Walk-in" %>
@@ -23,7 +23,7 @@
   </div>
   <% jobs = sale.customer ? sale.customer.jobs.open.alphabetically.to_a : [] %>
   <% if jobs.any? || sale.job %>
-    <%= form_with url: pos_job_path, method: :patch, class: "flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-2", data: { controller: "auto-submit" } do |form| %>
+    <%= form_with url: pos_job_path, method: :patch, class: "flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-2 @lg:px-6", data: { controller: "auto-submit" } do |form| %>
       <%= form.label :job_id, "Job", class: "text-xs uppercase tracking-wide text-gray-500" %>
       <%= form.select :job_id, options_for_select(([ sale.job ] + jobs).compact.uniq.map { [ _1.label, _1.id ] }, sale.job_id), { include_blank: "Not for a job" },
             class: "input py-1 text-sm", disabled: sale.customer_order&.job.present?, data: { action: "change->auto-submit#submit" } %>
@@ -42,13 +42,13 @@
         <% end %>
       </ul>
     <% else %>
-      <p class="p-8 text-center text-gray-500">Scan or tap products to start a sale.</p>
+      <p class="p-8 text-center text-gray-500 @lg:px-6">Scan or tap products to start a sale.</p>
       <button type="button" class="btn-secondary mx-auto flex md:hidden" data-pane="products" data-action="till-panes#show">Choose products</button>
     <% end %>
   </div>
 
   <%# Kept short so the lines above get the height: items and tax share a quiet row. %>
-  <div class="border-t border-gray-200 px-4 py-2 text-sm leading-snug" data-tour="totals">
+  <div class="border-t border-gray-200 px-4 py-2 text-sm leading-snug @lg:px-6" data-tour="totals">
     <div class="flex justify-between text-gray-500"><span>Items <span class="tabular-nums text-gray-900"><%= quantity(sale.item_count) %></span></span><span>incl. tax <span class="tabular-nums"><%= money(sale.tax_cents) %></span></span></div>
     <div class="mt-0.5 flex justify-between"><span>Subtotal</span><span class="tabular-nums"><%= money(sale.subtotal_cents) %></span></div>
     <details class="group">
