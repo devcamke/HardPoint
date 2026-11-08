@@ -1,5 +1,5 @@
 <% due = sale.balance_due_cents %>
-<div class="border-t border-gray-200 bg-gray-50 px-4 py-3" data-controller="payment" data-payment-due-value="<%= due %>">
+<div class="border-t border-gray-200 bg-gray-50 px-4 py-3 @lg:px-6" data-controller="payment" data-payment-due-value="<%= due %>">
   <% if sale.payments.any? %>
     <ul class="mb-2 space-y-1 text-sm">
       <% sale.payments.each do |payment| %>
