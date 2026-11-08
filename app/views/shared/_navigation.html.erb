@@ -19,7 +19,7 @@
           <kbd class="ml-auto hidden rounded border border-white/40 px-1 text-[11px] font-sans lg:inline">Ctrl K</kbd>
         </button>
         <% if current_membership&.can_sell? %>
-          <%= link_to "Open till", pos_path, class: "rounded bg-[#e46f2f] px-3 py-1.5 font-semibold hover:bg-[#d0611f]", data: { tour: "open-till" } %>
+          <%= link_to "Open till", pos_path, class: "rounded bg-[#c2561c] px-3 py-1.5 font-semibold hover:bg-[#a8471a]", data: { tour: "open-till" } %>
         <% end %>
         <span class="hidden px-2 text-white/80 lg:inline"><%= Current.account.name %></span>
         <%= link_to settings_path, class: class_names("flex size-9 items-center justify-center rounded hover:bg-white/15", "bg-white/20" => app == settings_app), title: "Settings", aria: { label: "Settings" }, data: { tour: "settings" } do %>
@@ -54,10 +54,11 @@
     <%= form_with url: search_path, method: :get, data: { command_palette_target: "form", turbo_frame: "search_results",
           action: "turbo:submit-start->command-palette#submitStart turbo:submit-end->command-palette#submitEnd" }, html: { role: "search" } do |form| %>
       <%= form.search_field :q, autocomplete: "off", placeholder: "Search products, customers, suppliers, receipts or pages", "aria-label": "Search",
+            role: "combobox", "aria-autocomplete": "list", "aria-controls": "search_listbox", "aria-expanded": "true",
             class: "w-full border-0 border-b border-gray-200 px-4 py-3 text-lg focus:ring-0 focus:outline-none",
             data: { command_palette_target: "input", action: "input->command-palette#search keydown->command-palette#navigate" } %>
     <% end %>
-    <div class="max-h-[60vh] overflow-y-auto pb-2">
+    <div id="search_listbox" role="listbox" aria-label="Search results" class="max-h-[60vh] overflow-y-auto pb-2">
       <%= turbo_frame_tag "search_results", target: "_top" do %>
         <p class="hint px-4 py-6 text-center">Type a product, customer, supplier, receipt number or page. Scanning a barcode works too.</p>
       <% end %>
@@ -66,12 +67,12 @@
   </dialog>
 
   <% if app && app.menu.size > 1 %>
-    <div class="flex gap-1 overflow-x-auto border-b border-gray-200 bg-white px-3 text-sm" aria-label="<%= app.name %> menu" data-tour="area-menu">
+    <nav class="flex gap-1 overflow-x-auto border-b border-gray-200 bg-white px-3 text-sm" aria-label="<%= app.name %> menu" data-tour="area-menu">
       <% app.menu.each do |name, path| %>
         <% active = app_menu_item_active?(path) %>
         <%= link_to name, path, class: class_names("-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 hover:text-primary-700",
               active ? "border-primary-500 font-medium text-gray-900" : "border-transparent text-gray-600"), aria: { current: ("page" if active) } %>
       <% end %>
-    </div>
+    </nav>
   <% end %>
 </nav>

@@ -70,16 +70,19 @@ class Dashboard
 
   def owed_to_us
     @owed_to_us ||= begin
-      rows = account.customers.with_balances
-      overdue = rows.map { |customer, _| customer.overdue_cents }
+      rows = account.customers.with_balances(account: account)
+      ageing = Customer.ageing_by_id(rows.map(&:first), account: account)
+      overdue = rows.map { |customer, _| Ageing.overdue_in(ageing[customer.id]) }
       { total: rows.sum(&:last), overdue: overdue.sum, customers: rows.size, overdue_customers: overdue.count(&:positive?) }
     end
   end
 
   def owed_by_us
     @owed_by_us ||= begin
-      suppliers = account.suppliers.to_a.select { _1.balance_cents.positive? }
-      overdue = suppliers.map(&:overdue_cents)
+      balances = Supplier.balances_by_id(account: account).select { _2.positive? }
+      suppliers = account.suppliers.where(id: balances.keys).to_a.each { _1.balance_cents = balances[_1.id] }
+      ageing = Supplier.ageing_by_id(suppliers, account: account)
+      overdue = suppliers.map { Ageing.overdue_in(ageing[_1.id]) }
       { total: suppliers.sum(&:balance_cents), overdue: overdue.sum, suppliers: suppliers.size, overdue_suppliers: overdue.count(&:positive?) }
     end
   end

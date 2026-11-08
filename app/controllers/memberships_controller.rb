@@ -1,6 +1,8 @@
 class MembershipsController < ApplicationController
   before_action :ensure_can_manage_staff
   before_action :set_membership, only: %i[ edit update destroy ]
+  # Only owners hand out, change or take away the owner role: a manager can't promote themselves or remove an owner.
+  before_action :ensure_owner_for_owner_roles, only: %i[ create update destroy ]
 
   def index
     @memberships = Current.account.memberships.alphabetically.includes(:user)
@@ -43,6 +45,14 @@ class MembershipsController < ApplicationController
   private
     def set_membership
       @membership = Current.account.memberships.find(params[:id])
+    end
+
+    def ensure_owner_for_owner_roles
+      return if current_membership.owner?
+
+      if @membership&.owner? || params.dig(:membership, :role).to_s == "owner"
+        redirect_to memberships_path, alert: "Only an owner can add, change or remove an owner.", status: :see_other
+      end
     end
 
     def membership_params

@@ -28,9 +28,14 @@ module Authentication
     def find_session_by_cookie
       if Current.account && cookies.signed[:session_id]
         Current.account.sessions.find_by(id: cookies.signed[:session_id]).then do |session|
-          session&.expired? || closed_to?(session) ? session&.destroy && nil : session
+          session&.expired? || closed_to?(session) || left_the_shop?(session) ? session&.destroy && nil : session
         end
       end
+    end
+
+    # A session outlives nobody's membership: staff who were removed can't keep using a till left signed in.
+    def left_the_shop?(session)
+      session && !session.impersonated? && session.membership.nil?
     end
 
     # While a shop is closing, only its owners can use it.

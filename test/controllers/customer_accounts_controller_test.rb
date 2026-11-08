@@ -122,7 +122,7 @@ class CustomerAccountsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "accountants see who owes us and customers, not orders or the till" do
-    accountant = User.create!(name: "Alice Accounts", email_address: "alice@acme.test", password: "password")
+    accountant = User.create!(name: "Alice Accounts", email_address: "alice@acme.test", password_digest: BCrypt::Password.create("password"))
     without_isolation { accounts(:acme).memberships.create!(user: accountant, role: :accountant) }
     sign_in_as accountant
 

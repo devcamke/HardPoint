@@ -73,6 +73,9 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Load .env (local database credentials and the like) for every bin/rails command, not only bin/dev
+  gem "dotenv-rails"
 end
 
 group :development do

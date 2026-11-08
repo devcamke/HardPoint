@@ -7,7 +7,7 @@
   <%= render "shared/errors", model: @shift %>
   <div class="field">
     <%= form.label :opening_float, "Cash in the drawer to start (#{Current.account.currency})", class: "label" %>
-    <%= form.number_field :opening_float, value: plain_number(@shift.opening_float), step: "0.01", min: 0, required: true, autofocus: true, class: "input text-lg" %>
+    <%= form.number_field :opening_float, value: plain_number(@shift.opening_float), step: "0.01", inputmode: "decimal", min: 0, required: true, autofocus: true, class: "input text-lg" %>
     <p class="hint mt-1">Count the change float before you start selling.</p>
   </div>
   <%= form.submit "Open shift", class: "btn-primary w-full" %>

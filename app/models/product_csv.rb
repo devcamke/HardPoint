@@ -8,7 +8,7 @@ class ProductCsv
   end
 
   def to_csv
-    CSV.generate do |csv|
+    SafeCsv.generate do |csv|
       csv << HEADERS
       @products.includes(:category, :brand, :unit, :tax_rate, :barcodes).in_batches(of: 1000) do |batch|
         stock = StockLevel.where(branch: @branch, product_id: batch.select(:id)).pluck(:product_id, :quantity).to_h

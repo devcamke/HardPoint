@@ -13,6 +13,12 @@ class Product < ApplicationRecord
   has_many :components, through: :kit_components
   has_many :price_list_items, dependent: :destroy
   has_one_attached :image
+  IMAGE_TYPES = %w[ image/jpeg image/png image/webp image/gif ].freeze
+  IMAGE_MAX_SIZE = 5.megabytes
+  validate if: -> { image.attached? && attachment_changes["image"] } do
+    errors.add :image, "must be a photo (JPEG, PNG, WebP or GIF)" unless image.content_type.in?(IMAGE_TYPES)
+    errors.add :image, "must be smaller than #{IMAGE_MAX_SIZE / 1.megabyte} MB" if image.byte_size > IMAGE_MAX_SIZE
+  end
 
   money_attribute :cost, :price
 

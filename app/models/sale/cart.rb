@@ -1,6 +1,8 @@
 module Sale::Cart
   extend ActiveSupport::Concern
 
+  CART_LINE_ASSOCIATIONS = [ :product, :promotion, { product_unit: :unit } ].freeze
+
   # Adds a product (or one of its packs) to the cart. Scanning the same thing again adds to the
   # existing line; serialised products get a line each, for their serial number.
   def add(product, product_unit: nil, quantity: 1)
@@ -49,7 +51,7 @@ module Sale::Cart
   # Totals: line totals after line discounts, less the cart discount. Tax is the tax-inclusive
   # share of each line, scaled down by the cart discount.
   def recalculate
-    lines.reload
+    reload_lines
     apply_bundles
     self.subtotal_cents = lines.sum(&:total_cents)
     self.discount_cents = discount_cents.to_i.clamp(0, subtotal_cents)
@@ -67,8 +69,15 @@ module Sale::Cart
   # Reloaded with what the till's cart shows, so drawing it doesn't query line by line.
   def reload_for_cart
     reload
-    ActiveRecord::Associations::Preloader.new(records: [ self ], associations: { lines: [ :product, :promotion, { product_unit: :unit } ] }).call
+    ActiveRecord::Associations::Preloader.new(records: [ self ], associations: { lines: CART_LINE_ASSOCIATIONS }).call
     self
+  end
+
+  # The lines afresh, with what bundles, prices and checks read from each one, so that isn't a query per line.
+  def reload_lines
+    lines.reload
+    ActiveRecord::Associations::Preloader.new(records: lines.to_a, associations: CART_LINE_ASSOCIATIONS).call
+    lines
   end
 
   def item_count

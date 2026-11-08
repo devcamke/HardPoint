@@ -23,7 +23,8 @@ module Sale::Offline
   end
 
   class_methods do
-    def record_offline(data)
+    # register: the till the sales are sent from. Its own shifts are the only ones they can go in.
+    def record_offline(data, register: nil)
       data = data.to_h.deep_stringify_keys
       uuid = data["uuid"].to_s
       raise ArgumentError, "Missing sale ID" unless uuid.match?(/\A\h{8}-\h{4}-\h{4}-\h{4}-\h{12}\z/)
@@ -32,7 +33,7 @@ module Sale::Offline
         return Result.new(uuid, "duplicate", existing, [], nil)
       end
 
-      sale = transaction { build_offline(data).tap(&:complete_offline) }
+      sale = transaction { build_offline(data, register: register).tap(&:complete_offline) }
       Result.new(uuid, sale.completed? ? "recorded" : "needs_attention", sale, sale.offline_warnings, nil)
     rescue ActiveRecord::RecordNotUnique
       Result.new(uuid, "duplicate", find_by(offline_uuid: uuid), [], nil)
@@ -41,10 +42,12 @@ module Sale::Offline
     end
 
     private
-      def build_offline(data)
+      def build_offline(data, register:)
         account = Current.account
-        shift = account.shifts.find(data["shift_id"])
+        shift = (register ? account.shifts.where(register: register) : account.shifts).find_by(id: data["shift_id"])
+        raise ArgumentError, "The sale's shift isn't one of this till's" unless shift
         cashier = account.users.find(data["cashier_id"])
+        raise ArgumentError, "#{cashier.name} can't sell at this shop" unless account.memberships.find_by(user: cashier)&.can_sell?
         happened_at = Time.zone.parse(data["happened_at"].to_s) || Time.current
         happened_at = happened_at.clamp(shift.opened_at - CLOCK_TOLERANCE, Time.current + CLOCK_TOLERANCE)
 
@@ -56,15 +59,19 @@ module Sale::Offline
         sale.offline_warnings << "#{job.label} had been closed, so the sale isn't tagged to it" if job&.closed?
         sale.offline_payments = Array(data["payments"])
 
+        # Hand discounts need the till online (the offline till never sends one), so one arriving here is ignored.
+        hand_discount_cents = data["discount_cents"].to_i + Array(data["lines"]).sum { _1["discount_cents"].to_i }
+        sale.offline_warnings << "A hand discount of #{Money.format(hand_discount_cents)} was ignored: discounts need the till online" unless hand_discount_cents.zero?
+
         Array(data["lines"]).each do |line|
+          raise ArgumentError, "A price can't be negative" if line["unit_price_cents"].to_i.negative? || line["promotion_discount_cents"].to_i.negative?
           product = account.products.find(line["product_id"])
           sale.lines.create!(account: account, product: product, product_unit: (product.product_units.find(line["product_unit_id"]) if line["product_unit_id"].present?),
-            quantity: line["quantity"], unit_price_cents: line["unit_price_cents"].to_i, discount_cents: line["discount_cents"].to_i,
+            quantity: line["quantity"], unit_price_cents: line["unit_price_cents"].to_i, discount_cents: 0,
             promotion: (account.promotions.find_by(id: line["promotion_id"]) if line["promotion_id"].present?),
             promotion_discount_cents: line["promotion_id"].present? ? line["promotion_discount_cents"].to_i : 0,
             serial_number: line["serial_number"].presence)
         end
-        sale.discount_cents = data["discount_cents"].to_i
         sale.recalculate
         sale.offline_expected_total_cents = data["total_cents"].to_i
         sale

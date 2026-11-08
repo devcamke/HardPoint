@@ -77,8 +77,9 @@ class Report::Sales < Report
           Arel.sql("ROUND(SUM(CASE WHEN sale_return_lines.restock THEN sale_lines.cost_cents * sale_return_lines.quantity / NULLIF(sale_lines.quantity, 0) ELSE 0 END))")
         ).index_by(&:first)
 
-        (sold.map(&:first) | returned.keys).index_with do |key|
-          _, receipts, quantity, takings, tax, cost = sold.find { _1.first == key } || [ key, 0, 0, 0, 0, 0 ]
+        sold = sold.index_by(&:first) # looked up by key below: a find per key was quadratic in the number of products
+        (sold.keys | returned.keys).index_with do |key|
+          _, receipts, quantity, takings, tax, cost = sold[key] || [ key, 0, 0, 0, 0, 0 ]
           _, returned_quantity, refunded, refunded_tax, restocked_cost = returned[key] || [ key, 0, 0, 0, 0 ]
           Figures.new(receipts: receipts.to_i, quantity: quantity.to_d - returned_quantity.to_d, takings: takings.to_i, returns: refunded.to_i,
             tax: tax.to_i - refunded_tax.to_i, cost: cost.to_i - restocked_cost.to_i)

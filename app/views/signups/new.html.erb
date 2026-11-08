@@ -7,7 +7,7 @@
 
 <div class="card">
   <%# Turbo can't follow the redirect to the new shop's subdomain (another origin), so submit normally. %>
-  <%= form_with model: @signup, url: signup_path, data: { turbo: false } do |form| %>
+  <%= form_with model: @signup, url: signup_path, data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
     <%= render "shared/errors", model: @signup %>
 
     <div class="field">

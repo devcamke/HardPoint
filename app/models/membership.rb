@@ -26,6 +26,8 @@ class Membership < ApplicationRecord
   validate :account_keeps_an_owner, on: :update, if: -> { role_changed?(from: "owner") }
 
   before_destroy :ensure_not_last_owner
+  # Someone who no longer works here is signed out of every device at once, not on their next click.
+  after_destroy { account.sessions.where(user_id: user_id, impersonator_id: nil).destroy_all }
 
   scope :alphabetically, -> { joins(:user).order("users.name") }
   scope :with_pin, -> { where.not(pin_digest: nil).where(role: PIN_ROLES) }

@@ -7,7 +7,7 @@ class My::PasswordsController < ApplicationController
 
   before_action { redirect_to my_profile_path, alert: "Not while HardPoint support is signed in as you." if Current.session.impersonated? }
 
-  MINIMUM_LENGTH = 10
+  MINIMUM_LENGTH = User::MINIMUM_PASSWORD_LENGTH
 
   def edit
   end

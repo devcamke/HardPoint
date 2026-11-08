@@ -63,4 +63,35 @@ class MembershipsControllerTest < ActionDispatch::IntegrationTest
     post memberships_path, params: { membership: { role: "owner", user_attributes: { name: "Carl's friend", email_address: "friend@x.test" } } }
     assert_response :forbidden
   end
+
+  test "a manager manages staff but can't make, change or remove an owner" do
+    Account.without_isolation { memberships(:carl_acme).update!(role: "manager") }
+    sign_in_as users(:carl), account: accounts(:acme)
+
+    patch membership_path(memberships(:carl_acme)), params: { membership: { role: "owner" } }
+    assert_redirected_to memberships_path
+    assert Account.without_isolation { memberships(:carl_acme).reload.manager? }, "can't promote themselves"
+
+    assert_no_difference -> { Account.without_isolation { Membership.where(role: "owner").count } } do
+      post memberships_path, params: { membership: { role: "owner", user_attributes: { name: "Friend", email_address: "friend@x.test" } } }
+    end
+
+    patch membership_path(memberships(:amina_acme)), params: { membership: { role: "cashier" } }
+    delete membership_path(memberships(:amina_acme))
+    assert Account.without_isolation { memberships(:amina_acme).reload.owner? }, "the owner is untouched"
+
+    get new_membership_path
+    assert_select "select[name='membership[role]'] option[value=owner]", count: 0
+
+    patch membership_path(memberships(:sara_acme)), params: { membership: { role: "cashier" } }
+    assert Account.without_isolation { memberships(:sara_acme).reload.cashier? }, "other roles are still the manager's to change"
+  end
+
+  test "removing someone signs them out everywhere" do
+    session = Account.without_isolation { Session.create!(account: accounts(:acme), user: users(:carl)) }
+
+    delete membership_path(memberships(:carl_acme))
+
+    assert_not Account.without_isolation { Session.exists?(session.id) }
+  end
 end

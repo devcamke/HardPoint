@@ -7,7 +7,7 @@
   <%= hidden_field_tag :refund, 1 if @refund %>
   <%= render "shared/errors", model: @deposit %>
   <div class="field"><%= form.label :amount, "Amount (#{Current.account.currency})", class: "label" %>
-    <%= form.number_field :amount, value: (plain_number(@deposit.amount.abs) if @deposit.amount_cents), step: "0.01", min: 0, required: true, autofocus: true, class: "input" %></div>
+    <%= form.number_field :amount, value: (plain_number(@deposit.amount.abs) if @deposit.amount_cents), step: "0.01", inputmode: "decimal", min: 0, required: true, autofocus: true, class: "input" %></div>
   <div class="field"><%= form.label :tender, @refund ? "Paid back by" : "Paid by", class: "label" %>
     <%= form.select :tender, Deposit::TENDERS.map { [ payment_method_label(_1), _1 ] }, {}, class: "input" %>
     <p class="hint mt-1"><%= current_shift ? "Cash goes #{@refund ? "out of" : "into"} the drawer of #{current_till.name}." : "Cash needs this device's till to have an open shift." %></p></div>

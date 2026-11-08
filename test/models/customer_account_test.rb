@@ -25,12 +25,16 @@ class CustomerAccountTest < ActiveSupport::TestCase
     assert_equal 15_000_00, @customer.balance_cents
     assert_equal({ "current" => 5_000_00, "1_30" => 10_000_00, "31_60" => 0, "61_90" => 0, "over_90" => 0 }, @customer.ageing)
     assert_equal 10_000_00, @customer.overdue_cents
+    assert_equal [ [ @customer, 15_000_00 ] ], Current.account.customers.with_balances, "lists work it out for everyone at once"
+    assert_equal @customer.ageing, Customer.ageing_by_id([ @customer ])[@customer.id]
 
     @customer.customer_payments.create!(account: Current.account, amount_cents: 12_000_00, payment_method: "bank_transfer")
 
     assert_equal 3_000_00, @customer.balance_cents
     assert_equal [ [ recent, 3_000_00 ] ], @customer.open_invoices.map { [ _1.sale, _1.outstanding_cents ] }
     assert_equal 0, @customer.overdue_cents
+    assert_equal({ @customer.id => 3_000_00 }, Customer.balances_by_id([ @customer.id ]))
+    assert_equal @customer.ageing, Customer.ageing_by_id([ @customer ])[@customer.id]
     assert_equal old.completed_at.to_date + 30, @customer.due_date_for(old)
   end
 

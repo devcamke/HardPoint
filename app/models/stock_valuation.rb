@@ -7,16 +7,18 @@ class StockValuation
   end
 
   def rows
-    totals = @account.stock_levels.joins(:product).group(:branch_id).pluck(
-      :branch_id,
-      Arel.sql("COUNT(*) FILTER (WHERE stock_levels.quantity > 0)"),
-      Arel.sql("COALESCE(ROUND(SUM(GREATEST(stock_levels.quantity, 0) * products.cost_cents)), 0)"),
-      Arel.sql("COUNT(*) FILTER (WHERE stock_levels.quantity < 0)")
-    ).index_by(&:first)
+    @rows ||= begin
+      totals = @account.stock_levels.joins(:product).group(:branch_id).pluck(
+        :branch_id,
+        Arel.sql("COUNT(*) FILTER (WHERE stock_levels.quantity > 0)"),
+        Arel.sql("COALESCE(ROUND(SUM(GREATEST(stock_levels.quantity, 0) * products.cost_cents)), 0)"),
+        Arel.sql("COUNT(*) FILTER (WHERE stock_levels.quantity < 0)")
+      ).index_by(&:first)
 
-    @account.branches.alphabetically.map do |branch|
-      _, in_stock, value, negative = totals[branch.id] || [ nil, 0, 0, 0 ]
-      Row.new(branch: branch, products_in_stock: in_stock, value_cents: value.to_i, negative_lines: negative)
+      @account.branches.alphabetically.map do |branch|
+        _, in_stock, value, negative = totals[branch.id] || [ nil, 0, 0, 0 ]
+        Row.new(branch: branch, products_in_stock: in_stock, value_cents: value.to_i, negative_lines: negative)
+      end
     end
   end
 
@@ -32,7 +34,10 @@ class StockValuation
       .where("stock_levels.quantity <> COALESCE(ledger.total, 0)")
   end
 
+  # Adding up the whole ledger grows with every sale, so the Stock page shows a check at most RECONCILE_EVERY old.
+  RECONCILE_EVERY = 15.minutes
+
   def reconciled?
-    mismatches.none?
+    Rails.cache.fetch([ "stock-reconciled", @account.id ], expires_in: RECONCILE_EVERY) { mismatches.none? }
   end
 end

@@ -42,12 +42,12 @@
                 <td><%= link_to supplier_product.product.name, supplier_product.product, class: "hover:text-primary-700" %></td>
                 <% if current_membership.can_purchase? %>
                   <td><%= text_field_tag "supplier_product[supplier_sku]", supplier_product.supplier_sku, form: dom_id(supplier_product, :form), class: "input w-28 py-1 font-mono text-xs", "aria-label": "Supplier code" %></td>
-                  <td class="text-right"><%= number_field_tag "supplier_product[cost]", plain_number(supplier_product.cost), step: "0.01", min: 0, form: dom_id(supplier_product, :form), class: "input w-28 py-1 text-right", "aria-label": "Cost" %></td>
+                  <td class="text-right"><%= number_field_tag "supplier_product[cost]", plain_number(supplier_product.cost), step: "0.01", inputmode: "decimal", min: 0, form: dom_id(supplier_product, :form), class: "input w-28 py-1 text-right", "aria-label": "Cost" %></td>
                   <td class="text-right"><%= number_field_tag "supplier_product[lead_time_days]", supplier_product.lead_time_days, min: 0, form: dom_id(supplier_product, :form), class: "input w-20 py-1 text-right", "aria-label": "Lead time" %></td>
-                  <td class="text-right"><%= number_field_tag "supplier_product[min_order_quantity]", plain_number(supplier_product.min_order_quantity), step: "any", min: 0, form: dom_id(supplier_product, :form), class: "input w-20 py-1 text-right", "aria-label": "Minimum order" %></td>
+                  <td class="text-right"><%= number_field_tag "supplier_product[min_order_quantity]", plain_number(supplier_product.min_order_quantity), step: "any", min: 0, inputmode: "decimal", form: dom_id(supplier_product, :form), class: "input w-20 py-1 text-right", "aria-label": "Minimum order" %></td>
                   <td><%= hidden_field_tag "supplier_product[preferred]", "0", form: dom_id(supplier_product, :form), id: nil %><%= check_box_tag "supplier_product[preferred]", "1", supplier_product.preferred?, form: dom_id(supplier_product, :form), class: "size-4 accent-primary-500", "aria-label": "Preferred supplier" %></td>
                   <td class="whitespace-nowrap text-right"><%= submit_tag "Save", form: dom_id(supplier_product, :form), class: "btn-secondary px-2 py-1 text-xs" %>
-                    <%= button_to "Remove", supplier_product_path(@supplier, supplier_product), method: :delete, class: "link ml-2 text-xs", form_class: "inline" %></td>
+                    <%= button_to "Remove", supplier_product_path(@supplier, supplier_product), method: :delete, class: "link ml-2 text-xs", form_class: "inline", form: { data: { turbo_confirm: "Remove this product from the supplier?" } } %></td>
                 <% else %>
                   <td class="font-mono text-xs"><%= supplier_product.supplier_sku %></td>
                   <td class="text-right tabular-nums"><%= money(supplier_product.cost_cents, currency: @supplier.currency_code) %></td>
@@ -72,9 +72,9 @@
     <% if current_membership.can_purchase? %>
       <%= form_with model: SupplierProduct.new, url: supplier_products_path(@supplier), class: "mt-4 flex flex-wrap items-end gap-2" do |form| %>
         <div class="flex-1"><%= form.label :product_code, "Add a product (barcode or SKU)", class: "label" %><%= form.text_field :product_code, required: true, class: "input font-mono" %></div>
-        <div class="w-28"><%= form.label :cost, class: "label" %><%= form.number_field :cost, value: nil, step: "0.01", min: 0, class: "input" %></div>
+        <div class="w-28"><%= form.label :cost, class: "label" %><%= form.number_field :cost, value: nil, step: "0.01", inputmode: "decimal", min: 0, class: "input" %></div>
         <div class="w-24"><%= form.label :lead_time_days, "Lead days", class: "label" %><%= form.number_field :lead_time_days, value: 7, min: 0, class: "input" %></div>
-        <div class="w-24"><%= form.label :min_order_quantity, "Min. order", class: "label" %><%= form.number_field :min_order_quantity, value: 1, step: "any", min: 0, class: "input" %></div>
+        <div class="w-24"><%= form.label :min_order_quantity, "Min. order", class: "label" %><%= form.number_field :min_order_quantity, value: 1, step: "any", min: 0, inputmode: "decimal", class: "input" %></div>
         <%= form.submit "Add", class: "btn-secondary" %>
       <% end %>
     <% end %>

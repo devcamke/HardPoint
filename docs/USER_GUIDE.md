@@ -277,6 +277,8 @@ Everyone who uses HardPoint gets their own login, so the activity log shows who 
 
 Each person only sees the areas their role uses: a cashier sees Home, Sell, Customers and Stock, and starts at the till.
 
+Managers can add staff and change their roles, but only an owner can make someone an owner, or change or remove an owner. Removing someone signs them out of every till and phone straight away.
+
 **Walkthrough: Add a member of staff**
 
 ![Screenshot: Add a member of staff](../app/assets/images/help/tours/staff.png)
@@ -291,7 +293,7 @@ On a shared till, cashiers and stock clerks don't need to sign out. Each sets a 
 
 #### Discounts and other things that need approval
 
-Cashiers can give discounts up to the limit set in **Settings › Shop details** (5% to begin with). Anything bigger, voids, returns and going over a customer's credit limit ask for an owner's or manager's **approval PIN** at the till. Owners and managers set theirs under **My profile › Approval PIN**. It authorises that one action only and signs nobody in; who approved it is recorded.
+Cashiers can give discounts up to the limit set in **Settings › Shop details** (5% to begin with). Anything bigger, voids, returns and going over a customer's credit limit ask for an owner's or manager's **approval PIN** at the till. Owners and managers set theirs under **My profile › Approval PIN**. It authorises that one action only and signs nobody in; who approved it is recorded. After 10 wrong approval PINs in 15 minutes the shop accepts none for a while, so a PIN can't be guessed; an owner or manager can still approve by signing in at the till themselves.
 
 #### Two-factor sign-in
 

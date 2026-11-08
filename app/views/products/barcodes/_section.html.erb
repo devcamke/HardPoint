@@ -6,7 +6,7 @@
         <tr>
           <td class="font-mono"><%= barcode.code %></td>
           <td><%= barcode.product_unit ? barcode.product_unit.to_s : "Single #{product.unit.abbreviation}" %></td>
-          <td class="text-right"><%= button_to "Remove", product_barcode_path(product, barcode), method: :delete, class: "link text-xs" if current_membership.can_manage_catalogue? %></td>
+          <td class="text-right"><%= button_to "Remove", product_barcode_path(product, barcode), method: :delete, class: "link text-xs", form: { data: { turbo_confirm: "Remove this barcode?" } } if current_membership.can_manage_catalogue? %></td>
         </tr>
       <% end %>
     </tbody>

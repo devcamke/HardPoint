@@ -29,7 +29,8 @@
             <span class="line-clamp-2 font-medium leading-snug"><%= product.name %></span>
             <span class="mt-1 block text-lg font-bold tabular-nums"><%= money(product.price_cents) %></span>
             <% if @branch && (product.track_stock? || product.kit?) %>
-              <span class="text-xs <%= product.stock_at(@branch).positive? ? "text-gray-500" : "text-red-700" %>"><%= quantity(product.stock_at(@branch), product.unit) %> here</span>
+              <% stock = product.kit? ? product.stock_at(@branch) : (@stock[product.id] || 0) %>
+              <span class="text-xs <%= stock.positive? ? "text-gray-500" : "text-red-700" %>"><%= quantity(stock, product.unit) %> here</span>
             <% end %>
           <% end %>
           <% if product.product_units.any? %>

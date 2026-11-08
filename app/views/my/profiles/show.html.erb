@@ -61,7 +61,7 @@
         </p>
         <div class="mt-4 flex gap-3">
           <%= link_to "Change PIN", edit_my_pin_path, class: "btn-secondary" %>
-          <%= button_to "Remove PIN", my_pin_path, method: :delete, class: "btn-danger" %>
+          <%= button_to "Remove PIN", my_pin_path, method: :delete, class: "btn-danger", form: { data: { turbo_confirm: "Remove your till PIN?" } } %>
         </div>
       <% else %>
         <p class="hint mt-2">Set a 4–6 digit PIN to switch in quickly at a shared till.</p>

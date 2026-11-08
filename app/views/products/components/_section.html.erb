@@ -6,7 +6,7 @@
         <tr>
           <td><%= link_to part.component.name, part.component, class: "hover:text-primary-700" %></td>
           <td class="text-right tabular-nums"><%= quantity(part.quantity, part.component.unit) %></td>
-          <td class="text-right"><%= button_to "Remove", product_component_path(product, part), method: :delete, class: "link text-xs" if current_membership.can_manage_catalogue? %></td>
+          <td class="text-right"><%= button_to "Remove", product_component_path(product, part), method: :delete, class: "link text-xs", form: { data: { turbo_confirm: "Remove this part from the kit?" } } if current_membership.can_manage_catalogue? %></td>
         </tr>
       <% end %>
     </tbody>
@@ -14,7 +14,7 @@
   <% if current_membership.can_manage_catalogue? %>
     <%= form_with url: product_components_path(product), scope: :kit_component, class: "flex flex-wrap items-end gap-2" do |form| %>
       <div class="flex-1"><%= form.label :product_code, "Barcode or SKU", class: "label" %><%= form.text_field :product_code, required: true, class: "input font-mono" %></div>
-      <div class="w-24"><%= form.label :quantity, class: "label" %><%= form.number_field :quantity, value: 1, step: "any", min: 0, class: "input" %></div>
+      <div class="w-24"><%= form.label :quantity, class: "label" %><%= form.number_field :quantity, value: 1, step: "any", min: 0, inputmode: "decimal", class: "input" %></div>
       <%= form.submit "Add", class: "btn-secondary" %>
     <% end %>
   <% end %>

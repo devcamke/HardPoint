@@ -1,6 +1,6 @@
 <%= turbo_stream.update "scan_result" do %>
   <% if @error %>
-    <div class="card border-l-4 border-red-600"><p class="font-semibold"><%= @error %></p></div>
+    <div class="card border-l-4 border-red-600" role="alert"><p class="font-semibold"><%= @error %></p></div>
   <% else %>
     <div class="card border-l-4 border-green-600" role="status">
       <p class="font-semibold"><%= @line.product.name %></p>

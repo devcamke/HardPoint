@@ -45,7 +45,7 @@ class ProductImport < ApplicationRecord
   end
 
   def rows
-    CSV.parse(csv, headers: true, header_converters: ->(header) { header.to_s.strip.downcase.tr(" ", "_") }, skip_blanks: true)
+    CSV.parse(csv, headers: true, header_converters: ->(header) { header.to_s.strip.downcase.tr(" ", "_") }, converters: [ SafeCsv::UNESCAPE ], skip_blanks: true)
   end
 
   private
