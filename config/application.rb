@@ -33,6 +33,7 @@ module Hardpoint
     # Addresses M-Pesa callbacks may come from; empty accepts any (development and tests). Production
     # sets Safaricom's published addresses; override with MPESA_CALLBACK_IPS (comma-separated).
     config.x.mpesa_callback_ips = []
+    config.x.airtel_callback_ips = []
 
     # Names this release (Kamal sets KAMAL_VERSION on deploy); a new one refreshes tills' offline copies.
     config.x.release = ENV.fetch("KAMAL_VERSION") { Time.now.utc.strftime("%Y%m%d%H%M%S") }
@@ -45,6 +46,7 @@ module Hardpoint
     # Webhooks may only be sent to public addresses; development and tests use local receivers.
     config.x.webhooks_allow_private_addresses = !Rails.env.production?
 
+    config.x.security_email = ENV.fetch("SECURITY_EMAIL", "security@hardpoint.app")
     config.x.support = {
       email: ENV.fetch("SUPPORT_EMAIL", "support@hardpoint.app"),
       whatsapp: ENV.fetch("SUPPORT_WHATSAPP", "254700000000")

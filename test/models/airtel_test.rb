@@ -1,7 +1,7 @@
 require "test_helper"
 
 class AirtelTest < ActiveSupport::TestCase
-  include FakeTransportHelper
+  include FakeTransportHelper, ActiveJob::TestHelper
 
   setup do
     Current.account = accounts(:acme)
@@ -58,6 +58,9 @@ class AirtelTest < ActiveSupport::TestCase
       Airtel::Client::PAYMENT_PATH => { status: { success: true } })
     request = @merchant.request_payment(sale: @sale, phone: "0733 123 456", amount_cents: @sale.balance_due_cents)
     request.cancel
+    # A "paid" callback is confirmed with Airtel before it counts.
+    fake_transport(Airtel::Client, Airtel::Client::TOKEN_PATH => { access_token: "token-1" },
+      "/standard/v1/payments/#{request.transaction_id}" => { data: { transaction: { id: request.transaction_id, status: "TS", airtel_money_id: "MP2611.0002.X" } } })
 
     payload = { "transaction" => { "id" => request.transaction_id, "status_code" => "TS", "airtel_money_id" => "MP2611.0002.X" } }
     2.times { @merchant.receive_callback(payload) }
@@ -68,6 +71,30 @@ class AirtelTest < ActiveSupport::TestCase
     request.update!(status: "pending")
     2.times { @merchant.receive_callback(payload) }
     assert_equal 1, @sale.reload.payments.count
+  end
+
+  test "a callback that says paid pays nothing until Airtel confirms it" do
+    fake_transport(Airtel::Client, Airtel::Client::TOKEN_PATH => { access_token: "token-1" },
+      Airtel::Client::PAYMENT_PATH => { status: { success: true } })
+    request = @merchant.request_payment(sale: @sale, phone: "0733 123 456", amount_cents: @sale.balance_due_cents)
+    forged = { "transaction" => { "id" => request.transaction_id, "status_code" => "TS", "airtel_money_id" => "MP2611.FORGED" } }
+
+    # Airtel says the prompt is still in progress: the callback was a lie, or early.
+    fake_transport(Airtel::Client, Airtel::Client::TOKEN_PATH => { access_token: "token-1" },
+      "/standard/v1/payments/#{request.transaction_id}" => { data: { transaction: { id: request.transaction_id, status: "TIP" } } })
+    @merchant.receive_callback(forged)
+    assert request.reload.pending?
+    assert_empty @sale.reload.payments
+
+    # Airtel can't be reached: nothing is credited, and the prompt is asked about again shortly.
+    fake_transport(Airtel::Client, Airtel::Client::TOKEN_PATH => { access_token: "token-1" },
+      "/standard/v1/payments/#{request.transaction_id}" => JsonHttp::Unreachable.new("timed out"))
+    assert_enqueued_with(job: Airtel::StatusCheckJob, args: [ request ]) { @merchant.receive_callback(forged) }
+    assert request.reload.pending?
+
+    # A failed callback needs no confirmation: it only stops the till waiting.
+    @merchant.receive_callback("transaction" => { "id" => request.transaction_id, "status_code" => "TF", "message" => "Declined" })
+    assert request.reload.failed?
   end
 
   test "an unused payment goes on another sale, once" do

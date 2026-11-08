@@ -24,6 +24,12 @@ production:
     class: DailySummaryJob
     schedule: every day at 4:15am
 
+  # The platform's own checks (database, workers, stuck or failed jobs, eTIMS queues, backups, disk), alerting
+  # the operators when one fails (docs/RUNBOOK.md, "Alerts").
+  platform_health:
+    class: PlatformHealthJob
+    schedule: every 10 minutes
+
   # Sales still waiting to reach KRA eTIMS.
   etims_retry:
     class: Etims::RetryJob

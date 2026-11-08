@@ -283,7 +283,14 @@ bin/kamal deploy
 - kamal-proxy serves `hardpoint.app` and `*.hardpoint.app` with a Cloudflare Origin CA certificate (Cloudflare SSL
   mode: Full (strict)).
 - **Shops' own backups** go to `BACKUP_STORAGE_SERVICE` (a separate bucket; see RUNBOOK §2).
-- **Backups** run from cron on the host (`config/backup/backup.sh`, set up as in [docs/RUNBOOK.md](docs/RUNBOOK.md)).
+- **Backups** run from cron on the host: WAL segments shipped off-site every minute, hourly dumps and weekly base
+  backups (`config/backup`, set up as in [docs/RUNBOOK.md](docs/RUNBOOK.md) §2), restorable to any minute.
+- **Alerts:** errors go to Sentry (`SENTRY_DSN`) or to `ALERTS_EMAIL`; `/health` is for the uptime monitor; the platform
+  checks are on the admin Database page ([docs/RUNBOOK.md](docs/RUNBOOK.md) §7).
+- **Migrations** run once per deploy from `.kamal/hooks/pre-deploy`, not from booting containers, and `strong_migrations`
+  refuses migrations that would lock a busy table or break the version still running ([docs/RUNBOOK.md](docs/RUNBOOK.md) §9).
+- **Staging** is `bin/kamal deploy -d staging` (`config/deploy.staging.yml`), a scrambled copy of production
+  ([docs/RUNBOOK.md](docs/RUNBOOK.md) §8).
 - Secrets come from the environment (see `.kamal/secrets`): `POSTGRES_PASSWORD`, `HARDPOINT_DATABASE_PASSWORD`, and
   the Cloudflare origin certificate and key files.
 - Two-factor secrets are encrypted with Active Record Encryption. Run `bin/rails db:encryption:init` and add the

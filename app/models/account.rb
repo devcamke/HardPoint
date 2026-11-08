@@ -1,5 +1,5 @@
 class Account < ApplicationRecord
-  include CatalogueDefaults, DailySummary, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Subscription, BillingCycle, Closure
+  include CatalogueDefaults, DailySummary, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Subscription, BillingCycle, Closure, QzSigning
   # Creation is recorded by Signup, once the new account is current.
   tracks_lifecycle only: :update
 
@@ -52,6 +52,7 @@ class Account < ApplicationRecord
   has_many :etims_submissions, class_name: "Etims::Submission", dependent: :destroy
   has_many :sms_messages, class_name: "Sms::Message", dependent: :delete_all
   has_many :support_requests, dependent: :delete_all
+  has_many :document_shares, dependent: :delete_all
   has_many :usage_counts, dependent: :delete_all
   has_one :storefront, dependent: :destroy
   has_many :jobs, dependent: :destroy

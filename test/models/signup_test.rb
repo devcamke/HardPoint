@@ -4,8 +4,12 @@ class SignupTest < ActiveSupport::TestCase
   test "creates the shop, its owner and a first branch" do
     signup = Signup.new(shop_name: "Mjengo Hardware", subdomain: "Mjengo", owner_name: "Wanjiru",
       email_address: "wanjiru@mjengo.test", password: "a long password")
+    assert_not signup.save, "the terms must be agreed to"
+    assert_equal [ "Terms accepted must be agreed to open a shop" ], signup.errors.full_messages
 
+    signup.terms_accepted = true
     assert signup.save
+    assert_in_delta Time.current, signup.account.terms_accepted_at, 1.minute
 
     account = signup.account
     assert_equal "mjengo", account.subdomain
@@ -19,7 +23,7 @@ class SignupTest < ActiveSupport::TestCase
 
   test "an existing user can open another shop with their password" do
     signup = Signup.new(shop_name: "Bob's Second Shop", subdomain: "bob2", owner_name: "Bob",
-      email_address: users(:bob).email_address, password: "password")
+      email_address: users(:bob).email_address, password: "password", terms_accepted: true)
 
     assert_no_difference -> { User.count } do
       assert signup.save
@@ -29,7 +33,7 @@ class SignupTest < ActiveSupport::TestCase
   end
 
   test "an existing user's email can't be claimed without their password" do
-    signup = Signup.new(shop_name: "Imposter", subdomain: "imposter", owner_name: "Eve",
+    signup = Signup.new(terms_accepted: true, shop_name: "Imposter", subdomain: "imposter", owner_name: "Eve",
       email_address: users(:bob).email_address, password: "not bob's password")
 
     assert_not signup.save
@@ -37,12 +41,12 @@ class SignupTest < ActiveSupport::TestCase
   end
 
   test "reserved and taken subdomains are rejected" do
-    assert_not Signup.new(shop_name: "x", subdomain: "www", owner_name: "x", email_address: "x@x.test", password: "a long password").save
-    assert_not Signup.new(shop_name: "x", subdomain: "acme", owner_name: "x", email_address: "x@x.test", password: "a long password").save
+    assert_not Signup.new(terms_accepted: true, shop_name: "x", subdomain: "www", owner_name: "x", email_address: "x@x.test", password: "a long password").save
+    assert_not Signup.new(terms_accepted: true, shop_name: "x", subdomain: "acme", owner_name: "x", email_address: "x@x.test", password: "a long password").save
   end
 
   test "failed signups leave nothing behind" do
-    signup = Signup.new(shop_name: "x", subdomain: "fresh", owner_name: "", email_address: "fresh@x.test", password: "a long password")
+    signup = Signup.new(terms_accepted: true, shop_name: "x", subdomain: "fresh", owner_name: "", email_address: "fresh@x.test", password: "a long password")
 
     assert_no_difference -> { Account.count } do
       assert_not signup.save

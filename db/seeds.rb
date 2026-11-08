@@ -4,7 +4,7 @@
 if Rails.env.development? && !Account.exists?(subdomain: "demo")
   DEV_ADMIN_TWO_FACTOR_SECRET = "HARDPOINTDEVADMINTOTPSECRETKEYAB" # add to an authenticator app for local use only
 
-  Signup.new(shop_name: "Demo Hardware", subdomain: "demo", owner_name: "Wanjiru Kamau",
+  Signup.new(terms_accepted: true, shop_name: "Demo Hardware", subdomain: "demo", owner_name: "Wanjiru Kamau",
     email_address: "owner@demo.test", password: "hardpoint-demo").save!
 
   account = Account.find_by!(subdomain: "demo")
@@ -350,7 +350,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
   # Two more shops for the platform admin's list: one on trial, one read-only for an unpaid invoice.
   { "coast" => [ "Coast Tools & Paint", "Fatma Ali", "owner@coast.test", "starter" ],
     "lakeside" => [ "Lakeside Hardware", "Ochieng Oduor", "owner@lakeside.test", "business" ] }.each do |subdomain, (shop, name, email, plan)|
-    Signup.new(shop_name: shop, subdomain: subdomain, owner_name: name, email_address: email, password: "hardpoint-demo").save!
+    Signup.new(terms_accepted: true, shop_name: shop, subdomain: subdomain, owner_name: name, email_address: email, password: "hardpoint-demo").save!
     shop_account = Account.find_by!(subdomain: subdomain)
     Current.set(account: shop_account) do
       Current.session = shop_account.sessions.create!(user: User.find_by!(email_address: email))

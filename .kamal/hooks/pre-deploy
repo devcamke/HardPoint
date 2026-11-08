@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Runs the database migrations once per deploy, in a throwaway container of the version about to boot,
+# on the primary web host, before any container of that version starts. Containers themselves don't
+# migrate (bin/docker-entrypoint), so two web servers can't race, and a migration that fails stops the
+# deploy before the new version serves anyone. The old version keeps running meanwhile, which is why
+# migrations must be backwards compatible (strong_migrations enforces the usual rules).
+#
+# Skipped on `kamal setup`: there is no database yet, and the first container creates it as it boots.
+# Skipped on `kamal rollback`: the schema stays as it is.
+set -euo pipefail
+
+case "${KAMAL_COMMAND:-}" in
+  setup|rollback) exit 0 ;;
+esac
+
+destination=()
+[ -n "${KAMAL_DESTINATION:-}" ] && destination=(-d "$KAMAL_DESTINATION")
+
+echo "Migrating the database with version $KAMAL_VERSION..."
+exec bin/kamal app exec --primary --version "$KAMAL_VERSION" "${destination[@]}" "bin/rails db:migrate"

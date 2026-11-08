@@ -28,22 +28,27 @@ would ask for:
 | Performance | 40 flat-out cashiers on 4 cores, p95 scan 278 ms; headroom of roughly 10× real tills | perf/README.md |
 | Security review | Internal review done and fixed; penetration test brief written, test not yet done | SECURITY.md |
 
-What is **not** there yet, and matters for selling:
+Six gaps stood between "works" and "sellable" when this was first written. All six are now closed in
+the code (PLAN.md, Phase 33); what remains for each is the real-world step only you can do:
 
-1. **Nobody is told when it breaks.** `Rails.error` has no subscriber, there is no uptime check and
-   no alert on a failed job. This is the single biggest gap between "works" and "sellable".
-2. **One server, one copy.** Production is one VPS with the database beside the app. A disk failure
-   means a 2-hour rebuild and up to an hour of lost sales (RUNBOOK targets). Fine for a pilot, not
-   for a shop paying KES 15,000 a month.
-3. **No staging.** Every deploy goes straight to the only environment.
-4. **Open security items:** sessions never expire, one QZ Tray key for all shops, Airtel callbacks
-   not restricted by address, no external penetration test.
-5. **No paper:** terms of service, privacy notice, data processing terms and a service level
-   agreement don't exist yet; the ODPC registration isn't done.
-6. **Migrations run inside the container entrypoint** (`bin/docker-entrypoint` runs `db:prepare`), so
-   two web servers starting together would both try to migrate.
+1. **Nobody was told when it broke.** Now: errors go to Sentry or the operators' inbox, `PlatformHealthJob`
+   checks the platform every 10 minutes and `/health` serves the uptime monitor (RUNBOOK §7).
+   *Left to do:* set `SENTRY_DSN` or `ALERTS_EMAIL`, point an uptime monitor at `/health`, publish its status page.
+2. **One server, one copy.** Now: continuous WAL archiving shipped off-site every minute, weekly base
+   backups, `restore_pitr.sh` to any minute, and `promote_replica.sh` for the standby (RUNBOOK §2, §3, §6).
+   *Left to do:* install the cron lines on the server, provision the standby (Stage 1 below), rehearse.
+3. **No staging.** Now: `config/deploy.staging.yml`, refreshed from production and scrambled (RUNBOOK §8).
+   *Left to do:* a small VPS, its DNS records and origin certificate, `bin/kamal setup -d staging`.
+4. **Open security items.** Now: sessions expire and are listed per device, a QZ Tray key per shop,
+   Airtel callbacks confirmed with Airtel, share links revocable (SECURITY.md).
+   *Left to do:* the external penetration test against staging.
+5. **No paper.** Now: terms of service, data processing terms and an SLA on the public site, agreed at
+   signup; `security.txt`; privacy page updated.
+   *Left to do:* a Kenyan lawyer's review, the ODPC registration, the company details in credentials.
+6. **Migrations in the container entrypoint.** Now: once per deploy from the pre-deploy hook, with
+   `strong_migrations` refusing unsafe ones (RUNBOOK §9).
 
-Everything below is about closing those six gaps in the right order while starting to sell.
+Everything below is about selling while finishing those real-world steps in the right order.
 
 ## 2. What to sell
 

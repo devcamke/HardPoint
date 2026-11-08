@@ -1,17 +1,18 @@
 # HardPoint runbook
 
-How to run HardPoint in production: first setup, backups, disaster recovery, routine care and the
-common incidents. Everything starts on one Contabo VPS behind Cloudflare, deployed with Kamal
-(`config/deploy.yml`); the database is the Kamal `db` accessory (PostgreSQL 18). Section 6 covers
+How to run HardPoint in production: first setup, backups, disaster recovery, routine care, the common
+incidents, alerts, staging and deploying. Everything starts on one Contabo VPS behind Cloudflare, deployed
+with Kamal (`config/deploy.yml`); the database is the Kamal `db` accessory (PostgreSQL 18). Section 6 covers
 growing onto several servers.
 
 ## Targets
 
 | | Target | How |
 |---|---|---|
-| **RPO** (data that can be lost) | **1 hour** | Encrypted database dump every hour, off-site within minutes; files daily |
-| **RTO** (time to be selling again) | **2 hours** | Fresh VPS, Kamal setup, restore the latest dump (steps below) |
+| **RPO** (data that can be lost) | **5 minutes** | Every WAL segment is archived and shipped off-site within a minute of being finished, and a segment is finished at least every 5 minutes (`archive_timeout`); hourly encrypted dumps as the simple fallback; files daily |
+| **RTO** (time to be selling again) | **30 minutes** with a standby, **2 hours** from backups | Promote the replica (`config/postgres/promote_replica.sh`) and redeploy; or a fresh VPS, Kamal setup and `restore_pitr.sh latest` |
 | Tills during an outage | keep selling | The offline till (Phase 8) takes cash and typed M-Pesa codes and sends the sales when the server is back |
+| **Knowing it's broken** | within 10 minutes | Unhandled errors go to Sentry or the operators' inbox at once; `PlatformHealthJob` checks the platform every 10 minutes and the uptime monitor watches `/health` from outside (section 7) |
 
 ## 1. First setup
 
@@ -35,10 +36,19 @@ growing onto several servers.
 
 ## 2. Backups
 
-`config/backup/backup.sh` runs on the VPS host (not in a container). It dumps the app and job databases
-with `pg_dump` inside the `hardpoint-db` container, encrypts with AES-256 under `BACKUP_PASSPHRASE`, and
-uploads to an S3-compatible bucket (Contabo Object Storage in another region, or Backblaze B2) with a
-checksum. Uploaded files (Active Storage) are backed up daily the same way.
+Two kinds, both on the VPS host (not in a container), both encrypted with AES-256 under
+`BACKUP_PASSPHRASE` and uploaded to an S3-compatible bucket in another region or provider (Contabo
+Object Storage, Backblaze B2):
+
+- **Continuous:** Postgres archives every finished WAL segment into the data volume's `wal_archive`
+  directory (`archive_mode`, `archive_timeout = 300` in `config/postgres/postgresql.conf`), and
+  `config/backup/wal_ship.sh` runs every minute from cron to encrypt and upload them to `wal/`. A
+  weekly `backup.sh base` takes a physical copy of the cluster (`pg_basebackup`) to `base/`. Together
+  they restore the cluster to any minute (`restore_pitr.sh`, section 3); this is what gives the 5-minute RPO.
+- **Hourly dumps:** `backup.sh db` dumps the app and job databases with `pg_dump` to `hourly/` (and
+  `daily/`). Simpler to restore one database from, independent of the WAL machinery, and what the
+  staging refresh and the restore drill use. Uploaded files (Active Storage) are backed up daily by
+  `backup.sh files`.
 
 ```sh
 sudo install -d -m 700 /opt/hardpoint /etc/hardpoint
@@ -54,16 +64,22 @@ BACKUP_HEARTBEAT_URL=https://hc-ping.com/...   # alerts if backups stop
 ENV
 sudo chmod 600 /etc/hardpoint/backup.env
 sudo tee /etc/cron.d/hardpoint-backup > /dev/null <<'CRON'
+*  * * * * root /opt/hardpoint/wal_ship.sh     >> /var/log/hardpoint-wal.log 2>&1
 17 * * * * root /opt/hardpoint/backup.sh db    >> /var/log/hardpoint-backup.log 2>&1
 47 1 * * * root /opt/hardpoint/backup.sh files >> /var/log/hardpoint-backup.log 2>&1
+37 2 * * 0 root /opt/hardpoint/backup.sh base  >> /var/log/hardpoint-backup.log 2>&1
 CRON
 ```
 
-Bucket lifecycle rules: delete `hourly/` after 2 days and `daily/` and `files/` after 35 days. Use a
-bucket key that can write but not delete, so a compromised server can't wipe its own backups
-(lifecycle rules do the deleting). The last 48 hours also stay in `/var/backups/hardpoint` on the VPS.
+Add `WAL_HEARTBEAT_URL=https://hc-ping.com/...` to `backup.env` as a second heartbeat, expected every
+few minutes: `wal_ship.sh` only pings it when nothing is left unshipped, so silence means the archive is
+falling behind (the log says why). Bucket lifecycle rules: delete `hourly/` after 2 days, `daily/` and
+`files/` after 35 days, and `wal/` and `base/` after 35 days (a base backup is only useful with the
+WAL that follows it, and there's one a week). Use a bucket key that can write but not delete, so a
+compromised server can't wipe its own backups (lifecycle rules do the deleting). The last 48 hours of
+dumps also stay in `/var/backups/hardpoint` on the VPS.
 
-The heartbeat check should expect a ping every hour; if one is missed, check
+The backup heartbeat check should expect a ping every hour; if one is missed, check
 `/var/log/hardpoint-backup.log`.
 
 ### Shops' own backups
@@ -91,19 +107,32 @@ Watching it: `AccountBackup.where(status: "failed", created_at: 1.day.ago..).cou
 ## 3. Disaster recovery (and the monthly drill)
 
 The same steps rebuild production after losing the server, and prove the backups work. **Do the drill
-monthly** and after any change to the database setup: restore into a scratch database on the live
-server (`TARGET_SUFFIX=_drill`) or onto a fresh VPS, check it, and note the time taken below.
+monthly** and after any change to the database setup: the staging refresh (section 8) restores the
+newest dump every time it runs, and once a quarter do a point-in-time restore onto a scratch VPS too.
+Note the time taken below.
+
+With a standby database (section 6), losing the primary isn't a restore at all: run
+`config/postgres/promote_replica.sh` and redeploy (about 30 minutes, "Losing the primary" in section 6).
+Without one:
 
 1. **New VPS**, set up as in section 1 steps 1 and 5 (`bin/kamal setup` with the same secrets; point
    `servers` and the accessory `host` in `config/deploy.yml` at the new address). Stop the app while
    restoring: `bin/kamal app stop`.
-2. **Restore the database** from the newest hourly backup:
+2. **Restore the database.** To the last shipped WAL segment, about five minutes before the failure:
+   ```sh
+   /opt/hardpoint/restore_pitr.sh latest
+   ```
+   It fetches the newest weekly base backup and every WAL segment after it, unpacks them into the
+   `hardpoint-db` container's data volume (the old data directory is moved aside, not deleted), and
+   starts Postgres in recovery; Postgres replays to the end and promotes itself. The same script
+   with a time (`"2026-11-08 10:42:00+03"`) restores to just before a bad migration or a mistaken
+   bulk change. If the WAL archive is unusable, fall back to the newest hourly dump:
    ```sh
    /opt/hardpoint/restore.sh s3:hourly/hardpoint-db-<newest>.tar.enc
    ```
-   It checks the checksum, decrypts, recreates roles and restores `hardpoint_production` and
-   `hardpoint_production_queue` into the empty databases (the cache and cable databases rebuild
-   themselves). It refuses to restore over a database that already has tables.
+   which checks the checksum, decrypts, recreates roles and restores `hardpoint_production` and
+   `hardpoint_production_queue` into empty databases (the cache and cable databases rebuild
+   themselves); it refuses to restore over a database that already has tables.
 3. **Restore files:** fetch the newest `files/` backup, then
    `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:BACKUP_PASSPHRASE < FILE | sudo tar -C /var/lib/docker/volumes/hardpoint_storage/_data -xzf -`.
 4. **Start and check:** `bin/kamal app boot`; `bin/rails db:migrate:status` via `bin/kamal console`
@@ -112,8 +141,11 @@ server (`TARGET_SUFFIX=_drill`) or onto a fresh VPS, check it, and note the time
 5. **Cloudflare:** change the two DNS records to the new address (proxied, so it takes effect in
    seconds).
 6. **Tills** that sold offline send their sales by themselves once they can reach the server. Sales
-   made online in the gap between the last backup and the outage are lost: tell the affected shops
-   (Activity shows what arrived), and they can re-enter them from their paper receipts.
+   made online in the last few minutes before the outage (after the last shipped WAL segment) are
+   lost: tell the affected shops (Activity shows what arrived), and they can re-enter them from
+   their paper receipts.
+7. **Backups from the new server:** install the cron lines from section 2 and take a base backup
+   straight away (`backup.sh base`), so the archive has a starting point again.
 
 ### Drill log
 
@@ -126,12 +158,15 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 
 ## 4. Routine care
 
+- **Daily:** glance at the alerts inbox (or Sentry) and the platform checks at the top of the admin
+  **Database** page; anything red there is also what `/health` tells the uptime monitor.
 - **Weekly:** merge Dependabot's pull requests once CI is green (it runs Brakeman, bundler-audit and
-  importmap audit weekly even without commits); deploy.
-- **Monthly:** the restore drill (section 3); look at the admin **Database** page: cache hit rates
-  below 99% mean Postgres wants more memory, "Dead rows" much higher than live rows means vacuum is
-  behind, and the slowest queries show where to add an index; check the VPS disk (`df -h`) and the
-  backup bucket's size.
+  importmap audit weekly even without commits); deploy to staging, then production (section 9).
+- **Monthly:** the restore drill (section 3): refresh staging from the newest dump (section 8), and
+  rehearse promoting the replica where there is one; look at the admin **Database** page: cache hit
+  rates below 99% mean Postgres wants more memory, "Dead rows" much higher than live rows means
+  vacuum is behind, and the slowest queries show where to add an index; check the VPS disk (`df -h`)
+  and the backup bucket's size.
 - **Every 3 months:** rotate the Paystack, M-Pesa and SMS API keys and the SES SMTP password; review
   who has platform admin (`User.where(admin: true)`).
 - **Yearly:** renew the Cloudflare Origin CA certificate before it expires (15-year certificates avoid
@@ -141,7 +176,9 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 
 | Symptom | First steps |
 |---|---|
-| Site down | `bin/kamal app details`, `bin/kamal logs`; `curl -I https://hardpoint.app/up`. Tills keep selling offline meanwhile. |
+| Site down | `bin/kamal app details`, `bin/kamal logs`; `curl -I https://hardpoint.app/up` and `https://hardpoint.app/health?token=…` (which check is failing). Tills keep selling offline meanwhile. |
+| An alert email, or Sentry | The subject names the check or the error; the body has the details and the other checks. The same alert repeats at most once an hour, so a quiet inbox after a fix means it's fixed. Failed jobs: `bin/kamal console`, `SolidQueue::FailedExecution.last(5).map(&:error)`, then `.retry` on each once the cause is fixed. |
+| WAL heartbeat silent | `/var/log/hardpoint-wal.log` on the host: the store refused an upload, or the data volume moved. Segments wait in `wal_archive` and go when it works again; Postgres keeps running regardless (the archive copy is local). |
 | "could not obtain a connection" / "too many connections" | Pool too small for its threads, or Postgres' `max_connections` spent: see the connection budget in section 6 before raising either |
 | Slow | Admin Database page: long-running queries and connections; `bin/kamal accessory logs db` for slow-query lines (over 500 ms are logged); raise `WEB_CONCURRENCY` if CPU is spare |
 | Database full or disk full | `df -h`; old local backups are in `/var/backups/hardpoint`; `docker system prune` for old images |
@@ -196,6 +233,14 @@ Object Storage in the same region), because two web servers can't share a disk.
    pool with the `/up` health check, or two proxied A records). Sessions live in cookies and rate
    limits in the database's cache, so a till can land on either.
 
+**Losing the primary:** with the replica streaming, failover is a promotion, not a restore.
+`config/postgres/promote_replica.sh 10.0.0.22` promotes the replica's Postgres (it accepts writes from
+then on) and tells you the two lines to change in `config/deploy.scaled.yml` (`DATABASE_HOST` to the
+promoted server, `DATABASE_REPLICA_HOST` removed) before `bin/kamal deploy -d scaled`. Install the WAL
+shipping cron on the promoted server and take a base backup. Build a new replica from it afterwards
+(step 2) and put `DATABASE_REPLICA_HOST` back. Rehearse this at the monthly drill, on staging or on a
+scratch pair: it should take under 30 minutes end to end, which is the RTO in the targets.
+
 **Connection budget:** a Puma thread holds at most one connection per database, so each web server
 uses up to `WEB_CONCURRENCY × RAILS_MAX_THREADS × 4` (app, cache, queue, cable: 6 × 3 × 4 = 72), and
 the job server `JOB_CONCURRENCY × (JOB_THREADS + 2) × 3` plus a few (about 50). Two web servers and a
@@ -222,3 +267,71 @@ echo "port = 5433" | sudo -u postgres tee /var/lib/postgresql/hp_replica/postgre
 sudo -u postgres /usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/hp_replica -l /tmp/replica.log start
 DATABASE_REPLICA_PORT=5433 bin/dev
 ```
+
+## 7. Alerts and monitoring
+
+Somebody is told within minutes when something breaks, in three layers:
+
+1. **Errors, as they happen.** Every unhandled exception in a request or a job, every job that gives up
+   (`after_discard` in `ApplicationJob`), every failed recurring task and everything the app reports
+   with `Rails.error` goes to **Sentry** when `SENTRY_DSN` is set (`config/initializers/sentry.rb`; no
+   request bodies, cookies or addresses are sent). Without Sentry, `Alerts::ErrorSubscriber` emails
+   the same things to `ALERTS_EMAIL` (default: the support address), at most once an hour per error
+   class and place, with the backtrace (`config/initializers/error_reporting.rb`).
+2. **Platform checks, every 10 minutes.** `PlatformHealthJob` runs `PlatformHealth`: the primary
+   answers; the replica is streaming and under a minute behind; Solid Queue has a live worker,
+   dispatcher and scheduler; no job has waited more than 15 minutes; no job failed in the last hour;
+   no shop has a sale waiting more than 2 hours for KRA; no shop backup failed in the last day or has
+   run for more than 3 hours; the disk is under 80% (warning) or 90% (failing). A failing check is
+   emailed (throttled the same way). The same checks are the **Platform checks** panel at the top of
+   the admin Database page.
+3. **From outside.** `GET /health` (any host, no sign-in) answers 200 while every check passes and 503
+   when one fails, with the checks' names; with `?token=HEALTH_TOKEN` it includes the details. Point
+   the uptime monitor (Better Stack, UptimeRobot, Cloudflare health checks) at
+   `https://hardpoint.app/health` and at one shop's sign-in page every minute, alerting by SMS and
+   phone, and publish its status page from the help centre. The backup and WAL heartbeats
+   (section 2) are the fourth signal: silence from either means backups have stopped.
+
+Set `SENTRY_DSN`, `ALERTS_EMAIL` and `HEALTH_TOKEN` in `config/deploy.yml` / `.kamal/secrets`. Alert
+emails are sent straight away over SMTP, not through the job queue, so the queue being down is
+something they can tell you about.
+
+## 8. Staging
+
+`config/deploy.staging.yml` is a Kamal destination for one small VPS at `staging.hardpoint.app`, with
+shops at `acme.staging.hardpoint.app` (`APP_TLD_LENGTH=2`). It runs the production image with
+`HARDPOINT_ENVIRONMENT=staging`, which: sends every email to `STAGING_MAIL_TO` instead of real owners
+and customers (the real recipients go in the subject), keeps texts in the outbox, adds a `noindex`
+header and a yellow banner on every page, labels alerts and Sentry events "staging", and allows the
+M-Pesa, Airtel and eTIMS simulators. It needs its own Cloudflare Origin CA certificate (two lines in
+`.kamal/secrets`) and the two DNS records.
+
+```sh
+bin/kamal setup -d staging     # first time
+bin/kamal deploy -d staging    # every release goes here first, then to production
+```
+
+**Refreshing it from production:** on the staging host, with `/etc/hardpoint/backup.env` holding a
+read key for the backup bucket and the passphrase,
+`STAGING_PASSWORD=... /opt/hardpoint/refresh_staging.sh` fetches the newest hourly dump, restores it
+(stopping the app meanwhile), runs any pending migrations, and runs `bin/rails staging:anonymise`,
+which scrambles every customer, supplier, staff member and payer, removes API keys and webhooks,
+turns every M-Pesa, Airtel and eTIMS connection into a simulator, switches texts and shop backups
+off, and sets every password to `STAGING_PASSWORD` (two-factor off). The task refuses to run anywhere
+but staging. Do this monthly as the restore drill, and before a penetration or load test.
+
+## 9. Deploying
+
+- **Staging first**, watch for an hour, then production. `bin/kamal rollback <version>` is the way back.
+- **Migrations run once per deploy** from the deploying machine: `.kamal/hooks/pre-deploy` runs
+  `bin/rails db:migrate` in a throwaway container of the new version on the primary host, before any
+  container of that version boots, so two web servers can't race and a failing migration stops the
+  deploy. Containers themselves don't migrate (`bin/docker-entrypoint` only creates the databases on
+  a brand-new server, or when `MIGRATE_ON_BOOT=true`).
+- **Migrations must be safe for the version still running** during the deploy: `strong_migrations`
+  refuses the usual mistakes (dropping or renaming a column in one step, an index without
+  `CONCURRENTLY`, a backfill in the same transaction, an `execute` it can't read) and explains the
+  two-step way; `safety_assured { }` is for the cases you've thought about. New tenant tables still
+  need `enable_row_level_security` and deferrable foreign keys (README). Deploy a migration that
+  rewrites a table the tills write to (`sales`, `sale_lines`, `stock_movements`) in the maintenance
+  window, 02:00–04:00 EAT, announced in the admin the day before.

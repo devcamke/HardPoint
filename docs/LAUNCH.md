@@ -7,10 +7,11 @@ From a working staging server to paying shops. Tick each line when done.
 - [ ] Production and staging VPSs set up and hardened (docs/RUNBOOK.md §1)
 - [ ] Cloudflare DNS, Full (strict) TLS, WAF, rate-limiting rule on `/session`
 - [ ] SES out of the sandbox; DKIM, SPF and DMARC pass (send a test of every mailer)
-- [ ] Backups running, heartbeat alerting, bucket lifecycle and write-only key (RUNBOOK §2)
-- [ ] First restore drill on the real server, timed; RTO confirmed (RUNBOOK §3)
-- [ ] Uptime check on `https://hardpoint.app/up` and one shop's sign-in page, alerting by SMS
-- [ ] Error reporting chosen and wired to `Rails.error` (e.g. Honeybadger, AppSignal or Sentry)
+- [ ] Backups running: WAL shipping every minute, hourly dumps, weekly base backups, both heartbeats alerting, bucket lifecycle and write-only key (RUNBOOK §2)
+- [ ] First restore drill on the real server, timed, with `restore_pitr.sh` to a chosen minute; RTO confirmed (RUNBOOK §3)
+- [ ] Staging deployed (`bin/kamal setup -d staging`) and refreshed from a production backup (RUNBOOK §8)
+- [ ] Uptime check on `https://hardpoint.app/health` and one shop's sign-in page, alerting by SMS and phone; status page published
+- [ ] `SENTRY_DSN` (or `ALERTS_EMAIL` alone), `HEALTH_TOKEN` set; a test error and a test alert seen to arrive (RUNBOOK §7)
 - [ ] M-Pesa: every flow run against Safaricom's sandbox (prompt, callback, C2B confirmation and
       validation, register URLs); then go-live approval for the platform Paybill
 - [ ] KRA eTIMS: sandbox tests passed and the integration certified by KRA
@@ -18,8 +19,9 @@ From a working staging server to paying shops. Tick each line when done.
 - [ ] Africa's Talking: sender ID approved; texts delivered to Safaricom and Airtel numbers
 - [ ] External penetration test done and findings fixed (docs/SECURITY.md)
 - [ ] Load test repeated against staging on the production VPS size (perf/README.md)
-- [ ] Prices confirmed; privacy page and terms reviewed by a lawyer; company details in
-      `credentials.billing.company` for invoices; registered as a data controller/processor with the ODPC
+- [ ] Prices confirmed; the privacy page, terms of service, data processing terms and SLA (`/privacy`, `/terms`,
+      `/data-processing`, `/sla`) reviewed by a lawyer; company details in `credentials.billing.company` for invoices
+      and the terms; registered as a data controller/processor with the ODPC
 - [ ] Support inbox and WhatsApp number staffed during shop hours (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`)
 
 ## Pilot: 2–3 real hardware stores, about 4 weeks

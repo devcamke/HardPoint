@@ -179,7 +179,10 @@ CREATE TABLE public.accounts (
     backup_notifications character varying DEFAULT 'every'::character varying NOT NULL,
     extra_branches integer DEFAULT 0 NOT NULL,
     extra_registers integer DEFAULT 0 NOT NULL,
-    billing_interval character varying DEFAULT 'monthly'::character varying NOT NULL
+    billing_interval character varying DEFAULT 'monthly'::character varying NOT NULL,
+    qz_private_key text,
+    qz_certificate text,
+    terms_accepted_at timestamp(6) without time zone
 );
 
 
@@ -1163,6 +1166,49 @@ CREATE SEQUENCE public.document_sequences_id_seq
 --
 
 ALTER SEQUENCE public.document_sequences_id_seq OWNED BY public.document_sequences.id;
+
+
+--
+-- Name: document_shares; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.document_shares (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    document_type character varying NOT NULL,
+    document_id bigint NOT NULL,
+    created_by_id bigint NOT NULL,
+    token character varying NOT NULL,
+    period_from date,
+    period_to date,
+    expires_at timestamp(6) without time zone NOT NULL,
+    revoked_at timestamp(6) without time zone,
+    opened_count integer DEFAULT 0 NOT NULL,
+    last_opened_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.document_shares FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: document_shares_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.document_shares_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: document_shares_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.document_shares_id_seq OWNED BY public.document_shares.id;
 
 
 --
@@ -2280,7 +2326,8 @@ CREATE TABLE public.sessions (
     updated_at timestamp(6) without time zone NOT NULL,
     sign_in_method character varying DEFAULT 'password'::character varying NOT NULL,
     impersonator_id bigint,
-    expires_at timestamp(6) without time zone
+    expires_at timestamp(6) without time zone,
+    last_seen_at timestamp(6) without time zone
 );
 
 ALTER TABLE ONLY public.sessions FORCE ROW LEVEL SECURITY;
@@ -3500,6 +3547,13 @@ ALTER TABLE ONLY public.document_sequences ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: document_shares id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_shares ALTER COLUMN id SET DEFAULT nextval('public.document_shares_id_seq'::regclass);
+
+
+--
 -- Name: etims_devices id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4096,6 +4150,14 @@ ALTER TABLE ONLY public.document_sequences
 
 
 --
+-- Name: document_shares document_shares_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_shares
+    ADD CONSTRAINT document_shares_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: etims_devices etims_devices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4517,6 +4579,13 @@ ALTER TABLE ONLY public.webhook_deliveries
 
 ALTER TABLE ONLY public.webhook_endpoints
     ADD CONSTRAINT webhook_endpoints_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_on_account_id_document_type_document_id_c75fd874f6; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_account_id_document_type_document_id_c75fd874f6 ON public.document_shares USING btree (account_id, document_type, document_id);
 
 
 --
@@ -5098,6 +5167,20 @@ CREATE INDEX index_document_sequences_on_account_id ON public.document_sequences
 --
 
 CREATE UNIQUE INDEX index_document_sequences_on_branch_id_and_kind ON public.document_sequences USING btree (branch_id, kind);
+
+
+--
+-- Name: index_document_shares_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_document_shares_on_created_by_id ON public.document_shares USING btree (created_by_id);
+
+
+--
+-- Name: index_document_shares_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_document_shares_on_token ON public.document_shares USING btree (token);
 
 
 --
@@ -5840,6 +5923,13 @@ CREATE INDEX index_sales_on_voided_by_id ON public.sales USING btree (voided_by_
 --
 
 CREATE INDEX index_sessions_on_account_id ON public.sessions USING btree (account_id);
+
+
+--
+-- Name: index_sessions_on_account_id_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sessions_on_account_id_and_user_id ON public.sessions USING btree (account_id, user_id);
 
 
 --
@@ -6969,6 +7059,14 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- Name: document_shares fk_rails_51a4979b77; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_shares
+    ADD CONSTRAINT fk_rails_51a4979b77 FOREIGN KEY (created_by_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: deposits fk_rails_523551a98d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7022,6 +7120,14 @@ ALTER TABLE ONLY public.price_list_items
 
 ALTER TABLE ONLY public.webhook_endpoints
     ADD CONSTRAINT fk_rails_593b093f25 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: document_shares fk_rails_5940465ed8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_shares
+    ADD CONSTRAINT fk_rails_5940465ed8 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -8376,6 +8482,13 @@ CREATE POLICY account_isolation ON public.document_sequences USING (((current_se
 
 
 --
+-- Name: document_shares account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.document_shares USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: etims_devices account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -8847,6 +8960,12 @@ ALTER TABLE public.deposits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.document_sequences ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: document_shares; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.document_shares ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: etims_devices; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9159,6 +9278,10 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261108123000'),
+('20261108122000'),
+('20261108121000'),
+('20261108120000'),
 ('20261108110000'),
 ('20261108100000'),
 ('20261108090000'),

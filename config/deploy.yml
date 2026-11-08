@@ -40,13 +40,21 @@ registry:
   #   - KAMAL_REGISTRY_PASSWORD
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
+# Migrations are not run by the containers: .kamal/hooks/pre-deploy runs them once per deploy.
 env:
   secret:
     - RAILS_MASTER_KEY
     - HARDPOINT_DATABASE_PASSWORD
+    # Optional: error reporting to Sentry (config/initializers/sentry.rb); without it errors are emailed
+    # to ALERTS_EMAIL (config/initializers/error_reporting.rb). HEALTH_TOKEN lets the uptime monitor read
+    # the details of /health. Add them to .kamal/secrets when set.
+    # - SENTRY_DSN
+    # - HEALTH_TOKEN
   clear:
     APP_HOST: hardpoint.app
     DATABASE_HOST: hardpoint-db
+    # Where alerts (failed checks, errors without Sentry) are emailed; defaults to SUPPORT_EMAIL.
+    # ALERTS_EMAIL: ops@hardpoint.app
 
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.

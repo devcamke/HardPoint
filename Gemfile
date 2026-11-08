@@ -61,6 +61,15 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# Refuses migrations that would lock a busy table or break the version still running during a deploy
+# (docs/RUNBOOK.md, "Deploying"). Checked in development and test; production runs what passed.
+gem "strong_migrations", "~> 2.8"
+
+# Error reporting to Sentry when SENTRY_DSN is set; without it the gems stay quiet and
+# config/initializers/error_reporting.rb emails the operators instead.
+gem "sentry-ruby", "~> 6.2"
+gem "sentry-rails", "~> 6.2"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

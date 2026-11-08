@@ -25,6 +25,9 @@ Rails.application.routes.draw do
     resource :shop_lookup, only: %i[ new create ]
     get "pricing", to: "pages#pricing"
     get "privacy", to: "pages#privacy"
+    get "terms", to: "pages#terms"
+    get "data-processing", to: "pages#data_processing", as: :data_processing
+    get "sla", to: "pages#sla"
     get "developers", to: "pages#developers", as: :developer_docs
     get "help", to: "help#index", as: :help
     get "help/:id", to: "help#show", as: :help_article
@@ -82,6 +85,7 @@ Rails.application.routes.draw do
     end
     namespace :my do
       resource :profile, only: :show
+      resources :devices, only: %i[ index destroy ] # the sessions you're signed in with
       resource :password, only: %i[ edit update ]
       resource :two_factor, only: %i[ new create destroy ]
       resource :recovery_codes, only: :show
@@ -104,6 +108,7 @@ Rails.application.routes.draw do
     resource :quickbooks_export, path: "reports/quickbooks", only: %i[ show update ]
     # Documents sent by WhatsApp, opened without signing in (DocumentShare).
     get "share/:token", to: "shares#show", as: :share
+    resources :shares, only: %i[ create destroy ], as: :document_shares # links made by the WhatsApp buttons, and taking one back
     resources :support_requests, only: %i[ new create ]
     resource :account_data, only: :show
     resource :developers, only: :show
@@ -354,6 +359,12 @@ Rails.application.routes.draw do
     resource :payables, only: :show
     root "dashboards#show"
   end
+
+  # Where to report a vulnerability (RFC 9116), on any host.
+  get ".well-known/security.txt", to: "pages#security_txt", as: :security_txt
+
+  # The platform's checks for the uptime monitor (PlatformHealth): 200 or 503, on any host.
+  get "health", to: "health#show", as: :health
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

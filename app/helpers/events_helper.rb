@@ -50,6 +50,8 @@ module EventsHelper
     in [ "WebhookEndpoint", "created" ] then "added a webhook to #{event.particulars["url"]}"
     in [ "WebhookEndpoint", "secret_rolled" ] then "made a new signing secret for the webhook to #{subject}"
     in [ "WebhookEndpoint", "disabled" ] then "switched off the webhook to #{event.particulars["url"]} after repeated failures"
+    in [ "DocumentShare", "shared" ] then "sent #{subject.downcase} by WhatsApp"
+    in [ "DocumentShare", "share_revoked" ] then "took back the WhatsApp link to #{subject.downcase}"
     in [ "User", "two_factor_enabled" ] then "turned on two-factor sign-in"
     in [ "User", "two_factor_disabled" ] then "turned off two-factor sign-in"
     in [ "User", "password_changed" ] then "changed their password"

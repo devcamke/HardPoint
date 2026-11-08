@@ -11,7 +11,7 @@ PRODUCTS = Integer(ENV.fetch("PRODUCTS", 2_000))
 PASSWORD = "loadtest-password"
 
 unless Account.exists?(subdomain: "loadtest")
-  Signup.new(shop_name: "Load Test Hardware", subdomain: "loadtest", owner_name: "Load Owner",
+  Signup.new(terms_accepted: true, shop_name: "Load Test Hardware", subdomain: "loadtest", owner_name: "Load Owner",
     email_address: "owner@loadtest.test", password: PASSWORD, plan: "enterprise").save!
 end
 account = Account.find_by!(subdomain: "loadtest")
