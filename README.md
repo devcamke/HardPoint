@@ -185,6 +185,7 @@ ending 0000 declines). Without Paystack keys, "Pay by card" goes to a simulated 
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Whoever runs production | Deploys, backups and restores, incidents, scaling out |
 | [docs/SECURITY.md](docs/SECURITY.md) | Security reviewers | Controls and the penetration test brief |
 | [docs/LAUNCH.md](docs/LAUNCH.md) | The team | The pilot and go-live checklist |
+| [docs/GO_TO_MARKET.md](docs/GO_TO_MARKET.md) | The team | How to package, price and sell HardPoint, and the redundancy, security and support it needs to be relied on |
 | [perf/README.md](perf/README.md) | Anyone changing the till or the database | Load testing with k6, and the results |
 | [docs/screenshots](docs/screenshots) | Everyone | A screenshot of every screen |
 
