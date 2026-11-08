@@ -2,8 +2,7 @@ source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.3", ">= 8.1.3.1"
-# json 3.0 changed JSON.parse's signature and Active Support 8.1.3.1 isn't compatible yet.
-gem "json", "~> 2.21"
+gem "json", "~> 3.1"
 
 # The short list of non-Rails gems, each covering something Rails has no built-in for (docs/PLAN.md §1):
 # TOTP codes for two-factor sign-in, and QR codes to enrol authenticator apps.
@@ -59,7 +58,9 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.2"
+# image_processing 2 no longer brings a processor along; Active Storage uses libvips here (see the Dockerfile).
+gem "ruby-vips", "~> 2.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
