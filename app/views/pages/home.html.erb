@@ -1,91 +1,140 @@
 <% trial = Plan::TRIAL.inspect %>
 <% structured_data seo_organization, seo_software(@plans) %>
-<% features = [
-  [ "Point of Sale", "#e46f2f", :till, "Scan, search or tap a product and confirm how many. Sell by the metre, kilo or pack, park sales and split payments." ],
-  [ "Touch screens and phones", "#c2571d", :products, "Finger-sized buttons, categories and a number pad on POS terminals and tablets. Phones show the products and the sale as two tabs." ],
-  [ "M-Pesa, Airtel Money and card", "#4d9f6f", :sales, "Payment prompts from the till, Paybill and Till payments matched to sales, and cash, card, foreign notes or on account." ],
-  [ "KRA eTIMS", "#3f7fbf", :purchasing, "Every sale, void and return signed by KRA, one control unit per branch. The QR code prints on the receipt." ],
-  [ "Offline till", "#6c757d", :dashboard, "Keeps selling from its own copy of the catalogue, customers and promotions, and sends the sales when it reconnects." ],
-  [ "Shifts and cash", "#b8860b", :settings, "Opening float, cash drops and payouts, X and Z reports, a blind count at close, and manager approval PINs." ],
-  [ "Inventory", "#26a69a", :stock, "Stock per branch, transfers, stock takes, reorder levels, batches and expiry, barcode labels and a phone app for counting." ],
-  [ "Purchasing", "#8e6bbf", :purchasing, "Purchase orders by email, reorder suggestions, goods received with landed costs, supplier invoices, payments and returns." ],
-  [ "Customers and accounts", "#d9534f", :staff, "Quotes, orders with deposits, credit limits, statements, price lists, promotions, and receipts by SMS or WhatsApp." ],
-  [ "Contractors and deliveries", "#a0522d", :sales, "Tag purchases to a contractor's job and bill their client. Delivery notes with transport charges and proof of delivery." ],
-  [ "Online store", "#0f5e6e", :products, "Your own shop page for click-and-collect, paid ahead by M-Pesa or on collection." ],
-  [ "Reports and dashboard", "#5b8def", :reports, "A live dashboard, and sales, profit, VAT, stock and shift reports to print or export. Daily summary email and QuickBooks export." ]
-] %>
+<%# One idea per screen, in the manner of apple.com: a large headline, one sentence under it, the product picture
+    doing the talking, and a "Learn more ›" into the help centre rather than a paragraph. Colour is kept to the
+    brand teal on links and buttons, with one near-black panel for the offline till. %>
+<% learn_more = ->(text, slug) { link_to help_article_path(slug), class: "mt-5 inline-block font-medium text-accent-600 hover:underline" do
+     safe_join([ text, " ", tag.span("›", aria: { hidden: true }) ])
+   end } %>
 
 <section class="bg-white">
-  <div class="mx-auto max-w-4xl px-4 pt-16 pb-12 text-center lg:pt-24">
-    <h1 class="text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">Point of sale and stock control for hardware stores</h1>
-    <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600">Sell at the counter or on a tablet, track stock across branches, take M-Pesa and Airtel Money,
-      and send every sale to KRA eTIMS. The till keeps working when the internet is down.</p>
-    <div class="mt-8 flex flex-wrap justify-center gap-3">
-      <%= link_to "Start free trial", new_signup_path, class: "btn-primary px-5 py-2.5 text-base" %>
-      <%= link_to "See pricing", pricing_path, class: "btn-secondary px-5 py-2.5 text-base" %>
+  <div class="mx-auto max-w-4xl px-4 pt-20 pb-14 text-center sm:pt-28">
+    <h1 class="text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">Point of sale and stock control for hardware stores.</h1>
+    <p class="mx-auto mt-6 max-w-2xl text-xl text-gray-600 text-balance sm:text-2xl">The till, the stock and the books in one place. M-Pesa and KRA eTIMS built in, and it keeps selling when the internet doesn't.</p>
+    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+      <%= link_to "Start free trial", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5 text-lg" %>
+      <%= link_to pricing_path, class: "text-lg font-medium text-accent-600 hover:underline" do %>See pricing <span aria-hidden="true">›</span><% end %>
     </div>
-    <p class="mt-3 text-sm text-gray-500"><%= trial.capitalize %> free. No card needed.</p>
+    <p class="mt-5 text-sm text-gray-500"><%= trial.capitalize %> free. No card needed.</p>
   </div>
-  <div class="mx-auto max-w-5xl px-4">
-    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard", class: "w-full rounded-t-lg border border-b-0 border-gray-200 shadow-xl", width: 1280, height: 800 %>
+  <div class="mx-auto max-w-6xl px-4 pb-24">
+    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "w-full rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800 %>
   </div>
 </section>
 
-<section id="features" class="border-t border-gray-200 bg-gray-50">
-  <div class="mx-auto max-w-6xl px-4 py-16">
-    <h2 class="text-center text-2xl font-semibold">What's included</h2>
-    <div class="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-      <% features.each do |title, color, icon, body| %>
-        <div class="flex gap-4">
-          <span class="flex size-12 shrink-0 items-center justify-center rounded-lg text-white" style="background: <%= color %>">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="size-6" aria-hidden="true"><path d="<%= NavigationHelper::ICONS.fetch(icon) %>"/></svg>
-          </span>
-          <div>
-            <h3 class="font-semibold"><%= title %></h3>
-            <p class="mt-1 text-sm text-gray-600"><%= body %></p>
-          </div>
-        </div>
-      <% end %>
+<section class="bg-gray-950 text-white">
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold text-primary-300">The offline till</p>
+      <h2 class="mt-3 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Keeps selling when the internet doesn't.</h2>
+      <p class="mt-5 text-lg text-gray-400 text-balance sm:text-xl">The till keeps its own copy of the catalogue, customers and promotions. It takes cash, M-Pesa and card, prints receipts,
+        and sends the sales the moment it reconnects.</p>
+      <%= link_to help_article_path("offline"), class: "mt-6 inline-block font-medium text-primary-300 hover:underline" do %>How the offline till works <span aria-hidden="true">›</span><% end %>
     </div>
+    <%= image_tag "marketing/till.png", alt: "The HardPoint till asking how many kilos of nails to add to a sale", class: "mx-auto mt-14 w-full max-w-5xl rounded-2xl shadow-2xl shadow-black/60 ring-1 ring-white/10", width: 1280, height: 800 %>
+  </div>
+</section>
+
+<section id="features" class="bg-white">
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Everything the counter needs.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Built with hardware shop owners, from the bag of cement to the box of screws. Every feature is on every plan.</p>
+    </div>
+
+    <div class="mt-14 grid gap-4 lg:grid-cols-6">
+      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10 lg:col-span-4">
+        <h3 class="text-2xl font-semibold tracking-tight text-gray-950 text-balance sm:text-3xl">M-Pesa, Airtel Money and card. Matched to the sale.</h3>
+        <p class="mt-3 max-w-xl text-gray-600">Send a payment prompt to the customer's phone from the till, or let money paid to your Paybill or Till find its own sale.
+          Cash with change, card, foreign notes, on account, or a mix of them.</p>
+        <%= learn_more.("How M-Pesa works at the till", "mpesa") %>
+      </div>
+      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10 lg:col-span-2">
+        <h3 class="text-2xl font-semibold tracking-tight text-gray-950 text-balance">KRA eTIMS. Built in.</h3>
+        <p class="mt-3 text-gray-600">Every sale, void and return signed by KRA, with the QR code on the receipt. Queued and retried if KRA is down.</p>
+        <%= learn_more.("Learn more", "etims") %>
+      </div>
+
+      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10 lg:col-span-2">
+        <p class="text-6xl font-semibold tracking-tight text-primary-600 tabular-nums">20,000</p>
+        <p class="mt-3 text-gray-600">products imported from a spreadsheet in about twelve seconds. Update prices later the same way.</p>
+        <%= learn_more.("Importing products", "importing-products") %>
+      </div>
+      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10 lg:col-span-2">
+        <h3 class="text-2xl font-semibold tracking-tight text-gray-950 text-balance">Stock across branches.</h3>
+        <p class="mt-3 text-gray-600">Levels per branch and yard, transfers, stock takes on a phone, reorder lists, batches and expiry dates.</p>
+        <%= learn_more.("Learn more", "stock-and-stock-takes") %>
+      </div>
+      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10 lg:col-span-2">
+        <h3 class="text-2xl font-semibold tracking-tight text-gray-950 text-balance">Touch screens, tablets and phones.</h3>
+        <p class="mt-3 text-gray-600">Finger-sized buttons, categories and a number pad. Or a barcode scanner and three keys: F2 scan, F8 park, F9 pay.</p>
+        <%= learn_more.("Selling at the till", "selling") %>
+      </div>
+
+      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10 lg:col-span-3">
+        <h3 class="text-2xl font-semibold tracking-tight text-gray-950 text-balance">Customers on account.</h3>
+        <p class="mt-3 text-gray-600">Quotes, orders with deposits, credit limits, statements and a list of who owes you. Receipts and reminders by SMS or WhatsApp.</p>
+        <%= learn_more.("Learn more", "customer-accounts") %>
+      </div>
+      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10 lg:col-span-3">
+        <h3 class="text-2xl font-semibold tracking-tight text-gray-950 text-balance">Reports the owner reads.</h3>
+        <p class="mt-3 text-gray-600">A live dashboard, and sales, profit, VAT, stock and shift reports to print or export. A summary email every evening.</p>
+        <%= learn_more.("Learn more", "reports") %>
+      </div>
+    </div>
+
+    <ul class="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-x-2 gap-y-2 text-sm text-gray-600">
+      <% [ [ "Shifts and cash", "shifts-and-cash" ], [ "Purchasing", "buying-from-suppliers" ], [ "Promotions", "promotions" ],
+           [ "Contractors' jobs", "contractor-jobs" ], [ "Deliveries", "deliveries" ], [ "Online store", "online-store" ],
+           [ "Batches and expiry", "batches-and-expiry" ], [ "Returns and refunds", "returns-and-refunds" ], [ "WhatsApp", "whatsapp" ],
+           [ "QuickBooks export", "quickbooks" ], [ "Apps and the API", "connecting-apps" ] ].each.with_index do |(label, slug), i| %>
+        <li class="flex items-center gap-2"><% if i.positive? %><span class="text-gray-300" aria-hidden="true">·</span><% end %><%= link_to label, help_article_path(slug), class: "hover:text-gray-950" %></li>
+      <% end %>
+    </ul>
   </div>
 </section>
 
 <section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2">
-    <div>
-      <h2 class="text-2xl font-semibold">Getting started</h2>
-      <ol class="mt-6 space-y-5">
-        <% [ [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed." ],
-             [ "Name your branches and tills", "Check your tax rates and switch on only the features you use." ],
-             [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time." ],
-             [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work." ],
-             [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till." ] ].each.with_index(1) do |(title, body), step| %>
-          <li class="flex gap-4">
-            <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-500 text-sm font-semibold text-white"><%= step %></span>
-            <div><p class="font-semibold"><%= title %></p><p class="text-sm text-gray-600"><%= body %></p></div>
-          </li>
-        <% end %>
-      </ol>
-      <p class="mt-6 text-sm text-gray-600">A <strong>Set up your shop</strong> checklist walks you through it, and guided tours show each screen
-        when you first use it. Help guides are at <%= link_to "hardpoint.app/help", help_url(subdomain: false), class: "link" %>.</p>
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Up and running in an afternoon.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">A <strong class="font-semibold text-gray-900">Set up your shop</strong> checklist walks you through it, and guided tours show each
+        screen when you first use it.</p>
     </div>
-    <%= image_tag "marketing/till.png", alt: "The HardPoint till asking how many kilos of nails to add to a sale", class: "w-full rounded-lg border border-gray-200 shadow-lg", width: 1280, height: 800 %>
+    <ol class="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-5">
+      <% [ [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed." ],
+           [ "Name your branches and tills", "Check your tax rates and switch on only the features you use." ],
+           [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time." ],
+           [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work." ],
+           [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till." ] ].each.with_index(1) do |(title, body), step| %>
+        <li>
+          <p class="text-4xl font-semibold tracking-tight text-primary-600 tabular-nums"><%= step.to_s.rjust(2, "0") %></p>
+          <p class="mt-3 font-semibold text-gray-950"><%= title %></p>
+          <p class="mt-1 text-sm text-gray-600"><%= body %></p>
+        </li>
+      <% end %>
+    </ol>
+    <p class="mt-12 text-center text-gray-600">Help guides are at <%= link_to "hardpoint.app/help", help_url(subdomain: false), class: "link" %>.</p>
   </div>
 </section>
 
 <section class="border-t border-gray-200 bg-gray-50">
-  <div class="mx-auto max-w-6xl px-4 py-16">
-    <h2 class="mb-8 text-center text-2xl font-semibold">Pricing</h2>
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto mb-12 max-w-3xl text-center">
+      <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Simple pricing.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Every feature on every plan. Pay by M-Pesa or card, monthly or yearly.</p>
+    </div>
     <%= render "pages/plans", plans: @plans %>
   </div>
 </section>
 
 <section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-10">
-    <p class="text-lg">Questions? Message us on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>
-    <div class="flex flex-wrap gap-3">
-      <%= link_to "WhatsApp us", whatsapp_support_url("Hello HardPoint, I'd like to know more about the POS."), class: "btn-secondary", target: "_blank", rel: "noopener" %>
-      <%= link_to "Start free trial", new_signup_path, class: "btn-primary" %>
+  <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
+    <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Ready when you are.</h2>
+    <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>
+    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+      <%= link_to "Start free trial", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5 text-lg" %>
+      <%= link_to whatsapp_support_url("Hello HardPoint, I'd like to know more about the POS."), class: "text-lg font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>WhatsApp us <span aria-hidden="true">›</span><% end %>
     </div>
   </div>
 </section>
