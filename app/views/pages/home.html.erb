@@ -1,26 +1,31 @@
 <% trial = Plan::TRIAL.inspect %>
 <% structured_data seo_organization, seo_software(@plans) %>
 <%# One idea per screen, in the manner of apple.com: a large headline, one sentence under it, the product picture
-    doing the talking, and a "Learn more ›" into the help centre rather than a paragraph. Colour is kept to the
-    brand teal on links and buttons, with one near-black panel for the offline till. %>
+    doing the talking, and a "Learn more ›" into the help centre rather than a paragraph. The hero continues the
+    nav's brand teal, with the dashboard picture straddling the teal and the white below; after that colour is kept
+    to links and buttons, with one near-black panel for the offline till. %>
 <% learn_more = ->(text, slug) { link_to help_article_path(slug), class: "mt-5 inline-block font-medium text-accent-600 hover:underline" do
      safe_join([ text, " ", tag.span("›", aria: { hidden: true }) ])
    end } %>
 
-<section class="bg-white">
+<section class="bg-primary-500 text-white">
   <div class="mx-auto max-w-4xl px-4 pt-20 pb-14 text-center sm:pt-28">
-    <h1 class="text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">Point of sale and stock control for hardware stores.</h1>
-    <p class="mx-auto mt-6 max-w-2xl text-xl text-gray-600 text-balance sm:text-2xl">The till, the stock and the books in one place. M-Pesa and KRA eTIMS built in, and it keeps selling when the internet doesn't.</p>
+    <p class="text-sm font-semibold tracking-wide text-primary-200 uppercase">For hardware stores in Kenya</p>
+    <h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-6xl">Point of sale and stock control for hardware stores.</h1>
+    <p class="mx-auto mt-6 max-w-2xl text-xl text-primary-100 text-balance sm:text-2xl">The till, the stock and the books in one place. M-Pesa and KRA eTIMS built in, and it keeps selling when the internet doesn't.</p>
     <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-      <%= link_to "Start free trial", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5 text-lg" %>
-      <%= link_to pricing_path, class: "text-lg font-medium text-accent-600 hover:underline" do %>See pricing <span aria-hidden="true">›</span><% end %>
+      <%= link_to "Start free trial", new_signup_path, class: "btn rounded-full border-white bg-white px-6 py-2.5 text-lg text-primary-600 hover:bg-primary-50 focus-visible:outline-white" %>
+      <%= link_to pricing_path, class: "text-lg font-medium text-white hover:underline" do %>See pricing <span aria-hidden="true">›</span><% end %>
     </div>
-    <p class="mt-5 text-sm text-gray-500"><%= trial.capitalize %> free. No card needed.</p>
-  </div>
-  <div class="mx-auto max-w-6xl px-4 pb-24">
-    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "w-full rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800 %>
+    <p class="mt-5 text-sm text-primary-200"><%= trial.capitalize %> free. No card needed.</p>
   </div>
 </section>
+<%# The dashboard picture sits half on the teal and half on the white, so the hero hands over to the page rather than stopping at a line. %>
+<div class="bg-linear-to-b from-primary-500 from-50% to-white to-50%">
+  <div class="mx-auto max-w-6xl px-4 pb-24">
+    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "w-full rounded-2xl shadow-2xl shadow-gray-950/30 ring-1 ring-gray-200", width: 1280, height: 800 %>
+  </div>
+</div>
 
 <section class="bg-gray-950 text-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
