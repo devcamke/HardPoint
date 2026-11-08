@@ -30,6 +30,8 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".receipt", /TOTAL\s*KES 1,600.00/
     assert_select ".receipt", /Change\s*KES 400.00/
+    assert_select ".receipt svg.stamp text", "PAID"
+    assert_select ".receipt svg.stamp textPath", /ACME/i
   end
 
   test "emailing the receipt" do

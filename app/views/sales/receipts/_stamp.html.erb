@@ -1,0 +1,29 @@
+<%# locals: (status:, date:, branch:, number: nil, account: Current.account) %>
+<%# A round rubber stamp for the receipt: the shop around the top, the branch around the bottom, and what
+    happened in the middle (PAID, ON ACCOUNT, VOID). Drawn in one colour so a thermal printer gets crisp
+    black; the long-name case shrinks the ring text rather than clipping it. %>
+<% top = account.name.upcase
+   bottom = [ branch.name, branch.phone.presence ].compact.join(" · ").upcase
+   # The ring's half-circumference is ~160 units; a bold capital is about three-quarters of the font size wide.
+   ring_size = ->(text) { (135.0 / ([ text.length, 1 ].max * 0.75)).clamp(5.0, 9.0).round(1) } %>
+<svg class="stamp" viewBox="0 0 120 120" role="img" aria-label="<%= [ status, number, date ].compact.join(", ") %>">
+  <defs>
+    <path id="stamp_top_<%= number %>" d="M 9 60 A 51 51 0 1 1 111 60"/>
+    <path id="stamp_bottom_<%= number %>" d="M 9 60 A 51 51 0 0 0 111 60"/>
+  </defs>
+  <g transform="rotate(-8 60 60)" fill="currentColor" stroke="currentColor" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
+    <circle cx="60" cy="60" r="56" fill="none" stroke-width="2.5"/>
+    <circle cx="60" cy="60" r="46" fill="none" stroke-width="1.2"/>
+    <text stroke="none" font-size="<%= ring_size.(top) %>" letter-spacing="0.6">
+      <textPath href="#stamp_top_<%= number %>" startOffset="50%"><%= top %></textPath>
+    </text>
+    <text stroke="none" font-size="<%= ring_size.(bottom) %>" letter-spacing="0.6">
+      <textPath href="#stamp_bottom_<%= number %>" startOffset="50%"><%= bottom %></textPath>
+    </text>
+    <line x1="30" y1="47" x2="90" y2="47" stroke-width="1"/>
+    <text x="60" y="67" stroke="none" font-size="<%= status.length > 6 ? 11 : 16 %>" letter-spacing="1"><%= status %></text>
+    <line x1="30" y1="73" x2="90" y2="73" stroke-width="1"/>
+    <text x="60" y="83" stroke="none" font-size="6.5" font-weight="400"><%= date %></text>
+    <% if number %><text x="60" y="92" stroke="none" font-size="6" font-weight="400"><%= number %></text><% end %>
+  </g>
+</svg>

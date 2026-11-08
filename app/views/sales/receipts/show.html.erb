@@ -32,6 +32,8 @@
     <div class="row"><span><%= payment.label %><%= " #{payment.reference}" if payment.reference %></span><span><%= money(payment.cash? || payment.foreign_cash? ? payment.tendered_cents : payment.amount_cents) %></span></div>
   <% end %>
   <% if @sale.change_cents.positive? %><div class="row bold"><span>Change</span><span><%= money(@sale.change_cents) %></span></div><% end %>
+  <%= render "sales/receipts/stamp", status: (@sale.voided? ? "VOID" : @sale.payments.any?(&:on_account?) ? "ON ACCOUNT" : "PAID"),
+        date: (@sale.completed_at || @sale.created_at).strftime("%-d %b %Y"), number: @sale.receipt_number, branch: @sale.branch %>
   <% if (submission = @sale.etims_submission) %>
     <hr>
     <% if submission.sent? %>
