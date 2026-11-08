@@ -36,15 +36,17 @@
 
   <body class="flex min-h-screen flex-col bg-gray-50 text-gray-900">
     <%= render "shared/staging_banner" %>
-    <header class="sticky top-0 z-40 border-b border-gray-200/80 bg-white/85 backdrop-blur">
+    <%# The main nav is the brand teal, with the logo and links in white and the trial button inverted so it still stands out. %>
+    <header class="sticky top-0 z-40 border-b border-primary-600 bg-primary-500 text-white">
       <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 text-sm font-medium">
-        <%= link_to marketing_root_path, aria: { label: "HardPoint home" } do %><%= render "shared/logo" %><% end %>
+        <%= link_to marketing_root_path, aria: { label: "HardPoint home" } do %><%= render "shared/logo", dark: true %><% end %>
         <div class="ml-auto flex flex-wrap items-center gap-x-5 gap-y-2">
-          <%= link_to "Features", marketing_root_path(anchor: "features"), class: "hover:text-primary-600" %>
-          <%= link_to "Pricing", pricing_path, class: "hover:text-primary-600" %>
-          <%= link_to "Help", help_path, class: "hover:text-primary-600" %>
-          <%= link_to "Sign in", new_shop_lookup_path, class: "hover:text-primary-600" %>
-          <%= link_to "Start free trial", new_signup_path, class: "btn-primary" %>
+          <% nav_link = "text-white/85 hover:text-white" %>
+          <%= link_to "Features", marketing_root_path(anchor: "features"), class: nav_link %>
+          <%= link_to "Pricing", pricing_path, class: nav_link %>
+          <%= link_to "Help", help_path, class: nav_link %>
+          <%= link_to "Sign in", new_shop_lookup_path, class: nav_link %>
+          <%= link_to "Start free trial", new_signup_path, class: "btn border-white bg-white text-primary-600 hover:bg-primary-50 focus-visible:outline-white" %>
         </div>
       </nav>
     </header>
