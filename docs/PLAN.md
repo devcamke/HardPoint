@@ -8,7 +8,7 @@ customers, staff, or reports.
 
 | Decision | Choice |
 |---|---|
-| Ruby / Rails | **Ruby 4.0.7**, **Rails 8.1.3** (latest stable) |
+| Ruby / Rails | **Ruby 4.0.9**, **Rails 8.1.4** (latest stable; kept current by Dependabot and `bundle update`) |
 | Database | **PostgreSQL 18** (latest stable; 19 is still in beta) |
 | CSS | **Tailwind CSS 4** via `tailwindcss-rails` 4.x |
 | Tenant isolation | **Keep Postgres row-level security** alongside `Current.account` scoping (§2) |
