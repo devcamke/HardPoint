@@ -7,20 +7,20 @@
     <%= hidden_field_tag :product_id, nil, id: nil, data: { quantity_prompt_target: "productId" } %>
     <%= hidden_field_tag :product_unit_id, nil, id: nil, data: { quantity_prompt_target: "productUnitId" } %>
 
-    <div>
+    <div class="text-center">
       <h2 id="quantity_prompt_name" class="text-lg font-semibold leading-snug" data-quantity-prompt-target="name"></h2>
       <p class="text-sm text-gray-500"><span data-quantity-prompt-target="price"></span> each</p>
     </div>
 
     <div>
-      <label for="quantity_prompt_quantity" class="label">Quantity</label>
-      <div class="flex items-center gap-2">
+      <label for="quantity_prompt_quantity" class="sr-only">Quantity</label>
+      <div class="flex items-center justify-center gap-3">
         <button type="button" class="<%= step %>" data-action="quantity-prompt#less" aria-label="One less">−</button>
         <%= number_field_tag :quantity, 1, id: "quantity_prompt_quantity", min: 1, step: 1, required: true, inputmode: "decimal", autocomplete: "off",
-              class: "input py-2.5 text-center text-xl tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none", data: { quantity_prompt_target: "quantity" } %>
+              class: "input w-32 py-2.5 text-center text-2xl font-semibold tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none", data: { quantity_prompt_target: "quantity" } %>
         <button type="button" class="<%= step %>" data-action="quantity-prompt#more" aria-label="One more">+</button>
-        <span class="w-10 text-sm text-gray-500" data-quantity-prompt-target="unit"></span>
       </div>
+      <p class="mt-1.5 text-center text-sm text-gray-500" data-quantity-prompt-target="unit"></p>
     </div>
 
     <div class="flex gap-2">
