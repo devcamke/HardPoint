@@ -42,30 +42,33 @@
     </fieldset>
 
     <div class="flex items-end gap-2">
-      <div class="flex-1" data-payment-target="cashFields">
-        <%= form.label :tendered, "Cash received", class: "label" %>
+      <%# Labels sit beside their amount rather than above it: the sale's lines get the height instead. %>
+      <% inline = "label mb-0 shrink-0 whitespace-nowrap" %>
+      <% row = "flex items-baseline gap-3" %>
+      <div class="flex-1" data-payment-target="cashFields"><div class="<%= row %>">
+        <%= form.label :tendered, "Cash received", class: inline %>
         <%= form.number_field :tendered, step: "0.01", inputmode: "decimal", min: 0, placeholder: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums",
               data: { payment_target: "tendered", shortcuts_target: "pay", action: "input->payment#showChange focus->payment#openKeypad" } %>
-      </div>
-      <div class="hidden flex-1" data-payment-target="otherFields">
-        <%= form.label :amount, "Amount", class: "label" %>
+      </div></div>
+      <div class="hidden flex-1" data-payment-target="otherFields"><div class="<%= row %>">
+        <%= form.label :amount, "Amount", class: inline %>
         <%= form.number_field :amount, step: "0.01", inputmode: "decimal", min: 0, value: plain_number(BigDecimal(due) / 100), class: "input text-lg tabular-nums", data: { payment_target: "amount", action: "focus->payment#openKeypad", deposit: (plain_number(BigDecimal([ deposit, due ].min) / 100) if deposit.positive?) } %>
-      </div>
+      </div></div>
       <% if foreign.any? %>
-        <div class="hidden flex-1" data-payment-target="foreignFields">
-          <%= form.label :foreign_tendered, "Notes received", class: "label" %>
-          <div class="flex gap-1">
+        <div class="hidden flex-1" data-payment-target="foreignFields"><div class="<%= row %>">
+          <%= form.label :foreign_tendered, "Notes received", class: inline %>
+          <div class="flex flex-1 gap-1">
             <%= form.select :currency, foreign.map { [ _1.code, _1.code, { data: { rate: _1.rate.to_s, decimals: Currency.decimals(_1.code) } } ] }, {},
                   class: "input w-24", "aria-label": "Currency", data: { payment_target: "currency", action: "change->payment#showChange" } %>
             <%= form.number_field :foreign_tendered, step: "0.01", inputmode: "decimal", min: 0, class: "input text-lg tabular-nums", "aria-label": "Foreign amount received",
                   data: { payment_target: "foreignTendered", action: "input->payment#showChange focus->payment#openKeypad" } %>
           </div>
-        </div>
+        </div></div>
       <% end %>
-      <div class="hidden flex-1" data-payment-target="referenceField">
-        <%= form.label :reference, "Code", class: "label" %>
+      <div class="hidden flex-1" data-payment-target="referenceField"><div class="<%= row %>">
+        <%= form.label :reference, "Code", class: inline %>
         <%= form.text_field :reference, autocomplete: "off", placeholder: "e.g. SJK4H7T2QP", class: "input font-mono uppercase" %>
-      </div>
+      </div></div>
       <% unless current_membership.approver? %>
         <div class="hidden w-32" data-payment-target="approvalField">
           <%= form.label :approval_pin, "Manager PIN", class: "label", title: "Needed to go over the customer's credit limit" %>
@@ -78,10 +81,14 @@
       </button>
     </div>
 
-    <div class="mt-2 flex flex-wrap gap-1" data-payment-target="quickCash">
-      <% [ due, *[ 100_00, 500_00, 1000_00 ].map { |step| ((due + step - 1) / step) * step } ].uniq.select(&:positive?).first(4).each do |amount| %>
-        <button type="button" class="btn-secondary px-2 py-1 text-xs select-none active:bg-primary-100" data-action="payment#fill" data-amount="<%= plain_number(BigDecimal(amount) / 100) %>"><%= money(amount) %></button>
-      <% end %>
+    <%# The change due shares this row with the quick-cash notes (and keeps it when they're hidden for other tenders). %>
+    <div class="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+      <div class="flex flex-wrap gap-1" data-payment-target="quickCash">
+        <% [ due, *[ 100_00, 500_00, 1000_00 ].map { |step| ((due + step - 1) / step) * step } ].uniq.select(&:positive?).first(4).each do |amount| %>
+          <button type="button" class="btn-secondary px-2 py-1 text-xs select-none active:bg-primary-100" data-action="payment#fill" data-amount="<%= plain_number(BigDecimal(amount) / 100) %>"><%= money(amount) %></button>
+        <% end %>
+      </div>
+      <p class="ml-auto text-sm font-semibold text-green-800 empty:hidden" data-payment-target="change"></p>
     </div>
     <%# A number pad for touch screens, typing into whichever amount the chosen tender uses. It opens when the amount is
         tapped, or with the button beside it, and each till remembers whether it was left open. %>
@@ -94,9 +101,7 @@
       <button type="button" class="<%= key %>" data-action="payment#press" data-key=".">.</button>
       <button type="button" class="<%= key %> text-sm" data-action="payment#press" data-key="exact" data-payment-target="exactKey" title="The amount due">Exact</button>
     </div>
-    <p class="mt-1 h-5 text-sm font-semibold text-green-800" data-payment-target="change"></p>
-
-    <%= form.submit "Take payment", class: "btn-primary mt-1 w-full py-3 text-lg", data: { tour: "take-payment" } %>
+    <%= form.submit "Take payment", class: "btn-primary mt-2 w-full py-2.5 text-lg", data: { tour: "take-payment" } %>
   <% end %>
 
   <% if (shortcode = Mpesa::Shortcode.for_branch(sale.branch)) && !waiting %>
