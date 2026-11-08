@@ -19,7 +19,7 @@
   <div class="grid gap-5 md:grid-cols-3">
     <% plans.each do |plan| %>
       <% recommended = plan.key == "business" %>
-      <div id="plan_<%= plan.key %>" class="relative flex flex-col rounded-2xl border bg-white p-6 <%= recommended ? "border-primary-500 shadow-lg shadow-primary-900/10" : "border-gray-200" %>">
+      <div id="plan_<%= plan.key %>" class="relative flex flex-col rounded-lg border bg-white p-6 <%= recommended ? "border-primary-500 shadow-lg shadow-primary-900/10" : "border-gray-200" %>">
         <% if recommended %>
           <p class="absolute -top-3 left-6 rounded-full bg-primary-500 px-3 py-0.5 text-xs font-semibold text-white">Recommended</p>
         <% end %>
@@ -59,7 +59,7 @@
     <% end %>
   </div>
 
-  <div class="mt-6 flex flex-col gap-x-8 gap-y-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm sm:flex-row sm:items-baseline">
+  <div class="mt-6 flex flex-col gap-x-8 gap-y-2 rounded-lg border border-gray-200 bg-white px-6 py-4 text-sm sm:flex-row sm:items-baseline">
     <p class="shrink-0 font-semibold">Every plan includes</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-1.5 text-gray-700">
       <% [ "Every feature", "M-Pesa and Airtel Money", "KRA eTIMS", "The till keeps selling offline", "Tablets, touch screens and phones",

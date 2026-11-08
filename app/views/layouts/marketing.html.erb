@@ -36,8 +36,8 @@
 
   <body class="flex min-h-screen flex-col bg-gray-50 text-gray-900">
     <%= render "shared/staging_banner" %>
-    <header class="sticky top-0 z-40 border-b border-gray-200/80 bg-white/85 backdrop-blur">
-      <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 text-sm font-medium">
+    <header class="border-b border-gray-200 bg-white">
+      <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4 text-sm font-medium">
         <%= link_to marketing_root_path, aria: { label: "HardPoint home" } do %><%= render "shared/logo" %><% end %>
         <div class="ml-auto flex flex-wrap items-center gap-x-5 gap-y-2">
           <%= link_to "Features", marketing_root_path(anchor: "features"), class: "hover:text-primary-600" %>

@@ -1,12 +1,11 @@
 <% content_for :title, "Sign in" %>
 <% content_for :noindex, true %>
 
-<section class="bg-white">
- <div class="mx-auto max-w-md px-4 pt-16 pb-20 sm:pt-20 sm:pb-28">
-  <h1 class="text-center text-4xl font-semibold tracking-tight text-gray-950 sm:text-5xl">Sign in to your shop</h1>
-  <p class="mt-4 mb-10 text-center text-lg text-gray-600 text-balance">Every shop has its own web address, like <span class="font-mono text-base">yourshop.<%= request.host %></span>.</p>
+<section class="mx-auto max-w-md px-4 py-16">
+  <h1 class="text-xl font-medium">Sign in to your shop</h1>
+  <p class="mt-2 mb-6 text-gray-500">Every shop has its own web address, like <span class="font-mono">yourshop.<%= request.host %></span>.</p>
 
-  <div class="rounded-3xl bg-gray-100 p-6 sm:p-8">
+  <div class="card">
     <%= form_with url: shop_lookup_path, data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
       <div class="field">
         <%= form.label :subdomain, "Your shop's web address", class: "label" %>
@@ -15,10 +14,9 @@
           <span class="text-gray-500">.<%= request.host %></span>
         </div>
       </div>
-      <%= form.submit "Continue", class: "btn-primary w-full rounded-full py-2.5 text-base" %>
+      <%= form.submit "Continue", class: "btn-primary w-full" %>
     <% end %>
   </div>
 
-  <p class="mt-8 text-center text-gray-600">New to HardPoint? <%= link_to new_signup_path, class: "font-medium text-accent-600 hover:underline" do %>Start a free <%= Plan::TRIAL.inspect %> trial <span aria-hidden="true">›</span><% end %></p>
- </div>
+  <p class="mt-6 text-sm text-gray-500">New to HardPoint? <%= link_to "Start a free 30-day trial", new_signup_path, class: "link" %>.</p>
 </section>

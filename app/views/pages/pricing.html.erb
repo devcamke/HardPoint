@@ -14,74 +14,48 @@
 ] %>
 <% structured_data seo_software(@plans), seo_faq(faqs) %>
 
-<section class="bg-white">
-  <div class="mx-auto max-w-3xl px-4 pt-20 pb-12 text-center sm:pt-28">
-    <h1 class="text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">Pricing</h1>
-    <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600 text-balance sm:text-xl">Every plan has every feature and unlimited products. Pick one for the size of your shop,
-      and try it free for <%= Plan::TRIAL.inspect %>.</p>
-  </div>
-  <div class="mx-auto max-w-6xl px-4 pb-20 sm:pb-28">
-    <%= render "pages/plans", plans: @plans %>
-  </div>
+<section class="mx-auto max-w-6xl px-4 py-16">
+  <h1 class="text-center text-4xl font-semibold">Pricing</h1>
+  <p class="mx-auto mt-3 mb-10 max-w-xl text-center text-gray-500">Every plan has every feature and unlimited products. Pick one for the size of your shop, and try it free for 30 days.</p>
+  <%= render "pages/plans", plans: @plans %>
 </section>
 
-<section id="setup" class="border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Getting set up.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Do it all yourself with the setup checklist and the help centre. Or we come to the shop and do it with you.</p>
+<section id="setup" class="mx-auto max-w-6xl px-4 pb-16">
+  <h2 class="mb-2 text-center text-2xl font-semibold">Getting set up</h2>
+  <p class="mx-auto mb-8 max-w-xl text-center text-gray-500">You can do it all yourself with the setup checklist and the help centre. Or we come to the shop and do it with you.</p>
+  <div class="grid gap-6 md:grid-cols-2">
+    <div class="card">
+      <h3 class="text-lg font-semibold">Setup and training visit</h3>
+      <p class="mt-1"><span class="text-2xl font-semibold tabular-nums">from <%= Money.format(Plan::SETUP_CENTS, currency: "KES") %></span> <span class="text-gray-500">one-off · free with a year paid upfront</span></p>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li class="flex gap-2"><%= render "pages/check" %> Your product list imported from a spreadsheet or your old system, with prices, barcodes and stock</li>
+        <li class="flex gap-2"><%= render "pages/check" %> Tills, receipt printers, cash drawers and scanners connected</li>
+        <li class="flex gap-2"><%= render "pages/check" %> M-Pesa on your own Paybill or Till, and KRA eTIMS registered for each branch</li>
+        <li class="flex gap-2"><%= render "pages/check" %> Staff, roles and PINs set up, and an hour at the counter with your cashiers</li>
+      </ul>
     </div>
-    <div class="mt-14 grid gap-4 md:grid-cols-2">
-      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10">
-        <h3 class="text-2xl font-semibold tracking-tight text-gray-950">Setup and training visit</h3>
-        <p class="mt-3"><span class="text-3xl font-semibold tracking-tight tabular-nums">from <%= Money.format(Plan::SETUP_CENTS, currency: "KES") %></span></p>
-        <p class="mt-1 text-gray-500">One-off. Free with a year paid upfront.</p>
-        <ul class="mt-6 space-y-2.5 text-gray-700">
-          <li class="flex gap-2.5"><%= render "pages/check" %> Your product list imported from a spreadsheet or your old system, with prices, barcodes and stock</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> Tills, receipt printers, cash drawers and scanners connected</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> M-Pesa on your own Paybill or Till, and KRA eTIMS registered for each branch</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> Staff, roles and PINs set up, and an hour at the counter with your cashiers</li>
-        </ul>
-      </div>
-      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10">
-        <h3 class="text-2xl font-semibold tracking-tight text-gray-950">Till kit</h3>
-        <p class="mt-3"><span class="text-3xl font-semibold tracking-tight">Quoted</span></p>
-        <p class="mt-1 text-gray-500">For your shop. Pay once or over 12 months.</p>
-        <ul class="mt-6 space-y-2.5 text-gray-700">
-          <li class="flex gap-2.5"><%= render "pages/check" %> 80 mm thermal receipt printer and cash drawer</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> USB barcode scanner</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> A touch screen or tablet for the till, if you want one</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> Delivered set up and tested with HardPoint</li>
-        </ul>
-      </div>
-    </div>
-    <p class="mx-auto mt-8 max-w-2xl text-center text-gray-600">Both are invoiced in HardPoint and paid by M-Pesa, card or bank transfer. Ask about either from the message form in HardPoint, or
-      <%= link_to whatsapp_support_url("Hello HardPoint, I'd like to ask about setup or a till kit."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>message us on WhatsApp <span aria-hidden="true">›</span><% end %></p>
-  </div>
-</section>
-
-<section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-3xl px-4 py-20 sm:py-28">
-    <h2 class="text-center text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Questions.</h2>
-    <div class="mt-12 space-y-3">
-      <% faqs.each do |question, answer| %>
-        <details class="group rounded-2xl bg-gray-100 px-6 py-4 open:pb-6">
-          <%# The + is drawn by CSS so the summary's text is just the question. %>
-          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-gray-950 marker:content-none after:shrink-0 after:text-xl after:text-gray-400 after:transition-transform after:content-['+'] group-open:after:rotate-45 [&::-webkit-details-marker]:hidden"><%= question %></summary>
-          <p class="mt-3 leading-relaxed text-gray-600"><%= answer %></p>
-        </details>
-      <% end %>
+    <div class="card">
+      <h3 class="text-lg font-semibold">Till kit</h3>
+      <p class="mt-1"><span class="text-2xl font-semibold">Quoted</span> <span class="text-gray-500">for your shop · pay once or over 12 months</span></p>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li class="flex gap-2"><%= render "pages/check" %> 80 mm thermal receipt printer and cash drawer</li>
+        <li class="flex gap-2"><%= render "pages/check" %> USB barcode scanner</li>
+        <li class="flex gap-2"><%= render "pages/check" %> A touch screen or tablet for the till, if you want one</li>
+        <li class="flex gap-2"><%= render "pages/check" %> Delivered set up and tested with HardPoint</li>
+      </ul>
     </div>
   </div>
+  <p class="mt-6 text-center text-sm text-gray-500">Ask about either from the message form in HardPoint or on WhatsApp. Both are invoiced in HardPoint and paid by M-Pesa, card or bank transfer.</p>
 </section>
 
-<section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
-    <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Try it free for <%= Plan::TRIAL.inspect %>.</h2>
-    <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">No card needed. Your data is yours to export at any time.</p>
-    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-      <%= link_to "Start free trial", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5 text-lg" %>
-      <%= link_to help_path, class: "text-lg font-medium text-accent-600 hover:underline" do %>Read the guides <span aria-hidden="true">›</span><% end %>
-    </div>
+<section class="mx-auto max-w-3xl px-4 pb-16">
+  <h2 class="mb-6 text-2xl font-bold">Questions</h2>
+  <div class="space-y-3">
+    <% faqs.each do |question, answer| %>
+      <details class="card group">
+        <summary class="cursor-pointer font-semibold"><%= question %></summary>
+        <p class="mt-2 text-gray-700"><%= answer %></p>
+      </details>
+    <% end %>
   </div>
 </section>
