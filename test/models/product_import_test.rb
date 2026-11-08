@@ -67,13 +67,12 @@ class ProductImportTest < ActiveSupport::TestCase
     assert_equal 90000, products(:acme_cement).price_cents
   end
 
-  test "an import that would go past the plan's product allowance is held back" do
+  test "no plan limits how many products a shop imports" do
     accounts(:acme).update!(plan: "starter")
     csv = +"sku,name,price\n"
     2_001.times { |i| csv << "OVER-#{i},Item #{i},10\n" }
     result = import(csv)
-    assert result.needs_fixing?
-    assert_match "Starter plan allows 2,000 products in all", result.problems.flat_map { _1["messages"] }.join
+    assert result.ready?, result.problems.flat_map { _1["messages"] }.join
   end
 
   test "barcodes already on another product are flagged" do

@@ -1,7 +1,6 @@
 class Product < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Pricing, Stockable, Searchable, Barcoded, Purchasing, CountsTowardsPlan, PublishesWebhooks
+  include AccountOwned, Eventable, Monetary, Pricing, Stockable, Searchable, Barcoded, Purchasing, PublishesWebhooks
   publishes_webhooks "product"
-  counts_towards_plan :products, counting: -> { active? }
   tracks_lifecycle
 
   belongs_to :category, optional: true

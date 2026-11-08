@@ -102,8 +102,10 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://har
 - **Staff and roles** (owner, manager, cashier, stock clerk, accountant), PIN quick-switch at a shared till,
   two-factor sign-in, and an activity log of who changed what.
 - **Self-service signup** with a 30-day trial and a **Set up your shop** checklist. Plans: Starter (KES 2,500 a month),
-  Business (KES 6,500) and Enterprise (KES 15,000), paid by M-Pesa or card; a shop with an overdue invoice becomes read-only until it
-  pays.
+  Business (KES 6,500) and Enterprise (KES 15,000), with unlimited products on all three; an extra till or branch as a
+  monthly add-on rather than a bigger plan; monthly or yearly billing (a year costs ten months); paid by M-Pesa or
+  card. Setup visits and till kits are billed as one-off invoices from the admin. A shop with an overdue invoice becomes
+  read-only until it pays.
 - **A public API and webhooks** for web shops and accounting software (Business and Enterprise), documented at
   `/developers`.
 - **Backups:** every night (or weekly or monthly) and at the press of **Back up now**: a verified copy of all

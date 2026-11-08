@@ -1,4 +1,4 @@
-# Records that use up a plan's allowance (branches, tills, staff, products) can't be added past it.
+# Records that use up a plan's allowance (branches, tills, staff) can't be added past it, add-ons included.
 module CountsTowardsPlan
   extend ActiveSupport::Concern
 
@@ -9,7 +9,8 @@ module CountsTowardsPlan
         plan_account = account || Current.account
         if plan_account && instance_exec(&counting) && !plan_account.room_for?(resource)
           plan = plan_account.subscription_plan
-          errors.add :base, "Your #{plan.name} plan allows #{Plan.allowance(plan.limit(resource), resource)}. Upgrade on the Billing page to add more."
+          more = plan.add_on_cents(resource) ? "Add #{Plan::NOUNS.fetch(resource).pluralize(2)} or upgrade" : "Upgrade"
+          errors.add :base, "Your #{plan.name} plan allows #{Plan.allowance(plan_account.limit(resource), resource)}. #{more} on the Billing page to add more."
         end
       end
     end

@@ -10,7 +10,7 @@ class Admin::AccountsController < Admin::BaseController
     @branch_counts = Branch.group(:account_id).count
     @product_counts = Product.where(active: true).group(:account_id).count
     @sales_counts = Sale.completed.where(completed_at: 30.days.ago..).group(:account_id).count
-    @monthly_revenue_cents = Account.where(subscription_status: %w[ active payment_due ]).pluck(:plan).sum { Plan.find(_1).price_cents }
+    @monthly_revenue_cents = Account.where(subscription_status: %w[ active payment_due ]).sum(&:monthly_price_cents)
     @paid_last_30_days_cents = Billing::Invoice.paid.where(paid_at: 30.days.ago..).sum(:amount_cents)
   end
 

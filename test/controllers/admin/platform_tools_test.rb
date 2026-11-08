@@ -48,6 +48,34 @@ class Admin::PlatformToolsTest < ActionDispatch::IntegrationTest
     assert_equal 1, acme_events("restored").size
   end
 
+  test "issuing a one-off invoice for a setup visit, which the owner is emailed and can pay" do
+    assert_enqueued_emails 1 do
+      post admin_account_invoices_path(@account), params: { description: "Setup and training visit, Kisumu", amount: "15,000", due_in: 14 }
+    end
+    assert_redirected_to admin_account_path(@account)
+    invoice = Account.without_isolation { @account.billing_invoices.one_off.last }
+    assert_equal [ 15_000_00, "Setup and training visit, Kisumu", Date.current + 14 ], [ invoice.amount_cents, invoice.description, invoice.due_on ]
+    assert acme.trialing?, "a one-off invoice doesn't end the trial"
+
+    post admin_account_payments_path(@account), params: { reference: "EFT 1" }
+    assert Account.without_isolation { invoice.reload.paid? }
+    assert acme.trialing?
+    assert_nil acme.current_period_ends_at, "a one-off invoice doesn't start a subscription period"
+
+    post admin_account_invoices_path(@account), params: { description: "Nothing", amount: "0" }
+    assert_match "more than zero", flash[:alert]
+  end
+
+  test "setting a shop's add-ons and yearly billing from the admin" do
+    patch admin_account_add_ons_path(@account), params: { account: { extra_registers: 2, extra_branches: 1, billing_interval: "yearly" } }
+    assert_equal [ 2, 1, "yearly" ], acme.values_at(:extra_registers, :extra_branches, :billing_interval)
+    assert_match "KES 90,000.00 a year", flash[:notice]
+    assert_equal [ users(:ada).email_address ], acme_events("add_ons_changed").map { _1.particulars["administrator"] }
+
+    get admin_account_path(@account)
+    assert_select "#subscription", /KES 90,000.00 a year, with 1 branch and 2 tills extra/
+  end
+
   test "recording a bank payment pays the open invoice" do
     invoice = Account.without_isolation { Current.set(account: @account) { @account.start_subscription_now } }
 

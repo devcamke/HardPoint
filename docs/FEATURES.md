@@ -551,6 +551,13 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 ## Since then: the new look, lists and help
 
+- **Packaging for sale:** products no longer count towards any plan (a hardware shop carries thousands of lines).
+  A shop that needs one more till or branch than its plan allows buys it as an **add-on** on the Billing page
+  (Starter: a till KES 750, a branch KES 2,000 a month; Business: 500 and 1,500) instead of moving up a plan, and can
+  choose **yearly billing** at ten months' price for twelve. The pricing page sells a **setup and training visit**
+  (from KES 15,000, free with a year paid upfront) and a quoted **till kit**; platform staff bill those from the admin
+  as one-off invoices, paid like any other
+
 - **Apps instead of one long menu:** the back office is a home menu of apps (Point of Sale, Sales, Products, Inventory,
   Purchase, Reports, Employees, Settings, Help), each with its own menu in the top bar; people only see the apps their
   role uses. The colours moved to petrol teal across screens, reports, PDFs, emails and print pages ([BRAND.md](BRAND.md))

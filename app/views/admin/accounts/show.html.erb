@@ -10,6 +10,7 @@
     <div>
       <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
         <dt class="text-gray-500">Plan</dt><dd><%= plan.name %> (<%= plan.price %>/month)</dd>
+        <dt class="text-gray-500">Pays</dt><dd><%= money(@account.period_price_cents, currency: "KES") %> <%= @account.yearly? ? "a year" : "a month" %><%= ", with #{@account.add_ons.select { |_, n| n.positive? }.map { |resource, n| Plan.allowance(n, resource) }.to_sentence} extra" if @account.add_ons.values.any?(&:positive?) %></dd>
         <% if @account.trial_ends_at %><dt class="text-gray-500">Trial ends</dt><dd><%= l(@account.trial_ends_at.to_date, format: :long) %></dd><% end %>
         <% if @account.current_period_ends_at %><dt class="text-gray-500">Paid until</dt><dd><%= l(@account.current_period_ends_at.to_date, format: :long) %></dd><% end %>
         <% if @account.suspended_reason %><dt class="text-gray-500">Suspended for</dt><dd><%= @account.suspended_reason %></dd><% end %>
@@ -20,7 +21,7 @@
       <h3 class="mt-4 mb-2 text-sm font-semibold">Usage</h3>
       <ul class="space-y-1 text-sm">
         <% Plan::RESOURCES.each do |resource| %>
-          <li><%= number_with_delimiter @usage[resource] %> of <%= plan.limit(resource) ? Plan.allowance(plan.limit(resource), resource) : "unlimited #{Plan::NOUNS[resource].pluralize}" %></li>
+          <li><%= number_with_delimiter @usage[resource] %> of <%= @account.limit(resource) ? Plan.allowance(@account.limit(resource), resource) : "unlimited #{Plan::NOUNS[resource].pluralize}" %></li>
         <% end %>
       </ul>
     </div>
@@ -29,6 +30,23 @@
       <%= form_with url: admin_account_plan_path(@account), method: :patch, class: "flex flex-wrap items-end gap-2" do |form| %>
         <div><%= form.label :plan, "Change plan", class: "label" %><%= form.select :plan, Plan.all.map { [ "#{_1.name} (#{_1.price})", _1.key ] }, { selected: @account.plan }, class: "input" %></div>
         <%= form.submit "Change", class: "btn-secondary" %>
+      <% end %>
+
+      <%= form_with model: @account, url: admin_account_add_ons_path(@account), method: :patch, class: "flex flex-wrap items-end gap-2" do |form| %>
+        <% if plan.add_ons? %>
+          <div><%= form.label :extra_registers, "Extra tills", class: "label" %><%= form.number_field :extra_registers, min: 0, max: 99, class: "input w-24" %></div>
+          <div><%= form.label :extra_branches, "Extra branches", class: "label" %><%= form.number_field :extra_branches, min: 0, max: 99, class: "input w-24" %></div>
+        <% end %>
+        <div><%= form.label :billing_interval, "Billed", class: "label" %><%= form.select :billing_interval, Plan::INTERVALS.map { [ _1.capitalize, _1 ] }, {}, class: "input" %></div>
+        <%= form.submit "Save add-ons", class: "btn-secondary" %>
+      <% end %>
+
+      <%= form_with url: admin_account_invoices_path(@account), class: "flex flex-wrap items-end gap-2",
+            data: { turbo_confirm: "Invoice #{@account.name} and email its owners?" } do |form| %>
+        <div><%= form.label :description, "One-off invoice for", class: "label" %><%= form.text_field :description, class: "input", placeholder: "Setup and training visit", required: true, maxlength: 200 %></div>
+        <div><%= form.label :amount, "KES", class: "label" %><%= form.number_field :amount, min: 1, step: "0.01", class: "input w-32", required: true, value: Plan::SETUP_CENTS / 100 %></div>
+        <div><%= form.label :due_in, "Due in", class: "label" %><%= form.select :due_in, [ [ "7 days", 7 ], [ "14 days", 14 ], [ "30 days", 30 ] ], {}, class: "input" %></div>
+        <%= form.submit "Issue invoice", class: "btn-secondary" %>
       <% end %>
 
       <% if @account.trialing? %>
