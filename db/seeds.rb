@@ -1,7 +1,8 @@
 # Development data. Shops live on subdomains of localhost (browsers resolve *.localhost):
 #   http://demo.localhost:3000   owner@demo.test / hardpoint-demo   (cashier PIN: Carol 1234)
 #   http://admin.localhost:3000  admin@hardpoint.test / hardpoint-demo, two-factor key below
-if Rails.env.development? && !Account.exists?(subdomain: "demo")
+# SEED_DEMO=1 seeds it in another environment too: CI's accessibility scan runs over it (script/accessibility_check.mjs).
+if (Rails.env.development? || ENV["SEED_DEMO"].present?) && !Account.exists?(subdomain: "demo")
   DEV_ADMIN_TWO_FACTOR_SECRET = "HARDPOINTDEVADMINTOTPSECRETKEYAB" # add to an authenticator app for local use only
 
   Signup.new(terms_accepted: true, shop_name: "Demo Hardware", subdomain: "demo", owner_name: "Wanjiru Kamau",

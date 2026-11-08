@@ -7,6 +7,8 @@ class Admin::BaseController < ActionController::Base
   layout "admin"
   before_action { Current.administrator = current_administrator }
 
+  helper_method :across_accounts
+
   private
     # Administrators work across shops, so tenant row-level security is bypassed for their requests.
     def across_accounts(&)

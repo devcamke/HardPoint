@@ -8,6 +8,7 @@ class CustomersController < ApplicationController
   end
 
   def show
+    @customer.cache_receivables!
     @sales = @customer.sales.finished.chronologically.limit(20)
     @orders = @customer.customer_orders.where.not(status: %w[ collected cancelled ]).chronologically.includes(:branch)
     @open_invoices = @customer.open_invoices

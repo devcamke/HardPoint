@@ -37,6 +37,8 @@ module ActiveSupport
       replica = configurations.configs_for(env_name: "test", name: "primary_replica", include_hidden: true)
       replica._database = configurations.configs_for(env_name: "test", name: "primary").database
       ApplicationRecord.connects_to database: { writing: :primary, reading: :primary_replica }
+      # Each worker's database was loaded from db/structure.sql, which can't carry the search functions' owner.
+      SearchFunctions.ensure_privileges!
     end
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.

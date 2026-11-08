@@ -28,10 +28,17 @@ class ReorderSuggestion
   end
 
   private
+    # Only the products that might need ordering are loaded with their suppliers. Reorder levels come from one
+    # cheap read of ids and levels; stock, orders and sales are already summed per product; the lead-time rule
+    # is applied with the longest lead time any supplier has, and again exactly in row_for.
     def candidates
-      @account.products.active.where(track_stock: true)
-        .where("products.reorder_level > 0 OR products.id IN (?)", sold.keys.presence || [ 0 ])
-        .includes(:unit, supplier_products: :supplier)
+      longest_lead_time = [ SupplierProduct.where(account: @account).maximum(:lead_time_days).to_i, DEFAULT_LEAD_TIME ].max
+      ids = @account.products.active.where(track_stock: true).pluck(:id, :reorder_level).filter_map do |id, reorder_level|
+        available = levels.fetch(id, 0) + ordered.fetch(id, 0)
+        daily = sold.fetch(id, 0) / SALES_WINDOW.in_days
+        id if (reorder_level.positive? || daily.positive?) && (available <= reorder_level || available < daily * longest_lead_time)
+      end
+      @account.products.where(id: ids).includes(:unit, supplier_products: :supplier)
     end
 
     def row_for(product)

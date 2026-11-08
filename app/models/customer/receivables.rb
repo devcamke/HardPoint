@@ -94,14 +94,35 @@ module Customer::Receivables
   end
 
   def open_invoices
-    unapplied = credited_cents
-
-    account_sales.filter_map do |sale, amount|
-      applied = [ unapplied, amount ].min
-      unapplied -= applied
-      OpenInvoice.new(sale, amount, due_date_for(sale), amount - applied) if applied < amount
-    end
+    @open_invoices || open_invoices_from(account_sales, credited_cents)
   end
+
+  # A page that shows the balance, what's overdue and the open invoices asks for them several times over; this
+  # works everything out from two reads (the account sales and the credits) and keeps it for the request.
+  def cache_receivables!
+    sales_and_amounts = account_sales
+    credited = credited_cents
+    @balance_cents = sales_and_amounts.sum { _2 } - credited
+    @open_invoices = open_invoices_from(sales_and_amounts, credited)
+    self
+  end
+
+  def reload(*)
+    @balance_cents = @open_invoices = nil
+    super
+  end
+
+  private
+    def open_invoices_from(sales_and_amounts, credited)
+      unapplied = credited
+      sales_and_amounts.filter_map do |sale, amount|
+        applied = [ unapplied, amount ].min
+        unapplied -= applied
+        OpenInvoice.new(sale, amount, due_date_for(sale), amount - applied) if applied < amount
+      end
+    end
+
+  public
 
   def statement(from: Date.current.beginning_of_month, to: Date.current)
     Customer::Statement.new(self, from: from, to: to)

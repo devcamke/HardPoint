@@ -24,6 +24,12 @@ production:
     class: DailySummaryJob
     schedule: every day at 4:15am
 
+  # Receipt gaps, stock on hand against the ledger, sales paid in full, counted shifts, unmatched M-Pesa, across
+  # every shop (docs/RUNBOOK.md §7). 01:30 UTC, after the day's trading everywhere in Kenya.
+  integrity_check:
+    class: IntegrityCheckJob
+    schedule: every day at 1:30am
+
   # The platform's own checks (database, workers, stuck or failed jobs, eTIMS queues, backups, disk), alerting
   # the operators when one fails (docs/RUNBOOK.md, "Alerts").
   platform_health:

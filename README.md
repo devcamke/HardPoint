@@ -129,8 +129,12 @@ You need the Ruby in `.ruby-version`, PostgreSQL 18, and a regular (non-superuse
 security doesn't apply to superusers:
 
 ```sh
-sudo -u postgres psql -c "CREATE ROLE hardpoint LOGIN CREATEDB NOSUPERUSER NOBYPASSRLS PASSWORD 'hardpoint'"
+sudo -u postgres psql -c "CREATE ROLE hardpoint LOGIN CREATEDB NOSUPERUSER NOBYPASSRLS PASSWORD 'hardpoint'" \
+  -c "CREATE ROLE hardpoint_search NOLOGIN BYPASSRLS" -c "GRANT hardpoint_search TO hardpoint"
 ```
+
+The second role owns the search functions, which run without row-level security so the trigram indexes apply
+(`app/models/search_functions.rb`); without it searches still work, only slower.
 
 Then install the gems, prepare the database, seed the demo shops and start the server:
 

@@ -42,5 +42,15 @@ class Supplier < ApplicationRecord
 
   scope :active, -> { where(active: true) }
   scope :alphabetically, -> { order(:name) }
-  scope :search, ->(query) { query.present? ? where("suppliers.name ILIKE ?", "%#{sanitize_sql_like(query.squish)}%") : all }
+  # Through search_supplier_ids (SearchFunctions), so the trigram index on name applies under row-level security.
+  scope :search, ->(query) do
+    next all if query.blank?
+
+    pattern = "%#{sanitize_sql_like(query.squish)}%"
+    if (shop = Current.account&.id)
+      where("suppliers.id IN (SELECT search_supplier_ids(?, ?))", shop, pattern)
+    else
+      where("suppliers.name ILIKE ?", pattern)
+    end
+  end
 end

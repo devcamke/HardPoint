@@ -11,8 +11,17 @@ PERF=1 WEB_CONCURRENCY=4 RAILS_MAX_THREADS=5 bin/rails server   # development, b
 k6 run -e VUS=40 -e HOLD=2m perf/till.js
 ```
 
-Against a staging server use `-e BASE=https://loadtest.staging.example` and run `perf/setup.rb` there
-(never in production: it refuses).
+Against staging (docs/RUNBOOK.md §8), set the loadtest shop up there once and keep its tills and barcodes:
+
+```sh
+bin/kamal app exec -d staging "OUTPUT=- TILLS=40 bin/rails runner perf/setup.rb" > perf/loadtest.json
+k6 run -e BASE=https://loadtest.staging.hardpoint.app -e VUS=40 -e HOLD=2m perf/till.js
+```
+
+The **Load test** workflow (`.github/workflows/load-test.yml`, run by hand from the Actions tab) does the
+same from GitHub, with `perf/loadtest.json` kept as the repository secret `LOADTEST_JSON` (paste the file's
+contents). Run it before each monthly release; it fails when the thresholds below are missed. `perf/setup.rb`
+refuses to run in production; staging is production's environment marked `HARDPOINT_ENVIRONMENT=staging`.
 
 Thresholds (the run fails if missed): no more than 1% of requests failing, 95% of scans and searches
 under 500 ms and payments (which complete the sale: stock, costs, receipt number, eTIMS queue) under 800 ms.

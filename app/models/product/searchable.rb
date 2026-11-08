@@ -3,17 +3,22 @@ module Product::Searchable
 
   included do
     # Every word must appear in the name or SKU ("pvc 2 inch" finds "PVC pipe 2 inch 6m"), or the
-    # whole query must be a barcode. Trigram indexes on name and sku keep this fast for big catalogues.
+    # whole query must be a barcode. The matching runs in search_product_ids (SearchFunctions), which
+    # row-level security doesn't apply to, so the trigram indexes on name and sku keep this fast for big
+    # catalogues; outside a shop (nothing current) it falls back to plain conditions.
     scope :search, ->(query) do
       query = query.to_s.squish
       next all if query.blank?
 
-      matching_words = query.split.first(8).inject(all) do |scope, word|
-        scope.where("products.name ILIKE :word OR products.sku ILIKE :word", word: "%#{sanitize_sql_like(word)}%")
+      patterns = query.split.first(8).map { "%#{sanitize_sql_like(_1)}%" }
+      matching = if (shop = Current.account&.id)
+        where("products.id IN (SELECT search_product_ids(?, ARRAY[?]::text[], ?))", shop, patterns, query)
+      else
+        patterns.inject(all) { |scope, pattern| scope.where("products.name ILIKE :word OR products.sku ILIKE :word", word: pattern) }
+          .or(where(id: Barcode.where(code: query).select(:product_id)))
       end
 
-      matching_words.or(where(id: Barcode.where(code: query).select(:product_id)))
-        .order(Arel.sql(sanitize_sql_array([ "(products.sku = upper(?)) DESC, similarity(products.name, ?) DESC, products.name", query, query ])))
+      matching.order(Arel.sql(sanitize_sql_array([ "(products.sku = upper(?)) DESC, similarity(products.name, ?) DESC, products.name", query, query ])))
     end
   end
 

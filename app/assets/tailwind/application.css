@@ -74,8 +74,9 @@
   @apply rounded border border-gray-200 bg-white p-5;
 }
 
+/* Underlined as well as coloured, so a link in a sentence can be told from the words around it without colour. */
 @utility link {
-  @apply text-accent-600 hover:text-accent-700 hover:underline;
+  @apply text-accent-600 underline decoration-accent-600/40 underline-offset-2 hover:text-accent-700 hover:decoration-accent-700;
 }
 
 @utility hint {
@@ -160,7 +161,7 @@ textarea.input {
     @apply flex items-center justify-between gap-3 rounded-t-xl border-b border-gray-200 bg-gray-50 px-4 py-3;
   }
   .walkthrough-eyebrow {
-    @apply text-xs font-semibold tracking-wide text-[#c2561c] uppercase;
+    @apply text-xs font-semibold tracking-wide text-[#a8471a] uppercase; /* the darker till orange: readable at this size on the grey bar */
   }
   .walkthrough-title {
     @apply font-semibold text-gray-900;

@@ -817,23 +817,28 @@ set of books.
   signup (`accounts.terms_accepted_at`); `/.well-known/security.txt`; privacy page updated.
 - **Safe deploys:** migrations run once per deploy from `.kamal/hooks/pre-deploy`, never from booting containers;
   `strong_migrations` refuses unsafe migrations.
+- **Email through AWS SES** with bounces and complaints handled (`Ses`, `EmailSuppression`, `/webhooks/ses`).
+- **The books checked nightly** (`IntegrityCheck`): receipt gaps, stock against the ledger, sales paid in full, counted
+  shifts, unmatched M-Pesa; **search on the trigram indexes** under row-level security (`SearchFunctions`); the
+  remaining query hot spots; Trivy on the base image, an axe scan and a staging load test in CI.
 
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
-1. **Product and customer search under row-level security.** `ILIKE` and `similarity` aren't leakproof, so Postgres
-   won't use the trigram indexes under forced RLS and every search reads the shop's whole catalogue (24–36 ms at
-   20,000 products, on every keystroke at the till). Move search into a `SECURITY DEFINER` SQL function that takes the
-   shop's id, or search a leakproof prefix/`tsvector` column. Grow `perf/setup.rb` to 20,000 products and add the
+1. ~~**Product and customer search under row-level security.**~~ Done (Phase 33): the matching runs in
+   `SECURITY DEFINER` functions owned by a role with `BYPASSRLS` that take the shop's id (`SearchFunctions`), so the
+   trigram indexes apply; a test shows the plan. Still to do: grow `perf/setup.rb` to 20,000 products and add the
    catalogue download, category tabs, dashboard and a year's report to the k6 scenario.
 2. ~~**A QZ Tray certificate per shop.**~~ Done (Phase 33): each shop signs with its own key (`Account::QzSigning`).
 3. ~~**Session lifetime and devices.**~~ Done (Phase 33): 14 days idle, 90 days in all, Signed-in devices on My profile.
 4. ~~**Airtel Money callbacks**~~ confirmed with Airtel before crediting, and ~~share links~~ revocable with statements
    fixed to their period. Done (Phase 33).
 5. ~~**Error reporting and uptime alerts**~~ Done (Phase 33): Sentry or email alerts, `PlatformHealth`, `/health`.
-6. **Remaining query hot spots:** a customer's page works out its balance several times; reorder suggestions load
-   every product with a reorder level; the eTIMS retry job sends shop after shop in one run.
-7. **Accessibility checks in CI:** an axe scan of the main screens in the system tests, so regressions are caught.
+6. ~~**Remaining query hot spots.**~~ Done (Phase 33): a customer's page reads its receivables once
+   (`cache_receivables!`); reorder suggestions load only the products that could need ordering; the eTIMS retry job
+   touches only shops with something due, chosen in SQL.
+7. ~~**Accessibility checks in CI.**~~ Done (Phase 33): `script/accessibility_check.mjs` runs axe-core over the
+   main screens of the seeded demo shop in CI and fails on serious or critical violations.
 
 **Features to consider next**, chosen for Kenyan hardware shops and ordered by likely value:
 1. **Customer portal by link:** a signed link (WhatsApp or SMS) to a contractor's statement, open invoices and quotes,

@@ -24,10 +24,15 @@ class Customer < ApplicationRecord
     query = query.to_s.squish
     next all if query.blank?
 
-    # Phone numbers match on their last nine digits, so 0722 000 111 finds +254722000111.
+    # Phone numbers match on their last nine digits, so 0722 000 111 finds +254722000111. The matching runs
+    # in search_customer_ids (SearchFunctions) so the trigram index on name applies under row-level security.
     digits = query.gsub(/\D/, "").last(9)
     phone_match = digits.length >= 4 ? "%#{digits}%" : nil
-    where("customers.name ILIKE :like OR customers.phone LIKE :phone", like: "%#{sanitize_sql_like(query)}%", phone: phone_match)
+    if (shop = Current.account&.id)
+      where("customers.id IN (SELECT search_customer_ids(?, ?, ?))", shop, "%#{sanitize_sql_like(query)}%", phone_match)
+    else
+      where("customers.name ILIKE :like OR customers.phone LIKE :phone", like: "%#{sanitize_sql_like(query)}%", phone: phone_match)
+    end
   end
 
   # Customers pay their account to the Paybill with their phone number as the account number.

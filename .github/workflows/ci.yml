@@ -42,6 +42,28 @@ jobs:
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
+  scan_image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # Brakeman and bundler-audit cover the code and the gems; this covers the operating system packages in the
+      # image HardPoint ships in (the Dockerfile's Ruby base image), weekly as well, so a vulnerable OpenSSL in
+      # the base image is caught before it's deployed. Only fixable high and critical findings fail the build.
+      - name: Read the Ruby base image from the Dockerfile
+        id: base
+        run: echo "image=docker.io/library/ruby:$(sed -n 's/^ARG RUBY_VERSION=//p' Dockerfile)-slim" >> "$GITHUB_OUTPUT"
+
+      - name: Scan the base image for known vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ steps.base.outputs.image }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
   lint:
     runs-on: ubuntu-latest
     env:
@@ -116,7 +138,7 @@ jobs:
 
       # Superusers bypass row-level security, so tests connect as a regular role.
       - name: Create application database role
-        run: psql postgres://postgres:postgres@localhost:5432/postgres -c "CREATE ROLE hardpoint LOGIN CREATEDB NOSUPERUSER NOBYPASSRLS PASSWORD 'hardpoint'"
+        run: psql postgres://postgres:postgres@localhost:5432/postgres -c "CREATE ROLE hardpoint LOGIN CREATEDB NOSUPERUSER NOBYPASSRLS PASSWORD 'hardpoint'" -c "CREATE ROLE hardpoint_search NOLOGIN BYPASSRLS" -c "GRANT hardpoint_search TO hardpoint"
 
       - name: Run tests
         env:
@@ -125,6 +147,55 @@ jobs:
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
+
+  accessibility:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev libvips
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Create application database roles
+        run: psql postgres://postgres:postgres@localhost:5432/postgres -c "CREATE ROLE hardpoint LOGIN CREATEDB NOSUPERUSER NOBYPASSRLS PASSWORD 'hardpoint'" -c "CREATE ROLE hardpoint_search NOLOGIN BYPASSRLS" -c "GRANT hardpoint_search TO hardpoint"
+
+      # The demo shop, served by the app itself, scanned screen by screen with axe-core (script/accessibility_check.mjs).
+      - name: Seed the demo shop and start the app
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://hardpoint:hardpoint@localhost:5432
+        run: |
+          SEED_DEMO=1 bin/rails db:prepare db:seed:replant
+          bin/rails server -p 3000 -d
+          for i in $(seq 1 30); do curl -fs http://localhost:3000/up > /dev/null && break; sleep 1; done
+
+      - name: Scan the main screens for accessibility violations
+        run: |
+          npm install --no-save playwright axe-core
+          npx playwright install --with-deps chromium
+          node script/accessibility_check.mjs
 
   system-test:
     runs-on: ubuntu-latest
@@ -159,7 +230,7 @@ jobs:
 
       # Superusers bypass row-level security, so tests connect as a regular role.
       - name: Create application database role
-        run: psql postgres://postgres:postgres@localhost:5432/postgres -c "CREATE ROLE hardpoint LOGIN CREATEDB NOSUPERUSER NOBYPASSRLS PASSWORD 'hardpoint'"
+        run: psql postgres://postgres:postgres@localhost:5432/postgres -c "CREATE ROLE hardpoint LOGIN CREATEDB NOSUPERUSER NOBYPASSRLS PASSWORD 'hardpoint'" -c "CREATE ROLE hardpoint_search NOLOGIN BYPASSRLS" -c "GRANT hardpoint_search TO hardpoint"
 
       - name: Run System Tests
         env:

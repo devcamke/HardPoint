@@ -3,8 +3,10 @@
 #
 #   TILLS=40 bin/rails runner perf/setup.rb
 #
-# Writes perf/loadtest.json (tills, logins and barcodes) for perf/till.js. Never run in production.
-abort "Not in production" if Rails.env.production?
+# Writes perf/loadtest.json (tills, logins and barcodes) for perf/till.js; OUTPUT=- prints it instead, for
+# running inside a container (staging: bin/kamal app exec -d staging "OUTPUT=- bin/rails runner perf/setup.rb").
+# Never run in production; staging is production's environment with HARDPOINT_ENVIRONMENT=staging.
+abort "Not in production" if Rails.env.production? && !Rails.configuration.x.staging
 
 TILLS = Integer(ENV.fetch("TILLS", 40))
 PRODUCTS = Integer(ENV.fetch("PRODUCTS", 2_000))
@@ -46,7 +48,12 @@ Account.without_isolation do
     end
 
     barcodes = account.barcodes.limit(PRODUCTS).pluck(:code)
-    File.write(Rails.root.join("perf/loadtest.json"), JSON.pretty_generate(host: "loadtest", tills: tills, barcodes: barcodes, searches: %w[ load item group 12 34 ]))
-    puts "loadtest shop: #{tills.size} tills, #{account.products.count} products, #{barcodes.size} barcodes"
+    json = JSON.pretty_generate(host: "loadtest", tills: tills, barcodes: barcodes, searches: %w[ load item group 12 34 ])
+    if ENV["OUTPUT"] == "-"
+      puts json
+    else
+      File.write(ENV.fetch("OUTPUT") { Rails.root.join("perf/loadtest.json") }, json)
+      puts "loadtest shop: #{tills.size} tills, #{account.products.count} products, #{barcodes.size} barcodes"
+    end
   end
 end

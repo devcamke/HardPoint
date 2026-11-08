@@ -36,3 +36,6 @@ perf/loadtest.json
 # Editor tooling the Impeccable design skill installs per machine (Cursor and Grok hooks).
 /.cursor
 /.grok
+
+# Playwright and axe-core for script/help_screenshots.mjs and script/accessibility_check.mjs, installed per machine.
+/node_modules

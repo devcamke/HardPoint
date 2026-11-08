@@ -14,7 +14,8 @@ const VUS = Number(__ENV.VUS || 20)
 const THINK = Number(__ENV.THINK || 1) // seconds between a cashier's actions; 0 for a stress test
 
 export const options = {
-  hosts: { "loadtest.localhost": "127.0.0.1" },
+  // *.localhost resolves to the machine itself only in browsers; k6 needs telling. Against staging, DNS does it.
+  hosts: BASE.includes("localhost") ? { "loadtest.localhost": "127.0.0.1" } : {},
   noCookiesReset: true, // a cashier stays signed in from sale to sale
   scenarios: {
     tills: { executor: "ramping-vus", startVUs: 1, stages: [

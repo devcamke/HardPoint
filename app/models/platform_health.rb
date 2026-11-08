@@ -18,7 +18,7 @@ class PlatformHealth
   def self.check = new.tap(&:checks)
 
   def checks
-    @checks ||= %i[ database replica queue stuck_jobs failed_jobs etims backups email disk ].filter_map { run(_1) }
+    @checks ||= %i[ database replica queue stuck_jobs failed_jobs etims backups email integrity disk ].filter_map { run(_1) }
   end
 
   def ok? = checks.none?(&:failing?)
@@ -114,6 +114,19 @@ class PlatformHealth
       return Check.new(:email, :warning, "#{complaints} spam #{"complaint".pluralize(complaints)} in the last day") if complaints.positive?
 
       Check.new(:email, :ok, "SES sending, #{account.quota_used_percent}% of today's quota used#{", still in the sandbox" unless account.production}")
+    end
+
+    # Last night's integrity checks (IntegrityCheckJob): what they found, and that they ran at all.
+    def integrity
+      last = IntegrityCheck.last
+      return Check.new(:integrity, :ok, "no run recorded yet (nightly at 01:30 UTC)") unless last
+
+      ran_at = last[:ran_at]
+      return Check.new(:integrity, :failing, "last ran #{ran_at.to_date}; the nightly job isn't running") if ran_at < 36.hours.ago
+
+      findings = last[:findings]
+      findings.empty? ? Check.new(:integrity, :ok, "clean at #{ran_at.strftime("%H:%M")} UTC")
+                      : Check.new(:integrity, :warning, "#{findings.size} #{"finding".pluralize(findings.size)} last night: #{findings.map { _1[:check].to_s.humanize }.uniq.join(", ")}")
     end
 
     # Where uploads and scratch files go (the Kamal storage volume in production).

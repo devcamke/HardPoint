@@ -17,6 +17,8 @@ class Etims::Submission < ApplicationRecord
   before_validation(on: :create) { self.invoice_number ||= DocumentSequence.next_number(device.branch, "etims_invoice") }
 
   scope :chronologically, -> { order(created_at: :desc, id: :desc) }
+  # Pending and past its retry gap (2^attempts minutes, at most MAX_RETRY_GAP), the same rule as due_for_retry?.
+  scope :due_for_retry, -> { pending.where("last_attempted_at IS NULL OR last_attempted_at < ?::timestamp - make_interval(mins => LEAST(power(2, attempts), ?)::int)", Time.current.utc, MAX_RETRY_GAP.in_minutes.to_i) }
 
   # Queues a document if its branch has a control unit. A credit note is only needed when the
   # original sale went to KRA.

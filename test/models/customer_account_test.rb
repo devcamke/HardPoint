@@ -38,6 +38,25 @@ class CustomerAccountTest < ActiveSupport::TestCase
     assert_equal old.completed_at.to_date + 30, @customer.due_date_for(old)
   end
 
+  test "a page caches the receivables it shows several times, and a reload forgets them" do
+    account_sale(quantity: 40, days_ago: 45)
+    @customer.cache_receivables!
+
+    queries = 0
+    counter = ->(*) { queries += 1 }
+    ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+      assert_equal 10_000_00, @customer.balance_cents
+      assert_equal 10_000_00, @customer.overdue_cents
+      assert_equal 1, @customer.open_invoices.size
+      assert_equal 40_000_00, @customer.available_credit_cents
+    end
+    assert_equal 0, queries, "everything came from the cache"
+
+    account_sale(quantity: 20, days_ago: 5)
+    assert_equal 10_000_00, @customer.balance_cents, "still the cached figure"
+    assert_equal 15_000_00, @customer.reload.balance_cents
+  end
+
   test "going over the credit limit needs an owner's or manager's approval" do
     account_sale(quantity: 160) # 40,000.00 of 50,000.00
 

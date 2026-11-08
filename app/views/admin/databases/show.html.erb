@@ -28,6 +28,26 @@
   <div class="card"><p class="hint">Cache hits (indexes)</p><p class="text-2xl font-bold tabular-nums <%= "text-red-700" if rates[:indexes] && rates[:indexes] < 99 %>"><%= rates[:indexes] ? "#{rates[:indexes]}%" : "–" %></p></div>
 </div>
 
+<section id="integrity" class="card mb-6 <%= "border-red-200" if @integrity && @integrity[:findings].any? %>">
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <h2 class="text-lg font-semibold">Data integrity</h2>
+    <p class="hint">Nightly (IntegrityCheckJob): receipt numbers with no gaps, stock on hand equal to the ledger, sales paid in full, closed shifts counted, M-Pesa money matched.</p>
+  </div>
+  <% if @integrity.nil? %>
+    <p class="mt-2 text-gray-600">No run recorded yet.</p>
+  <% elsif @integrity[:findings].empty? %>
+    <p class="mt-2"><%= status_dot "Clean", :success %> at <%= l(@integrity[:ran_at], format: :short) %> UTC, across every shop.</p>
+  <% else %>
+    <p class="mt-2 font-semibold text-red-800"><%= pluralize(@integrity[:findings].size, "finding") %> at <%= l(@integrity[:ran_at], format: :short) %> UTC. Each is a bug or tampering until shown otherwise.</p>
+    <table class="table mt-3 text-sm"><tbody>
+      <% @integrity[:findings].each do |finding| %>
+        <% shop = across_accounts { Account.find_by(id: finding[:account_id]) } %>
+        <tr><td class="w-56"><%= shop ? link_to(shop.name, admin_account_path(shop), class: "link") : "Shop #{finding[:account_id]}" %></td><td class="w-40 font-medium"><%= finding[:check].to_s.humanize %></td><td class="text-gray-700"><%= finding[:detail] %></td></tr>
+      <% end %>
+    </tbody></table>
+  <% end %>
+</section>
+
 <% replica = @health.replica %>
 <section id="replica" class="card mb-6 <%= "border-red-200" if replica.error || replica.behind? %>">
   <h2 class="mb-1 text-lg font-semibold">Read replica</h2>

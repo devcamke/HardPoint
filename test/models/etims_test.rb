@@ -96,8 +96,15 @@ class EtimsTest < ActiveSupport::TestCase
     assert submission.pending?
     assert_match "couldn't be reached", submission.last_error
     assert_not submission.due_for_retry?
+    assert_not Etims::Submission.due_for_retry.exists?(submission.id), "the scope agrees"
     travel 3.minutes do
       assert submission.due_for_retry?
+      assert Etims::Submission.due_for_retry.exists?(submission.id)
+      fake_transport(Etims::Client, "/etims-api/saveItem" => JsonHttp::Unreachable.new("still down"))
+      Current.reset
+      assert_difference -> { Account.without_isolation { submission.reload.attempts } }, 1 do
+        Etims::RetryJob.perform_now
+      end
     end
   end
 

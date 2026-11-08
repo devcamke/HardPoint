@@ -6,7 +6,7 @@ class PlatformHealthTest < ActiveSupport::TestCase
 
     assert health.ok?
     assert_equal "ok", health.status
-    assert_equal %i[ database replica etims backups disk ], health.checks.map(&:name), "queue checks only apply with Solid Queue"
+    assert_equal %i[ database replica etims backups integrity disk ], health.checks.map(&:name), "queue and email checks only apply with Solid Queue and SES"
     assert_equal({ status: :ok, detail: "primary answers" }, health.as_json[:checks][:database])
     assert_equal :ok, health.as_json(detail: false)[:checks][:backups]
   end

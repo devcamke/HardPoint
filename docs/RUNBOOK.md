@@ -306,6 +306,14 @@ Somebody is told within minutes when something breaks, in three layers:
    phone, and publish its status page from the help centre. The backup and WAL heartbeats
    (section 2) are the fourth signal: silence from either means backups have stopped.
 
+4. **The books, every night.** `IntegrityCheckJob` (01:30 UTC) runs `IntegrityCheck` across every shop:
+   receipt and return numbers with no gaps per branch, stock on hand equal to the sum of the ledger for
+   every product at every branch, every completed sale's payments adding up to its total, every closed
+   shift counted, and M-Pesa money matched to nothing for more than a day. Findings are emailed to the
+   operators, listed on the admin Database page and reflected in the `integrity` platform check (which
+   also fails if the job hasn't run for 36 hours). A finding is a bug or tampering until shown
+   otherwise: Activity in the shop shows who changed what.
+
 Set `SENTRY_DSN`, `ALERTS_EMAIL` and `HEALTH_TOKEN` in `config/deploy.yml` / `.kamal/secrets`. Alert
 emails are sent straight away over SMTP, not through the job queue, so the queue being down is
 something they can tell you about.
@@ -337,6 +345,14 @@ but staging. Do this monthly as the restore drill, and before a penetration or l
 ## 9. Deploying
 
 - **Staging first**, watch for an hour, then production. `bin/kamal rollback <version>` is the way back.
+- **Before a monthly release, the till under load against staging** (perf/README.md): set the loadtest
+  shop up on staging once (`bin/kamal app exec -d staging "OUTPUT=- TILLS=40 bin/rails runner
+  perf/setup.rb" > perf/loadtest.json`, kept as the repository secret `LOADTEST_JSON`), then run the
+  **Load test** workflow from the Actions tab, or `k6 run -e BASE=https://loadtest.staging.hardpoint.app
+  perf/till.js` locally. It fails if 95% of scans aren't under 500 ms or payments under 800 ms.
+- **CI also scans the Ruby base image** for fixable high and critical vulnerabilities (Trivy, weekly
+  too) and **runs axe-core over the main screens** of the seeded demo shop
+  (`script/accessibility_check.mjs`), failing on serious or critical violations.
 - **Migrations run once per deploy** from the deploying machine: `.kamal/hooks/pre-deploy` runs
   `bin/rails db:migrate` in a throwaway container of the new version on the primary host, before any
   container of that version boots, so two web servers can't race and a failing migration stops the

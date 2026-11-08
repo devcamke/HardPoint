@@ -23,6 +23,49 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
 
 
+--
+-- Name: search_customer_ids(bigint, text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.search_customer_ids(shop bigint, name_pattern text, phone_pattern text) RETURNS SETOF bigint
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+  SELECT c.id FROM customers c WHERE c.account_id = shop AND (c.name ILIKE name_pattern OR (phone_pattern IS NOT NULL AND c.phone LIKE phone_pattern))
+$$;
+
+
+--
+-- Name: search_product_ids(bigint, text[], text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.search_product_ids(shop bigint, patterns text[], barcode text) RETURNS SETOF bigint
+    LANGUAGE plpgsql STABLE SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $_$
+DECLARE conditions text;
+BEGIN
+  -- Every pattern must match the name or the SKU; patterns arrive LIKE-escaped and wrapped in %.
+  SELECT string_agg(format('(p.name ILIKE %L OR p.sku ILIKE %L)', w, w), ' AND ') INTO conditions FROM unnest(patterns) AS w;
+  RETURN QUERY EXECUTE format(
+    'SELECT p.id FROM products p WHERE p.account_id = $1 AND (%s)
+     UNION SELECT b.product_id FROM barcodes b WHERE b.account_id = $1 AND b.code = $2',
+    coalesce(conditions, 'false')) USING shop, barcode;
+END $_$;
+
+
+--
+-- Name: search_supplier_ids(bigint, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.search_supplier_ids(shop bigint, name_pattern text) RETURNS SETOF bigint
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+  SELECT s.id FROM suppliers s WHERE s.account_id = shop AND s.name ILIKE name_pattern
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -9335,6 +9378,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261108140000'),
 ('20261108130000'),
 ('20261108123000'),
 ('20261108122000'),

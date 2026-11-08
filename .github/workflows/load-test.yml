@@ -1,0 +1,48 @@
+# The till under load against staging, before a release (docs/RUNBOOK.md §9, perf/README.md). Run by hand from
+# the Actions tab. Needs the loadtest shop set up on staging first and its perf/loadtest.json kept as the
+# repository secret LOADTEST_JSON (perf/README.md says how). Fails when the thresholds in perf/till.js are missed.
+name: Load test
+
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: The shop to sell in
+        default: https://loadtest.staging.hardpoint.app
+        required: true
+      vus:
+        description: Cashiers selling at once
+        default: "20"
+        required: true
+      hold:
+        description: How long to hold them at full tilt
+        default: 2m
+        required: true
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Place the loadtest shop's tills and barcodes
+        run: |
+          test -n "$LOADTEST_JSON" || { echo "Set the LOADTEST_JSON secret from perf/setup.rb on staging (perf/README.md)"; exit 1; }
+          printf '%s' "$LOADTEST_JSON" > perf/loadtest.json
+        env:
+          LOADTEST_JSON: ${{ secrets.LOADTEST_JSON }}
+
+      - name: Sell
+        run: k6 run -e BASE="${{ inputs.base }}" -e VUS="${{ inputs.vus }}" -e HOLD="${{ inputs.hold }}" --summary-export=perf/summary.json perf/till.js
+
+      - name: Keep the summary
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-summary
+          path: perf/summary.json
+          if-no-files-found: ignore

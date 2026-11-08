@@ -9,6 +9,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres -v passwor
 CREATE ROLE hardpoint LOGIN CREATEDB NOSUPERUSER NOBYPASSRLS PASSWORD :'password';
 -- Lets the admin Database page read query statistics for every role (read-only).
 GRANT pg_read_all_stats TO hardpoint;
+-- Owns the search functions, which run without row-level security so the trigram indexes apply
+-- (app/models/search_functions.rb). It can't log in; the app role may hand the functions to it.
+CREATE ROLE hardpoint_search NOLOGIN BYPASSRLS;
+GRANT hardpoint_search TO hardpoint;
 CREATE DATABASE hardpoint_production OWNER hardpoint;
 SQL
 

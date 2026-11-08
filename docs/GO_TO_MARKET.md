@@ -360,8 +360,8 @@ any other single thing.
 
 ### Data integrity checks
 
-Money software earns trust by never being wrong, not by being fast. Add a nightly job that checks
-and reports, per shop, to `Rails.error` and the admin:
+Money software earns trust by never being wrong, not by being fast. `IntegrityCheckJob` now runs these
+every night, per shop, emailing the operators and listing findings on the admin Database page:
 
 - Receipt numbers per branch have no gaps (`DocumentSequence`).
 - Each product's stock on hand equals the sum of its ledger (`stock_movements`) at every branch.
