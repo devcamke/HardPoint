@@ -1,43 +1,54 @@
 <% trial = Plan::TRIAL.inspect %>
 <% structured_data seo_organization, seo_software(@plans) %>
+<%# One brand colour throughout: the icons sit on a pale teal tile rather than each feature having a colour of its own,
+    so the page reads as HardPoint and not as a dozen apps. %>
 <% features = [
-  [ "Point of Sale", "#e46f2f", :till, "Scan, search or tap a product and confirm how many. Sell by the metre, kilo or pack, park sales and split payments." ],
-  [ "Touch screens and phones", "#c2571d", :products, "Finger-sized buttons, categories and a number pad on POS terminals and tablets. Phones show the products and the sale as two tabs." ],
-  [ "M-Pesa, Airtel Money and card", "#4d9f6f", :sales, "Payment prompts from the till, Paybill and Till payments matched to sales, and cash, card, foreign notes or on account." ],
-  [ "KRA eTIMS", "#3f7fbf", :purchasing, "Every sale, void and return signed by KRA, one control unit per branch. The QR code prints on the receipt." ],
-  [ "Offline till", "#6c757d", :dashboard, "Keeps selling from its own copy of the catalogue, customers and promotions, and sends the sales when it reconnects." ],
-  [ "Shifts and cash", "#b8860b", :settings, "Opening float, cash drops and payouts, X and Z reports, a blind count at close, and manager approval PINs." ],
-  [ "Inventory", "#26a69a", :stock, "Stock per branch, transfers, stock takes, reorder levels, batches and expiry, barcode labels and a phone app for counting." ],
-  [ "Purchasing", "#8e6bbf", :purchasing, "Purchase orders by email, reorder suggestions, goods received with landed costs, supplier invoices, payments and returns." ],
-  [ "Customers and accounts", "#d9534f", :staff, "Quotes, orders with deposits, credit limits, statements, price lists, promotions, and receipts by SMS or WhatsApp." ],
-  [ "Contractors and deliveries", "#a0522d", :sales, "Tag purchases to a contractor's job and bill their client. Delivery notes with transport charges and proof of delivery." ],
-  [ "Online store", "#0f5e6e", :products, "Your own shop page for click-and-collect, paid ahead by M-Pesa or on collection." ],
-  [ "Reports and dashboard", "#5b8def", :reports, "A live dashboard, and sales, profit, VAT, stock and shift reports to print or export. Daily summary email and QuickBooks export." ]
+  [ "Point of Sale", :till, "Scan, search or tap a product and confirm how many. Sell by the metre, kilo or pack, park sales and split payments." ],
+  [ "Touch screens and phones", :products, "Finger-sized buttons, categories and a number pad on POS terminals and tablets. Phones show the products and the sale as two tabs." ],
+  [ "M-Pesa, Airtel Money and card", :sales, "Payment prompts from the till, Paybill and Till payments matched to sales, and cash, card, foreign notes or on account." ],
+  [ "KRA eTIMS", :purchasing, "Every sale, void and return signed by KRA, one control unit per branch. The QR code prints on the receipt." ],
+  [ "Offline till", :dashboard, "Keeps selling from its own copy of the catalogue, customers and promotions, and sends the sales when it reconnects." ],
+  [ "Shifts and cash", :settings, "Opening float, cash drops and payouts, X and Z reports, a blind count at close, and manager approval PINs." ],
+  [ "Inventory", :stock, "Stock per branch, transfers, stock takes, reorder levels, batches and expiry, barcode labels and a phone app for counting." ],
+  [ "Purchasing", :purchasing, "Purchase orders by email, reorder suggestions, goods received with landed costs, supplier invoices, payments and returns." ],
+  [ "Customers and accounts", :staff, "Quotes, orders with deposits, credit limits, statements, price lists, promotions, and receipts by SMS or WhatsApp." ],
+  [ "Contractors and deliveries", :sales, "Tag purchases to a contractor's job and bill their client. Delivery notes with transport charges and proof of delivery." ],
+  [ "Online store", :products, "Your own shop page for click-and-collect, paid ahead by M-Pesa or on collection." ],
+  [ "Reports and dashboard", :reports, "A live dashboard, and sales, profit, VAT, stock and shift reports to print or export. Daily summary email and QuickBooks export." ]
 ] %>
 
-<section class="bg-white">
-  <div class="mx-auto max-w-4xl px-4 pt-16 pb-12 text-center lg:pt-24">
-    <h1 class="text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">Point of sale and stock control for hardware stores</h1>
+<section class="overflow-hidden bg-linear-to-b from-primary-50 via-white to-white">
+  <div class="mx-auto max-w-4xl px-4 pt-16 pb-10 text-center lg:pt-24">
+    <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Built for hardware stores in Kenya</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">Point of sale and stock control for hardware stores</h1>
     <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600">Sell at the counter or on a tablet, track stock across branches, take M-Pesa and Airtel Money,
       and send every sale to KRA eTIMS. The till keeps working when the internet is down.</p>
     <div class="mt-8 flex flex-wrap justify-center gap-3">
       <%= link_to "Start free trial", new_signup_path, class: "btn-primary px-5 py-2.5 text-base" %>
-      <%= link_to "See pricing", pricing_path, class: "btn-secondary px-5 py-2.5 text-base" %>
+      <%= link_to "See pricing", pricing_path, class: "btn-secondary border-gray-300 bg-white px-5 py-2.5 text-base hover:bg-gray-50" %>
     </div>
     <p class="mt-3 text-sm text-gray-500"><%= trial.capitalize %> free. No card needed.</p>
+    <ul class="mt-10 flex flex-wrap justify-center gap-x-7 gap-y-2.5 text-sm font-medium text-gray-700">
+      <% [ "M-Pesa and Airtel Money", "KRA eTIMS built in", "Sells with the internet down", "Tablets, touch screens and phones" ].each do |item| %>
+        <li class="flex items-center gap-1.5"><%= render "pages/check" %><%= item %></li>
+      <% end %>
+    </ul>
   </div>
   <div class="mx-auto max-w-5xl px-4">
-    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard", class: "w-full rounded-t-lg border border-b-0 border-gray-200 shadow-xl", width: 1280, height: 800 %>
+    <div class="rounded-t-xl border border-b-0 border-primary-200 bg-primary-100/70 p-2 pb-0 shadow-xl shadow-primary-900/10">
+      <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard", class: "w-full rounded-t-lg border border-b-0 border-primary-200", width: 1280, height: 800 %>
+    </div>
   </div>
 </section>
 
 <section id="features" class="border-t border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-6xl px-4 py-16">
     <h2 class="text-center text-2xl font-semibold">What's included</h2>
+    <p class="mx-auto mt-2 max-w-2xl text-center text-gray-600">Everything the counter, the yard and the office need, on every plan.</p>
     <div class="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-      <% features.each do |title, color, icon, body| %>
+      <% features.each do |title, icon, body| %>
         <div class="flex gap-4">
-          <span class="flex size-12 shrink-0 items-center justify-center rounded-lg text-white" style="background: <%= color %>">
+          <span class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary-100 text-primary-700">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="size-6" aria-hidden="true"><path d="<%= NavigationHelper::ICONS.fetch(icon) %>"/></svg>
           </span>
           <div>
@@ -80,12 +91,16 @@
   </div>
 </section>
 
-<section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-10">
-    <p class="text-lg">Questions? Message us on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>
+<%# The page closes on a band of the brand colour, so the last thing seen is HardPoint and the two ways to act. %>
+<section class="bg-primary-700 text-white">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-4 py-12">
+    <div>
+      <h2 class="text-2xl font-semibold">Questions? Talk to a person.</h2>
+      <p class="mt-1 text-primary-100">Message us on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "font-medium text-white underline decoration-primary-300 underline-offset-2 hover:decoration-white" %>.</p>
+    </div>
     <div class="flex flex-wrap gap-3">
-      <%= link_to "WhatsApp us", whatsapp_support_url("Hello HardPoint, I'd like to know more about the POS."), class: "btn-secondary", target: "_blank", rel: "noopener" %>
-      <%= link_to "Start free trial", new_signup_path, class: "btn-primary" %>
+      <%= link_to "WhatsApp us", whatsapp_support_url("Hello HardPoint, I'd like to know more about the POS."), class: "btn border border-white/40 text-white hover:bg-white/10 px-5 py-2.5 text-base", target: "_blank", rel: "noopener" %>
+      <%= link_to "Start free trial", new_signup_path, class: "btn border border-white bg-white text-primary-700 hover:bg-primary-50 px-5 py-2.5 text-base" %>
     </div>
   </div>
 </section>
