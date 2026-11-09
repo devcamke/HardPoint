@@ -59,6 +59,7 @@ class StockBatchesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "a sale shows the batches it took" do
+    acme { @batch.update!(expires_on: 30.days.from_now.to_date) } # in date: expired stock can't be sold
     sale = as_acme do
       shifts(:acme_front_open).current_sale.tap do |sale|
         sale.add(@cement, quantity: @cement.unbatched_stock_at(branches(:acme_main)) + 2)
