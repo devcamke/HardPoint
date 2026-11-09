@@ -1,11 +1,27 @@
 <% content_for :title, "Void sale" %>
 
 <h1 class="mb-2 text-xl font-medium"><%= link_to "#{@sale.receipt_number}", @sale, class: "link" %> <span class="text-gray-400">/</span> Void <%= @sale.receipt_number %></h1>
-<p class="hint mb-6"><%= money(@sale.total_cents) %> · stock goes back and it stops counting in this shift's takings. Give back any money received.</p>
+<p class="hint mb-6"><%= money(@sale.total_cents) %> · stock goes back and it stops counting in this shift's takings. Say how the money goes back.</p>
 
 <%= form_with url: sale_void_path(@sale), class: "card max-w-md" do |form| %>
   <% if flash.now[:alert] %><p id="alert" class="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-800"><%= flash.now[:alert] %></p><% end %>
   <div class="field"><%= form.label :reason, class: "label" %><%= form.text_field :reason, value: params[:reason], required: true, class: "input", placeholder: "e.g. Rang up twice" %></div>
+  <% if @sale.default_void_refund_method || @sale.payments.any? %>
+    <fieldset class="field space-y-2">
+      <legend class="label">How the <%= money(@sale.total_cents) %> goes back</legend>
+      <p class="hint mb-1">Paid <%= @sale.payments.map { "#{_1.label} #{money(_1.amount_cents)}" }.to_sentence %>.</p>
+      <% methods = [ [ "cash", "Cash, from this till's drawer" ], [ "mobile_money", "M-Pesa reversal" ], [ "airtel_money", "Airtel Money reversal" ], [ "card", "Refund to the card" ],
+                     ([ "on_account", "Credit to #{@sale.customer.name}'s account" ] if @sale.customer) ].compact
+         chosen = params[:refund_method].presence_in(methods.map(&:first)) || @sale.default_void_refund_method || "cash" %>
+      <% methods.each do |value, label| %>
+        <label class="flex items-center gap-2 text-sm"><%= radio_button_tag :refund_method, value, value == chosen, class: "accent-primary-500" %> <%= label %></label>
+      <% end %>
+    </fieldset>
+    <div class="field">
+      <%= form.label :refund_reference, "Reversal code (M-Pesa or Airtel Money)", class: "label" %>
+      <%= form.text_field :refund_reference, value: params[:refund_reference], autocomplete: "off", class: "input font-mono uppercase", placeholder: "e.g. SJK4H7T2QP" %>
+    </div>
+  <% end %>
   <% unless current_membership.approver? %>
     <div class="field"><%= form.label :approval_pin, "Manager approval PIN", class: "label" %><%= form.password_field :approval_pin, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %></div>
   <% end %>

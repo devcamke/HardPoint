@@ -182,7 +182,8 @@ CREATE TABLE public.accounts (
     billing_interval character varying DEFAULT 'monthly'::character varying NOT NULL,
     qz_private_key text,
     qz_certificate text,
-    terms_accepted_at timestamp(6) without time zone
+    terms_accepted_at timestamp(6) without time zone,
+    payout_approval_above_cents bigint DEFAULT 500000 NOT NULL
 );
 
 
@@ -966,6 +967,42 @@ ALTER SEQUENCE public.customer_orders_id_seq OWNED BY public.customer_orders.id;
 
 
 --
+-- Name: customer_payment_allocations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.customer_payment_allocations (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    customer_payment_id bigint NOT NULL,
+    sale_id bigint NOT NULL,
+    amount_cents bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.customer_payment_allocations FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: customer_payment_allocations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.customer_payment_allocations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: customer_payment_allocations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.customer_payment_allocations_id_seq OWNED BY public.customer_payment_allocations.id;
+
+
+--
 -- Name: customer_payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -977,10 +1014,13 @@ CREATE TABLE public.customer_payments (
     creator_id bigint,
     paid_on date NOT NULL,
     amount_cents bigint NOT NULL,
-    payment_method character varying NOT NULL,
+    payment_method character varying,
     reference character varying,
     note character varying,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    kind character varying DEFAULT 'payment'::character varying NOT NULL,
+    reason character varying,
+    approver_id bigint
 );
 
 ALTER TABLE ONLY public.customer_payments FORCE ROW LEVEL SECURITY;
@@ -1461,7 +1501,9 @@ CREATE TABLE public.goods_receipt_lines (
     unit_cost_cents bigint NOT NULL,
     landed_unit_cost_cents bigint DEFAULT 0 NOT NULL,
     batch_number character varying,
-    expires_on date
+    expires_on date,
+    product_unit_id bigint,
+    pack_quantity numeric(14,3)
 );
 
 ALTER TABLE ONLY public.goods_receipt_lines FORCE ROW LEVEL SECURITY;
@@ -1758,7 +1800,8 @@ CREATE TABLE public.mpesa_transactions (
     matched_id bigint,
     matched_at timestamp(6) without time zone,
     payload jsonb DEFAULT '{}'::jsonb NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    refunded_at timestamp(6) without time zone
 );
 
 ALTER TABLE ONLY public.mpesa_transactions FORCE ROW LEVEL SECURITY;
@@ -2085,7 +2128,9 @@ CREATE TABLE public.purchase_order_lines (
     received_quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
     unit_cost_cents bigint DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    product_unit_id bigint,
+    pack_quantity numeric(14,3)
 );
 
 ALTER TABLE ONLY public.purchase_order_lines FORCE ROW LEVEL SECURITY;
@@ -2352,7 +2397,9 @@ CREATE TABLE public.sales (
     credit_approver_id bigint,
     offline_uuid uuid,
     offline_receipt_number character varying,
-    job_id bigint
+    job_id bigint,
+    void_refund_method character varying,
+    void_refund_reference character varying
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -2718,7 +2765,8 @@ CREATE TABLE public.stock_levels (
     product_id bigint NOT NULL,
     quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reorder_level numeric(14,3)
 );
 
 ALTER TABLE ONLY public.stock_levels FORCE ROW LEVEL SECURITY;
@@ -2797,7 +2845,8 @@ CREATE TABLE public.stock_transfer_lines (
     product_id bigint NOT NULL,
     quantity numeric(14,3) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    received_quantity numeric(14,3)
 );
 
 ALTER TABLE ONLY public.stock_transfer_lines FORCE ROW LEVEL SECURITY;
@@ -2838,7 +2887,8 @@ CREATE TABLE public.stock_transfers (
     sent_at timestamp(6) without time zone,
     received_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    shortfall character varying
 );
 
 ALTER TABLE ONLY public.stock_transfers FORCE ROW LEVEL SECURITY;
@@ -3586,6 +3636,13 @@ ALTER TABLE ONLY public.customer_orders ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: customer_payment_allocations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations ALTER COLUMN id SET DEFAULT nextval('public.customer_payment_allocations_id_seq'::regclass);
+
+
+--
 -- Name: customer_payments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4195,6 +4252,14 @@ ALTER TABLE ONLY public.customer_order_lines
 
 ALTER TABLE ONLY public.customer_orders
     ADD CONSTRAINT customer_orders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: customer_payment_allocations customer_payment_allocations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations
+    ADD CONSTRAINT customer_payment_allocations_pkey PRIMARY KEY (id);
 
 
 --
@@ -5134,10 +5199,38 @@ CREATE UNIQUE INDEX index_customer_orders_on_tracking_token ON public.customer_o
 
 
 --
+-- Name: index_customer_payment_allocations_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payment_allocations_on_account_id ON public.customer_payment_allocations USING btree (account_id);
+
+
+--
+-- Name: index_customer_payment_allocations_on_customer_payment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payment_allocations_on_customer_payment_id ON public.customer_payment_allocations USING btree (customer_payment_id);
+
+
+--
+-- Name: index_customer_payment_allocations_on_sale_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payment_allocations_on_sale_id ON public.customer_payment_allocations USING btree (sale_id);
+
+
+--
 -- Name: index_customer_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_customer_payments_on_account_id ON public.customer_payments USING btree (account_id);
+
+
+--
+-- Name: index_customer_payments_on_approver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payments_on_approver_id ON public.customer_payments USING btree (approver_id);
 
 
 --
@@ -5418,6 +5511,13 @@ CREATE INDEX index_goods_receipt_lines_on_goods_receipt_id ON public.goods_recei
 --
 
 CREATE INDEX index_goods_receipt_lines_on_product_id ON public.goods_receipt_lines USING btree (product_id);
+
+
+--
+-- Name: index_goods_receipt_lines_on_product_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipt_lines_on_product_unit_id ON public.goods_receipt_lines USING btree (product_unit_id);
 
 
 --
@@ -5796,6 +5896,13 @@ CREATE INDEX index_purchase_order_lines_on_account_id ON public.purchase_order_l
 --
 
 CREATE INDEX index_purchase_order_lines_on_product_id ON public.purchase_order_lines USING btree (product_id);
+
+
+--
+-- Name: index_purchase_order_lines_on_product_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_purchase_order_lines_on_product_unit_id ON public.purchase_order_lines USING btree (product_unit_id);
 
 
 --
@@ -6941,6 +7048,14 @@ ALTER TABLE ONLY public.stock_counts
 
 
 --
+-- Name: customer_payments fk_rails_202ffd0039; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payments
+    ADD CONSTRAINT fk_rails_202ffd0039 FOREIGN KEY (approver_id) REFERENCES public.users(id) DEFERRABLE NOT VALID;
+
+
+--
 -- Name: delivery_notes fk_rails_22240bc03a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7261,6 +7376,14 @@ ALTER TABLE ONLY public.account_exports
 
 
 --
+-- Name: customer_payment_allocations fk_rails_57fc2d96e3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations
+    ADD CONSTRAINT fk_rails_57fc2d96e3 FOREIGN KEY (sale_id) REFERENCES public.sales(id) DEFERRABLE;
+
+
+--
 -- Name: price_list_items fk_rails_592b3cdaf4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7394,6 +7517,14 @@ ALTER TABLE ONLY public.customer_order_lines
 
 ALTER TABLE ONLY public.airtel_requests
     ADD CONSTRAINT fk_rails_66fb7058c1 FOREIGN KEY (requested_by_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: goods_receipt_lines fk_rails_679c903fb8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipt_lines
+    ADD CONSTRAINT fk_rails_679c903fb8 FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) DEFERRABLE NOT VALID;
 
 
 --
@@ -7594,6 +7725,14 @@ ALTER TABLE ONLY public.price_lists
 
 ALTER TABLE ONLY public.sale_returns
     ADD CONSTRAINT fk_rails_7ef5cafe23 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: customer_payment_allocations fk_rails_8036134554; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations
+    ADD CONSTRAINT fk_rails_8036134554 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -8493,6 +8632,14 @@ ALTER TABLE ONLY public.products
 
 
 --
+-- Name: customer_payment_allocations fk_rails_fc0ca6baf0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations
+    ADD CONSTRAINT fk_rails_fc0ca6baf0 FOREIGN KEY (customer_payment_id) REFERENCES public.customer_payments(id) DEFERRABLE;
+
+
+--
 -- Name: promotions fk_rails_fc30c0fce7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8506,6 +8653,14 @@ ALTER TABLE ONLY public.promotions
 
 ALTER TABLE ONLY public.stock_transfers
     ADD CONSTRAINT fk_rails_fcc993a913 FOREIGN KEY (from_branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: purchase_order_lines fk_rails_fce507dece; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_order_lines
+    ADD CONSTRAINT fk_rails_fce507dece FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) DEFERRABLE NOT VALID;
 
 
 --
@@ -8630,6 +8785,13 @@ CREATE POLICY account_isolation ON public.customer_order_lines USING (((current_
 --
 
 CREATE POLICY account_isolation ON public.customer_orders USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: customer_payment_allocations account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.customer_payment_allocations USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -9123,6 +9285,12 @@ ALTER TABLE public.customer_order_lines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customer_orders ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: customer_payment_allocations; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.customer_payment_allocations ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: customer_payments; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9478,6 +9646,13 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20261110110000'),
+('20261110100100'),
+('20261110100000'),
+('20261109210000'),
+('20261109200100'),
+('20261109200000'),
+('20261109190100'),
+('20261109190000'),
 ('20261109180000'),
 ('20261109170000'),
 ('20261109160000'),

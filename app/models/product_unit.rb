@@ -5,6 +5,9 @@ class ProductUnit < ApplicationRecord
   belongs_to :product
   belongs_to :unit
   has_many :barcodes, dependent: :destroy
+  # Orders and deliveries entered in this pack keep pointing at it, so it can't go while they do.
+  has_many :purchase_order_lines, dependent: :restrict_with_error
+  has_many :goods_receipt_lines, dependent: :restrict_with_error
 
   money_attribute :price
 

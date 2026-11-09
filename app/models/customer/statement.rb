@@ -1,5 +1,6 @@
 # A customer's statement for a period: the balance brought forward, each account sale, return
-# credited and payment in the period with a running balance, and the ageing at the end.
+# credited, payment, refund and write-off in the period with a running balance, and the ageing at
+# the end of the period (settling only what had happened by then, so it adds up to the balance due).
 class Customer::Statement
   Entry = Data.define(:date, :description, :reference, :charge_cents, :credit_cents, :balance_cents)
 
@@ -52,9 +53,11 @@ class Customer::Statement
       end
     end
 
+    # Payments and write-offs are credits; a refund of credit (kept as a negative payment) is a charge.
     def payments
       customer.customer_payments.map do |payment|
-        { date: payment.paid_on, order: 2, description: "Payment, #{payment.payment_method.humanize.downcase}", reference: payment.reference.to_s, charge: 0, credit: payment.amount_cents }
+        { date: payment.paid_on, order: 2, description: payment.description, reference: payment.reference.to_s,
+          charge: [ -payment.amount_cents, 0 ].max, credit: [ payment.amount_cents, 0 ].max }
       end
     end
 

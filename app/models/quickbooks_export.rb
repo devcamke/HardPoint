@@ -22,6 +22,7 @@ class QuickbooksExport
     "vat_input" => [ "VAT on purchases", "VAT Input" ],
     "cost_of_sales" => [ "Cost of what was sold", "Cost of Goods Sold" ],
     "inventory" => [ "Stock", "Inventory Asset" ],
+    "bad_debt" => [ "Customer debts written off", "Bad Debts" ],
     "points" => [ "Old loyalty-points payments", "Loyalty Points Redeemed" ]
   }.freeze
 
@@ -181,12 +182,24 @@ class QuickbooksExport
       end
     end
 
+    # A payment moves money in against what's owed; a refund of credit (a negative payment) moves it back out;
+    # a write-off is the debt given up, an expense.
     def customer_payment_entries
       account.customer_payments.where(paid_on: month..month.end_of_month).includes(:customer).to_a.group_by(&:paid_on).map do |date, payments|
         lines = payments.flat_map do |payment|
-          description = [ "Payment", payment.reference ].compact.join(" ")
-          [ debit(TENDER_ACCOUNTS.fetch(payment.payment_method, "bank"), payment.amount_cents, name: payment.customer.name, description:),
-            credit("receivable", payment.amount_cents, name: payment.customer.name, description:) ]
+          name = payment.customer.name
+          if payment.write_off?
+            description = "Written off: #{payment.reason}"
+            [ debit("bad_debt", payment.amount_cents, name:, description:), credit("receivable", payment.amount_cents, name:, description:) ]
+          elsif payment.refund?
+            description = [ "Credit refunded", payment.reference ].compact.join(" ")
+            [ debit("receivable", payment.amount_cents.abs, name:, description:),
+              credit(TENDER_ACCOUNTS.fetch(payment.payment_method, "bank"), payment.amount_cents.abs, name:, description:) ]
+          else
+            description = [ "Payment", payment.reference ].compact.join(" ")
+            [ debit(TENDER_ACCOUNTS.fetch(payment.payment_method, "bank"), payment.amount_cents, name:, description:),
+              credit("receivable", payment.amount_cents, name:, description:) ]
+          end
         end
         Entry.new(date, "Customers paying their accounts", lines)
       end
