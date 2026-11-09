@@ -1,0 +1,23 @@
+<%# Which unpaid sales this entry is put against. Leaving every box blank settles the oldest first. %>
+<% open_invoices = customer.open_invoices %>
+<% if open_invoices.any? %>
+  <fieldset class="field">
+    <legend class="label">Put against particular sales (optional)</legend>
+    <p class="hint mb-2">Leave these blank to settle the oldest sales first. Fill in an amount to <%= verb %> that sale and leave the others open.</p>
+    <table class="table">
+      <thead><tr><th>Sale</th><th>Due</th><th class="text-right">Still owed</th><th class="text-right">Amount</th></tr></thead>
+      <tbody>
+        <% open_invoices.each do |open| %>
+          <% given = entry.allocations.find { _1.sale_id == open.sale.id } %>
+          <tr>
+            <td class="font-mono"><%= open.sale.receipt_number %></td>
+            <td class="whitespace-nowrap <%= "font-semibold text-red-700" if open.days_overdue.positive? %>"><%= l(open.due_date, format: :long) %></td>
+            <td class="text-right tabular-nums"><%= money(open.outstanding_cents) %></td>
+            <td class="text-right"><%= number_field_tag "customer_payment[allocations][#{open.sale.id}]", (plain_number(given.amount) if given), step: "0.01", inputmode: "decimal", min: 0,
+                  max: plain_number(BigDecimal(open.outstanding_cents) / 100), class: "input w-32 text-right", "aria-label": "Amount against #{open.sale.receipt_number}" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </fieldset>
+<% end %>

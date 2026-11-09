@@ -24,6 +24,9 @@ module EventsHelper
     in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"
     in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{event.particulars["approver"]}"
     in [ "CustomerOrder", "part_collected" ] then "collected part of #{subject} (#{event.particulars["receipt_number"]}); still waiting: #{Array(event.particulars["remaining"]).to_sentence}"
+    in [ "Customer", "paid" ] then "took #{money(event.particulars["amount"])} from #{subject} on account by #{event.particulars["payment_method"].to_s.humanize.downcase}#{" (#{event.particulars["reference"]})" if event.particulars["reference"].present?}"
+    in [ "Customer", "credit_refunded" ] then "refunded #{money(event.particulars["amount"])} of account credit to #{subject} by #{event.particulars["payment_method"].to_s.humanize.downcase}"
+    in [ "Customer", "written_off" ] then "wrote off #{money(event.particulars["amount"])} of #{subject}'s account, approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
     in [ "CustomerOrder", "deposit_kept" ] then "kept the #{money(event.particulars["amount"])} deposit on #{subject} (#{event.particulars["receipt_number"]}), approved by #{event.particulars["approver"]}#{": #{event.particulars["reason"]}" if event.particulars["reason"].present?}"
     in [ _, "offline_sale_refused" ] then "rang up offline sale #{event.particulars["receipt_number"] || "without a number"} for #{money(event.particulars["total"])}" \
       "#{" on #{subject}" if event.eventable_type == "Register"}#{" at #{Time.zone.parse(event.particulars["happened_at"]).to_fs(:short)}" if event.particulars["happened_at"]}, " \

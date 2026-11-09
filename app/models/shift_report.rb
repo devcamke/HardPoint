@@ -46,8 +46,9 @@ class ShiftReport
     shift.deposits.group(:tender).sum(:amount_cents)
   end
 
+  # Payments less refunds of credit, by method; a write-off isn't money and never has a shift.
   def account_payments_by_method
-    shift.customer_payments.group(:payment_method).sum(:amount_cents)
+    shift.customer_payments.money.group(:payment_method).sum(:amount_cents)
   end
 
   def returns_count

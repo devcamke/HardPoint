@@ -59,8 +59,10 @@ class Report::Payments < Report
       payments = account.customer_payments.where(paid_on: period.dates)
       payments = payments.joins(:shift).where(shifts: { branch_id: branch.id }) if branch
 
+      # Write-offs aren't money, so they aren't here; refunds of account credit are money out, shown negative.
       deposits.where("amount_cents > 0").group(:tender).sum(:amount_cents).map { |tender, cents| [ "Deposits on orders", tender.humanize, cents ] } +
         deposits.where("amount_cents < 0").group(:tender).sum(:amount_cents).map { |tender, cents| [ "Deposits refunded", tender.humanize, cents ] } +
-        payments.group(:payment_method).sum(:amount_cents).map { |method, cents| [ "Payments on account", method.humanize, cents ] }
+        payments.payments.group(:payment_method).sum(:amount_cents).map { |method, cents| [ "Payments on account", method.humanize, cents ] } +
+        payments.refunds.group(:payment_method).sum(:amount_cents).map { |method, cents| [ "Account credit refunded", method.humanize, cents ] }
     end
 end

@@ -967,6 +967,42 @@ ALTER SEQUENCE public.customer_orders_id_seq OWNED BY public.customer_orders.id;
 
 
 --
+-- Name: customer_payment_allocations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.customer_payment_allocations (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    customer_payment_id bigint NOT NULL,
+    sale_id bigint NOT NULL,
+    amount_cents bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.customer_payment_allocations FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: customer_payment_allocations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.customer_payment_allocations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: customer_payment_allocations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.customer_payment_allocations_id_seq OWNED BY public.customer_payment_allocations.id;
+
+
+--
 -- Name: customer_payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -978,10 +1014,13 @@ CREATE TABLE public.customer_payments (
     creator_id bigint,
     paid_on date NOT NULL,
     amount_cents bigint NOT NULL,
-    payment_method character varying NOT NULL,
+    payment_method character varying,
     reference character varying,
     note character varying,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    kind character varying DEFAULT 'payment'::character varying NOT NULL,
+    reason character varying,
+    approver_id bigint
 );
 
 ALTER TABLE ONLY public.customer_payments FORCE ROW LEVEL SECURITY;
@@ -3561,6 +3600,13 @@ ALTER TABLE ONLY public.customer_orders ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: customer_payment_allocations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations ALTER COLUMN id SET DEFAULT nextval('public.customer_payment_allocations_id_seq'::regclass);
+
+
+--
 -- Name: customer_payments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4163,6 +4209,14 @@ ALTER TABLE ONLY public.customer_order_lines
 
 ALTER TABLE ONLY public.customer_orders
     ADD CONSTRAINT customer_orders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: customer_payment_allocations customer_payment_allocations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations
+    ADD CONSTRAINT customer_payment_allocations_pkey PRIMARY KEY (id);
 
 
 --
@@ -5094,10 +5148,38 @@ CREATE UNIQUE INDEX index_customer_orders_on_tracking_token ON public.customer_o
 
 
 --
+-- Name: index_customer_payment_allocations_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payment_allocations_on_account_id ON public.customer_payment_allocations USING btree (account_id);
+
+
+--
+-- Name: index_customer_payment_allocations_on_customer_payment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payment_allocations_on_customer_payment_id ON public.customer_payment_allocations USING btree (customer_payment_id);
+
+
+--
+-- Name: index_customer_payment_allocations_on_sale_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payment_allocations_on_sale_id ON public.customer_payment_allocations USING btree (sale_id);
+
+
+--
 -- Name: index_customer_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_customer_payments_on_account_id ON public.customer_payments USING btree (account_id);
+
+
+--
+-- Name: index_customer_payments_on_approver_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payments_on_approver_id ON public.customer_payments USING btree (approver_id);
 
 
 --
@@ -6894,6 +6976,14 @@ ALTER TABLE ONLY public.stock_counts
 
 
 --
+-- Name: customer_payments fk_rails_202ffd0039; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payments
+    ADD CONSTRAINT fk_rails_202ffd0039 FOREIGN KEY (approver_id) REFERENCES public.users(id) DEFERRABLE NOT VALID;
+
+
+--
 -- Name: delivery_notes fk_rails_22240bc03a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7211,6 +7301,14 @@ ALTER TABLE ONLY public.stock_levels
 
 ALTER TABLE ONLY public.account_exports
     ADD CONSTRAINT fk_rails_562f28f6a4 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: customer_payment_allocations fk_rails_57fc2d96e3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations
+    ADD CONSTRAINT fk_rails_57fc2d96e3 FOREIGN KEY (sale_id) REFERENCES public.sales(id) DEFERRABLE;
 
 
 --
@@ -7555,6 +7653,14 @@ ALTER TABLE ONLY public.price_lists
 
 ALTER TABLE ONLY public.sale_returns
     ADD CONSTRAINT fk_rails_7ef5cafe23 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: customer_payment_allocations fk_rails_8036134554; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations
+    ADD CONSTRAINT fk_rails_8036134554 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -8430,6 +8536,14 @@ ALTER TABLE ONLY public.products
 
 
 --
+-- Name: customer_payment_allocations fk_rails_fc0ca6baf0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_payment_allocations
+    ADD CONSTRAINT fk_rails_fc0ca6baf0 FOREIGN KEY (customer_payment_id) REFERENCES public.customer_payments(id) DEFERRABLE;
+
+
+--
 -- Name: promotions fk_rails_fc30c0fce7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8575,6 +8689,13 @@ CREATE POLICY account_isolation ON public.customer_order_lines USING (((current_
 --
 
 CREATE POLICY account_isolation ON public.customer_orders USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: customer_payment_allocations account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.customer_payment_allocations USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -9061,6 +9182,12 @@ ALTER TABLE public.customer_order_lines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customer_orders ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: customer_payment_allocations; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.customer_payment_allocations ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: customer_payments; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9409,6 +9536,8 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261110100100'),
+('20261110100000'),
 ('20261109210000'),
 ('20261109200100'),
 ('20261109200000'),

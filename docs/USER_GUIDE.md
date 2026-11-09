@@ -720,7 +720,7 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 
 #### Payments and statements
 
-Press **Record payment** on the customer to take money against their account; it settles their oldest sales first. **Statement** prints or emails what's owed and how old it is, and balance reminders can go by SMS. **Customers › Who owes us** lists every customer's balance by how late it is.
+Press **Record payment** on the customer to take money against their account; it settles their oldest sales first unless you fill in amounts under **Put against particular sales**, which pays those sales and leaves the others (a disputed invoice, say) open. If they've paid more than they owe, **Refund credit** hands the credit back; cash goes out of this device's till. A debt the shop has given up on is removed with **Write off**: an owner or manager approves it (an accountant types a manager's approval PIN) with a reason, and it stays on the statement and in Activity. **Statement** prints or emails what's owed and how old it is at the end of the period, and balance reminders can go by SMS. **Customers › Who owes us** lists every customer's balance by how late it is.
 
 #### Deliveries
 
