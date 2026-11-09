@@ -30,7 +30,24 @@ class StockBatchTest < ActiveSupport::TestCase
     assert_equal 13, movement.balance
 
     @paint.move_stock(branch: @main, quantity: -12, reason: "damaged")
-    assert_equal 1, batch("b-gone").quantity, "expired stock goes only when nothing else is left"
+    assert_equal 1, batch("b-gone").quantity, "a write-off takes expired stock once nothing else is left"
+  end
+
+  test "a sale or transfer never takes expired stock; it stops and says so" do
+    receive "b-good", 2, 90.days.from_now.to_date
+    receive "b-gone", 5, 1.day.ago.to_date
+    assert_equal 2, @paint.in_date_stock_at(@main)
+
+    error = assert_raises(Product::ExpiredStock) { @paint.move_stock(branch: @main, quantity: -3, reason: "sold") }
+    assert_match "Only 2 #{@paint.name} at #{@main.name} are in date; 5 have expired", error.message
+    assert_equal [ 2, 5 ], [ batch("b-good").quantity, batch("b-gone").quantity ], "nothing moved"
+
+    @paint.move_stock(branch: @main, quantity: -2, reason: "sold")
+    assert_equal 0, batch("b-good").quantity
+    assert_raises(Product::ExpiredStock) { @paint.move_stock(branch: @main, quantity: -1, reason: "transfer_out") }
+
+    batch("b-gone").write_off(5, reason: "expired")
+    assert_equal 0, @paint.stock_at(@main)
   end
 
   test "a sale's batches: shown for a recall, and put back by returns" do

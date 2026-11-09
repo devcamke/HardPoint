@@ -21,6 +21,15 @@ class StockTransfer < ApplicationRecord
     errors.add :base, "#{duplicates.map(&:name).to_sentence} is listed more than once" if duplicates.any?
   end
 
+  # Expired stock doesn't travel: another branch would only have to write it off.
+  validate(on: :create) do
+    lines.reject(&:marked_for_destruction?).each do |line|
+      next unless line.product&.tracks_batches? && from_branch
+      in_date = line.product.in_date_stock_at(from_branch)
+      errors.add :base, "Only #{in_date.to_s("F").delete_suffix(".0")} #{line.product.name} at #{from_branch.name} are in date; write off the expired ones before sending" if line.quantity.to_d > in_date && line.quantity.to_d <= line.product.stock_at(from_branch)
+    end
+  end
+
   before_create { self.sent_at = Time.current }
   after_create :send_stock
 

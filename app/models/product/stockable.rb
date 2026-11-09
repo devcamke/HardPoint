@@ -45,17 +45,24 @@ module Product::Stockable
     reorder_level.positive? && stock_at(branch) <= reorder_level
   end
 
+  # Movements that must never take expired stock: a customer mustn't be sold it, and another branch mustn't
+  # be sent it. Counts, corrections and write-offs may take it, since that's how it leaves.
+  IN_DATE_ONLY = %w[ sold transfer_out ].freeze
+
   # For products tracked by batch, stock in goes to the batch given (a delivery), or back to the
   # batches it came from (a void, a return, a transfer arriving); stock out comes from the batch
-  # given (a write-off) or first-expiring-first. Each batch touched gets its own ledger line.
-  def move_stock(branch:, quantity:, reason:, source: nil, note: nil, unit_cost_cents: cost_cents, creator: Current.user, batch: nil, reverses: nil)
+  # given (a write-off) or first-expiring-first, skipping expired batches: a sale or transfer that
+  # would need them raises Product::ExpiredStock, other movements fall through to them when nothing
+  # else is left. Each batch touched gets its own ledger line.
+  def move_stock(branch:, quantity:, reason:, source: nil, note: nil, unit_cost_cents: cost_cents, creator: Current.user, batch: nil, reverses: nil, allow_expired: nil)
     raise ArgumentError, "#{name} doesn't track stock" unless track_stock?
+    allow_expired = !reason.to_s.in?(IN_DATE_ONLY) if allow_expired.nil?
 
     transaction do
       level = stock_levels.create_or_find_by!(account: account, branch: branch)
       level.lock!
 
-      portions = tracks_batches? ? Product::Batching.new(self, branch).portions(quantity.to_d, batch: batch, reverses: reverses) : [ [ nil, quantity.to_d ] ]
+      portions = tracks_batches? ? Product::Batching.new(self, branch).portions(quantity.to_d, batch: batch, reverses: reverses, allow_expired: allow_expired) : [ [ nil, quantity.to_d ] ]
       portions.map do |stock_batch, amount|
         stock_batch&.update!(quantity: stock_batch.quantity + amount)
         level.update! quantity: level.quantity + amount
@@ -69,6 +76,13 @@ module Product::Stockable
   # Stock at a branch that isn't in any batch: from before batches were tracked, or counted in.
   def unbatched_stock_at(branch)
     stock_at(branch) - stock_batches.where(branch: branch).sum(:quantity)
+  end
+
+  # Stock at a branch that can be sold or sent on: everything, less what's sitting in expired batches.
+  def in_date_stock_at(branch)
+    return stock_at(branch) unless tracks_batches?
+
+    stock_at(branch) - stock_batches.where(branch: branch).in_stock.expired.sum(:quantity)
   end
 
   private
