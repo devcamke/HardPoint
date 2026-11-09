@@ -83,6 +83,8 @@ class ProductsController < ApplicationController
       products = products.where(category_id: none_or_id(Current.account.categories, params[:category_id])) if params[:category_id].present?
       products = products.where(brand_id: none_or_id(Current.account.brands, params[:brand_id])) if params[:brand_id].present?
       products = products.active unless params[:include_inactive] == "1"
+      # Levels below zero: sold before the delivery was recorded, usually. Listed per branch so they get corrected.
+      products = products.where(id: StockLevel.where(branch: selected_branch).where("quantity < 0").select(:product_id)) if params[:below_zero] == "1"
       products
     end
 

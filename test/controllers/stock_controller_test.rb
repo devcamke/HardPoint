@@ -12,6 +12,16 @@ class StockControllerTest < ActionDispatch::IntegrationTest
     assert_select "span", text: "Balanced"
   end
 
+  test "overview counts stock below zero at the branch and links to the list" do
+    get stock_path(branch_id: branches(:acme_main).id)
+    assert_select "a", text: /Below zero/, count: 0
+
+    Account.without_isolation { Current.set(account: accounts(:acme)) { products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: -5, reason: "sold") } }
+    get stock_path(branch_id: branches(:acme_main).id)
+    assert_select "a[href=?]", products_path(below_zero: 1, branch_id: branches(:acme_main).id), text: /Below zero at Main branch\s*1/
+    assert_select "td a[href=?]", products_path(below_zero: 1, branch_id: branches(:acme_main).id), text: "1 below zero"
+  end
+
   test "adjusting stock" do
     post stock_adjustments_path, params: { stock_adjustment: { product_id: products(:acme_cement).id, branch_id: branches(:acme_main).id, reason: "damaged", quantity: "-2", note: "Rain" } }
 

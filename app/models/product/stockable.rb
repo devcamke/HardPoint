@@ -103,9 +103,10 @@ module Product::Stockable
   end
 
   private
-    # A kit is in stock as many times as its scarcest component allows.
+    # A kit is in stock as many times as its scarcest component allows. A part that doesn't track stock
+    # (fitting, say) is always to hand, and selling the kit never deducts it, so it doesn't count.
     def kit_stock_at(branch)
-      kit_components.includes(:component).map do |part|
+      kit_components.includes(:component).select { _1.component.track_stock? }.map do |part|
         (part.component.stock_at(branch) / part.quantity).floor
       end.min || 0
     end

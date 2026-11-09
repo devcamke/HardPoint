@@ -13,6 +13,7 @@
                  search_filter(:brand_id, label: "Brand", value: params[:brand_id],
                    options: Current.account.brands.order(:name).map { [ _1.id, _1.name ] } + [ [ "none", "No brand" ] ]),
                  search_filter(:include_inactive, options: [ [ "1", "Include inactive" ] ], value: params[:include_inactive]),
+                 search_filter(:below_zero, options: [ [ "1", "Below zero" ] ], value: params[:below_zero]),
                  search_filter(:branch_id, label: "Stock at", value: selected_branch&.id, facet: false,
                    options: branches_for_selection.map { [ _1.id, _1.name ] }),
                  search_filter(:group_by, label: "Group by", value: @group_by, section: :group_by, options: ProductsController::GROUPINGS.to_a) ],

@@ -123,6 +123,26 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_select "select[name='product[category_id]'] option[selected][value='#{categories(:acme_fasteners).id}']"
   end
 
+  test "a product with stock keeps its unit, and the form says why" do
+    patch product_path(products(:acme_cement)), params: { product: { unit_id: units(:acme_piece).id } }
+
+    assert_response :unprocessable_entity
+    assert_select "#error_explanation", /has stock at/
+    assert_equal units(:acme_bag), Account.without_isolation { products(:acme_cement).reload.unit }
+  end
+
+  test "stock below zero is listed per branch" do
+    Account.without_isolation { Current.set(account: accounts(:acme)) { products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: -5, reason: "sold") } }
+
+    get products_path(below_zero: "1", branch_id: branches(:acme_main).id)
+    assert_select "tbody tr", 1
+    assert_select "td a", "PVC pipe 2 inch 6m"
+    assert_select "form[role=search] span", text: "Below zero"
+
+    get products_path(below_zero: "1", branch_id: branches(:acme_yard).id)
+    assert_select "tbody tr", 0
+  end
+
   test "a taken barcode is rejected and nothing is saved" do
     assert_no_difference -> { Account.without_isolation { Product.count } } do
       post products_path, params: { product: { name: "Copycat", unit_id: units(:acme_piece).id, price: "1", barcode: "6161100420017" } }
