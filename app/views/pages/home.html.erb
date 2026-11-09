@@ -2,8 +2,9 @@
 <% structured_data seo_organization, seo_software(@plans) %>
 <%# In the manner of odoo.com: a white page, short bold headlines, the price said out loud in the hero with a
     hand-drawn arrow pointing at it, "Start now, it's free" everywhere, and a grid of app tiles standing in for a
-    hero picture. The brand teal does the work Odoo's purple does: buttons, tiles, arrows and one full-colour panel
-    for the offline till. %>
+    hero picture. The brand teal does the work Odoo's purple does: buttons, tiles, arrows and one full-colour band
+    for the offline till. The order is an argument: the promise and what it does, a sale to click through, why it's
+    different, the claims, the owner's view, how to start, the price, and the door. %>
 <% from_price = "KES #{number_with_delimiter(@plans.map(&:price_cents).min / 100)}" %>
 <% learn_more = ->(text, slug) { link_to help_article_path(slug), class: "mt-4 inline-block font-medium text-accent-600 hover:underline" do
      safe_join([ text, " ", tag.span("›", aria: { hidden: true }) ])
@@ -57,22 +58,8 @@
   </div>
 </section>
 
-<%# One full-colour panel, where Odoo has its yellow one. %>
-<section class="bg-primary-500 text-white">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <p class="text-sm font-semibold tracking-wide text-primary-200 uppercase">The offline till</p>
-      <h2 class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">Keeps selling when the internet doesn't.</h2>
-      <p class="mt-5 text-lg text-primary-100 text-balance sm:text-xl">The till keeps its own copy of the catalogue, customers and promotions. It takes cash, M-Pesa and card, prints receipts,
-        and sends the sales the moment it reconnects.</p>
-      <%= link_to help_article_path("offline"), class: "mt-6 inline-block font-medium text-white underline-offset-4 hover:underline" do %>How the offline till works <span aria-hidden="true">›</span><% end %>
-    </div>
-    <%= image_tag "marketing/till.png", alt: "The HardPoint till asking how many kilos of nails to add to a sale", class: "mx-auto mt-14 w-full max-w-5xl rounded-2xl shadow-2xl shadow-primary-900/50 ring-1 ring-white/20", width: 1280, height: 800 %>
-  </div>
-</section>
-
 <%# The help centre's walkthrough of the till, so a visitor clicks through a sale before signing up. %>
-<section class="border-b border-gray-200 bg-gray-50">
+<section class="border-y border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
       <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Try it</p>
@@ -86,13 +73,29 @@
   </div>
 </section>
 
+<%# One full-colour band, where Odoo has its yellow one: the offline point in words. The till itself was just shown. %>
+<section class="bg-primary-500 text-white">
+  <div class="mx-auto max-w-3xl px-4 py-16 text-center sm:py-20">
+    <p class="text-sm font-semibold tracking-wide text-primary-200 uppercase">The offline till</p>
+    <h2 class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">Keeps selling when the internet doesn't.</h2>
+    <p class="mt-5 text-lg text-primary-100 text-balance sm:text-xl">The till keeps its own copy of the catalogue, customers and promotions. It takes cash, M-Pesa and card, prints receipts,
+      and sends the sales the moment it reconnects.</p>
+    <%= link_to help_article_path("offline"), class: "mt-6 inline-block font-medium text-white underline-offset-4 hover:underline" do %>How the offline till works <span aria-hidden="true">›</span><% end %>
+  </div>
+</section>
+
+<%# Odoo's "Enterprise software done right": short bold claims, a line each, a link. The two that sell a hardware
+    shop in Kenya, M-Pesa and eTIMS, get wide tinted cards; the rest sit in a row of three. Each card wears the
+    same tile icon as the hero grid, so the page reads as one set. %>
 <section class="bg-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
-      <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Fast at the till. Clear in the office.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Built with hardware shop owners, from the bag of cement to the box of screws.</p>
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Why HardPoint</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Software for hardware stores, done right.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Not a generic till with a hardware skin. The things that matter at a hardware counter in Kenya, built in from the start.</p>
     </div>
-    <dl class="mx-auto mt-14 grid max-w-4xl gap-10 text-center sm:grid-cols-3">
+
+    <dl class="mx-auto mt-14 grid max-w-4xl gap-8 text-center sm:grid-cols-3">
       <div>
         <dt class="text-5xl font-bold tracking-tight text-primary-600 tabular-nums">20,000</dt>
         <dd class="mt-2 text-gray-600">products imported from a spreadsheet in about twelve seconds.</dd>
@@ -102,24 +105,10 @@
         <dd class="mt-2 text-gray-600">F2 scan, F8 park, F9 pay. Or finger-sized buttons on a touch screen.</dd>
       </div>
       <div>
-        <dt class="text-5xl font-bold tracking-tight text-primary-600">Every evening</dt>
-        <dd class="mt-2 text-gray-600">a summary of the day's takings, margin and what needs doing, by email.</dd>
+        <dt class="text-5xl font-bold tracking-tight text-primary-600">Every sale</dt>
+        <dd class="mt-2 text-gray-600">signed by KRA eTIMS, with the QR code on the receipt.</dd>
       </div>
     </dl>
-    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "mt-14 w-full rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800 %>
-  </div>
-</section>
-
-<%# Odoo's "Enterprise software done right": short bold claims, a line each, a link. The two that sell a hardware
-    shop in Kenya, M-Pesa and eTIMS, get wide tinted cards; the rest sit in a row of three. Each card wears the
-    same tile icon as the hero grid, so the page reads as one set. %>
-<section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Why HardPoint</p>
-      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Software for hardware stores, done right.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Not a generic till with a hardware skin. The things that matter at a hardware counter in Kenya, built in from the start.</p>
-    </div>
 
     <% claims = [
          [ :mpesa, "M-Pesa, Airtel Money and card. Matched to the sale.",
@@ -149,9 +138,22 @@
   </div>
 </section>
 
+<%# The owner's view: the dashboard, the evening summary and the reports. %>
+<section class="border-y border-gray-200 bg-gray-50">
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">For the owner</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Clear in the office.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Today's takings, sales, margin and what needs doing, live, from the shop or your phone. Every evening a summary of the day lands in your inbox.</p>
+    </div>
+    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "mt-14 w-full rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800 %>
+    <p class="mt-8 text-center text-gray-600">Sales, profit, VAT, stock and shift reports to print or export. <%= link_to "The reports", help_article_path("reports"), class: "link" %></p>
+  </div>
+</section>
+
 <%# The five setup steps as a path you can walk: numbered tabs on a progress line, and a browser frame showing each
     step's real screen (setup_steps_controller.js). It plays through on its own until touched. %>
-<section class="border-t border-gray-200 bg-white">
+<section class="bg-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
       <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Getting started</p>
@@ -227,16 +229,11 @@
           </div>
         </div>
       </div>
-
-      <div class="mt-10 flex flex-col items-center gap-3 border-t border-primary-200 pt-8 text-center sm:flex-row sm:justify-between sm:text-left">
-        <p class="text-gray-700">Stuck on a step? A person on WhatsApp will walk you through it.</p>
-        <%= link_to whatsapp_support_url("Hello HardPoint, I'm setting up my shop and need a hand."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>WhatsApp us <span aria-hidden="true">›</span><% end %>
-      </div>
     </div>
   </div>
 </section>
 
-<section id="pricing" class="scroll-mt-20 border-t border-gray-200 bg-white">
+<section id="pricing" class="scroll-mt-20 border-y border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto mb-12 max-w-3xl text-center">
       <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Fair pricing.</h2>
@@ -246,7 +243,7 @@
   </div>
 </section>
 
-<section class="border-t border-gray-200 bg-white">
+<section class="bg-white">
   <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
     <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Open the till.</h2>
     <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>
