@@ -69,9 +69,13 @@ module Authorization
       head :forbidden unless current_membership&.can_sell? || current_membership&.can_manage_receivables?
     end
 
-    # Owners and managers approve their own actions; anyone else needs one of them to type an approval PIN.
+    # Owners and managers approve their own actions; anyone else needs one of them to type an approval PIN. With
+    # "require a second approver" on, an owner's or manager's own action needs someone else's PIN.
     def approver_for_action
-      current_membership&.approver? ? Current.user : Approval.approver_for(Current.account, params[:approval_pin])
+      return Current.user if current_membership&.approves_own_actions?
+
+      approver = Approval.approver_for(Current.account, params[:approval_pin])
+      approver unless approver == Current.user && current_membership&.approver?
     end
 
     def ensure_can_approve_stock_counts

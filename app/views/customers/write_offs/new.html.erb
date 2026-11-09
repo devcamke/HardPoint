@@ -11,7 +11,7 @@
   </div>
   <div class="field"><%= form.label :reason, class: "label" %><%= form.text_field :reason, required: true, placeholder: "Why the shop is giving up on this", class: "input" %></div>
   <%= render "customers/payments/allocations", customer: @customer, entry: @write_off, verb: "write off" %>
-  <% unless current_membership.approver? %>
+  <% unless current_membership.approves_own_actions? %>
     <div class="field"><%= label_tag :approval_pin, "Manager approval PIN", class: "label" %><%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %></div>
   <% end %>
   <%= form.submit "Write off", class: "btn-primary" %>

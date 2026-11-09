@@ -17,7 +17,12 @@ module Eventable
     end
   end
 
+  # An `approver:` given as a User is kept by name, and flagged when it's the person who did the thing.
   def track_event(action, creator: Current.user, **particulars)
+    if (approver = particulars[:approver]).is_a?(User)
+      particulars.merge!(approver: approver.name, self_approved: (true if approver == creator))
+    end
+
     Event.create! account: event_account, eventable: self, action: action, creator: creator,
       particulars: { name: event_name, api_key: Current.api_key&.name }.merge(particulars).compact
   end

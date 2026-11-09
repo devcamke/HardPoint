@@ -42,7 +42,7 @@
       <%= form.text_field :reason, class: "input", placeholder: "e.g. wrong size" %>
     </div>
   </div>
-  <% unless current_membership.approver? %>
+  <% unless current_membership.approves_own_actions? %>
     <div class="field" data-tour="return-approval"><%= label_tag :approval_pin, "Manager approval PIN", class: "label" %><%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %></div>
   <% end %>
   <%= form.submit "Process return", class: "btn-primary", data: { tour: "return-submit" } %>

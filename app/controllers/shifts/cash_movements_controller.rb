@@ -15,7 +15,7 @@ class Shifts::CashMovementsController < ApplicationController
       @movement.errors.add :base, "A payout over #{Money.format(Current.account.payout_approval_above_cents)} needs a manager's approval PIN"
       render :new, status: :unprocessable_entity
     elsif @movement.save
-      @shift.track_event "payout_approved", approver: approver.name, amount: @movement.amount_cents, reason: @movement.reason if approver
+      @shift.track_event "payout_approved", approver: approver, amount: @movement.amount_cents, reason: @movement.reason if approver
       redirect_to shift_path(@shift), notice: "#{@movement.kind.humanize} of #{Money.format(@movement.amount_cents)} recorded."
     else
       render :new, status: :unprocessable_entity

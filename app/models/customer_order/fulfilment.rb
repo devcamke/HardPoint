@@ -20,7 +20,7 @@ module CustomerOrder::Fulfilment
 
     transaction do
       if check_credit && over_credit_limit?
-        track_event "credit_approved", approver: approver.name, customer: customer.name, amount: balance_to_pay_cents, available: customer.available_credit_cents
+        track_event "credit_approved", approver: approver, customer: customer.name, amount: balance_to_pay_cents, available: customer.available_credit_cents
       end
       update(status: :ordered, ordered_at: Time.current).tap { |confirmed| track_event "confirmed", total: total_cents if confirmed }
     end
@@ -66,7 +66,7 @@ module CustomerOrder::Fulfilment
       payment = sale.pay(tender: "deposit", amount_cents: amount)
       raise ActiveRecord::RecordInvalid, payment unless payment.persisted? && sale.reload.completed?
 
-      track_event "deposit_kept", amount: amount, approver: approver.name, receipt_number: sale.receipt_number, reason: reason
+      track_event "deposit_kept", amount: amount, approver: approver, receipt_number: sale.receipt_number, reason: reason
       update!(status: :cancelled)
       track_event "cancelled", reason: reason.presence || "Deposit kept"
     end

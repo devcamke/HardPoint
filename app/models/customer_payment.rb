@@ -80,7 +80,7 @@ class CustomerPayment < ApplicationRecord
     def track
       case kind
       when "refund" then customer.track_event "credit_refunded", amount: amount_cents.abs, payment_method: payment_method, reference: reference
-      when "write_off" then customer.track_event "written_off", amount: amount_cents, approver: approver.name, reason: reason
+      when "write_off" then customer.track_event "written_off", amount: amount_cents, approver: approver, reason: reason
       else customer.track_event "paid", amount: amount_cents, payment_method: payment_method, reference: reference
       end
     end

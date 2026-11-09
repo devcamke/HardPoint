@@ -183,7 +183,8 @@ CREATE TABLE public.accounts (
     qz_private_key text,
     qz_certificate text,
     terms_accepted_at timestamp(6) without time zone,
-    payout_approval_above_cents bigint DEFAULT 500000 NOT NULL
+    payout_approval_above_cents bigint DEFAULT 500000 NOT NULL,
+    require_second_approver boolean DEFAULT false NOT NULL
 );
 
 
@@ -9650,6 +9651,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20261110110000'),
 ('20261110100100'),
 ('20261110100000'),
+('20261110040000'),
 ('20261109210000'),
 ('20261109200100'),
 ('20261109200000'),
