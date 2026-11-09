@@ -2,8 +2,9 @@
 <% structured_data seo_organization, seo_software(@plans) %>
 <%# In the manner of odoo.com: a white page, short bold headlines, the price said out loud in the hero with a
     hand-drawn arrow pointing at it, "Start now, it's free" everywhere, and a grid of app tiles standing in for a
-    hero picture. The brand teal does the work Odoo's purple does: buttons, tiles, arrows and one full-colour panel
-    for the offline till. %>
+    hero picture. The brand teal does the work Odoo's purple does: buttons, tiles, arrows and one full-colour band
+    for the offline till. The order is an argument: the promise and what it does, a sale to click through, why it's
+    different, the claims, the owner's view, how to start, the price, and the door. %>
 <% from_price = "KES #{number_with_delimiter(@plans.map(&:price_cents).min / 100)}" %>
 <% learn_more = ->(text, slug) { link_to help_article_path(slug), class: "mt-4 inline-block font-medium text-accent-600 hover:underline" do
      safe_join([ text, " ", tag.span("›", aria: { hidden: true }) ])
@@ -57,22 +58,8 @@
   </div>
 </section>
 
-<%# One full-colour panel, where Odoo has its yellow one. %>
-<section class="bg-primary-500 text-white">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <p class="text-sm font-semibold tracking-wide text-primary-200 uppercase">The offline till</p>
-      <h2 class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">Keeps selling when the internet doesn't.</h2>
-      <p class="mt-5 text-lg text-primary-100 text-balance sm:text-xl">The till keeps its own copy of the catalogue, customers and promotions. It takes cash, M-Pesa and card, prints receipts,
-        and sends the sales the moment it reconnects.</p>
-      <%= link_to help_article_path("offline"), class: "mt-6 inline-block font-medium text-white underline-offset-4 hover:underline" do %>How the offline till works <span aria-hidden="true">›</span><% end %>
-    </div>
-    <%= image_tag "marketing/till.png", alt: "The HardPoint till asking how many kilos of nails to add to a sale", class: "mx-auto mt-14 w-full max-w-5xl rounded-2xl shadow-2xl shadow-primary-900/50 ring-1 ring-white/20", width: 1280, height: 800 %>
-  </div>
-</section>
-
 <%# The help centre's walkthrough of the till, so a visitor clicks through a sale before signing up. %>
-<section class="border-b border-gray-200 bg-gray-50">
+<section class="border-y border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
       <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Try it</p>
@@ -86,13 +73,29 @@
   </div>
 </section>
 
+<%# One full-colour band, where Odoo has its yellow one: the offline point in words. The till itself was just shown. %>
+<section class="bg-primary-500 text-white">
+  <div class="mx-auto max-w-3xl px-4 py-16 text-center sm:py-20">
+    <p class="text-sm font-semibold tracking-wide text-primary-200 uppercase">The offline till</p>
+    <h2 class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">Keeps selling when the internet doesn't.</h2>
+    <p class="mt-5 text-lg text-primary-100 text-balance sm:text-xl">The till keeps its own copy of the catalogue, customers and promotions. It takes cash, M-Pesa and card, prints receipts,
+      and sends the sales the moment it reconnects.</p>
+    <%= link_to help_article_path("offline"), class: "mt-6 inline-block font-medium text-white underline-offset-4 hover:underline" do %>How the offline till works <span aria-hidden="true">›</span><% end %>
+  </div>
+</section>
+
+<%# Odoo's "Enterprise software done right": short bold claims, a line each, a link. The two that sell a hardware
+    shop in Kenya, M-Pesa and eTIMS, get wide tinted cards; the rest sit in a row of three. Each card wears the
+    same tile icon as the hero grid, so the page reads as one set. %>
 <section class="bg-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
-      <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Fast at the till. Clear in the office.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Built with hardware shop owners, from the bag of cement to the box of screws.</p>
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Why HardPoint</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Software for hardware stores, done right.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Not a generic till with a hardware skin. The things that matter at a hardware counter in Kenya, built in from the start.</p>
     </div>
-    <dl class="mx-auto mt-14 grid max-w-4xl gap-10 text-center sm:grid-cols-3">
+
+    <dl class="mx-auto mt-14 grid max-w-4xl gap-8 text-center sm:grid-cols-3">
       <div>
         <dt class="text-5xl font-bold tracking-tight text-primary-600 tabular-nums">20,000</dt>
         <dd class="mt-2 text-gray-600">products imported from a spreadsheet in about twelve seconds.</dd>
@@ -102,24 +105,10 @@
         <dd class="mt-2 text-gray-600">F2 scan, F8 park, F9 pay. Or finger-sized buttons on a touch screen.</dd>
       </div>
       <div>
-        <dt class="text-5xl font-bold tracking-tight text-primary-600">Every evening</dt>
-        <dd class="mt-2 text-gray-600">a summary of the day's takings, margin and what needs doing, by email.</dd>
+        <dt class="text-5xl font-bold tracking-tight text-primary-600">Every sale</dt>
+        <dd class="mt-2 text-gray-600">signed by KRA eTIMS, with the QR code on the receipt.</dd>
       </div>
     </dl>
-    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "mt-14 w-full rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800 %>
-  </div>
-</section>
-
-<%# Odoo's "Enterprise software done right": short bold claims, a line each, a link. The two that sell a hardware
-    shop in Kenya, M-Pesa and eTIMS, get wide tinted cards; the rest sit in a row of three. Each card wears the
-    same tile icon as the hero grid, so the page reads as one set. %>
-<section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Why HardPoint</p>
-      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Software for hardware stores, done right.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Not a generic till with a hardware skin. The things that matter at a hardware counter in Kenya, built in from the start.</p>
-    </div>
 
     <% claims = [
          [ :mpesa, "M-Pesa, Airtel Money and card. Matched to the sale.",
@@ -149,8 +138,22 @@
   </div>
 </section>
 
-<%# The five setup steps as a path: white cards on a teal panel, their numbers strung on a dashed line. %>
-<section class="border-t border-gray-200 bg-white">
+<%# The owner's view: the dashboard, the evening summary and the reports. %>
+<section class="border-y border-gray-200 bg-gray-50">
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">For the owner</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Clear in the office.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Today's takings, sales, margin and what needs doing, live, from the shop or your phone. Every evening a summary of the day lands in your inbox.</p>
+    </div>
+    <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "mt-14 w-full rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800 %>
+    <p class="mt-8 text-center text-gray-600">Sales, profit, VAT, stock and shift reports to print or export. <%= link_to "The reports", help_article_path("reports"), class: "link" %></p>
+  </div>
+</section>
+
+<%# The five setup steps as a path you can walk: numbered tabs on a progress line, and a browser frame showing each
+    step's real screen (setup_steps_controller.js). It plays through on its own until touched. %>
+<section class="bg-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
       <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Getting started</p>
@@ -158,33 +161,79 @@
       <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">A <strong class="font-semibold text-gray-900">Set up your shop</strong> checklist walks you through it, and guided tours show each
         screen when you first use it.</p>
     </div>
-    <div class="mt-14 rounded-3xl bg-primary-50 px-5 pt-12 pb-8 sm:px-10 sm:pb-10">
-      <ol class="relative grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-5">
-        <div class="absolute top-0 right-[10%] left-[10%] hidden border-t-2 border-dashed border-primary-300 lg:block" aria-hidden="true"></div>
-        <% [ [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed." ],
-             [ "Name your branches and tills", "Check your tax rates and switch on only the features you use." ],
-             [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time." ],
-             [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work." ],
-             [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till." ] ].each.with_index(1) do |(title, body), step| %>
-          <li class="relative flex flex-col items-center rounded-2xl bg-white px-5 pt-8 pb-6 text-center shadow-sm ring-1 ring-primary-100 <%= "sm:col-span-2 lg:col-span-1" if step == 5 %>">
-            <span class="absolute -top-5 left-1/2 flex size-10 -translate-x-1/2 items-center justify-center rounded-full text-lg font-bold text-white tabular-nums shadow-md ring-4 ring-primary-50 <%= step == 5 ? "bg-primary-700" : "bg-primary-500" %>"><%= step %></span>
-            <p class="font-semibold text-gray-950 text-balance"><%= title %></p>
-            <p class="mt-2 text-sm text-gray-600 text-balance"><%= body %></p>
-          </li>
-        <% end %>
-      </ol>
-      <div class="mt-10 flex flex-col items-center gap-3 border-t border-primary-200 pt-8 text-center sm:flex-row sm:justify-between sm:text-left">
-        <p class="text-gray-700">Stuck on a step? A person on WhatsApp will walk you through it.</p>
-        <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-          <%= link_to whatsapp_support_url("Hello HardPoint, I'm setting up my shop and need a hand."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>WhatsApp us <span aria-hidden="true">›</span><% end %>
-          <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5" %>
+
+    <% steps = [
+         [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed.",
+           [ "Your shop at its own address", "The owner's login, ready to go", "#{trial.capitalize} free, no card needed" ], "home", "yourshop.hardpoint.app" ],
+         [ "Name your branches and tills", "Check your tax rates and switch on only the features you use.",
+           [ "Branches and yards", "Tills and receipt printers", "Tax rates, and only the features you use" ], "settings", "yourshop.hardpoint.app/settings" ],
+         [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time.",
+           [ "A spreadsheet of thousands in seconds", "Categories, units and barcodes", "Change prices later the same way" ], "products", "yourshop.hardpoint.app/products" ],
+         [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work.",
+           [ "Owner, manager, cashier, stock clerk, accountant", "Each sees only their own work", "On a touch screen, tablet or phone" ], "staff", "yourshop.hardpoint.app/memberships/new" ],
+         [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till.",
+           [ "Print a test receipt", "Connect M-Pesa and KRA eTIMS", "Open the till" ], "till", "yourshop.hardpoint.app/pos" ]
+       ] %>
+    <div class="setup-steps mt-14 rounded-3xl bg-primary-50 px-5 py-8 sm:px-10 sm:py-10" data-controller="setup-steps"
+         data-action="keydown->setup-steps#keydown mouseenter->setup-steps#pause mouseleave->setup-steps#resume focusin->setup-steps#pause focusout->setup-steps#resume">
+      <div class="relative" role="tablist" aria-label="Setting up your shop">
+        <div class="absolute top-5 right-[10%] left-[10%] h-0.5 -translate-y-px bg-primary-200" aria-hidden="true"></div>
+        <div class="setup-fill absolute top-5 left-[10%] h-0.5 w-0 -translate-y-px bg-primary-500" data-setup-steps-target="fill" aria-hidden="true"></div>
+        <div class="relative grid grid-cols-5 gap-x-2">
+          <% steps.each.with_index do |(title, *), i| %>
+            <button type="button" id="setup-tab-<%= i + 1 %>" class="setup-tab group flex cursor-pointer flex-col items-center gap-3 text-center focus-visible:outline-hidden" role="tab"
+                    aria-selected="<%= i.zero? %>" aria-controls="setup-panel-<%= i + 1 %>" data-setup-steps-target="tab" data-index="<%= i %>" data-action="setup-steps#select">
+              <span class="setup-tab-disc group-focus-visible:ring-4 group-focus-visible:ring-primary-400">
+                <span class="setup-tab-number"><%= i + 1 %></span>
+                <svg class="setup-tab-check size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-8"/></svg>
+              </span>
+              <span class="setup-tab-title text-sm font-medium text-gray-600 text-balance max-md:sr-only"><%= title %></span>
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="mt-10 grid items-center gap-8 lg:mt-12 lg:grid-cols-5 lg:gap-12">
+        <div class="lg:col-span-2">
+          <p class="text-sm font-semibold text-primary-600" data-setup-steps-target="count">Five steps</p>
+          <% steps.each.with_index do |(title, body, points, *), i| %>
+            <div id="setup-panel-<%= i + 1 %>" class="setup-panel" role="tabpanel" aria-labelledby="setup-tab-<%= i + 1 %>" data-setup-steps-target="panel">
+              <h3 class="mt-2 text-2xl font-bold tracking-tight text-gray-950 text-balance sm:text-3xl"><%= title %></h3>
+              <p class="mt-3 text-gray-600"><%= body %></p>
+              <ul class="mt-5 space-y-2 text-sm text-gray-700">
+                <% points.each do |point| %><li class="flex gap-2.5"><%= render "pages/check" %><%= point %></li><% end %>
+              </ul>
+              <% if i == steps.size - 1 %>
+                <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary mt-6 rounded-full px-6 py-2.5" %>
+              <% end %>
+            </div>
+          <% end %>
+          <div class="mt-8 flex items-center gap-3">
+            <button type="button" class="btn-secondary rounded-full px-5" data-action="setup-steps#previous" data-setup-steps-target="previous" disabled>Back</button>
+            <button type="button" class="btn-primary rounded-full px-5" data-action="setup-steps#next" data-setup-steps-target="next">Next</button>
+            <p class="ml-auto text-xs text-gray-500 max-sm:hidden">Or use the arrow keys</p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-3">
+          <div class="relative aspect-[16/11] overflow-hidden rounded-xl bg-white shadow-2xl shadow-primary-900/15 ring-1 ring-primary-200">
+            <% steps.each.with_index do |(title, _, _, image, address), i| %>
+              <div class="setup-screen" data-setup-steps-target="screen" aria-hidden="<%= !i.zero? %>">
+                <div class="flex h-9 shrink-0 items-center gap-1.5 border-b border-gray-200 bg-gray-50 px-3">
+                  <span class="size-2.5 rounded-full bg-gray-300"></span><span class="size-2.5 rounded-full bg-gray-300"></span><span class="size-2.5 rounded-full bg-gray-300"></span>
+                  <span class="mx-auto truncate rounded-md bg-white px-3 py-0.5 text-xs text-gray-500 ring-1 ring-gray-200"><%= address %></span>
+                </div>
+                <%= image_tag "help/tours/#{image}.png", alt: "Step #{i + 1}: #{title}", class: "min-h-0 flex-1 object-cover object-top", loading: "lazy" %>
+              </div>
+            <% end %>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="pricing" class="scroll-mt-20 border-t border-gray-200 bg-white">
+<section id="pricing" class="scroll-mt-20 border-y border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto mb-12 max-w-3xl text-center">
       <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Fair pricing.</h2>
@@ -194,7 +243,7 @@
   </div>
 </section>
 
-<section class="border-t border-gray-200 bg-white">
+<section class="bg-white">
   <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
     <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Open the till.</h2>
     <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>
