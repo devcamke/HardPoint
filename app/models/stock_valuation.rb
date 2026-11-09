@@ -1,6 +1,8 @@
-# What stock is worth at cost, per branch, and a check that cached levels match the ledger.
+# What stock is worth at cost, per branch and on the road between branches, and a check that cached
+# levels match the ledger.
 class StockValuation
   Row = Data.define(:branch, :products_in_stock, :value_cents, :negative_lines)
+  InTransit = Data.define(:lines, :value_cents)
 
   def initialize(account)
     @account = account
@@ -22,8 +24,18 @@ class StockValuation
     end
   end
 
+  # Stock one branch has sent and the other hasn't received: out of the sender's books, not yet in the
+  # receiver's, so it's valued on its own rather than vanishing from the total.
+  def in_transit
+    @in_transit ||= begin
+      lines, value = @account.stock_transfers.in_transit.joins(lines: :product)
+        .pick(Arel.sql("COUNT(stock_transfer_lines.id)"), Arel.sql("COALESCE(ROUND(SUM(stock_transfer_lines.quantity * products.cost_cents)), 0)"))
+      InTransit.new(lines: lines.to_i, value_cents: value.to_i)
+    end
+  end
+
   def total_value_cents
-    rows.sum(&:value_cents)
+    rows.sum(&:value_cents) + in_transit.value_cents
   end
 
   # Levels whose quantity differs from the sum of their movements. Empty means the books balance.

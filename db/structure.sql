@@ -182,7 +182,8 @@ CREATE TABLE public.accounts (
     billing_interval character varying DEFAULT 'monthly'::character varying NOT NULL,
     qz_private_key text,
     qz_certificate text,
-    terms_accepted_at timestamp(6) without time zone
+    terms_accepted_at timestamp(6) without time zone,
+    payout_approval_above_cents bigint DEFAULT 500000 NOT NULL
 );
 
 
@@ -2769,7 +2770,8 @@ CREATE TABLE public.stock_transfer_lines (
     product_id bigint NOT NULL,
     quantity numeric(14,3) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    received_quantity numeric(14,3)
 );
 
 ALTER TABLE ONLY public.stock_transfer_lines FORCE ROW LEVEL SECURITY;
@@ -2810,7 +2812,8 @@ CREATE TABLE public.stock_transfers (
     sent_at timestamp(6) without time zone,
     received_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    shortfall character varying
 );
 
 ALTER TABLE ONLY public.stock_transfers FORCE ROW LEVEL SECURITY;
@@ -9407,6 +9410,8 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20261109210000'),
+('20261109200100'),
+('20261109200000'),
 ('20261109190100'),
 ('20261109190000'),
 ('20261109180000'),

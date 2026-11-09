@@ -430,6 +430,8 @@ Press **Shift** in the till's top bar, then **Cash drop / payout**. Choose what'
 - **Pay out**: cash paid from the till, for transport or a supplier, say.
 - **Pay in**: more change added to the float.
 
+Cash movements go on the till this device is set to, since that's the drawer the cash is in. A payout above the shop's limit (KES 5,000 to start with; owners change it under **Settings › Shop details**) needs an owner's or manager's approval PIN, and **Settings › Activity** records who approved it.
+
 Each one shows on the shift report with its reason. On tills that print through QZ Tray, **Open drawer** in the top bar opens the drawer without a sale. It's logged as "No sale" in **Settings › Activity**.
 
 #### The X report
@@ -931,7 +933,7 @@ When each product needs its own new price, use a spreadsheet instead: press **Ex
 
 _Adjusting stock, moving it between branches, counting it, and the reorder list._
 
-HardPoint keeps stock per branch. Every sale, delivery, transfer and correction is a line in the stock history, so you can always see why a number is what it is. **Stock › Stock levels** shows what each branch holds and what it's worth.
+HardPoint keeps stock per branch. Every sale, delivery, transfer and correction is a line in the stock history, so you can always see why a number is what it is. **Stock › Stock levels** shows what each branch holds and what it's worth, with stock on its way between branches on its own line.
 
 #### Correcting stock
 
@@ -944,7 +946,7 @@ A product's unit, whether it tracks stock and whether it is a kit can't change w
 #### Moving stock between branches
 
 1. In **Stock › Transfers**, press **New**, choose the branches and the products, and press **Send transfer**. The stock leaves the sending branch and shows as in transit.
-2. When it arrives, the other branch presses **Mark received at …** and the stock is theirs.
+2. When it arrives, the other branch counts it in. If anything is short, type what arrived against that line and say whether the rest was lost on the way (it is written off at the receiving branch) or never left (it goes back into the sending branch's stock), then press **Mark received at …**. What arrived is theirs, and the transfer shows what was short.
 3. While it is still in transit, **Cancel transfer** puts the stock back at the sending branch.
 
 **Walkthrough: Move stock between branches**
