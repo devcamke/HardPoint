@@ -9,6 +9,8 @@
  */
 @theme {
   --font-sans: "Roboto", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  /* Handwriting for the marketing page's annotations, from whatever the device has. */
+  --font-hand: "Segoe Print", "Segoe Script", "Bradley Hand", "Marker Felt", "Comic Sans MS", "Chalkboard SE", cursive;
 
   --color-primary-50: #f3f7f8;
   --color-primary-100: #e2ecee;
