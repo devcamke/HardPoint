@@ -35,7 +35,7 @@
   </div>
 
   <%# The product as a grid of tiles, one per thing a hardware shop does, each opening its help guide: white tiles with
-      a coloured glyph, as Odoo draws its apps. The switch beneath, "Imagine without HardPoint", greys the tiles and
+      a coloured glyph, as Odoo draws its apps. Twelve, the ones a shop decides on; the guides hold the rest. The switch beneath, "Imagine without HardPoint", greys the tiles and
       writes by hand what each one replaces in a hardware shop. CSS alone: the switch is a checkbox the grid listens to. %>
   <div id="features" class="group/imagine mx-auto max-w-5xl scroll-mt-20 px-4 pb-24 sm:pb-32">
     <% tiles = [
@@ -47,22 +47,10 @@
          [ "Purchasing", "buying-from-suppliers", :purchasing, "text-orange-500", "Ringing round suppliers" ],
          [ "Reports", "reports", :reports, "text-blue-500", "Excel on Sunday night" ],
          [ "Promotions", "promotions", :promotions, "text-pink-500", "A chalkboard" ],
-         [ "Deliveries", "deliveries", :deliveries, "text-sky-500", "A boda and a phone call" ],
          [ "Contractors' jobs", "contractor-jobs", :jobs, "text-yellow-500", "Quotes on a notepad" ],
-         [ "Online store", "online-store", :online_store, "text-indigo-500", "A WhatsApp catalogue" ],
-         [ "WhatsApp", "whatsapp", :whatsapp, "text-emerald-500", "Typing every message" ],
-         [ "Shifts and cash", "shifts-and-cash", :shifts, "text-lime-600", "Counting the drawer twice" ],
-         [ "Branches", "shop-settings", :branches, "text-teal-500", "Driving over to check" ],
-         [ "Returns", "returns-and-refunds", :returns, "text-red-500", "Guesswork" ],
-         [ "Batches and expiry", "batches-and-expiry", :batches, "text-cyan-600", "Finding it expired" ],
          [ "Staff and roles", "staff-and-roles", :staff, "text-purple-500", "One password for everyone" ],
-         [ "Import products", "importing-products", :import, "text-fuchsia-500", "Typing in 20,000 products" ],
-         [ "Stock on your phone", "stock-on-your-phone", :barcode, "text-slate-600", "A clipboard" ],
-         [ "Offline till", "offline", :offline, "text-gray-800", "Closing when the net is down" ],
-         [ "Airtel Money", "airtel-money", :airtel, "text-red-600", "Another phone to check" ],
-         [ "Your data", "your-data", :data, "text-blue-600", "Locked in someone's system" ],
-         [ "QuickBooks", "quickbooks", :quickbooks, "text-green-500", "Retyping into the books" ],
-         [ "Apps and the API", "connecting-apps", :api, "text-stone-600", "Nothing talks to anything" ]
+         [ "Branches", "shop-settings", :branches, "text-teal-500", "Driving over to check" ],
+         [ "Offline till", "offline", :offline, "text-gray-800", "Closing when the net is down" ]
        ] %>
     <ul class="grid grid-cols-3 gap-x-4 gap-y-10 text-center sm:grid-cols-4 lg:grid-cols-6">
       <% tiles.each do |label, slug, icon, colour, without| %>
