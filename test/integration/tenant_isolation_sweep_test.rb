@@ -106,7 +106,7 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
           DocumentShare.create_for!(sale)
           acme.airtel_merchants.create!(name: "Airtel Money", environment: "simulator")
             .requests.create!(account: acme, sale: sale, phone: "254733000111", amount_cents: 100_00)
-          acme.sale_returns.create!(sale: sale, shift: shift, refund_method: "cash", approver: users(:amina),
+          acme.sale_returns.create!(sale: sale, shift: shift, refund_method: "on_account", approver: users(:amina), # the sale is on account, so the refund is too
             lines_attributes: [ { sale_line: sale.lines.first, quantity: 1, restock: true } ])
           acme.delivery_notes.create!(sale: sale, address: "Plot 12, Mombasa Road")
 
