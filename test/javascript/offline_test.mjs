@@ -4,6 +4,7 @@ import { test } from "node:test"
 import assert from "node:assert/strict"
 import { unitPrice, lineTotals, saleTotals, thousandths, promotionSaving, bestPromotion, bundleSavings, applyBundles, localDay } from "../../app/javascript/offline/arithmetic.js"
 import { receipt, columns, wrap, ascii, commands } from "../../app/javascript/offline/escpos.js"
+import { offlinePayments, offlineReceiptNumber, deviceCode } from "../../app/javascript/offline/payload.js"
 
 test("line and sale totals match the server's (SaleLine, Sale::Cart)", () => {
   // 4 kg at 250.00, 16% VAT included: the tax is the tax-inclusive share, rounded.
@@ -99,3 +100,15 @@ test("bundles: any three for a price across lines, dearest first, shared by cost
   assert.equal(applyBundles([ three ], "2026-10-24", [ line(pipe, 2), { ...line(kit, 1), pack: { price_cents: 250000 } } ])[0].promotion, null, "packs stay out")
 })
 
+test("offline payments: cash pays no more than the till's total, other tenders pay what's due", () => {
+  // 1,000.00 handed over for a 500.00 sale: 500.00 pays it and 500.00 is change from this drawer.
+  assert.deepEqual(offlinePayments("cash", 50000, 100000, ""), [ { tender: "cash", amount_cents: 50000, tendered_cents: 100000, reference: null } ])
+  assert.deepEqual(offlinePayments("mobile_money", 50000, null, "SJK4H7T2QP"), [ { tender: "mobile_money", amount_cents: 50000, tendered_cents: null, reference: "SJK4H7T2QP" } ])
+  assert.deepEqual(offlinePayments("cash", 0, null, ""), [])
+})
+
+test("offline receipt numbers carry the till and the device", () => {
+  assert.equal(offlineReceiptNumber({ branch_code: "MAIN", register_id: 3 }, "K7Q2", 1), "MAIN-OFF3-K7Q2-0001")
+  assert.match(deviceCode(), /^[2-9A-HJ-NP-Z]{4}$/)
+  assert.equal(deviceCode(new Uint8Array([ 0, 31, 32, 255 ])), "2Z2Z")
+})

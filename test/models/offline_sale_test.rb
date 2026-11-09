@@ -61,6 +61,20 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_includes result.warnings, "The till worked out KES 990.00; the total is KES 1,000.00"
   end
 
+  test "cash is taken at what the till charged, since the change was given from its drawer" do
+    # An older till sends a hand discount, which isn't taken here: the sale comes to 1,000.00, but the till charged
+    # 500.00 of the 1,000.00 handed over and gave 500.00 back.
+    result = record(payload(total_cents: 50000, payments: [ { tender: "cash", amount_cents: 50000, tendered_cents: 100000 } ]).merge(discount_cents: 50000))
+    assert_equal "needs_attention", result.status
+    assert_equal [ 50000, 100000 ], result.sale.payments.sole.values_at(:amount_cents, :tendered_cents)
+    assert_equal 50000, result.sale.balance_due_cents
+
+    # A till that doesn't say how much of the cash paid the sale is still held to its own total.
+    older = record(payload(total_cents: 50000, payments: [ { tender: "cash", tendered_cents: 100000 } ]).merge(discount_cents: 50000))
+    assert_equal 50000, older.sale.payments.sole.amount_cents
+    assert_equal 50000, older.sale.balance_due_cents
+  end
+
   test "bad data is refused whole, and the till's clock isn't trusted beyond the shift" do
     assert_equal "error", record(payload(uuid: "not-a-uuid")).status
     broken = record(payload(lines: [ { product_id: 0, quantity: "1", unit_price_cents: 100 } ]))
