@@ -40,7 +40,7 @@
         Logo on the left, the page links centred, sign in and the trial on the right; on a phone the three groups wrap and centre. %>
     <header class="sticky top-0 z-40 border-b border-primary-600 bg-primary-500 text-white">
       <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 text-sm font-medium md:grid md:grid-cols-[1fr_auto_1fr]">
-        <% nav_link = "text-white/85 hover:text-white" %>
+        <% nav_link = "text-white/85 transition-colors hover:text-white" %>
         <%= link_to marketing_root_path, aria: { label: "HardPoint home" }, class: "md:justify-self-start" do %><%= render "shared/logo", dark: true %><% end %>
         <div class="flex items-center gap-x-6">
           <%= link_to "Features", marketing_root_path(anchor: "features"), class: nav_link %>
@@ -49,7 +49,7 @@
         </div>
         <div class="flex items-center gap-x-5 md:justify-self-end">
           <%= link_to "Sign in", new_shop_lookup_path, class: nav_link %>
-          <%= link_to "Start free trial", new_signup_path, class: "btn border-white bg-white text-primary-600 hover:bg-primary-50 focus-visible:outline-white" %>
+          <%= link_to "Start now, it's free", new_signup_path, class: "btn rounded-full border-white bg-white px-4 font-semibold text-primary-600 hover:bg-primary-50 focus-visible:outline-white" %>
         </div>
       </nav>
     </header>
