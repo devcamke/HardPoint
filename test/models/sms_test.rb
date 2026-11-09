@@ -59,6 +59,36 @@ class SmsTest < ActiveSupport::TestCase
     assert Sms::Outbox.deliveries.all? { _1[:message].length <= 160 }
   end
 
+  test "a customer who has asked not to be texted gets no texts, whatever they're about" do
+    customer = customers(:acme_contractor)
+    customer.update!(sms_opt_out: true)
+    sale = shifts(:acme_front_open).current_sale
+    sale.add(products(:acme_nails), quantity: 4)
+    sale.change_customer(customer)
+    sale.pay(tender: "on_account")
+    order = accounts(:acme).customer_orders.create!(branch: branches(:acme_main), customer: customer, status: :ordered,
+      lines_attributes: [ { account: accounts(:acme), product_code: "NAIL-3", quantity: 1 } ])
+
+    [ Sms::Message.receipt(sale, to: "0722 000 111"), Sms::Message.balance_reminder(customer), Sms::Message.order_ready(order) ].each do |text|
+      assert_not text.persisted?
+      assert_match "asked not to be texted", text.errors.full_messages.to_sentence
+    end
+    assert Sms::Message.receipt(sale, to: "0733 000 222").persisted?, "another number is another person"
+  end
+
+  test "one balance reminder per customer a day" do
+    sale = shifts(:acme_front_open).current_sale
+    sale.add(products(:acme_nails), quantity: 4)
+    sale.change_customer(customers(:acme_contractor))
+    sale.pay(tender: "on_account")
+
+    assert Sms::Message.balance_reminder(customers(:acme_contractor)).persisted?
+    again = Sms::Message.balance_reminder(customers(:acme_contractor))
+    assert_not again.persisted?
+    assert_match "already been texted a reminder today", again.errors.full_messages.to_sentence
+    assert Sms::Message.receipt(sale, to: "0722000111").persisted?, "only reminders are held back"
+  end
+
   test "SMS has to be turned on, numbers must be mobiles, and each shop has a daily limit" do
     assert_match "must be a Kenyan mobile", Sms::Message.compose(to: "020 000 000", body: "Hi", purpose: "receipt").errors.full_messages.to_sentence
 

@@ -65,6 +65,15 @@ class StorefrontTest < ActiveSupport::TestCase
     assert_equal customer, checkout_.order.customer
   end
 
+  test "a number two customers share matches neither, so the order gets a customer of its own" do
+    @account.customers.create!(name: "Grace W.", phone: "0711222333")
+    @account.customers.create!(name: "Grace's son", phone: "0711222333")
+    @cart.add(products(:acme_nails), 1)
+    checkout_ = checkout
+    assert checkout_.place
+    assert_equal "Grace Wanjiku", checkout_.order.customer.name
+  end
+
   test "checking out under someone's phone number never changes their record" do
     customer = @account.customers.create!(name: "Grace W.", phone: "0711222333")
     @cart.add(products(:acme_nails), 1)

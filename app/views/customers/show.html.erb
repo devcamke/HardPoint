@@ -4,6 +4,7 @@
   <div>
     <h1 class="text-xl font-medium"><%= link_to "Customers", customers_path, class: "link" %> <span class="text-gray-400">/</span> <%= @customer.name %></h1>
     <p class="hint mt-1" data-tour="customer-details"><%= [ @customer.phone, @customer.email, @customer.address, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %> <%= email_status(@customer.email) %></p>
+    <%= tag.p "Has asked not to be texted: no receipts, order texts or reminders go to this number.", class: "hint mt-1 font-semibold" if @customer.sms_opt_out? %>
   </div>
   <div class="flex flex-wrap gap-2" data-tour="customer-actions">
     <% if current_membership.can_sell? %>
@@ -12,7 +13,7 @@
       <%= link_to "Add a job", new_job_path(customer_id: @customer.id), class: "btn-secondary" if feature?(:jobs) %>
     <% end %>
     <%= link_to "Statement", customer_statement_path(@customer), class: "btn-secondary" if current_membership.can_manage_receivables? %>
-    <% if current_membership.can_manage_receivables? && Current.account.sms_enabled? && @customer.phone.present? && @customer.balance_cents.positive? %>
+    <% if current_membership.can_manage_receivables? && Current.account.sms_enabled? && @customer.phone.present? && @customer.balance_cents.positive? && !@customer.sms_opt_out? %>
       <%= button_to "Text a reminder", customer_balance_reminder_path(@customer), class: "btn-secondary" %>
     <% end %>
     <%= link_to "Record payment", new_customer_payment_path(@customer), class: "btn-primary" if @customer.balance_cents.positive? %>

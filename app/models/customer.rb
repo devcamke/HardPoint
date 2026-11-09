@@ -30,10 +30,22 @@ class Customer < ApplicationRecord
     where("customers.name ILIKE :like OR customers.phone LIKE :phone", like: "%#{sanitize_sql_like(query)}%", phone: phone_match)
   end
 
-  # Customers pay their account to the Paybill with their phone number as the account number.
+  # Customers pay their account to the Paybill with their phone number as the account number. A number
+  # two customers share (a family, a business and its owner) is nobody's: nothing is matched to it by
+  # guesswork, and a cashier picks the right account instead.
   def self.find_by_account_number(reference)
     digits = reference.to_s.gsub(/\D/, "").last(9)
-    where("customers.phone LIKE ?", "%#{digits}").first if digits.length == 9
+    return unless digits.length == 9
+
+    matches = where("customers.phone LIKE ?", "%#{digits}").limit(2).to_a
+    matches.first if matches.one?
+  end
+
+  # Whether this phone number belongs to a customer who has asked not to be texted. Where two customers share
+  # it and either has asked, the number isn't texted.
+  def self.opted_out_of_sms?(phone)
+    digits = phone.to_s.gsub(/\D/, "").last(9)
+    digits.length == 9 && where(sms_opt_out: true).where("customers.phone LIKE ?", "%#{digits}").exists?
   end
 
   def available_credit_cents

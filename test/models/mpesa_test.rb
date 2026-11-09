@@ -145,6 +145,16 @@ class MpesaTest < ActiveSupport::TestCase
     assert_equal 3, accounts(:acme).mpesa_transactions.count
   end
 
+  test "a number two customers share matches neither; the payment waits for a cashier to pick" do
+    accounts(:acme).customers.create!(name: "Mwangi's brother", phone: "0722000111")
+
+    assert_nil Customer.find_by_account_number("0722 000 111")
+    paid = @shortcode.receive_c2b_confirmation(c2b(trans_id: "GGG7", bill_reference: "0722000111"))
+    assert_nil paid.reload.matched
+    assert_equal 0, accounts(:acme).customer_payments.count, "nobody's account was credited by guesswork"
+    assert_includes accounts(:acme).mpesa_transactions.unmatched, paid
+  end
+
   test "an unmatched payment can be used at the till, and a typed code claims one that already arrived" do
     received = @shortcode.receive_c2b_confirmation(c2b(trans_id: "DDD4", amount: "400.00"))
     received.attach_to(@sale)

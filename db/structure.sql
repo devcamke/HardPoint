@@ -1022,7 +1022,8 @@ CREATE TABLE public.customers (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     payment_terms_days integer DEFAULT 30 NOT NULL,
-    address character varying
+    address character varying,
+    sms_opt_out boolean DEFAULT false NOT NULL
 );
 
 ALTER TABLE ONLY public.customers FORCE ROW LEVEL SECURITY;
@@ -9368,6 +9369,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261110120000'),
 ('20261109180000'),
 ('20261109170000'),
 ('20261109160000'),
