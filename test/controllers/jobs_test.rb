@@ -31,6 +31,7 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
     get job_path(job)
     assert_select "h1", /Kamau residence/
     assert_select "section", /Wire nails/
+    assert_select ".card", /Margin/
     assert_select "a", text: acme { sale.receipt_number }
 
     get jobs_path
