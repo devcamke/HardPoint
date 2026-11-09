@@ -88,14 +88,76 @@
   </div>
 </section>
 
-<%# One full-colour band, where Odoo has its yellow one: the offline point in words. The till itself was just shown. %>
-<section class="bg-primary-500 text-white">
-  <div class="mx-auto max-w-3xl px-4 py-16 text-center sm:py-20">
-    <p class="text-sm font-semibold tracking-wide text-primary-200 uppercase">The offline till</p>
-    <h2 class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">Keeps selling when the internet doesn't.</h2>
-    <p class="mt-5 text-lg text-primary-100 text-balance sm:text-xl">The till keeps its own copy of the catalogue, customers and promotions. It takes cash, M-Pesa and card, prints receipts,
-      and sends the sales the moment it reconnects.</p>
-    <%= link_to help_article_path("offline"), class: "mt-6 inline-block font-medium text-white underline-offset-4 hover:underline" do %>How the offline till works <span aria-hidden="true">›</span><% end %>
+<%# One full-colour band, where Odoo has its yellow one. The copy on the left; on the right a drawn till that tells
+    the story in a loop: the signal drops, sales ring up and queue as orange dots, a receipt prints, the signal
+    returns, and the dots fly up to the cloud. The animation is CSS (offline-art in application.css) and stands
+    still for anyone who prefers reduced motion, showing the offline scene. %>
+<section class="offline-band relative overflow-hidden text-white">
+  <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:py-28 lg:grid-cols-2 lg:gap-16">
+    <div class="max-w-xl">
+      <p class="text-sm font-semibold tracking-wide text-primary-200 uppercase">The offline till</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">Keeps selling when the internet doesn't.</h2>
+      <p class="mt-5 text-lg text-primary-100 text-balance sm:text-xl">Power cuts, a router down, Safaricom having a morning: the queue doesn't notice.</p>
+      <ul class="mt-8 space-y-4">
+        <% [ [ :stock, "Its own copy of the catalogue, customers and promotions, so every price is right." ],
+             [ :printer, "Cash, M-Pesa and card taken and receipts printed, with KRA's signature queued." ],
+             [ :sync, "Every sale sent the moment it reconnects. Nothing to redo, nothing lost." ] ].each do |icon, text| %>
+          <li class="flex gap-4">
+            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/20"><%= render "pages/icon", name: icon, classes: "size-5" %></span>
+            <p class="pt-1.5 text-primary-50"><%= text %></p>
+          </li>
+        <% end %>
+      </ul>
+      <%= link_to help_article_path("offline"), class: "mt-8 inline-block font-medium text-white underline-offset-4 hover:underline" do %>How the offline till works <span aria-hidden="true">›</span><% end %>
+    </div>
+
+    <div class="offline-art mx-auto w-full max-w-lg lg:max-w-none" aria-hidden="true">
+      <svg viewBox="0 0 480 340" class="h-auto w-full" fill="none">
+        <%# The signal, lost then found. %>
+        <g class="oa-arcs" stroke="#fff" stroke-width="3.5" stroke-linecap="round">
+          <path d="M90 74a42 42 0 0 1 60 0"/><path d="M104 88a22 22 0 0 1 32 0"/>
+          <circle cx="120" cy="100" r="3.5" fill="#fff" stroke="none"/>
+        </g>
+        <path class="oa-slash" d="M96 50 L144 98" stroke="#fda4af" stroke-width="3.5" stroke-linecap="round"/>
+
+        <%# The cloud, and the dotted road up to it. %>
+        <path class="oa-cloud" d="M380 104h70a20 20 0 0 0 3-40 28 28 0 0 0-52-9 22 22 0 0 0-21 49z" fill="#fff" fill-opacity="0.1" stroke="#fff" stroke-opacity="0.7" stroke-width="2.5" stroke-linejoin="round"/>
+        <path class="oa-check" d="M403 82l8 8 16-16" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0"/>
+        <path d="M308 120 L392 92" stroke="#fff" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round"/>
+
+        <%# The sales waiting to go up. %>
+        <circle class="oa-sale-1" cx="308" cy="120" r="5.5" fill="#e46f2f" stroke="#fff" stroke-width="2"/>
+        <circle class="oa-sale-2" cx="322" cy="115.3" r="5.5" fill="#e46f2f" stroke="#fff" stroke-width="2"/>
+        <circle class="oa-sale-3" cx="336" cy="110.7" r="5.5" fill="#e46f2f" stroke="#fff" stroke-width="2"/>
+
+        <%# The till. %>
+        <ellipse cx="240" cy="322" rx="190" ry="10" fill="#fff" fill-opacity="0.08"/>
+        <rect x="170" y="280" width="40" height="24" fill="#fff" fill-opacity="0.3"/>
+        <rect x="126" y="302" width="128" height="10" rx="5" fill="#fff" fill-opacity="0.4"/>
+        <rect x="60" y="110" width="260" height="170" rx="16" fill="#fff" fill-opacity="0.08" stroke="#fff" stroke-opacity="0.55" stroke-width="2"/>
+        <rect x="76" y="126" width="140" height="22" rx="6" fill="#fff" fill-opacity="0.15"/>
+        <g transform="translate(228 126)">
+          <rect width="76" height="22" rx="11" fill="#fff" fill-opacity="0.2"/>
+          <circle class="oa-dot" cx="13" cy="11" r="4.5" fill="#f59e0b"/>
+          <text class="oa-offline-text" x="25" y="15" fill="#fff" font-size="11" font-weight="600">Offline</text>
+          <text class="oa-online-text" x="25" y="15" fill="#fff" font-size="11" font-weight="600" opacity="0">Online</text>
+        </g>
+        <g class="oa-line-1"><rect x="76" y="162" width="150" height="14" rx="4" fill="#fff" fill-opacity="0.6"/><rect x="250" y="162" width="54" height="14" rx="4" fill="#fff" fill-opacity="0.35"/></g>
+        <g class="oa-line-2"><rect x="76" y="188" width="118" height="14" rx="4" fill="#fff" fill-opacity="0.6"/><rect x="250" y="188" width="54" height="14" rx="4" fill="#fff" fill-opacity="0.35"/></g>
+        <g class="oa-line-3"><rect x="76" y="214" width="136" height="14" rx="4" fill="#fff" fill-opacity="0.6"/><rect x="250" y="214" width="54" height="14" rx="4" fill="#fff" fill-opacity="0.35"/></g>
+        <rect x="76" y="246" width="228" height="22" rx="7" fill="#e46f2f"/>
+        <text x="190" y="261" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Pay</text>
+
+        <%# The printer and its receipt. %>
+        <g class="oa-receipt">
+          <rect x="352" y="196" width="56" height="64" rx="2" fill="#fff"/>
+          <rect x="360" y="206" width="40" height="3" fill="#93b7be"/><rect x="360" y="216" width="28" height="3" fill="#93b7be"/>
+          <rect x="360" y="226" width="36" height="3" fill="#93b7be"/><rect x="360" y="240" width="40" height="3" fill="#0f5e6e"/>
+        </g>
+        <rect x="338" y="258" width="84" height="44" rx="10" fill="#fff" fill-opacity="0.2" stroke="#fff" stroke-opacity="0.5" stroke-width="2"/>
+        <rect x="350" y="257" width="60" height="4" rx="2" fill="#072d35" fill-opacity="0.6"/>
+      </svg>
+    </div>
   </div>
 </section>
 
