@@ -78,6 +78,31 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal 0, products(:acme_plumbing_kit).stock_at(branches(:acme_yard))
   end
 
+  test "a part that doesn't track stock never holds a kit at zero" do
+    labour = accounts(:acme).products.create!(name: "Fitting labour", unit: units(:acme_piece), price: 500, track_stock: false)
+    products(:acme_plumbing_kit).kit_components.create!(account: accounts(:acme), component: labour, quantity: 1)
+
+    assert_equal 1, products(:acme_plumbing_kit).stock_at(branches(:acme_main)), "still limited by the pipes"
+    assert_equal 0, products(:acme_plumbing_kit).stock_at(branches(:acme_yard))
+  end
+
+  test "unit, stock tracking and kit can't change while the product has stock" do
+    cement = products(:acme_cement)
+
+    assert_not cement.update(unit: units(:acme_piece))
+    assert_match "has stock at Main branch and Timber yard, so its unit, stock tracking and kit setting can't change", cement.errors.full_messages.to_sentence
+    cement.reload
+    assert_not cement.update(track_stock: false)
+    cement.reload
+    assert_not cement.update(kit: true)
+    cement.reload
+    assert cement.update(name: "Bamburi cement 50 kg"), "anything else can"
+
+    cement.move_stock(branch: branches(:acme_main), quantity: -50, reason: "correction")
+    cement.move_stock(branch: branches(:acme_yard), quantity: -10, reason: "correction")
+    assert cement.update(unit: units(:acme_piece)), "fine once the stock is zero everywhere"
+  end
+
   test "kits can't contain kits" do
     component = products(:acme_plumbing_kit).kit_components.new(component: products(:acme_plumbing_kit), quantity: 1)
     assert_not component.valid?
