@@ -9,7 +9,7 @@ class CustomerOrdersController < ApplicationController
   before_action :set_customer_order, only: %i[ show edit update ]
 
   def index
-    orders = Current.account.customer_orders.chronologically.includes(:customer, :branch)
+    orders = within_visible_branches(Current.account.customer_orders).chronologically.includes(:customer, :branch)
     # "ordered" isn't offered as a filter (it's part of "open"), but opening the Ordered group picks it.
     @status = params[:status].presence_in(STATUS_FILTERS + [ "ordered", "all" ]) || "open"
     orders = case @status
@@ -85,7 +85,7 @@ class CustomerOrdersController < ApplicationController
     end
 
     def set_customer_order
-      @customer_order = Current.account.customer_orders.find(params[:id])
+      @customer_order = within_visible_branches(Current.account.customer_orders).find(params[:id])
     end
 
     def customer_order_params
@@ -94,7 +94,7 @@ class CustomerOrdersController < ApplicationController
       permitted[:customer] = Current.account.customers.find(permitted.delete(:customer_id)) if permitted[:customer_id].present?
       permitted[:job] = permitted[:job_id].present? ? Current.account.jobs.find(permitted[:job_id]) : nil if permitted.key?(:job_id)
       permitted.delete(:job_id)
-      permitted[:branch] = Current.account.branches.find(permitted.delete(:branch_id)) if permitted.key?(:branch_id)
+      permitted[:branch] = visible_branches.find(permitted.delete(:branch_id)) if permitted.key?(:branch_id)
       permitted[:lines_attributes]&.each_value do |line|
         line[:account] = Current.account if line[:id].blank?
         # Only owners and managers set prices by hand; everyone else quotes the customer's own prices.

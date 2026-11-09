@@ -6,6 +6,8 @@ class Membership < ApplicationRecord
 
   belongs_to :account, default: -> { Current.account }
   belongs_to :user, autosave: true
+  # Set, the member sees and works at this branch only. Owners see every branch.
+  belongs_to :branch, optional: true
 
   PIN_ROLES = %w[ cashier stock_clerk ].freeze
   PIN_ATTEMPTS_ALLOWED = 5
@@ -23,6 +25,8 @@ class Membership < ApplicationRecord
   validate { errors.add :approval_pin, "is only for owners and managers" if approval_pin.present? && !approver? }
 
   validates :user, uniqueness: { scope: :account_id, message: "is already a member of this shop" }
+  validate { errors.add :branch, "must be one of this shop's" if branch && branch.account_id != account_id }
+  validate { errors.add :branch, "can't be set for an owner: owners see every branch" if owner? && branch }
   validate :account_keeps_an_owner, on: :update, if: -> { role_changed?(from: "owner") }
 
   before_destroy :ensure_not_last_owner
@@ -33,6 +37,7 @@ class Membership < ApplicationRecord
   scope :with_pin, -> { where.not(pin_digest: nil).where(role: PIN_ROLES) }
 
   before_save :clear_pin, if: -> { role_changed? && !pin_role? }
+  before_validation { self.branch = nil if owner? && will_save_change_to_role? }
   before_save(if: -> { role_changed? && !approver? }) { self.approval_pin_digest = nil }
 
   # Finds the person by email address, or creates a user with an unusable random password
@@ -47,6 +52,19 @@ class Membership < ApplicationRecord
 
   def event_name
     user.name
+  end
+
+  # The branches this member may see: one, or all of them.
+  def visible_branches
+    branch ? account.branches.where(id: branch_id) : account.branches
+  end
+
+  def bound_to_branch?
+    branch_id.present?
+  end
+
+  def sees_branch?(other)
+    branch_id.nil? || other&.id == branch_id
   end
 
   def two_factor_required?

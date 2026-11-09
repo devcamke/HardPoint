@@ -1,9 +1,9 @@
 class DashboardsController < ApplicationController
   def show
     if current_membership&.can_view_reports?
-      @branch = Current.account.branches.find_by(id: params[:branch_id])
+      @branch = visible_branches.find_by(id: params[:branch_id]) || (current_membership.branch if current_membership.bound_to_branch?)
       @dashboard = Dashboard.new(Current.account, branch: @branch)
-      @branches = Current.account.branches.alphabetically
+      @branches = visible_branches.alphabetically
     else
       # Staff without reports start where their work is. On a counter computer whose till is set to open
       # straight into selling, that's the till itself.

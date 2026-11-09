@@ -8,8 +8,9 @@ module TillSelection
   end
 
   private
+    # A till at a branch the member may not see doesn't count, however the device was set.
     def current_till
-      @current_till ||= Current.account.registers.active.find_by(id: cookies.signed[:register_id])
+      @current_till ||= within_visible_branches(Current.account.registers.active).find_by(id: cookies.signed[:register_id])
     end
 
     def current_shift

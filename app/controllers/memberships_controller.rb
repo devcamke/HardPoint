@@ -27,7 +27,7 @@ class MembershipsController < ApplicationController
   end
 
   def update
-    if @membership.update(params.expect(membership: [ :role ]))
+    if @membership.update(params.expect(membership: [ :role, :branch_id ]))
       redirect_to memberships_path, notice: "Role updated."
     else
       render :edit, status: :unprocessable_entity
@@ -56,6 +56,6 @@ class MembershipsController < ApplicationController
     end
 
     def membership_params
-      params.expect(membership: [ :role, user_attributes: %i[ name email_address ] ])
+      params.expect(membership: [ :role, :branch_id, user_attributes: %i[ name email_address ] ])
     end
 end

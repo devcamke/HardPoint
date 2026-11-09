@@ -2,11 +2,11 @@ class StockCountsController < ApplicationController
   before_action :ensure_can_manage_stock, only: %i[ new create ]
 
   def index
-    @counts = paginate(Current.account.stock_counts.chronologically.includes(:branch, :category, :creator))
+    @counts = paginate(within_visible_branches(Current.account.stock_counts).chronologically.includes(:branch, :category, :creator))
   end
 
   def show
-    @count = Current.account.stock_counts.find(params[:id])
+    @count = within_visible_branches(Current.account.stock_counts).find(params[:id])
     lines = @count.lines.includes({ product: :unit }, :batch_counts).joins(:product).order("products.name")
     lines = case params[:filter]
     when "uncounted" then lines.uncounted
@@ -23,7 +23,7 @@ class StockCountsController < ApplicationController
 
   def create
     @count = Current.account.stock_counts.new(
-      branch: Current.account.branches.find(params.dig(:stock_count, :branch_id)),
+      branch: visible_branches.find(params.dig(:stock_count, :branch_id)),
       category: params.dig(:stock_count, :category_id).presence && Current.account.categories.find(params.dig(:stock_count, :category_id)),
       note: params.dig(:stock_count, :note))
 
