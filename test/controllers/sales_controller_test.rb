@@ -32,6 +32,16 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".receipt", /Change\s*KES 400.00/
   end
 
+  test "the number on an offline receipt finds the sale" do
+    Account.without_isolation { @sale.update_columns(offline_uuid: SecureRandom.uuid, offline_receipt_number: "MAIN-OFF1-K7Q2-0001") }
+
+    get sales_path(query: "main-off1-k7q2-0001")
+    assert_select "td a", "MAIN-000001"
+
+    get sales_path(query: "MAIN-OFF1-K7Q2-0002")
+    assert_select "tbody tr", 0
+  end
+
   test "emailing the receipt" do
     perform_enqueued_jobs do
       post sale_receipt_email_path(@sale), params: { email: "grace@example.test" }

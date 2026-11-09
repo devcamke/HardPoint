@@ -543,7 +543,7 @@ _How the till keeps selling offline and sends the sales when it's back._
 If the internet drops, the till says so and offers the **offline till**. It has your products and prices from the last time it was online, so you can keep scanning, taking cash and printing receipts.
 
 - Offline sales are kept on that computer and sent to HardPoint as soon as the connection is back. Each one is sent only once, however many times the connection comes and goes.
-- Offline receipts have their own numbers (starting with the till's name), so they never clash with sales made online.
+- Offline receipts have their own numbers (the till's and a code for the device, such as MAIN-OFF1-K7Q2-0001), so they never clash with sales made online or with another device on the same till. Searching **Sell › Sales** for the number on an offline receipt finds the sale, for a return.
 - Customers can be chosen for their prices, and a contractor's sale can go on one of their jobs.
 - M-Pesa and Airtel Money prompts, account sales and eTIMS need the internet; a cashier can still type the M-Pesa or Airtel transaction code. KRA gets offline sales when they're sent.
 - Stock levels update when the sales reach HardPoint.
