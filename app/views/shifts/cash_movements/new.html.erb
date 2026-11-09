@@ -18,5 +18,11 @@
     <%= form.label :reason, class: "label" %>
     <%= form.text_field :reason, required: true, class: "input", placeholder: "e.g. Lunchtime drop, envelope 3" %>
   </div>
+  <% unless current_membership.approver? %>
+    <div class="field">
+      <%= label_tag :approval_pin, "Manager approval PIN (for a payout over #{money(Current.account.payout_approval_above_cents)})", class: "label" %>
+      <%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", class: "input w-40" %>
+    </div>
+  <% end %>
   <%= form.submit "Record", class: "btn-primary" %>
 <% end %>

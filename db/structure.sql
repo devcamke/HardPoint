@@ -182,7 +182,8 @@ CREATE TABLE public.accounts (
     billing_interval character varying DEFAULT 'monthly'::character varying NOT NULL,
     qz_private_key text,
     qz_certificate text,
-    terms_accepted_at timestamp(6) without time zone
+    terms_accepted_at timestamp(6) without time zone,
+    payout_approval_above_cents bigint DEFAULT 500000 NOT NULL
 );
 
 
@@ -9375,6 +9376,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20261109200100'),
+('20261109200000'),
 ('20261109190100'),
 ('20261109190000'),
 ('20261109180000'),
