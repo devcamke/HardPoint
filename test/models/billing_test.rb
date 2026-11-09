@@ -19,6 +19,9 @@ class BillingTest < ActiveSupport::TestCase
     assert_match "allows 2 tills", till.errors.full_messages.to_sentence
     spare = Register.create(branch: branches(:acme_main), name: "Spare", active: false)
     assert spare.persisted?, spare.errors.full_messages.to_sentence
+    assert_not spare.update(active: true), "switching a spare till on counts like adding one"
+    assert_match "allows 2 tills", spare.errors.full_messages.to_sentence
+    assert registers(:acme_front).update(name: "Front counter"), "a till already counted can still be edited"
     product = Product.create(name: "Yet another screw", sku: "SCR-9999", unit: units(:acme_piece), price_cents: 100)
     assert product.persisted?, product.errors.full_messages.to_sentence
 
