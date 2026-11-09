@@ -14,9 +14,11 @@ class MembershipsController < ApplicationController
 
   def create
     @membership = Current.account.memberships.new(membership_params)
+    new_user = @membership.user&.new_record?
 
     if @membership.save
-      MembershipsMailer.with(membership: @membership).invitation.deliver_later
+      # Someone who already uses HardPoint keeps their password; they're only told where to sign in.
+      MembershipsMailer.with(membership: @membership).public_send(new_user ? :invitation : :added).deliver_later
       redirect_to memberships_path, notice: "#{@membership.user.name} has been added and emailed a sign-in link."
     else
       render :new, status: :unprocessable_entity

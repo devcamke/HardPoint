@@ -26,6 +26,22 @@ class MembershipsControllerTest < ActionDispatch::IntegrationTest
     assert_match %r{http://acme\.localhost/passwords/.+/edit}, invitation.text_part.body.to_s
   end
 
+  test "someone who already uses HardPoint is told they've been added, not asked to choose a password" do
+    assert_no_difference -> { User.count } do
+      perform_enqueued_jobs do
+        post memberships_path, params: { membership: { role: "cashier", user_attributes: { name: "Bob", email_address: users(:bob).email_address } } }
+      end
+    end
+
+    mail = ActionMailer::Base.deliveries.last
+    assert_equal [ users(:bob).email_address ], mail.to
+    assert_match "Acme Hardware", mail.subject
+    assert_no_match "passwords/", mail.text_part.body.to_s
+    assert_no_match "Choose your password", mail.html_part.body.to_s
+    assert_match "http://acme.localhost/session/new", mail.text_part.body.to_s
+    assert_match "your existing password", mail.text_part.body.to_s
+  end
+
   test "adding with invalid details" do
     post memberships_path, params: { membership: { role: "cashier", user_attributes: { name: "", email_address: "not-an-email" } } }
 
@@ -87,11 +103,13 @@ class MembershipsControllerTest < ActionDispatch::IntegrationTest
     assert Account.without_isolation { memberships(:sara_acme).reload.cashier? }, "other roles are still the manager's to change"
   end
 
-  test "removing someone signs them out everywhere" do
+  test "removing someone signs them out everywhere, support signed in as them too" do
     session = Account.without_isolation { Session.create!(account: accounts(:acme), user: users(:carl)) }
+    support = Account.without_isolation { Session.create!(account: accounts(:acme), user: users(:carl), impersonator: users(:ada), sign_in_method: "impersonation") }
 
     delete membership_path(memberships(:carl_acme))
 
     assert_not Account.without_isolation { Session.exists?(session.id) }
+    assert_not Account.without_isolation { Session.exists?(support.id) }
   end
 end
