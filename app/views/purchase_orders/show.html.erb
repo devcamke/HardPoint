@@ -39,7 +39,7 @@
       <% order.lines.includes(product: :unit).each do |line| %>
         <tr>
           <td><%= link_to line.product.name, line.product, class: "hover:text-primary-700" %> <span class="font-mono text-xs text-gray-500"><%= line.product.sku %></span></td>
-          <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
+          <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %><%= tag.span(" · #{line.packs_description}", class: "hint") if line.product_unit %></td>
           <td class="text-right tabular-nums"><%= quantity(line.received_quantity) %></td>
           <td class="text-right tabular-nums <%= "font-semibold" if line.outstanding_quantity.positive? %>"><%= quantity([ line.outstanding_quantity, 0 ].max) %></td>
           <td class="text-right tabular-nums"><%= money(line.unit_cost_cents, currency: order.currency) %></td>

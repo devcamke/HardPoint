@@ -86,7 +86,7 @@ class PurchaseOrdersController < ApplicationController
 
     def purchase_order_params
       permitted = params.expect(purchase_order: [ :supplier_id, :branch_id, :expected_on, :note,
-        lines_attributes: [ [ :id, :product_code, :quantity, :unit_cost, :_destroy ] ] ])
+        lines_attributes: [ [ :id, :product_code, :pack, :quantity, :unit_cost, :_destroy ] ] ])
       permitted[:supplier] = Current.account.suppliers.find(permitted.delete(:supplier_id)) if permitted.key?(:supplier_id)
       permitted[:branch] = Current.account.branches.find(permitted.delete(:branch_id)) if permitted.key?(:branch_id)
       permitted[:lines_attributes]&.each_value { |line| line[:account] = Current.account if line[:id].blank? }
