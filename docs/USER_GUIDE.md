@@ -930,7 +930,7 @@ When each product needs its own new price, use a spreadsheet instead: press **Ex
 
 _Adjusting stock, moving it between branches, counting it, and the reorder list._
 
-HardPoint keeps stock per branch. Every sale, delivery, transfer and correction is a line in the stock history, so you can always see why a number is what it is. **Stock › Stock levels** shows what each branch holds and what it's worth.
+HardPoint keeps stock per branch. Every sale, delivery, transfer and correction is a line in the stock history, so you can always see why a number is what it is. **Stock › Stock levels** shows what each branch holds and what it's worth, with stock on its way between branches on its own line.
 
 #### Correcting stock
 
@@ -939,7 +939,7 @@ Open the product and press **Adjust stock**. Choose the branch, how many to add 
 #### Moving stock between branches
 
 1. In **Stock › Transfers**, press **New**, choose the branches and the products, and press **Send transfer**. The stock leaves the sending branch and shows as in transit.
-2. When it arrives, the other branch presses **Mark received at …** and the stock is theirs.
+2. When it arrives, the other branch counts it in. If anything is short, type what arrived against that line and say whether the rest was lost on the way (it is written off at the receiving branch) or never left (it goes back into the sending branch's stock), then press **Mark received at …**. What arrived is theirs, and the transfer shows what was short.
 3. While it is still in transit, **Cancel transfer** puts the stock back at the sending branch.
 
 **Walkthrough: Move stock between branches**

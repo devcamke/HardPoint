@@ -7,25 +7,40 @@
       <%= "· received #{l(@transfer.received_at, format: :long)} by #{@transfer.receiver&.name}" if @transfer.received? %></p>
     <%= tag.p(@transfer.note, class: "mt-1 text-sm") if @transfer.note.present? %>
   </div>
-  <% if @transfer.in_transit? && current_membership.can_manage_stock? %>
-    <div class="flex gap-2">
-      <%= button_to "Cancel transfer", stock_transfer_cancellation_path(@transfer), class: "btn-danger", form: { data: { turbo_confirm: "Cancel and return the stock to #{@transfer.from_branch.name}?" } } %>
-      <%= button_to "Mark received at #{@transfer.to_branch.name}", stock_transfer_receipt_path(@transfer), class: "btn-primary" %>
-    </div>
+  <% receiving = @transfer.in_transit? && current_membership.can_manage_stock? %>
+  <% if receiving %>
+    <%= button_to "Cancel transfer", stock_transfer_cancellation_path(@transfer), class: "btn-danger", form: { data: { turbo_confirm: "Cancel and return the stock to #{@transfer.from_branch.name}?" } } %>
   <% end %>
 </div>
 
-<div class="card max-w-3xl">
+<%= form_with url: stock_transfer_receipt_path(@transfer), method: :post, class: "card max-w-3xl" do |form| %>
   <table class="table">
-    <thead><tr><th>Product</th><th>SKU</th><th class="text-right">Quantity</th></tr></thead>
+    <thead><tr><th>Product</th><th>SKU</th><th class="text-right">Sent</th><% if receiving || @transfer.received? %><th class="text-right">Received</th><% end %><% if @transfer.short? %><th class="text-right">Short</th><% end %></tr></thead>
     <tbody>
       <% @transfer.lines.includes(product: :unit).each do |line| %>
         <tr>
           <td><%= link_to line.product.name, line.product, class: "hover:text-primary-700" %></td>
           <td class="font-mono text-xs"><%= line.product.sku %></td>
           <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %></td>
+          <% if receiving %>
+            <td class="text-right"><%= number_field_tag "received[#{line.id}]", plain_number(line.quantity), id: nil, step: "any", min: 0, max: plain_number(line.quantity), inputmode: "decimal",
+                  class: "input w-24 py-1.5 text-right", "aria-label": "#{line.product.name} received" %></td>
+          <% elsif @transfer.received? %>
+            <td class="text-right tabular-nums"><%= quantity(line.received_quantity, line.product.unit) %></td>
+          <% end %>
+          <% if @transfer.short? %>
+            <td class="text-right tabular-nums text-red-700"><%= "#{quantity(line.short_quantity)} #{@transfer.shortfall == "lost" ? "lost in transit" : "returned to #{@transfer.from_branch.name}"}" if line.short_quantity.positive? %></td>
+          <% end %>
         </tr>
       <% end %>
     </tbody>
   </table>
-</div>
+  <% if receiving %>
+    <fieldset class="mt-4 text-sm">
+      <legend class="label">If anything is short</legend>
+      <label class="flex items-center gap-2"><%= radio_button_tag :shortfall, "lost", false, class: "accent-primary-500" %> It was lost on the way: write it off at <%= @transfer.to_branch.name %></label>
+      <label class="mt-1 flex items-center gap-2"><%= radio_button_tag :shortfall, "returned", false, class: "accent-primary-500" %> It never left: put it back into stock at <%= @transfer.from_branch.name %></label>
+    </fieldset>
+    <%= form.submit "Mark received at #{@transfer.to_branch.name}", class: "btn-primary mt-4" %>
+  <% end %>
+<% end %>
