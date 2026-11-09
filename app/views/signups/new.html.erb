@@ -67,3 +67,18 @@
 <p class="mt-8 text-center text-gray-600">Already have a shop? <%= link_to new_shop_lookup_path, class: "font-medium text-accent-600 hover:underline" do %>Sign in <span aria-hidden="true">›</span><% end %></p>
 </div>
 </section>
+
+<%# Someone opening a shop sees a sale before they've made one: the help centre's walkthrough of the till. %>
+<section class="border-t border-gray-200 bg-gray-50">
+  <div class="mx-auto max-w-5xl px-4 py-16 sm:py-20">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">While you're here</p>
+      <h2 class="mt-3 text-3xl font-semibold tracking-tight text-gray-950 text-balance sm:text-4xl">See a sale, start to finish.</h2>
+      <p class="mt-4 text-lg text-gray-600 text-balance">From the first scan to the receipt, on the real screen. Press play, or tap any number.</p>
+    </div>
+    <div class="mt-8">
+      <%= render "help/walkthrough", tour: HelpTour.find("till"),
+            caption: safe_join([ "Every screen has a guide like this one: ", link_to("Selling at the till", help_article_path("selling"), class: "link"), "." ]) %>
+    </div>
+  </div>
+</section>
