@@ -324,10 +324,25 @@ export default class extends Controller {
           <span class="block text-xs text-gray-500">${new Date(sale.happened_at).toLocaleTimeString("en-KE", { timeStyle: "short" })}
           ${sale.status === "sent" ? `· sent${sale.receipt_number ? ` (was ${escape(sale.offline_receipt_number)})` : ""}` : ""}</span>
           ${(sale.warnings || []).map((warning) => `<span class="block text-xs text-amber-800">${escape(warning)}</span>`).join("")}
-          ${sale.error ? `<span class="block text-xs text-red-700">${escape(sale.error)}</span>` : ""}</span>
+          ${sale.error ? `<span class="block text-xs text-red-700">${escape(sale.error)}</span>` : ""}
+          ${sale.status === "error" ? `<span class="mt-1 flex gap-3 text-xs"><button type="button" class="link" data-action="offline-till#retry" data-uuid="${sale.uuid}">Try again</button><button type="button" class="link" data-action="offline-till#forget" data-uuid="${sale.uuid}">Rung up by hand, clear it</button></span>` : ""}</span>
         <span class="whitespace-nowrap text-right tabular-nums">${formatMoney(sale.total_cents, currency)}
-          <span class="badge ${{ sent: "bg-green-50 text-green-800", error: "bg-red-50 text-red-800" }[sale.status] || "bg-amber-100 text-amber-800"}">${{ sent: "Sent", error: "Problem" }[sale.status] || "Waiting"}</span></span>
+          <span class="badge ${{ sent: "bg-green-50 text-green-800", error: "bg-red-50 text-red-800" }[sale.status] || "bg-amber-100 text-amber-800"}">${{ sent: "Sent", error: "Not recorded" }[sale.status] || "Waiting"}</span></span>
       </li>`).join("") : `<li class="py-2 text-sm text-gray-500">No offline sales on this till.</li>`
+  }
+
+  // A refused sale, sent again once whatever stopped it has been put right.
+  async retry(event) {
+    await store.sales.retry(event.currentTarget.dataset.uuid)
+    document.dispatchEvent(new CustomEvent("offline-till:queued"))
+    await this.renderQueue()
+  }
+
+  // A refused sale that was rung up by hand instead: off the device, and off the status line.
+  async forget(event) {
+    await store.sales.remove(event.currentTarget.dataset.uuid)
+    document.dispatchEvent(new CustomEvent("offline-till:queued"))
+    await this.renderQueue()
   }
 
   receiptData(receiptNumber, lines, payments) {
