@@ -82,11 +82,92 @@ class EtimsTest < ActiveSupport::TestCase
     assert_equal Etims::Item.code_for(products(:acme_nails)), @kra.last("/etims-api/saveItem").json[:itemCd]
   end
 
+  test "the invoice's totals are the receipt's, with the cart discount's odd cents on the last line" do
+    sale = @shift.current_sale
+    [ :acme_nails, :acme_cement, :acme_pipe ].each { sale.add(products(_1)) }
+    sale.update!(discount_cents: 5, discount_approver: users(:amina), approved_discount_percent: 100)
+    sale.recalculate
+    transmitting { sale.pay(tender: "card", reference: "VISA 1") }
+    sale.reload
+
+    sent = @kra.last("/etims-api/saveTrnsSalesOsdc").json
+    assert_equal sale.total_cents / 100.0, sent[:totAmt]
+    assert_equal sale.tax_cents / 100.0, sent[:totTaxAmt]
+    assert_equal sale.total_cents / 100.0, sent[:itemList].sum { _1[:totAmt] }.round(2)
+    assert_equal sale.tax_cents / 100.0, sent[:taxAmtB]
+  end
+
+  test "a deposit taken on an earlier day doesn't decide the payment type when the balance was paid another way" do
+    order = accounts(:acme).customer_orders.create!(branch: branches(:acme_main), customer: customers(:acme_contractor),
+      lines_attributes: [ { account: accounts(:acme), product_code: "NAIL-3", quantity: 4 } ])
+    order.take_deposit(amount_cents: 900_00, tender: "cash", shift: @shift)
+    sale = @shift.current_sale
+    order.load_into(sale)
+    sale.pay(tender: "deposit")
+    transmitting { sale.pay(tender: "mobile_money", reference: "SJK4H7T2QR") }
+
+    assert_equal "06", @kra.last("/etims-api/saveTrnsSalesOsdc").json[:pmtTyCd], "M-Pesa, not the larger deposit"
+  end
+
+  test "a customer's KRA PIN goes on the invoice only when it's a valid one" do
+    customers(:acme_contractor).update!(tax_pin: " p051234567x ")
+    assert_equal "P051234567X", customers(:acme_contractor).tax_pin
+    sale = @shift.current_sale
+    sale.update!(customer: customers(:acme_contractor))
+    sale.add(products(:acme_nails))
+    transmitting { sale.pay(tender: "card", reference: "VISA 1") }
+    assert_equal "P051234567X", @kra.last("/etims-api/saveTrnsSalesOsdc").json[:custTin]
+
+    customers(:acme_contractor).update_column(:tax_pin, "not a pin") # saved before PINs were checked
+    sale = @shift.current_sale
+    sale.update!(customer: customers(:acme_contractor))
+    sale.add(products(:acme_nails))
+    transmitting { sale.pay(tender: "card", reference: "VISA 1") }
+    assert_nil @kra.last("/etims-api/saveTrnsSalesOsdc").json[:custTin]
+  end
+
+  test "a customer's tax PIN must look like a KRA PIN, or be left blank" do
+    customer = customers(:acme_contractor)
+    customer.tax_pin = "A 123 456 789 z"
+    assert customer.valid?
+    assert_equal "A123456789Z", customer.tax_pin
+
+    customer.tax_pin = "123456789"
+    assert_not customer.valid?
+    assert_match "KRA PIN", customer.errors[:tax_pin].to_sentence
+
+    customer.tax_pin = " "
+    assert customer.valid?
+    assert_nil customer.tax_pin
+  end
+
   test "each item is registered once per control unit" do
     sell(products(:acme_nails))
     sell(products(:acme_nails))
 
     assert_equal 1, @kra.requests.count { _1.path == "/etims-api/saveItem" }
+  end
+
+  test "a product registered with KRA is registered again when its name or tax rate changes" do
+    sell(products(:acme_nails))
+    assert_equal 1, @kra.requests.count { _1.path == "/etims-api/saveItem" }
+
+    perform_enqueued_jobs(only: Etims::ItemUpdateJob) { products(:acme_nails).update!(price_cents: 26000) }
+    assert_equal 1, @kra.requests.count { _1.path == "/etims-api/saveItem" }, "the price isn't KRA's business"
+
+    perform_enqueued_jobs(only: Etims::ItemUpdateJob) { products(:acme_nails).update!(name: "Wire nails 3in", tax_rate: tax_rates(:acme_zero)) }
+    Current.account = accounts(:acme)
+    registered = @kra.last("/etims-api/saveItem").json
+    assert_equal [ "Wire nails 3in", "C", Etims::Item.code_for(products(:acme_nails)) ], registered.values_at(:itemNm, :taxTyCd, :itemCd)
+
+    # KRA couldn't be reached: the next sale registers it instead.
+    fake_transport(Etims::Client, "/etims-api/saveItem" => JsonHttp::Unreachable.new("timed out"))
+    perform_enqueued_jobs(only: Etims::ItemUpdateJob) { products(:acme_nails).update!(name: "Wire nails 75mm") }
+    Current.account = accounts(:acme)
+    assert_not @device.item_registrations.exists?(product: products(:acme_nails))
+
+    perform_enqueued_jobs(only: Etims::ItemUpdateJob) { products(:acme_screws).update!(name: "Screws") }
+    assert_not @device.item_registrations.exists?(product: products(:acme_screws)), "never sold, so it registers on its first sale"
   end
 
   test "voids and returns go as credit notes against the original invoice" do
@@ -103,6 +184,62 @@ class EtimsTest < ActiveSupport::TestCase
     end
     returned = @kra.last("/etims-api/saveTrnsSalesOsdc").json
     assert_equal [ "R", sale.etims_submission.invoice_number, "06", "01", 250.0 ], returned.values_at(:rcptTyCd, :orgInvcNo, :rfdRsnCd, :pmtTyCd, :totAmt)
+  end
+
+  test "a control unit sends one invoice at a time, in the order they were numbered" do
+    first, second = 2.times.map { sell(products(:acme_nails)).etims_submission }
+    other = accounts(:acme).etims_devices.create!(branch: branches(:acme_yard), environment: "sandbox", tin: "P051234567X", bhf_id: "01", serial_number: "HP-YARD-01")
+
+    assert_equal Etims::TransmitJob.new(first).concurrency_key, Etims::TransmitJob.new(second).concurrency_key
+    assert_not_equal Etims::TransmitJob.new(first).concurrency_key,
+      Etims::TransmitJob.new(Etims::Submission.new(device: other)).concurrency_key
+    assert_equal 1, Etims::TransmitJob.concurrency_limit
+  end
+
+  test "sales, voids and returns that were never queued for KRA are found and queued" do
+    travel_to 1.hour.from_now.beginning_of_hour # clear of the control unit's set-up
+    lost_sale = sell(products(:acme_nails))
+    voided = sell(products(:acme_nails))
+    transmitting { voided.void(reason: "Rang up twice", by: users(:amina)) }
+    returned = sell(products(:acme_nails), quantity: 2)
+    sale_return = transmitting do
+      accounts(:acme).sale_returns.create!(sale: returned, shift: @shift, refund_method: "cash", approver: users(:amina),
+        lines_attributes: [ { sale_line: returned.lines.first, quantity: 1, restock: true } ])
+    end
+    # The app stopped between saving each and queuing it.
+    lost = [ lost_sale.etims_submission, Etims::Submission.find_by!(document: voided, kind: "credit_note"), Etims::Submission.find_by!(document: sale_return) ]
+    lost.each(&:delete)
+    just_now = sell(products(:acme_nails))
+    just_now.etims_submission.delete
+
+    travel 5.minutes do
+      Etims::ReconcileJob.perform_now
+      assert_nil just_now.reload.etims_submission, "only minutes old, it may still be on its way"
+    end
+    travel 20.minutes do
+      transmitting { Etims::ReconcileJob.perform_now }
+    end
+    Current.account = accounts(:acme)
+
+    assert lost_sale.reload.etims_submission.sent?
+    assert Etims::Submission.find_by!(document: voided, kind: "credit_note").sent?
+    assert Etims::Submission.find_by!(document: sale_return, kind: "credit_note").sent?
+    assert just_now.reload.etims_submission.sent?
+    assert_no_difference -> { Etims::Submission.count } do
+      travel(30.minutes) { Etims::ReconcileJob.perform_now }
+    end
+  end
+
+  test "sales from while the control unit was switched off aren't swept up when it's switched on" do
+    travel_to 1.hour.from_now
+    @device.update!(active: false)
+    sale = sell(products(:acme_nails))
+    travel 1.minute
+    @device.update!(active: true)
+
+    travel(1.hour) { Etims::ReconcileJob.perform_now }
+    Current.account = accounts(:acme)
+    assert_nil sale.reload.etims_submission
   end
 
   test "while KRA can't be reached, sending is retried with growing gaps" do
