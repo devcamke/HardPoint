@@ -430,6 +430,8 @@ Press **Shift** in the till's top bar, then **Cash drop / payout**. Choose what'
 - **Pay out**: cash paid from the till, for transport or a supplier, say.
 - **Pay in**: more change added to the float.
 
+Cash movements go on the till this device is set to, since that's the drawer the cash is in. A payout above the shop's limit (KES 5,000 to start with; owners change it under **Settings › Shop details**) needs an owner's or manager's approval PIN, and **Settings › Activity** records who approved it.
+
 Each one shows on the shift report with its reason. On tills that print through QZ Tray, **Open drawer** in the top bar opens the drawer without a sale. It's logged as "No sale" in **Settings › Activity**.
 
 #### The X report

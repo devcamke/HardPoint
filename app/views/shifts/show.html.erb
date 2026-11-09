@@ -7,7 +7,7 @@
   <div class="flex flex-wrap gap-2">
     <button type="button" class="btn-secondary" data-controller="print" data-action="print#print">Print</button>
     <% if @shift.open? %>
-      <%= link_to "Cash drop / payout", new_shift_cash_movement_path(@shift), class: "btn-secondary" %>
+      <%= link_to "Cash drop / payout", new_shift_cash_movement_path(@shift), class: "btn-secondary" if @shift == current_shift %>
       <%= link_to "Back to till", pos_path, class: "btn-secondary" %>
       <%= link_to "Close shift", new_shift_closing_path(@shift), class: "btn-primary" %>
     <% end %>
