@@ -23,11 +23,13 @@ class DeliveryNotePdf < DocumentPdf
         "Dispatched by", [ "#{account.name}, #{branch.name}", branch.phone, ("Driver #{@note.driver_name}" if @note.driver_name),
           ("Vehicle #{@note.vehicle}" if @note.vehicle) ]
 
-      table(@note.sale.lines.includes(product: :unit, product_unit: :unit).map do |line|
+      # Only what this note carries: a sale going out in parts prints a note per trip.
+      table(@note.lines.includes(sale_line: [ { product: :unit }, { product_unit: :unit } ]).map do |line|
         [ line.description, line.product.sku, "#{quantity(line.quantity)} #{line.unit.abbreviation}" ]
       end)
 
       pdf.move_down 10
+      note "Part delivery: the rest of sale #{@note.sale.receipt_number} follows on another note." if @note.partial?
       note "Transport: #{money(@note.transport_cents)}" if @note.transport_cents.positive?
       note "Note: #{@note.note}" if @note.note.present?
       pdf.move_down 40

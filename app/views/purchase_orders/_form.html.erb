@@ -7,7 +7,7 @@
 
   <p class="label mt-2">Products</p>
   <table class="table mb-4" data-tour="po-lines">
-    <thead><tr><th>Barcode or SKU</th><th class="text-right">Quantity</th><th class="text-right">Unit cost (blank = supplier's price)</th><th class="text-right">Remove</th></tr></thead>
+    <thead><tr><th>Barcode or SKU</th><th>Pack (blank = <%= Current.account.default_unit&.name&.downcase || "single" %>)</th><th class="text-right">Quantity</th><th class="text-right">Unit cost (blank = supplier's price)</th><th class="text-right">Remove</th></tr></thead>
     <tbody>
       <%= form.fields_for :lines do |line| %>
         <tr>
@@ -18,8 +18,9 @@
               <%= line.text_field :product_code, value: line.object.product_code || line.object.product&.sku, placeholder: "Scan or type", class: "input py-1.5 font-mono", "aria-label": "Barcode or SKU" %>
             <% end %>
           </td>
-          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.quantity), step: "any", min: 0, inputmode: "decimal", class: "input w-24 py-1.5 text-right", "aria-label": "Quantity" %></td>
-          <td class="text-right"><%= line.number_field :unit_cost, value: (plain_number(line.object.unit_cost) if line.object.unit_cost_cents.to_i.positive?), step: "0.01", inputmode: "decimal", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit cost" %></td>
+          <td><%= line.text_field :pack, value: line.object.pack_name, placeholder: "e.g. box", class: "input w-24 py-1.5", "aria-label": "Pack" %></td>
+          <td class="text-right"><%= line.number_field :quantity, value: plain_number(line.object.entered_quantity), step: "any", min: 0, inputmode: "decimal", class: "input w-24 py-1.5 text-right", "aria-label": "Quantity" %></td>
+          <td class="text-right"><%= line.number_field :unit_cost, value: (plain_number(line.object.pack_unit_cost_cents / 100.0) if line.object.unit_cost_cents.to_i.positive?), step: "0.01", inputmode: "decimal", min: 0, class: "input w-32 py-1.5 text-right", "aria-label": "Unit cost" %></td>
           <td class="text-right"><%= line.check_box :_destroy, class: "size-4 accent-primary-500", "aria-label": "Remove line" if line.object.persisted? %></td>
         </tr>
       <% end %>

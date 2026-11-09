@@ -38,6 +38,15 @@ class Job < ApplicationRecord
     ids.index_with { sold.fetch(_1, 0) - returned.fetch(_1, 0) }
   end
 
+  # What the goods sold for each job cost the shop, { job id => cents }: each sale line's cost as recorded when it
+  # was sold (so later cost changes don't rewrite old margins), less the share of lines that came back.
+  def self.cost_cents_by_id(ids)
+    sold = SaleLine.joins(:sale).where(sales: { job_id: ids, status: "completed" }).group("sales.job_id").sum(:cost_cents)
+    returned = SaleReturnLine.joins(sale_line: :sale).where(sales: { job_id: ids, status: "completed" }).group("sales.job_id")
+      .sum(Arel.sql("ROUND(sale_lines.cost_cents * sale_return_lines.quantity / sale_lines.quantity)"))
+    ids.index_with { sold.fetch(_1, 0) - returned.fetch(_1, 0).to_i }
+  end
+
   # "Kamau residence (LPO 2291)", wherever a job is named on a document.
   def label
     reference ? "#{name} (#{reference})" : name
@@ -59,6 +68,24 @@ class Job < ApplicationRecord
 
   def budget_left_cents
     budget_cents && budget_cents - spent_cents
+  end
+
+  # The shop's side of the job: what the goods brought in ex tax, what they cost, and the margin between.
+  def revenue_cents
+    completed_sales.sum("sales.total_cents - sales.tax_cents") - returns.sum("sale_returns.total_cents - sale_returns.tax_cents")
+  end
+
+  def cost_cents
+    self.class.cost_cents_by_id([ id ])[id]
+  end
+
+  def margin_cents
+    revenue_cents - cost_cents
+  end
+
+  def margin_percent
+    revenue = revenue_cents
+    margin_cents * 100.0 / revenue if revenue.positive?
   end
 
   def over_budget?
@@ -92,8 +119,19 @@ class Job < ApplicationRecord
     (cents * (100 + markup_percent.to_d) / 100).round
   end
 
+  # Closing takes the job off the till's list. Orders for the job still to be collected would be rung up
+  # without it, so they're collected, cancelled or moved to another job first.
   def close
-    open? && update(status: "closed", closed_at: Time.current)
+    return false unless open?
+
+    waiting = customer_orders.open.order(:id)
+    if waiting.any?
+      errors.add :base, "#{waiting.map(&:reference).to_sentence} #{waiting.one? ? "is" : "are"} still to be collected for this job. " \
+        "Collect or cancel #{waiting.one? ? "it" : "them"} first, or move #{waiting.one? ? "it" : "them"} to another job"
+      return false
+    end
+
+    update(status: "closed", closed_at: Time.current)
   end
 
   def reopen

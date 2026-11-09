@@ -41,7 +41,7 @@
           <td>
             <% if product&.tracks_batches? %>
               <%= line.select :stock_batch_id, product.stock_batches.in_stock.where(branch: supplier_return.branch).by_expiry.map { [ "#{_1.number} (#{plain_number(_1.quantity)})", _1.id ] },
-                    { include_blank: "First to expire" }, class: "input py-1.5", "aria-label": "Batch" %>
+                    { prompt: "Choose…" }, class: "input py-1.5", "aria-label": "Batch" %>
             <% end %>
           </td>
         </tr>

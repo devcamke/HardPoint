@@ -1,5 +1,6 @@
 class GoodsReceiptLine < ApplicationRecord
   include AccountOwned, Monetary
+  include BoughtByThePack
 
   belongs_to :goods_receipt, inverse_of: :lines
   belongs_to :purchase_order_line, optional: true
@@ -26,6 +27,10 @@ class GoodsReceiptLine < ApplicationRecord
   def product_code=(code)
     @product_code = code
     self.product = Current.account.products.find_by_code(code) if code.present?
+  end
+
+  def pack_product
+    product || purchase_order_line&.product
   end
 
   def cost_in_supplier_currency

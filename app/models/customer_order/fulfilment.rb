@@ -1,15 +1,34 @@
 module CustomerOrder::Fulfilment
   extend ActiveSupport::Concern
 
-  def confirm
+  # Confirming commits the shop's stock to the order. For a customer who buys on account, an order worth more
+  # than the credit they have left needs an owner's or manager's approval (approver), as putting it on account
+  # at the till would (Sale::Payable); a cash-only customer pays at the till, so there's nothing to check.
+  # A deposit skips the check: the customer has put money down, and the till checks the credit again when
+  # the rest goes on account.
+  def confirm(approver: nil, check_credit: true)
     return false unless quote?
 
     if expired?
       errors.add :base, "This quote expired on #{valid_until.to_fs(:long)}. Change its date to confirm it at the same prices"
       return false
+    elsif check_credit && over_credit_limit? && approver.nil?
+      errors.add :base, "#{customer.name} has only #{Money.format(customer.available_credit_cents)} of credit left. " \
+        "Confirming this #{Money.format(balance_to_pay_cents)} order needs a manager's approval PIN"
+      return false
     end
 
-    update(status: :ordered, ordered_at: Time.current).tap { |confirmed| track_event "confirmed", total: total_cents if confirmed }
+    transaction do
+      if check_credit && over_credit_limit?
+        track_event "credit_approved", approver: approver.name, customer: customer.name, amount: balance_to_pay_cents, available: customer.available_credit_cents
+      end
+      update(status: :ordered, ordered_at: Time.current).tap { |confirmed| track_event "confirmed", total: total_cents if confirmed }
+    end
+  end
+
+  # Whether what's still to pay on this order is more than the customer's credit allows.
+  def over_credit_limit?
+    customer.buys_on_account? && balance_to_pay_cents > customer.available_credit_cents
   end
 
   def mark_ready
@@ -94,7 +113,7 @@ module CustomerOrder::Fulfilment
 
     transaction do
       deposit.save!
-      confirm if quote?
+      confirm(check_credit: false) if quote?
       track_event "deposit_taken", amount: amount_cents, tender: tender
     end
     deposit

@@ -16,11 +16,20 @@ module EventsHelper
     in [ "Membership", "pin_set" ] then "set #{whose(event)} till PIN"
     in [ "Membership", "pin_removed" ] then "removed #{whose(event)} till PIN"
     in [ "Shift", "opened" ] then "opened a shift on #{subject} with #{money(event.particulars["opening_float"])} float"
+    in [ "Shift", "payout_approved" ] then "paid out #{money(event.particulars["amount"])} from the drawer on #{subject}, approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
     in [ "Shift", "closed" ] then "closed the shift on #{subject}: counted #{money(event.particulars["counted"])}, #{variance_words(event.particulars["variance"])}"
-    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
+    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}" \
+      "#{"; #{Sale::Voidable.refund_words(event.particulars["refund_method"], event.particulars["refund_reference"])}" if event.particulars["refund_method"]}"
+    in [ "Sale", "completed_without_payment" ] then "completed sale #{subject} with nothing to pay, approved by #{event.particulars["approver"]}"
     in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"
     in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{event.particulars["approver"]}"
     in [ "CustomerOrder", "part_collected" ] then "collected part of #{subject} (#{event.particulars["receipt_number"]}); still waiting: #{Array(event.particulars["remaining"]).to_sentence}"
+    in [ "CustomerOrder", "credit_approved" ] then "had #{subject} (#{money(event.particulars["amount"])}, over #{event.particulars["customer"]}'s credit) approved by #{event.particulars["approver"]}"
+    in [ "DeliveryNote", "cancelled" ] then "cancelled delivery #{subject}#{" and its transport order #{event.particulars["transport_order"]}" if event.particulars["transport_order"] && !event.particulars["transport_paid_on"]}" \
+      "#{"; the transport was paid on #{event.particulars["transport_paid_on"]}, so refund it from that receipt" if event.particulars["transport_paid_on"]}"
+    in [ "Customer", "paid" ] then "took #{money(event.particulars["amount"])} from #{subject} on account by #{event.particulars["payment_method"].to_s.humanize.downcase}#{" (#{event.particulars["reference"]})" if event.particulars["reference"].present?}"
+    in [ "Customer", "credit_refunded" ] then "refunded #{money(event.particulars["amount"])} of account credit to #{subject} by #{event.particulars["payment_method"].to_s.humanize.downcase}"
+    in [ "Customer", "written_off" ] then "wrote off #{money(event.particulars["amount"])} of #{subject}'s account, approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
     in [ "CustomerOrder", "deposit_kept" ] then "kept the #{money(event.particulars["amount"])} deposit on #{subject} (#{event.particulars["receipt_number"]}), approved by #{event.particulars["approver"]}#{": #{event.particulars["reason"]}" if event.particulars["reason"].present?}"
     in [ _, "offline_sale_refused" ] then "rang up offline sale #{event.particulars["receipt_number"] || "without a number"} for #{money(event.particulars["total"])}" \
       "#{" on #{subject}" if event.eventable_type == "Register"}#{" at #{Time.zone.parse(event.particulars["happened_at"]).to_fs(:short)}" if event.particulars["happened_at"]}, " \
@@ -29,6 +38,7 @@ module EventsHelper
     in [ "Membership", "two_factor_reset" ] then "reset #{subject}'s two-factor sign-in#{by_platform(event)}"
     in [ "PurchaseOrder", "sent" ] then "sent purchase order #{subject} to #{event.particulars["supplier"]} (#{money(event.particulars["total"])})"
     in [ "PurchaseOrder", "cancelled" ] then "cancelled purchase order #{subject}"
+    in [ "PurchaseOrder", "closed" ] then "closed purchase order #{subject} short#{": #{event.particulars["short"]} never came" if event.particulars["short"].present?}"
     in [ "GoodsReceipt", "received" ] then "received #{subject} from #{event.particulars["supplier"]}#{" for #{event.particulars["purchase_order"]}" if event.particulars["purchase_order"]} (#{money(event.particulars["total"])})"
     in [ "SupplierInvoice", "recorded" ] then "recorded invoice #{subject} (#{money(event.particulars["total"])})"
     in [ "Supplier", "paid" ] then "paid #{subject} #{money(event.particulars["amount"])} by #{event.particulars["payment_method"].to_s.humanize.downcase}"

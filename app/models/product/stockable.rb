@@ -8,15 +8,26 @@ module Product::Stockable
     has_many :stock_movements, dependent: :restrict_with_error
     has_many :stock_batches, dependent: :restrict_with_error
 
-    # Products at or below their reorder level at a branch. A branch carries a product once it has
-    # had stock of it; products never stocked anywhere yet count as low everywhere, so they get ordered.
+    # Products at or below their reorder level at a branch: the branch's own level where it has set
+    # one, else the product's. A branch carries a product once it has had stock of it; products never
+    # stocked anywhere yet count as low everywhere, so they get ordered.
     scope :below_reorder_level_at, ->(branch) do
-      where(track_stock: true).where("products.reorder_level > 0")
+      where(track_stock: true)
         .joins(sanitize_sql_array([ "LEFT JOIN stock_levels ON stock_levels.product_id = products.id AND stock_levels.branch_id = ?", branch&.id ]))
+        .where("#{BRANCH_REORDER_LEVEL} > 0")
         .where("stock_levels.id IS NOT NULL OR NOT EXISTS (SELECT 1 FROM stock_levels carried WHERE carried.product_id = products.id)")
-        .where("COALESCE(stock_levels.quantity, 0) <= products.reorder_level")
+        .where("COALESCE(stock_levels.quantity, 0) <= #{BRANCH_REORDER_LEVEL}")
+    end
+
+    # For lists of what's low, after below_reorder_level_at: the branch's quantity and reorder level
+    # as columns (stock_quantity, branch_reorder_level), the furthest below first.
+    scope :most_short_first, -> do
+      select("products.*, COALESCE(stock_levels.quantity, 0) AS stock_quantity, #{BRANCH_REORDER_LEVEL} AS branch_reorder_level")
+        .order(Arel.sql("COALESCE(stock_levels.quantity, 0) - #{BRANCH_REORDER_LEVEL}"))
     end
   end
+
+  BRANCH_REORDER_LEVEL = "COALESCE(stock_levels.reorder_level, products.reorder_level)".freeze
 
   def stock_at(branch)
     return kit_stock_at(branch) if kit?
@@ -41,8 +52,14 @@ module Product::Stockable
     stock_at(branch) - reserved_at(branch, except: except)
   end
 
+  # A branch can set its own reorder level for a product; otherwise the product's applies everywhere.
+  def reorder_level_at(branch)
+    stock_levels.find_by(branch: branch)&.reorder_level || reorder_level
+  end
+
   def below_reorder_level_at?(branch)
-    reorder_level.positive? && stock_at(branch) <= reorder_level
+    level = reorder_level_at(branch)
+    level.positive? && stock_at(branch) <= level
   end
 
   # Movements that must never take expired stock: a customer mustn't be sold it, and another branch mustn't
@@ -86,9 +103,10 @@ module Product::Stockable
   end
 
   private
-    # A kit is in stock as many times as its scarcest component allows.
+    # A kit is in stock as many times as its scarcest component allows. A part that doesn't track stock
+    # (fitting, say) is always to hand, and selling the kit never deducts it, so it doesn't count.
     def kit_stock_at(branch)
-      kit_components.includes(:component).map do |part|
+      kit_components.includes(:component).select { _1.component.track_stock? }.map do |part|
         (part.component.stock_at(branch) / part.quantity).floor
       end.min || 0
     end
