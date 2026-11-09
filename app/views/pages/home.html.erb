@@ -3,8 +3,9 @@
 <%# In the manner of odoo.com: a white page, short bold headlines, the price said out loud in the hero with a
     hand-drawn arrow pointing at it, "Start now, it's free" everywhere, and a grid of app tiles standing in for a
     hero picture. The brand teal does the work Odoo's purple does: buttons, tiles, arrows and one full-colour band
-    for the offline till. The order is an argument: the promise and what it does, a sale to click through, why it's
+    for the offline till. The order is an argument: the promise and what it does, why it's
     different, the claims, the owner's view, the hardware, how to start, the price, the questions, and the door.
+    The walkthrough of a sale is one click away, "Watch a sale" in the hero, in a dialog over the page.
     From the market: a "works with" strip where Shopify puts its logo wall, Square's "ready for what you've got"
     hardware section, and the questions before the door that both of them carry. %>
 <% from_price = "KES #{number_with_delimiter(@plans.map(&:price_cents).min / 100)}" %>
@@ -16,7 +17,7 @@
      safe_join([ tag.path(d: "M6 6c2 18 12 30 34 32"), tag.path(d: "M32 30l8 8-10 4") ])
    } } %>
 
-<section class="bg-white">
+<section class="bg-white" data-controller="dialog">
   <div class="mx-auto max-w-4xl px-4 pt-16 pb-20 text-center sm:pt-24 sm:pb-24">
     <h1 class="text-5xl font-bold tracking-tight text-gray-950 text-balance sm:text-6xl">Point of sale and stock control for hardware stores.</h1>
     <p class="mt-5 text-2xl font-medium text-gray-700 text-balance sm:text-3xl">Simple, works offline, and affordable.</p>
@@ -26,9 +27,11 @@
     </p>
     <div class="mt-9 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
       <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-7 py-3 text-lg" %>
-      <%= link_to "Talk to us on WhatsApp", whatsapp_support_url("Hello HardPoint, I'd like to know more about the POS."), class: "btn rounded-full border-gray-300 bg-white px-7 py-3 text-lg text-gray-800 hover:bg-gray-50", target: "_blank", rel: "noopener" %>
+      <button type="button" class="btn rounded-full border-gray-300 bg-white px-7 py-3 text-lg text-gray-800 hover:bg-gray-50" data-action="dialog#open">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="size-5 text-primary-600" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Watch a sale
+      </button>
     </div>
-    <p class="mt-4 text-sm text-gray-500"><%= trial.capitalize %> free. No card needed.</p>
+    <p class="mt-4 text-sm text-gray-500"><%= trial.capitalize %> free. No card needed. Questions? <%= link_to "Talk to us on WhatsApp", whatsapp_support_url("Hello HardPoint, I'd like to know more about the POS."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" %></p>
   </div>
 
   <%# The product as a grid of tiles, one per thing a hardware shop does, each opening its help guide. %>
@@ -58,6 +61,22 @@
     </ul>
     <p class="mt-10 text-center text-gray-600">Every one of these on every plan. <%= link_to "See all the guides", help_path, class: "link" %></p>
   </div>
+
+  <%# "Watch a sale": the help centre's walkthrough of the till, in a dialog over the page, screen only. %>
+  <dialog data-dialog-target="dialog" data-action="click->dialog#closeOnBackdrop" aria-labelledby="sale-dialog-title"
+          class="m-auto w-[min(72rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl bg-white p-0 text-gray-800 shadow-2xl backdrop:bg-gray-950/60 backdrop:backdrop-blur-sm">
+    <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-3">
+      <div>
+        <p class="text-xs font-semibold tracking-wide text-primary-600 uppercase">Watch a sale</p>
+        <h2 id="sale-dialog-title" class="font-semibold text-gray-950">From the first scan to the receipt, on the real screen.</h2>
+      </div>
+      <button type="button" class="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-2xl leading-none text-gray-500 hover:bg-gray-100 hover:text-gray-900" data-action="dialog#close" aria-label="Close">×</button>
+    </div>
+    <div class="p-3 sm:p-5 [&_.walkthrough]:my-0">
+      <%= render "help/walkthrough", tour: HelpTour.find("till"), compact: true %>
+    </div>
+    <p class="border-t border-gray-200 bg-gray-50 px-5 py-3 text-center text-sm text-gray-600">Liked it? <%= link_to "Start now, it's free", new_signup_path, class: "font-medium text-accent-600 hover:underline" %> · Every screen has a guide like this one in the <%= link_to "help centre", help_path, class: "link" %>.</p>
+  </dialog>
 </section>
 
 <%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
@@ -70,21 +89,6 @@
         <li class="flex items-center gap-2"><span class="text-primary-600"><%= render "pages/icon", name: icon, classes: "size-5" %></span><%= label %></li>
       <% end %>
     </ul>
-  </div>
-</section>
-
-<%# The help centre's walkthrough of the till, so a visitor clicks through a sale before signing up. %>
-<section class="border-t border-gray-200 bg-gray-50">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Try it</p>
-      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">See a sale, start to finish.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">From the first scan to the receipt, on the real screen. Press play, or tap any number.</p>
-    </div>
-    <div class="mx-auto mt-10 max-w-5xl">
-      <%= render "help/walkthrough", tour: HelpTour.find("till"),
-            caption: safe_join([ "Every screen has a guide like this one: ", link_to("Selling at the till", help_article_path("selling"), class: "link"), "." ]) %>
-    </div>
   </div>
 </section>
 
