@@ -89,6 +89,11 @@ class SaleLine < ApplicationRecord
     product.stock_at(sale.branch) / (product_unit&.quantity || 1)
   end
 
+  # On hand less what's promised to other customers' orders, in this line's unit.
+  def stock_available
+    product.available_at(sale.branch, except: sale.customer_order) / (product_unit&.quantity || 1)
+  end
+
   # What the line costs the shop at today's weighted-average cost, ex tax. Kits cost their parts.
   def current_cost_cents
     if product.kit?

@@ -891,7 +891,8 @@ CREATE TABLE public.customer_order_lines (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     detail character varying,
-    promotion_id bigint
+    promotion_id bigint,
+    collected_quantity numeric(14,3) DEFAULT 0.0 NOT NULL
 );
 
 ALTER TABLE ONLY public.customer_order_lines FORCE ROW LEVEL SECURITY;
@@ -9351,6 +9352,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261109170000'),
 ('20261109160000'),
 ('20261108130000'),
 ('20261108123000'),

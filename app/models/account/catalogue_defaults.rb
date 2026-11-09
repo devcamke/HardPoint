@@ -32,6 +32,15 @@ module Account::CatalogueDefaults
       tax_rate: default_tax_rate, track_stock: false, active: false, online: false)
   end
 
+  FORFEITED_DEPOSIT_SKU = "DEPOSIT-KEPT"
+
+  # A deposit the shop keeps when an order is cancelled is sold as this, paid from the deposit, so it's income
+  # like any other sale. Not on the till's search or the online store.
+  def forfeited_deposit_product
+    products.find_by(sku: FORFEITED_DEPOSIT_SKU) || products.create!(sku: FORFEITED_DEPOSIT_SKU, name: "Forfeited deposit", unit: default_unit, price_cents: 0,
+      tax_rate: default_tax_rate, track_stock: false, active: false, online: false)
+  end
+
   def default_tax_rate
     tax_rates.find_by(default: true)
   end

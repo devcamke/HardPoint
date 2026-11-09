@@ -278,6 +278,7 @@ Rails.application.routes.draw do
         resource :cancellation, only: :create
         resource :email, only: :create
         resource :collection, only: :create
+        resource :forfeiture, only: :create
         resources :deposits, only: %i[ new create ]
       end
     end

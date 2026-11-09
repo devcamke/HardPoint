@@ -67,6 +67,10 @@
           <div class="flex gap-3 text-sm">
             <%= link_to "Take deposit", new_customer_order_deposit_path(order), class: "link" %>
             <%= link_to "Refund", new_customer_order_deposit_path(order, refund: 1), class: "link" if deposit.positive? %>
+            <% if deposit.positive? && current_shift %>
+              <%= button_to "Keep it and cancel", customer_order_forfeiture_path(order), class: "link text-red-700",
+                    form: { data: { turbo_confirm: "Keep the #{money(deposit)} deposit and cancel #{order.reference}? It's rung through #{current_till.name} as a sale." } } %>
+            <% end %>
           </div>
         <% end %>
       </div>

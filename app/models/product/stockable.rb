@@ -28,6 +28,19 @@ module Product::Stockable
     stock_levels.sum(:quantity)
   end
 
+  # Stock at a branch promised to confirmed orders not yet collected (quotes promise nothing), in the base unit.
+  # `except` leaves out one order: the one being collected at the till, whose own stock isn't "someone else's".
+  def reserved_at(branch, except: nil)
+    lines = CustomerOrderLine.joins(:customer_order).where(product_id: id, customer_orders: { branch_id: branch.id, status: %w[ ordered ready ] })
+    lines = lines.where.not(customer_order_id: except.id) if except
+    lines.left_joins(:product_unit).sum("GREATEST(customer_order_lines.quantity - customer_order_lines.collected_quantity, 0) * COALESCE(product_units.quantity, 1)")
+  end
+
+  # What can be sold or promised to a new customer at a branch: on hand, less what's promised already.
+  def available_at(branch, except: nil)
+    stock_at(branch) - reserved_at(branch, except: except)
+  end
+
   def below_reorder_level_at?(branch)
     reorder_level.positive? && stock_at(branch) <= reorder_level
   end
