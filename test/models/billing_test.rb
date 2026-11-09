@@ -156,6 +156,31 @@ class BillingTest < ActiveSupport::TestCase
     end
   end
 
+  test "a shop that pays after being locked starts its next period from the day it paid, not billed for the locked months" do
+    travel_to 11.days.from_now do
+      @account.bill
+    end
+    travel_to 19.days.from_now do
+      @account.bill
+      assert @account.reload.read_only?
+    end
+
+    travel_to 90.days.from_now do
+      assert @account.record_manual_payment("EFT-LATE")
+      assert @account.reload.active?
+      assert_equal Date.current + 1.month, @account.current_period_ends_at.in_time_zone(@account.time_zone).to_date
+      assert @account.events.exists?(action: "period_restarted")
+
+      @account.bill
+      assert_nil @account.open_invoice, "the months it was locked aren't billed"
+    end
+
+    travel_to 90.days.from_now + 1.month do
+      @account.bill
+      assert_equal Date.current, @account.open_invoice.period_start, "the next month runs on from the paid one"
+    end
+  end
+
   test "a payment short of the invoice doesn't pay it" do
     invoice = @account.start_subscription_now
     payment = invoice.payments.create!(account: @account, provider: "mpesa", amount_cents: invoice.amount_cents, reference: "ws_CO_9")
