@@ -22,7 +22,7 @@ class Pos::LinesController < ApplicationController
     SaleLine.transaction do
       line.save!
       @sale.recalculate
-      approve_discount! if line.saved_change_to_discount_cents?
+      approve_discount!
     end
     render_cart message: stock_warning(line)
   rescue ActiveRecord::RecordInvalid, ApprovalMissing => error
@@ -31,9 +31,14 @@ class Pos::LinesController < ApplicationController
 
   def destroy
     line = @sale.lines.find(params[:id])
-    line.destroy
-    @sale.recalculate
+    SaleLine.transaction do
+      line.destroy!
+      @sale.recalculate
+      approve_discount!
+    end
     render_cart message: "Removed #{line.product.name}"
+  rescue ApprovalMissing => error
+    render_cart alert: error.message, status: :unprocessable_entity
   end
 
   private

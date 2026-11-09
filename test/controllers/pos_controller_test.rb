@@ -132,6 +132,45 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success, "within the cashier's own limit"
   end
 
+  test "an approved discount can't be grown by shrinking the sale" do
+    Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
+    post pos_lines_path, params: { code: "CEM-50", quantity: 10 }, as: :turbo_stream
+    post pos_lines_path, params: { code: "PVC-2" }, as: :turbo_stream
+    cement, pvc = Account.without_isolation { current_sale.lines.order(:id).to_a }
+    patch pos_discount_path, params: { discount: "5%" }, as: :turbo_stream
+    assert_response :success, "within the cashier's limit"
+    discount = Account.without_isolation { current_sale.discount_cents }
+
+    # Cutting the quantity would make the same shillings a 50% discount.
+    patch pos_line_path(cement), params: { sale_line: { quantity: 1 } }, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "needs a manager", response.body
+    assert_equal 10, Account.without_isolation { cement.reload.quantity }, "the change was rolled back"
+
+    # So would removing the big line.
+    delete pos_line_path(cement), as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "needs a manager", response.body
+    assert Account.without_isolation { SaleLine.exists?(cement.id) }, "the line is still there"
+    assert_equal discount, Account.without_isolation { current_sale.discount_cents }
+
+    # With a manager's PIN the change goes through, and the new percentage is what was approved.
+    delete pos_line_path(cement), params: { approval_pin: "2468" }, as: :turbo_stream
+    assert_response :success
+    assert_equal users(:amina), Account.without_isolation { current_sale.discount_approver }
+    assert_equal pvc.id, Account.without_isolation { current_sale.lines.sole.id }
+  end
+
+  test "a customer with lower prices can't turn a small discount into a big one" do
+    post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
+    Account.without_isolation { current_sale.update!(discount_cents: 3900) } # 4.9% of 80,000 at retail
+
+    patch pos_customer_path, params: { customer_id: customers(:acme_contractor).id }, as: :turbo_stream
+    assert_response :unprocessable_entity, "the same 3,900 is 5.1% of the contractor's 76,000"
+    assert_match "needs a manager", response.body
+    assert_nil Account.without_isolation { current_sale.customer_id }, "the customer change was rolled back"
+  end
+
   test "choosing a contractor switches to their prices" do
     post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
     patch pos_customer_path, params: { customer_id: customers(:acme_contractor).id }, as: :turbo_stream
