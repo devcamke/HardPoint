@@ -109,6 +109,26 @@ class StorefrontTest < ActiveSupport::TestCase
     assert_match "Only 20 Bamburi cement 50kg can be collected", order.errors.full_messages.to_sentence
   end
 
+  test "the store charges what it showed: retail prices and shop-wide offers, never a customer's price list or a branch's offer" do
+    contractor = customers(:acme_contractor) # on a price list: cement 760.00, not 800.00
+    @account.promotions.create!(name: "Main only", kind: "percent_off", percent_off: 10, starts_on: Date.current, ends_on: Date.current + 7,
+      product_ids: [ products(:acme_nails).id ], branch_ids: [ branches(:acme_main).id ])
+    @account.promotions.create!(name: "Everywhere", kind: "percent_off", percent_off: 10, starts_on: Date.current, ends_on: Date.current + 7,
+      product_ids: [ products(:acme_cement).id ])
+    @cart.add(products(:acme_cement), 1)
+    @cart.add(products(:acme_nails), 2)
+    shown = @cart.total_cents
+    assert_equal 720_00 + 2 * 250_00, shown, "ten percent off cement everywhere; the Main-only offer isn't shown"
+
+    checkout_ = checkout(phone: contractor.phone)
+    assert checkout_.place, checkout_.errors.full_messages.to_sentence
+    order = checkout_.order
+    assert_equal contractor, order.customer
+    assert_equal shown, order.total_cents, "the order confirms at the total the customer saw at checkout"
+    assert_equal [ 720_00, 250_00 ], order.lines.map(&:unit_price_cents)
+    assert_equal [ "Everywhere", nil ], order.lines.map { _1.promotion&.name }
+  end
+
   test "a locked shop doesn't take orders" do
     assert @store.taking_orders?
     @account.update!(subscription_status: "read_only")
