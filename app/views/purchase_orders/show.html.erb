@@ -24,6 +24,9 @@
     <% if order.receivable? %>
       <%= link_to "Receive goods", new_goods_receipt_path(purchase_order_id: order.id), class: "btn-primary" %>
     <% end %>
+    <% if order.partially_received? %>
+      <%= button_to "Close short", purchase_order_closure_path(order), class: "btn-secondary", form: { data: { turbo_confirm: "Close #{order.reference}? What's still to come won't be delivered, and drops off what's on order." } } %>
+    <% end %>
     <% if order.draft? || order.sent? %>
       <%= button_to "Cancel order", purchase_order_cancellation_path(order), class: "btn-danger", form: { data: { turbo_confirm: "Cancel #{order.reference}?" } } %>
     <% end %>
@@ -41,7 +44,11 @@
           <td><%= link_to line.product.name, line.product, class: "hover:text-primary-700" %> <span class="font-mono text-xs text-gray-500"><%= line.product.sku %></span></td>
           <td class="text-right tabular-nums"><%= quantity(line.quantity, line.product.unit) %><%= tag.span(" · #{line.packs_description}", class: "hint") if line.product_unit %></td>
           <td class="text-right tabular-nums"><%= quantity(line.received_quantity) %></td>
-          <td class="text-right tabular-nums <%= "font-semibold" if line.outstanding_quantity.positive? %>"><%= quantity([ line.outstanding_quantity, 0 ].max) %></td>
+          <% if order.closed? %>
+            <td class="text-right tabular-nums <%= "text-red-700" if line.short_quantity.positive? %>"><%= line.short_quantity.positive? ? "#{quantity(line.short_quantity)} short" : "—" %></td>
+          <% else %>
+            <td class="text-right tabular-nums <%= "font-semibold" if line.outstanding_quantity.positive? %>"><%= quantity([ line.outstanding_quantity, 0 ].max) %></td>
+          <% end %>
           <td class="text-right tabular-nums"><%= money(line.unit_cost_cents, currency: order.currency) %></td>
           <td class="text-right tabular-nums"><%= money(line.line_total_cents, currency: order.currency) %></td>
         </tr>

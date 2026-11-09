@@ -31,6 +31,8 @@
 </ol>
 <p>Deliveries can also be checked in <%= link_to "on your phone", help_article_path("stock-on-your-phone"), class: "link" %>. Products
   tracked by batch ask for the batch number and expiry date.</p>
+<p>If the supplier can't send the rest of a partly delivered order, open it and press <strong>Close short</strong>. The order shows what
+  never came, and those goods stop counting as on order, so <strong>Stock › Reorder</strong> suggests them again.</p>
 
 <%= render "help/walkthrough", tour: HelpTour.find("receiving") %>
 

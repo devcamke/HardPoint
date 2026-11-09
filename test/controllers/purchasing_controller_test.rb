@@ -63,6 +63,25 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", /3 box/
   end
 
+  test "a partly delivered order is closed short from its page" do
+    order = new_order
+    post purchase_order_sending_path(order)
+    line = Account.without_isolation { order.lines.sole }
+    post goods_receipts_path, params: { goods_receipt: { purchase_order_id: order.id, lines_attributes: { "0" => { purchase_order_line_id: line.id, quantity: "60" } } } }
+
+    get purchase_order_path(order)
+    assert_select "button", "Close short"
+
+    post purchase_order_closure_path(order)
+    assert_redirected_to purchase_order_path(order)
+    assert Account.without_isolation { order.reload.closed? }
+
+    get purchase_order_path(order)
+    assert_select "td", /40 short/
+    assert_select "button", text: "Close short", count: 0
+    assert_select "a", text: "Receive goods", count: 0
+  end
+
   test "purchase orders are searched by supplier" do
     reference = Account.without_isolation { new_order.reference }
 

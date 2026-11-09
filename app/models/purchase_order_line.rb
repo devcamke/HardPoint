@@ -24,8 +24,14 @@ class PurchaseOrderLine < ApplicationRecord
     self.product = Current.account.products.find_by_code(code) if code.present?
   end
 
+  # Still to come, until the order is closed short: nothing more is expected then.
   def outstanding_quantity
-    quantity - received_quantity
+    purchase_order&.closed? ? 0.to_d : quantity - received_quantity
+  end
+
+  # Ordered but never delivered, on an order closed short.
+  def short_quantity
+    purchase_order&.closed? ? quantity - received_quantity : 0.to_d
   end
 
   # What's still to come, in packs, when the line was ordered by the pack and whole packs are left.

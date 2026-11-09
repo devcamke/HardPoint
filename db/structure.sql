@@ -1724,7 +1724,8 @@ CREATE TABLE public.mpesa_transactions (
     matched_id bigint,
     matched_at timestamp(6) without time zone,
     payload jsonb DEFAULT '{}'::jsonb NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    refunded_at timestamp(6) without time zone
 );
 
 ALTER TABLE ONLY public.mpesa_transactions FORCE ROW LEVEL SECURITY;
@@ -2320,7 +2321,9 @@ CREATE TABLE public.sales (
     credit_approver_id bigint,
     offline_uuid uuid,
     offline_receipt_number character varying,
-    job_id bigint
+    job_id bigint,
+    void_refund_method character varying,
+    void_refund_reference character varying
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -2686,7 +2689,8 @@ CREATE TABLE public.stock_levels (
     product_id bigint NOT NULL,
     quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reorder_level numeric(14,3)
 );
 
 ALTER TABLE ONLY public.stock_levels FORCE ROW LEVEL SECURITY;
@@ -9403,6 +9407,8 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20261109210000'),
+('20261109190100'),
+('20261109190000'),
 ('20261109180000'),
 ('20261109170000'),
 ('20261109160000'),

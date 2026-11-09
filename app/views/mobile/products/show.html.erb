@@ -27,7 +27,7 @@
             <% on_hand = @levels[branch.id]&.quantity || 0 %>
             <tr class="<%= "font-semibold" if branch == selected_branch %>">
               <td><%= branch.name %></td>
-              <td class="text-right tabular-nums <%= "text-red-700" if on_hand <= @product.reorder_level %>"><%= quantity(on_hand, @product.unit) %></td>
+              <td class="text-right tabular-nums <%= "text-red-700" if on_hand <= (@levels[branch.id]&.reorder_level || @product.reorder_level) %>"><%= quantity(on_hand, @product.unit) %></td>
               <td class="text-right text-xs text-gray-500"><%= "+#{quantity(@on_order[branch.id])} on order" if @on_order[branch.id].to_d.positive? %></td>
             </tr>
           <% end %>

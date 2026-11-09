@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import * as store from "offline/store"
 import { unitPrice, bestPromotion, applyBundles, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
 import { printReceipt } from "offline/printer"
+import { offlinePayments, offlineReceiptNumber } from "offline/payload"
 
 // The offline till: sells from the catalogue snapshot on this device while the network is down.
 // Sales are kept on the device and sent by the offline-sync controller when it's back; they get
@@ -188,11 +189,11 @@ export default class extends Controller {
     if (due > 0 && tender !== "cash" && !reference) return this.show(`Enter the ${{ mobile_money: "M-Pesa", airtel_money: "Airtel Money" }[tender] || "card"} code; it's checked once the till is back online`, "alert")
 
     const counter = await store.meta.next(`receipt-counter-${till.register_id}`)
-    const receiptNumber = `${till.branch_code}-OFF${till.register_id}-${String(counter).padStart(4, "0")}`
+    const receiptNumber = offlineReceiptNumber(till, await store.meta.deviceCode(), counter)
     const happenedAt = new Date().toISOString()
     const uuid = crypto.randomUUID()
     const lines = this.pricedLines()
-    const payments = due > 0 ? [ { tender, amount_cents: tender === "cash" ? null : due, tendered_cents: tendered, reference: reference || null } ] : []
+    const payments = offlinePayments(tender, due, tendered, reference)
 
     const sale = {
       uuid, status: "waiting", happened_at: happenedAt, receipt_number: null, offline_receipt_number: receiptNumber, total_cents: total,
