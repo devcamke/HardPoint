@@ -2682,7 +2682,8 @@ CREATE TABLE public.stock_levels (
     product_id bigint NOT NULL,
     quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reorder_level numeric(14,3)
 );
 
 ALTER TABLE ONLY public.stock_levels FORCE ROW LEVEL SECURITY;
@@ -9368,6 +9369,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261109190000'),
 ('20261109180000'),
 ('20261109170000'),
 ('20261109160000'),

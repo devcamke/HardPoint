@@ -40,9 +40,10 @@ class Storefront < ApplicationRecord
   def availability(product, branch)
     return [ :available, nil ] if !product.track_stock? || product.kit?
 
-    quantity = product.stock_levels.find { _1.branch_id == branch.id }&.quantity || 0
+    level = product.stock_levels.find { _1.branch_id == branch.id }
+    quantity = level&.quantity || 0
     status = if quantity <= 0 then :out
-    elsif quantity <= product.reorder_level then :low
+    elsif quantity <= (level&.reorder_level || product.reorder_level) then :low
     else :in_stock
     end
     [ status, quantity ]

@@ -29,6 +29,7 @@ module EventsHelper
     in [ "Membership", "two_factor_reset" ] then "reset #{subject}'s two-factor sign-in#{by_platform(event)}"
     in [ "PurchaseOrder", "sent" ] then "sent purchase order #{subject} to #{event.particulars["supplier"]} (#{money(event.particulars["total"])})"
     in [ "PurchaseOrder", "cancelled" ] then "cancelled purchase order #{subject}"
+    in [ "PurchaseOrder", "closed" ] then "closed purchase order #{subject} short#{": #{event.particulars["short"]} never came" if event.particulars["short"].present?}"
     in [ "GoodsReceipt", "received" ] then "received #{subject} from #{event.particulars["supplier"]}#{" for #{event.particulars["purchase_order"]}" if event.particulars["purchase_order"]} (#{money(event.particulars["total"])})"
     in [ "SupplierInvoice", "recorded" ] then "recorded invoice #{subject} (#{money(event.particulars["total"])})"
     in [ "Supplier", "paid" ] then "paid #{subject} #{money(event.particulars["amount"])} by #{event.particulars["payment_method"].to_s.humanize.downcase}"

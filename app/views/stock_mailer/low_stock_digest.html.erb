@@ -8,7 +8,7 @@
       <tr style="border-top:1px solid #E7E5E0;">
         <td><%= product.name %> <span style="color:#6B7280; font-family:monospace; font-size:12px;"><%= product.sku %></span></td>
         <td style="text-align:right;<%= " color:#B91C1C;" if product.stock_quantity <= 0 %>"><%= quantity(product.stock_quantity, product.unit) %></td>
-        <td style="text-align:right;"><%= quantity(product.reorder_level, product.unit) %></td>
+        <td style="text-align:right;"><%= quantity(product.branch_reorder_level, product.unit) %></td>
       </tr>
     <% end %>
   </table>

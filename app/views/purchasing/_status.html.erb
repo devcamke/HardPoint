@@ -1,1 +1,1 @@
-<%= status_dot order.status.humanize, { "draft" => :muted, "sent" => :neutral, "partially_received" => :warning, "received" => :success, "cancelled" => :muted }[order.status] %>
+<%= status_dot order.status.humanize, { "draft" => :muted, "sent" => :neutral, "partially_received" => :warning, "received" => :success, "closed" => :muted, "cancelled" => :muted }[order.status] %>
