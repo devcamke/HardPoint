@@ -18,9 +18,18 @@ module Sale::Voidable
     end
   end
 
-  # An unfinished cart that's no longer wanted. It never took stock or money.
+  # An unfinished cart that's no longer wanted. It never took stock or money, and no money is on its way to it:
+  # a prompt the customer may yet answer would arrive to find nothing to pay, and the money would be lost.
   def discard
-    (open? || parked?) && payments.none? && destroy
+    return false unless open? || parked?
+
+    errors.clear
+    if payments.any?
+      errors.add :base, "Remove the payments before clearing this sale"
+    elsif stk_requests.pending.exists? || airtel_requests.pending.exists?
+      errors.add :base, "A payment prompt is still waiting for the customer's answer. Cancel it, or wait for it, before clearing this sale"
+    end
+    errors.none? && destroy
   end
 
   def park

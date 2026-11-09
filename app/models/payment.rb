@@ -11,7 +11,7 @@ class Payment < ApplicationRecord
   money_attribute :amount, :tendered
 
   validates :amount_cents, numericality: { greater_than: 0 }
-  validates :tendered_cents, numericality: { greater_than_or_equal_to: :amount_cents }, if: -> { cash? || foreign_cash? }
+  validates :tendered_cents, numericality: { greater_than_or_equal_to: :amount_cents }, if: -> { cash? || foreign_cash? || mobile_money? || airtel_money? }
   validates :currency, :foreign_tendered_cents, :exchange_rate, presence: true, if: :foreign_cash?
   validates :reference, presence: { message: "is needed (the M-Pesa or other transaction code)" }, if: :mobile_money?
   validates :reference, presence: { message: "is needed (the Airtel Money transaction ID)" }, if: :airtel_money?
@@ -19,10 +19,13 @@ class Payment < ApplicationRecord
 
   # A code typed at the till for money that already arrived on the Paybill claims it.
   after_create_commit :claim_mpesa_transaction, if: -> { mobile_money? && reference.present? }
+  # Money that arrived by phone stays usable when the payment it paid is taken off the sale.
+  before_destroy :release_mobile_money
 
-  # Change is always given in the shop's own currency, foreign notes included.
+  # Change is always given in the shop's own currency, foreign notes included. A customer who sends more by
+  # M-Pesa or Airtel Money than was due gets the difference back in cash, so that's change too.
   def change_cents
-    cash? || foreign_cash? ? tendered_cents - amount_cents : 0
+    cash? || foreign_cash? || mobile_money? || airtel_money? ? tendered_cents.to_i - amount_cents : 0
   end
 
   def label
@@ -37,5 +40,11 @@ class Payment < ApplicationRecord
   private
     def claim_mpesa_transaction
       sale.account.mpesa_transactions.unmatched.find_by(trans_id: reference.strip.upcase)&.match(self)
+    end
+
+    def release_mobile_money
+      sale.account.mpesa_transactions.where(matched: self).update_all(matched_id: nil, matched_type: nil, matched_at: nil)
+      Mpesa::StkRequest.where(payment: self).update_all(payment_id: nil)
+      Airtel::Request.where(payment: self).update_all(payment_id: nil)
     end
 end

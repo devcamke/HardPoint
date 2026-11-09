@@ -64,8 +64,13 @@ module Sale::Payable
     elsif tender.to_s == "deposit"
       payment.amount_cents = [ amount_cents || due, due, deposit_available_cents ].min
       payment.errors.add :base, "There's no deposit to use on this sale" unless payment.amount_cents.positive?
+    elsif tender.to_s.in?(%w[ mobile_money airtel_money ]) && tendered_cents.to_i > (amount_cents || due)
+      # The phone sent more than was asked: the sale takes what's due and the rest is change, in cash.
+      payment.tendered_cents = tendered_cents
+      payment.amount_cents = [ amount_cents || due, due ].min
     else
       payment.amount_cents = amount_cents || due
+      payment.tendered_cents = payment.amount_cents if tender.to_s.in?(%w[ mobile_money airtel_money ])
       payment.errors.add :amount, "is more than the #{Money.format(due)} due" if payment.amount_cents > due
     end
 
