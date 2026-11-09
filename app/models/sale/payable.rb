@@ -133,6 +133,10 @@ module Sale::Payable
         payment.errors.add :base, "Add something to sell first"
       elsif missing_serials.any?
         payment.errors.add :base, "Enter the serial number for #{missing_serials.map { _1.product.name }.to_sentence}"
+      elsif discount_needs_approval?
+        # The till checks this on every change; this catches whatever reached the payment another way.
+        payment.errors.add :base, "The discount on this sale is #{highest_discount_percent.round(1).to_s.delete_suffix(".0")}%, " \
+          "over the #{account.max_cashier_discount_percent.to_s("F").delete_suffix(".0")}% a cashier can give. It needs a manager's approval PIN"
       end
     end
 
