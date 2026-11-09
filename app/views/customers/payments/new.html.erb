@@ -1,16 +1,21 @@
-<% content_for :title, "Record payment" %>
-<h1 class="mb-2 text-xl font-medium"><%= link_to "#{@customer.name}", @customer, class: "link" %> <span class="text-gray-400">/</span> <%= @customer.name %> pays</h1>
-<p class="hint mb-6">They owe <%= money(@customer.balance_cents) %>. Payments settle the oldest account sales first.</p>
+<% content_for :title, @refund ? "Refund credit" : "Record payment" %>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "#{@customer.name}", @customer, class: "link" %> <span class="text-gray-400">/</span> <%= @refund ? "Refund credit" : "#{@customer.name} pays" %></h1>
+<% if @refund %>
+  <p class="hint mb-6">They have <%= money(-@customer.balance_cents) %> of credit on their account. A refund hands it back to them.</p>
+<% else %>
+  <p class="hint mb-6">They owe <%= money(@customer.balance_cents) %>. Payments settle the oldest account sales first unless put against particular sales below.</p>
+<% end %>
 
-<%= form_with model: @payment, url: customer_payments_path(@customer), class: "card max-w-md" do |form| %>
+<%= form_with model: @payment, url: customer_payments_path(@customer, refund: (1 if @refund)), class: "card max-w-xl" do |form| %>
   <%= render "shared/errors", model: @payment %>
-  <div class="field"><%= form.label :amount, "Amount (#{Current.account.currency})", class: "label" %><%= form.number_field :amount, value: plain_number(@payment.amount), step: "0.01", inputmode: "decimal", min: 0, required: true, autofocus: true, class: "input" %></div>
+  <div class="field"><%= form.label :amount, "Amount (#{Current.account.currency})", class: "label" %><%= form.number_field :amount, value: plain_number(@payment.amount.abs), step: "0.01", inputmode: "decimal", min: 0, required: true, autofocus: true, class: "input" %></div>
   <div class="grid gap-4 sm:grid-cols-2">
-    <div class="field"><%= form.label :paid_on, "Paid on", class: "label" %><%= form.date_field :paid_on, required: true, class: "input" %></div>
-    <div class="field"><%= form.label :payment_method, "By", class: "label" %><%= form.select :payment_method, CustomerPayment::METHODS.map { [ payment_method_label(_1), _1 ] }, {}, class: "input" %></div>
+    <div class="field"><%= form.label :paid_on, @refund ? "Refunded on" : "Paid on", class: "label" %><%= form.date_field :paid_on, required: true, class: "input" %></div>
+    <div class="field"><%= form.label :payment_method, @refund ? "Paid back by" : "By", class: "label" %><%= form.select :payment_method, CustomerPayment::METHODS.map { [ payment_method_label(_1), _1 ] }, {}, class: "input" %></div>
   </div>
-  <p class="hint -mt-2 mb-4"><%= current_shift ? "Cash goes into the drawer of #{current_till.name}." : "Cash needs this device's till to have an open shift." %></p>
+  <p class="hint -mt-2 mb-4"><%= current_shift ? "Cash goes #{@refund ? "out of" : "into"} the drawer of #{current_till.name}." : "Cash needs this device's till to have an open shift." %></p>
   <div class="field"><%= form.label :reference, "Reference (M-Pesa code, cheque no. or bank reference)", class: "label" %><%= form.text_field :reference, class: "input font-mono uppercase" %></div>
   <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input" %></div>
-  <%= form.submit "Record payment", class: "btn-primary" %>
+  <%= render "customers/payments/allocations", customer: @customer, entry: @payment, verb: "pay" unless @refund %>
+  <%= form.submit @refund ? "Record refund" : "Record payment", class: "btn-primary" %>
 <% end %>

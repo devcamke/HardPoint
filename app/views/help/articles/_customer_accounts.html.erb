@@ -24,9 +24,13 @@
 <%= render "help/walkthrough", tour: HelpTour.find("quote") %>
 
 <h2>Payments and statements</h2>
-<p>Press <strong>Record payment</strong> on the customer to take money against their account; it settles their oldest sales first.
-  <strong>Statement</strong> prints or emails what's owed and how old it is, and balance reminders can go by SMS. <strong>Customers › Who owes
-  us</strong> lists every customer's balance by how late it is.</p>
+<p>Press <strong>Record payment</strong> on the customer to take money against their account; it settles their oldest sales first unless you
+  fill in amounts under <strong>Put against particular sales</strong>, which pays those sales and leaves the others (a disputed invoice, say) open.
+  If they've paid more than they owe, <strong>Refund credit</strong> hands the credit back; cash goes out of this device's till. A debt the shop has
+  given up on is removed with <strong>Write off</strong>: an owner or manager approves it (an accountant types a manager's approval PIN) with a reason,
+  and it stays on the statement and in Activity.
+  <strong>Statement</strong> prints or emails what's owed and how old it is at the end of the period, and balance reminders can go by SMS.
+  <strong>Customers › Who owes us</strong> lists every customer's balance by how late it is.</p>
 
 <h2>Deliveries</h2>
 <p>For goods going out on the lorry, press <strong>Deliver</strong> on the sale and print the delivery note with a signature line. Mark it dispatched with the driver
