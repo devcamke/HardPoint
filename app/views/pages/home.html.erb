@@ -20,7 +20,7 @@
 <section class="bg-white" data-controller="dialog">
   <%# The hero as odoo.com draws its own: the headline in marker pen with a highlighter swash behind the words that
       matter, a hand-drawn underline on "affordable", and the price scribbled beside an arrow. %>
-  <div class="relative mx-auto max-w-5xl px-4 pt-24 pb-20 text-center sm:pt-32 sm:pb-24">
+  <div class="relative mx-auto max-w-5xl px-4 pt-24 pb-10 text-center sm:pt-32 sm:pb-12">
     <h1 class="font-hand text-5xl leading-[1.15] text-gray-950 text-balance sm:text-6xl lg:text-7xl">Point of sale and stock control for
       <span class="relative inline-block isolate whitespace-nowrap">
         <svg class="absolute -inset-x-[0.15em] bottom-[0.02em] -z-10 h-[0.8em] w-[calc(100%+0.3em)] text-amber-300" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M4 22C40 12 120 8 196 14L194 32C120 36 50 38 6 34Z" fill="currentColor"/></svg>
@@ -63,8 +63,12 @@
 <%# The product as a grid of tiles, one per thing a hardware shop does, each opening its help guide: white tiles with
       a coloured glyph, as Odoo draws its apps. Twelve, the ones a shop decides on; the guides hold the rest. The switch beneath, "Imagine without HardPoint", greys the tiles and
       writes by hand what each one replaces in a hardware shop. CSS alone: the switch is a checkbox the grid listens to. %>
-<section id="features" class="scroll-mt-20 border-y border-gray-200/70 bg-gray-50">
-  <div class="group/imagine mx-auto max-w-5xl px-4 py-20 sm:py-24">
+<section id="features" class="scroll-mt-20 border-b border-gray-200/70 bg-gray-50">
+  <%# The hero hands over to the tiles along a hand-drawn wave rather than a ruled line: white above, grey below. %>
+  <svg class="block h-12 w-full sm:h-20 lg:h-24" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#fff" d="M0 0H1440V62C1360 86 1280 96 1180 78C1080 60 1000 20 880 42C760 64 700 88 560 70C420 52 340 40 220 56C140 68 60 72 0 50Z"/>
+  </svg>
+  <div class="group/imagine mx-auto max-w-5xl px-4 pt-10 pb-20 sm:pt-12 sm:pb-24">
     <% tiles = [
          [ "Till", "selling", :till, "text-primary-600", "A calculator and a receipt book" ],
          [ "Stock", "stock-and-stock-takes", :stock, "text-amber-500", "An exercise book" ],
