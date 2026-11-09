@@ -4,6 +4,11 @@
 <h2>Correcting stock</h2>
 <p>Open the product and press <strong>Adjust stock</strong>. Choose the branch, how many to add or take off, and the reason: opening stock,
   found, damaged, stolen, expired, internal use or a correction. Adjustments are in the activity log with who made them.</p>
+<p>A level can go below zero when something is sold before its delivery is recorded. <strong>Stock › Stock levels</strong> counts these
+  for the branch; press <strong>Below zero</strong> to list them (the same <strong>Below zero</strong> filter is on the products list),
+  then record the delivery or adjust the stock.</p>
+<p>A product's unit, whether it tracks stock and whether it is a kit can't change while any branch has stock of it, since the quantities on
+  hand would mean something else: adjust the stock to zero first.</p>
 
 <h2>Moving stock between branches</h2>
 <ol>
@@ -33,6 +38,9 @@
 <p>Give products a <strong>reorder level</strong>. <strong>Stock › Reorder</strong> shows everything at or below it at a branch,
   and owners, managers and stock clerks get a low-stock email each morning. To turn the list into orders, see
   <%= link_to "Buying from suppliers", help_article_path("buying-from-suppliers"), class: "link" %>.</p>
+<p>A branch that sells a product faster or slower than the others can have its own level: on the product's page, type it under
+  <strong>Reorder at</strong> next to the branch and press <strong>Set</strong>. Leave it blank to use the product's level.
+  Stock already on order, or on its way from another branch, counts as coming, so it isn't suggested twice.</p>
 
 <h2>Stock history</h2>
 <p><strong>All movements</strong> on <strong>Stock › Stock levels</strong> lists every change to stock, filtered by product, branch and reason. Each product's page shows its

@@ -55,6 +55,25 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td a", text: "Bamburi cement 50kg", count: 0
   end
 
+  test "a branch's own reorder level is set on the product's page" do
+    cement = products(:acme_cement)
+    get product_path(cement)
+    assert_select "input[name=reorder_level][value]", count: 0, message: "blank means the product's level applies"
+
+    patch product_reorder_level_path(cement), params: { branch_id: branches(:acme_yard).id, reorder_level: "5" }
+    assert_redirected_to product_path(cement)
+    assert_equal 5, Account.without_isolation { cement.stock_levels.find_by!(branch: branches(:acme_yard)).reorder_level }
+
+    get product_path(cement)
+    assert_select "input[name=reorder_level][value='5']"
+
+    patch product_reorder_level_path(cement), params: { branch_id: branches(:acme_yard).id, reorder_level: "" }
+    assert_nil Account.without_isolation { cement.stock_levels.find_by!(branch: branches(:acme_yard)).reorder_level }
+
+    patch product_reorder_level_path(cement), params: { branch_id: branches(:bolt_main).id, reorder_level: "1" }
+    assert_response :not_found
+  end
+
   test "a scanned barcode finds its product" do
     get products_path(query: "6161100420017")
     assert_select "tbody tr", 1
@@ -102,6 +121,26 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_product_path(category_id: categories(:acme_fasteners).id, unit_id: units(:acme_piece).id)
     follow_redirect!
     assert_select "select[name='product[category_id]'] option[selected][value='#{categories(:acme_fasteners).id}']"
+  end
+
+  test "a product with stock keeps its unit, and the form says why" do
+    patch product_path(products(:acme_cement)), params: { product: { unit_id: units(:acme_piece).id } }
+
+    assert_response :unprocessable_entity
+    assert_select "#error_explanation", /has stock at/
+    assert_equal units(:acme_bag), Account.without_isolation { products(:acme_cement).reload.unit }
+  end
+
+  test "stock below zero is listed per branch" do
+    Account.without_isolation { Current.set(account: accounts(:acme)) { products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: -5, reason: "sold") } }
+
+    get products_path(below_zero: "1", branch_id: branches(:acme_main).id)
+    assert_select "tbody tr", 1
+    assert_select "td a", "PVC pipe 2 inch 6m"
+    assert_select "form[role=search] span", text: "Below zero"
+
+    get products_path(below_zero: "1", branch_id: branches(:acme_yard).id)
+    assert_select "tbody tr", 0
   end
 
   test "a taken barcode is rejected and nothing is saved" do

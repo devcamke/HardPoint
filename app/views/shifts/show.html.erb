@@ -62,6 +62,7 @@
   <% foreign_change = @shift.foreign_change_cents %>
   <%= row.("Change given for foreign notes", "−#{money(foreign_change)}") if foreign_change.positive? %>
   <%= row.("Cash refunds", "−#{money(@shift.cash_refunds_cents)}") if @shift.cash_refunds_cents.positive? %>
+  <%= row.("Cash refunded on voided sales", "−#{money(@shift.void_cash_refunds_cents)}") if @shift.void_cash_refunds_cents.positive? %>
   <%= row.("Cash deposits (net)", money(@shift.cash_deposits_cents)) if @shift.cash_deposits_cents.nonzero? %>
   <%= row.("Cash account payments", money(@shift.cash_account_payments_cents)) if @shift.cash_account_payments_cents.positive? %>
   <% @report.cash_movements.each do |movement| %>

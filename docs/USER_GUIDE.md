@@ -364,7 +364,7 @@ Count the cash in the drawer and press **Open shift** with that float. Everythin
 3. Choose a customer if the sale goes on their account, needs their KRA PIN on the receipt, or is for one of their jobs. Their price list applies as soon as you pick them.
 4. If you're taking the goods to site, **Add transport** puts the delivery charge on the sale, with where it's going.
 5. Promotions apply by themselves. To give a discount, use the line's or the sale's discount, as an amount or a percentage.
-6. Press **Take payment**: cash (the till works out the change), M-Pesa, Airtel Money, card, foreign notes, on account for approved customers, or a mix.
+6. Press **Take payment**: cash (the till works out the change), M-Pesa, Airtel Money, card, foreign notes, on account for approved customers, or a mix. If the sale comes to nothing (a replacement under warranty discounted to zero, say), there's no payment to take: press **Complete sale, nothing to pay** instead. A cashier needs a manager's approval PIN for that.
 7. The receipt prints. KRA's signature and QR code are on it when eTIMS is connected. It can also be emailed or texted, or sent with **WhatsApp receipt**.
 
 Keyboard shortcuts: **F2** goes to the scan box, **F8** parks the sale, **F9** takes payment.
@@ -458,7 +458,7 @@ The count is blind: the closing page doesn't show what's expected. Afterwards th
 
 #### What's expected in the drawer
 
-The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds, change given for foreign notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.
+The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds (on returns and on voided sales), change given for foreign notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.
 
 #### Past shifts
 
@@ -522,9 +522,10 @@ When the branch is connected to eTIMS and the original sale went to KRA, each re
 
 1. On the sale, press **Void sale**.
 2. Type the **Reason** (required) and, for a cashier, the manager approval PIN.
-3. Press **Void sale**, and give back any money the customer paid.
+3. Say how the money goes back. The way the sale was paid is chosen for you: cash from this till's drawer, an M-Pesa or Airtel Money reversal (type its code), a refund to the card, or credit to the customer's account. A sale paid two ways needs you to choose.
+4. Press **Void sale**, and give the money back that way.
 
-All the stock goes back, and the sale stops counting in the shift's takings. It stays in the sales list, crossed out and marked **Voided**, with who voided it and why. If it was a collected order, the order is reopened.
+All the stock goes back, and the sale stops counting in the shift's takings. It stays in the sales list, crossed out and marked **Voided**, with who voided it, why and how the money went back; **Settings › Activity** has the same. A cash refund comes off the cash expected in the drawer. An M-Pesa payment that's reversed shows apart in the **M-Pesa reconciliation** report. If it was a collected order, the order is reopened.
 
 #### The returns list
 
@@ -545,7 +546,7 @@ _How the till keeps selling offline and sends the sales when it's back._
 If the internet drops, the till says so and offers the **offline till**. It has your products and prices from the last time it was online, so you can keep scanning, taking cash and printing receipts.
 
 - Offline sales are kept on that computer and sent to HardPoint as soon as the connection is back. Each one is sent only once, however many times the connection comes and goes.
-- Offline receipts have their own numbers (starting with the till's name), so they never clash with sales made online.
+- Offline receipts have their own numbers (the till's and a code for the device, such as MAIN-OFF1-K7Q2-0001), so they never clash with sales made online or with another device on the same till. Searching **Sell › Sales** for the number on an offline receipt finds the sale, for a return.
 - Customers can be chosen for their prices, and a contractor's sale can go on one of their jobs.
 - M-Pesa and Airtel Money prompts, account sales and eTIMS need the internet; a cashier can still type the M-Pesa or Airtel transaction code. KRA gets offline sales when they're sent.
 - Stock levels update when the sales reach HardPoint.
@@ -938,6 +939,10 @@ HardPoint keeps stock per branch. Every sale, delivery, transfer and correction 
 
 Open the product and press **Adjust stock**. Choose the branch, how many to add or take off, and the reason: opening stock, found, damaged, stolen, expired, internal use or a correction. Adjustments are in the activity log with who made them.
 
+A level can go below zero when something is sold before its delivery is recorded. **Stock › Stock levels** counts these for the branch; press **Below zero** to list them (the same **Below zero** filter is on the products list), then record the delivery or adjust the stock.
+
+A product's unit, whether it tracks stock and whether it is a kit can't change while any branch has stock of it, since the quantities on hand would mean something else: adjust the stock to zero first.
+
 #### Moving stock between branches
 
 1. In **Stock › Transfers**, press **New**, choose the branches and the products, and press **Send transfer**. The stock leaves the sending branch and shows as in transit.
@@ -975,6 +980,8 @@ Selling carries on during a stock take; HardPoint allows for what was sold while
 #### Knowing what to reorder
 
 Give products a **reorder level**. **Stock › Reorder** shows everything at or below it at a branch, and owners, managers and stock clerks get a low-stock email each morning. To turn the list into orders, see [Buying from suppliers](#buying-from-suppliers).
+
+A branch that sells a product faster or slower than the others can have its own level: on the product's page, type it under **Reorder at** next to the branch and press **Set**. Leave it blank to use the product's level. Stock already on order, or on its way from another branch, counts as coming, so it isn't suggested twice.
 
 #### Stock history
 
@@ -1017,6 +1024,8 @@ Use **Group By › Supplier** on the orders list to see what's still to come fro
 3. Press **Receive into stock**. The goods go into the branch, the extra costs are spread over the lines by value, and each product's cost becomes the average of the old and new stock.
 
 Deliveries can also be checked in [on your phone](#stock-on-your-phone). Products tracked by batch ask for the batch number and expiry date.
+
+If the supplier can't send the rest of a partly delivered order, open it and press **Close short**. The order shows what never came, and those goods stop counting as on order, so **Stock › Reorder** suggests them again.
 
 **Walkthrough: Receive a delivery**
 

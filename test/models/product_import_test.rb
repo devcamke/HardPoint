@@ -58,6 +58,13 @@ class ProductImportTest < ActiveSupport::TestCase
     assert StockValuation.new(accounts(:acme)).reconciled?
   end
 
+  test "a product with stock can't be given another unit by import" do
+    result = import("sku,name,price,unit\nCEM-50,Bamburi cement 50kg,900,Piece\nPVC-2,PVC pipe 2 inch 6m,1200,Piece\n")
+
+    assert result.needs_fixing?
+    assert_equal [ "Products with stock, whose unit can't change: CEM-50" ], result.problems.sole["messages"]
+  end
+
   test "columns missing from the file are left alone on existing products" do
     result = import("sku,name,price\nCEM-50,Bamburi cement 50kg,900\n")
     result.update!(status: :importing)
