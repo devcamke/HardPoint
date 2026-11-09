@@ -117,6 +117,34 @@ class Api::V1Test < ApiTestCase
     assert_equal "cancelled", json["status"]
   end
 
+  test "an idempotency key is claimed before the work, so a twin request arriving meanwhile is told to retry" do
+    body = { customer: { name: "Kamau" } }
+    digest = OpenSSL::Digest::SHA256.hexdigest([ "POST", api_v1_customers_path, body.to_json ].join("\n"))
+    Account.without_isolation { ApiIdempotencyKey.claim(@key, "cust-7", digest) } # the twin, mid-flight
+
+    assert_no_difference -> { Account.without_isolation { @acme.customers.count } } do
+      api_post api_v1_customers_path, body, "Idempotency-Key" => "cust-7"
+    end
+    assert_response :conflict
+    assert_equal "in_progress", error_code
+
+    # A claim nobody finished is cleared with the day's old keys, and the request then goes through.
+    Account.without_isolation { ApiIdempotencyKey.where(key: "cust-7").update_all(created_at: 5.minutes.ago); ApiIdempotencyKey.purge_old }
+    api_post api_v1_customers_path, body, "Idempotency-Key" => "cust-7"
+    assert_response :created
+    assert_equal 201, Account.without_isolation { ApiIdempotencyKey.find_by!(key: "cust-7").response_status }
+  end
+
+  test "a request refused for bad data releases its key, so the corrected request can reuse it" do
+    api_post api_v1_customers_path, { customer: { name: "" } }, "Idempotency-Key" => "cust-8"
+    assert_response :unprocessable_entity
+    assert_equal 0, Account.without_isolation { ApiIdempotencyKey.where(key: "cust-8").count }
+
+    api_post api_v1_customers_path, { customer: { name: "Kamau" } }, "Idempotency-Key" => "cust-8"
+    assert_response :created
+    assert_equal 201, Account.without_isolation { ApiIdempotencyKey.find_by!(key: "cust-8").response_status }
+  end
+
   test "an order for something the shop doesn't sell is refused" do
     api_post api_v1_orders_path, { order: { customer: { name: "X", phone: "0700000001" }, lines: [ { sku: "NOPE", quantity: 1 } ] } }
     assert_response :unprocessable_entity

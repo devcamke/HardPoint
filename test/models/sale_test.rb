@@ -175,6 +175,53 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal @sale, @shift.current_sale
   end
 
+  test "money is refunded only up to the money paid; what was put on account goes back to the account" do
+    @sale.add(products(:acme_cement), quantity: 2) # 160,000: 600.00 in cash, the rest on account
+    @sale.change_customer(customers(:acme_contractor))
+    @sale.pay(tender: "cash", tendered_cents: 60000)
+    @sale.pay(tender: "on_account", amount_cents: @sale.balance_due_cents, credit_approver: users(:amina))
+    assert @sale.reload.completed?
+    line = @sale.lines.first
+    assert_equal 60000, SaleReturn.money_refundable_cents(@sale)
+
+    one_bag_in_cash = accounts(:acme).sale_returns.new(sale: @sale, shift: @shift, refund_method: "cash", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: line.id, quantity: 1 } ])
+    assert_not one_bag_in_cash.valid?, "a bag is 760.00; only 600.00 was paid in money"
+    assert_match "at most KES 600.00 in money", one_bag_in_cash.errors.full_messages.to_sentence
+
+    on_account = accounts(:acme).sale_returns.create!(sale: @sale, shift: @shift, refund_method: "on_account", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: line.id, quantity: 1 } ])
+    assert_equal 76000, on_account.total_cents
+    assert_equal 60000, SaleReturn.money_refundable_cents(@sale), "crediting the account leaves the cash refundable"
+
+    # A sale wholly on account can't be refunded in money at all.
+    unpaid = @shift.current_sale
+    unpaid.add(products(:acme_nails))
+    unpaid.change_customer(customers(:acme_contractor))
+    unpaid.pay(tender: "on_account", credit_approver: users(:amina))
+    cash_back = accounts(:acme).sale_returns.new(sale: unpaid.reload, shift: @shift, refund_method: "cash", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: unpaid.lines.first.id, quantity: 1 } ])
+    assert_not cash_back.valid?
+    assert_match "credit the customer's account instead", cash_back.errors.full_messages.to_sentence
+  end
+
+  test "goods returned at another branch go into that branch's stock, numbered there, from that till's drawer" do
+    @sale.add(products(:acme_cement), quantity: 2)
+    @sale.pay(tender: "cash", tendered_cents: 160000)
+    yard = accounts(:acme).shifts.create!(branch: branches(:acme_yard), register: registers(:acme_yard), opened_by: users(:carl), opening_float_cents: 100000, opened_at: Time.current)
+    main_before, yard_before = products(:acme_cement).stock_at(branches(:acme_main)), products(:acme_cement).stock_at(branches(:acme_yard))
+
+    sale_return = accounts(:acme).sale_returns.create!(sale: @sale, shift: yard, refund_method: "cash", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: @sale.lines.first.id, quantity: 1, restock: true } ])
+
+    assert_equal branches(:acme_yard), sale_return.branch
+    assert_equal "YRD-R00001", sale_return.return_number
+    assert_equal main_before, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_equal yard_before + 1, products(:acme_cement).stock_at(branches(:acme_yard))
+    assert_equal 100000 - 80000, yard.expected_cash_cents_now
+    assert_equal 500000 + 160000, @shift.expected_cash_cents_now, "the selling till's drawer keeps the sale and gives nothing back"
+  end
+
   test "returns refund what was paid and restock by choice" do
     @sale.add(products(:acme_cement), quantity: 4)
     @sale.update!(discount_cents: 20000, discount_approver: users(:amina), approved_discount_percent: 6.25) # 320,000 → 300,000, a manager's discount

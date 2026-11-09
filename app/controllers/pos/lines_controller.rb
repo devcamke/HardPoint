@@ -22,10 +22,11 @@ class Pos::LinesController < ApplicationController
     SaleLine.transaction do
       line.save!
       @sale.recalculate
+      keep_what_is_paid!
       approve_discount!
     end
     render_cart message: stock_warning(line)
-  rescue ActiveRecord::RecordInvalid, ApprovalMissing => error
+  rescue ActiveRecord::RecordInvalid, ApprovalMissing, PaidAlready => error
     render_cart alert: error.message, status: :unprocessable_entity
   end
 
@@ -34,10 +35,11 @@ class Pos::LinesController < ApplicationController
     SaleLine.transaction do
       line.destroy!
       @sale.recalculate
+      keep_what_is_paid!
       approve_discount!
     end
     render_cart message: "Removed #{line.product.name}"
-  rescue ApprovalMissing => error
+  rescue ApprovalMissing, PaidAlready => error
     render_cart alert: error.message, status: :unprocessable_entity
   end
 
@@ -65,7 +67,11 @@ class Pos::LinesController < ApplicationController
     def stock_warning(line)
       return unless line.product.track_stock? || line.product.kit?
 
-      available = line.stock_on_hand
-      "Only #{helpers.quantity(available)} #{line.product.name} in stock here" if available < line.quantity
+      on_hand, available = line.stock_on_hand, line.stock_available
+      if available < line.quantity && available < on_hand
+        "Only #{helpers.quantity(available)} #{line.product.name} free here: #{helpers.quantity(on_hand - available)} of the #{helpers.quantity(on_hand)} in stock are promised to orders"
+      elsif on_hand < line.quantity
+        "Only #{helpers.quantity(on_hand)} #{line.product.name} in stock here"
+      end
     end
 end

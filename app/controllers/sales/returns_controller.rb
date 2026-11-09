@@ -8,7 +8,7 @@ class Sales::ReturnsController < ApplicationController
   end
 
   def create
-    @return = Current.account.sale_returns.new(return_params.merge(sale: @sale, shift: current_shift, branch: @sale.branch))
+    @return = Current.account.sale_returns.new(return_params.merge(sale: @sale, shift: current_shift, branch: current_shift.branch))
     @return.approver = approver_for_action
 
     if @return.approver.nil?
@@ -26,7 +26,10 @@ class Sales::ReturnsController < ApplicationController
       redirect_to @sale, alert: "Nothing on this sale can be returned." unless @sale.returnable?
     end
 
+    # How the customer paid; what was put on account can only go back to the account.
     def default_refund_method
+      return "on_account" if @sale.customer && SaleReturn.money_refundable_cents(@sale) <= 0
+
       @sale.payments.first&.tender.then { |tender| tender.in?(SaleReturn::REFUND_METHODS) ? tender : "cash" }
     end
 

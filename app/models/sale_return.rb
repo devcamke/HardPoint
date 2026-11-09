@@ -1,6 +1,8 @@
 # Goods brought back against a receipt. Refunds are worth what the customer actually paid for
 # those items (their share of line and cart discounts included). Restocked items go back on the
-# shelf; items not restocked (damaged) are simply written off.
+# shelf of the branch taking them back, which need not be the one that sold them; the return is
+# numbered there and a cash refund comes from that till's drawer. Money is only refunded as money
+# the customer actually handed over: the part of a sale put on account is refunded to the account.
 class SaleReturn < ApplicationRecord
   include AccountOwned, Monetary
 
@@ -23,8 +25,9 @@ class SaleReturn < ApplicationRecord
   validate { errors.add :base, "Choose at least one item to return" if lines.empty? }
   validate { errors.add :shift, "must be open" if shift&.closed? }
   validate { errors.add :refund_method, "on account needs the sale to have a customer" if refund_method == "on_account" && sale&.customer.nil? }
+  validate :only_money_paid_is_refunded_as_money, on: :create
 
-  before_validation(on: :create) { self.branch ||= sale&.branch }
+  before_validation(on: :create) { self.branch ||= shift&.branch || sale&.branch }
   # Saving validates inside the save's transaction; holding the sale's row until it commits means a
   # second return (or a void) of the same sale waits, then counts what this one took back.
   before_validation(on: :create) { Sale.where(id: sale_id).lock.pick(:id) if sale_id }
@@ -41,7 +44,28 @@ class SaleReturn < ApplicationRecord
     "#{branch.code}-R#{number.to_s.rjust(5, "0")}"
   end
 
+  MONEY_TENDERS = (Payment::TENDERS - %w[ on_account ]).freeze
+
+  # What the customer paid in money (cash, card, phone, deposit) less what has already been refunded as money.
+  # A sale put on account hasn't been paid for yet, so handing cash back for it would pay the customer twice.
+  def self.money_refundable_cents(sale)
+    paid = sale.payments.select { _1.persisted? && _1.tender.in?(MONEY_TENDERS) }.sum(&:amount_cents)
+    paid - sale.sale_returns.where.not(refund_method: "on_account").sum(:total_cents)
+  end
+
   private
+    def only_money_paid_is_refunded_as_money
+      return unless sale&.completed? && refund_method.present? && refund_method != "on_account"
+
+      lines.each(&:calculate_totals)
+      refundable = self.class.money_refundable_cents(sale)
+      if lines.sum(&:total_cents) > refundable
+        errors.add :refund_method, refundable.positive? ?
+          "can refund at most #{Money.format(refundable)} in money: the rest of this sale was put on account, so refund that part to the customer's account" :
+          "can't be money: this sale was put on account and hasn't been paid, so credit the customer's account instead"
+      end
+    end
+
     def number_and_total
       self.number = DocumentSequence.next_number(branch, "return")
       lines.each(&:calculate_totals)
@@ -50,7 +74,7 @@ class SaleReturn < ApplicationRecord
     end
 
     def restock_and_record
-      lines.select(&:restock?).each { |line| line.sale_line.restore_stock(line.quantity, source: self) }
+      lines.select(&:restock?).each { |line| line.sale_line.restore_stock(line.quantity, source: self, branch: branch) }
       sale.track_event "returned", creator: creator, return_number: return_number, total: total_cents,
         refund_method: refund_method, approver: approver&.name
     end

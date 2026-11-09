@@ -25,6 +25,9 @@ class Storefront::Cart
     return "That's more than we can take online; call us for large orders" if quantity > MAX_QUANTITY
     return "#{product.name} is sold in whole #{product.unit.name.downcase.pluralize}" unless product.quantity_allowed?(quantity)
     return "Your cart is full; place this order and start another" if !@items.key?(product.id.to_s) && @items.size >= MAX_LINES
+    if product.track_stock? && !product.kit? && @storefront.collection_branches.none? { product.available_at(_1) >= quantity }
+      return "Only #{@storefront.collection_branches.map { product.available_at(_1) }.max.to_s("F").delete_suffix(".0")} #{product.name} left to order right now"
+    end
 
     @items[product.id.to_s] = quantity.to_s("F")
     @lines = nil

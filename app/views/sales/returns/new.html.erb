@@ -1,7 +1,10 @@
 <% content_for :title, "Return items" %>
 
 <h1 class="mb-2 text-xl font-medium"><%= link_to "#{@sale.receipt_number}", @sale, class: "link" %> <span class="text-gray-400">/</span> Return items from <%= @sale.receipt_number %></h1>
-<p class="hint mb-6">Refunds are what the customer paid for the items, including their share of any discount. Refunding at <%= current_till.name %>.</p>
+<p class="hint mb-6">Refunds are what the customer paid for the items, including their share of any discount. Refunding at <%= current_till.name %><%= ", so returned items go back into #{current_shift.branch.name}'s stock" if current_shift.branch != @sale.branch %>.
+  <% if @sale.customer && (refundable = SaleReturn.money_refundable_cents(@sale)) < @sale.total_cents %>
+    <%= refundable.positive? ? "At most #{money(refundable)} can be refunded in money; the rest of this sale was put on account." : "This sale was put on account, so refunds go to the customer's account." %>
+  <% end %></p>
 
 <%= form_with model: @return, url: sale_returns_path(@sale), class: "card max-w-3xl" do |form| %>
   <% if flash.now[:alert] %><p id="alert" class="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-800"><%= flash.now[:alert] %></p><% end %>

@@ -77,16 +77,22 @@ class SaleLine < ApplicationRecord
   end
 
   # Batch-tracked stock goes back into the batches the sale took it from.
-  def restore_stock(quantity = self.quantity, reason: "returned", source: sale)
+  # Back on the shelf: at the branch that sold it (a void), or wherever it was brought back to (a return).
+  def restore_stock(quantity = self.quantity, reason: "returned", source: sale, branch: sale.branch)
     share = quantity / self.quantity
     stock_items.each do |item, amount|
-      item.move_stock(branch: sale.branch, quantity: amount * share, reason: reason, source: source,
+      item.move_stock(branch: branch, quantity: amount * share, reason: reason, source: source,
         reverses: { taken_by: [ sale ], returned_by: [ sale, *sale.sale_returns ] })
     end
   end
 
   def stock_on_hand
     product.stock_at(sale.branch) / (product_unit&.quantity || 1)
+  end
+
+  # On hand less what's promised to other customers' orders, in this line's unit.
+  def stock_available
+    product.available_at(sale.branch, except: sale.customer_order) / (product_unit&.quantity || 1)
   end
 
   # What the line costs the shop at today's weighted-average cost, ex tax. Kits cost their parts.
