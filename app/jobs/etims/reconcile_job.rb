@@ -1,7 +1,7 @@
 # Every hour, finds sales, voids and returns at branches with a control unit that were never queued for
 # KRA (the app stopped between saving one and queuing it) and queues them. The last few minutes are left
-# alone, as they're still on their way; so is anything from before the control unit was last changed,
-# so sales made while it was switched off aren't sent when it's switched back on.
+# alone, as they're still on their way; so is anything from before the control unit was last switched
+# on, so sales made while it was off aren't sent when it's switched back on.
 class Etims::ReconcileJob < ApplicationJob
   one_at_a_time(duration: 30.minutes)
 
@@ -18,7 +18,7 @@ class Etims::ReconcileJob < ApplicationJob
 
   private
     def queue_missing(account, device)
-      window = [ device.updated_at, LOOK_BACK.ago ].max..SETTLE.ago
+      window = [ switched_on_at(device), LOOK_BACK.ago ].max..SETTLE.ago
       return if window.begin > window.end
 
       sales = account.sales.where(branch: device.branch)
@@ -30,5 +30,12 @@ class Etims::ReconcileJob < ApplicationJob
         .each { Etims::Submission.queue(_1, kind: "credit_note") }
       account.sale_returns.where(branch: device.branch, created_at: window).where.not(id: queued.("SaleReturn", "credit_note")).order(:id)
         .each { Etims::Submission.queue(_1, kind: "credit_note") }
+    end
+
+    # When the control unit was added, or last switched back on after being off. Other edits to it (a new item
+    # class, say) don't move this, so they don't hide anything lost before them.
+    def switched_on_at(device)
+      device.events.where(action: "updated").where("events.particulars -> 'changes' -> 'active' ->> 1 = 'true'").maximum(:created_at) ||
+        device.created_at
     end
 end

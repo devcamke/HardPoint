@@ -213,13 +213,16 @@ class EtimsTest < ActiveSupport::TestCase
     just_now.etims_submission.delete
 
     travel 5.minutes do
+      @device.update!(default_item_class_code: "5020230600") # an edit that isn't switching it on
       Etims::ReconcileJob.perform_now
       assert_nil just_now.reload.etims_submission, "only minutes old, it may still be on its way"
     end
+    # Queued by the sweep, then sent by the workers afterwards, as in production. (Run inline inside the sweep,
+    # each job resets Current when it finishes, and row-level security would hide the rest of the sweep's rows.)
     travel 20.minutes do
-      transmitting { Etims::ReconcileJob.perform_now }
+      Etims::ReconcileJob.perform_now
+      transmitting { perform_enqueued_jobs(only: Etims::TransmitJob) }
     end
-    Current.account = accounts(:acme)
 
     assert lost_sale.reload.etims_submission.sent?
     assert Etims::Submission.find_by!(document: voided, kind: "credit_note").sent?
