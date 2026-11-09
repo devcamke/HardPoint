@@ -44,6 +44,15 @@ class BillingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#add_ons input[name='account[extra_registers]'][value='1']"
   end
 
+  test "an extra till bought partway through a paid month is invoiced for the rest of it" do
+    Account.without_isolation { @account.update!(subscription_status: "active", current_period_ends_at: 15.days.from_now) }
+    patch billing_add_ons_path, params: { account: { extra_registers: 1, extra_branches: 0, billing_interval: "monthly" } }
+    invoice = Account.without_isolation { @account.billing_invoices.one_off.last }
+    assert_match "Invoice #{invoice.number} for KES #{invoice.amount}", flash[:notice]
+    assert_match "covers the rest of this period", flash[:notice]
+    assert_match "1 extra till added", invoice.description
+  end
+
   test "giving back an extra that's in use is refused" do
     Account.without_isolation { @account.update!(plan: "starter", extra_branches: 1) }
     patch billing_add_ons_path, params: { account: { extra_registers: 0, extra_branches: 0, billing_interval: "monthly" } }

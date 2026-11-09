@@ -1458,11 +1458,11 @@ Under **Add-ons and how often you pay**, choose **Monthly** or **Yearly**. A yea
 
 #### Changing plan
 
-Pick another plan on the Billing page. A bigger plan applies straight away. A smaller one only if your branches, tills and staff fit within it. The new price applies from the next invoice. Products never count towards a plan.
+Pick another plan on the Billing page. A bigger plan applies straight away, and the difference for the rest of the period you've paid for comes as its own invoice, due a week later. A smaller one only if your branches, tills and staff fit within it. The new price applies from the next invoice. Products never count towards a plan.
 
 #### One more till or branch
 
-If you only need one more till or branch than your plan allows, add it under **Add-ons and how often you pay** rather than moving up a plan. Type how many extra you want and press **Save**. The room is there straight away, and the price is on your next invoice. You can give an extra back the same way once you've retired the till or branch that used it.
+If you only need one more till or branch than your plan allows, add it under **Add-ons and how often you pay** rather than moving up a plan. Type how many extra you want and press **Save**. The room is there straight away. If you've already paid for this month or year, the rest of it comes as its own invoice for the extra, due a week later; after that it's on your regular invoice. You can give an extra back the same way once you've retired the till or branch that used it.
 
 #### Setup visits and till kits
 
@@ -1470,7 +1470,7 @@ If HardPoint set your shop up on site, trained your staff or supplied a till kit
 
 #### If an invoice isn't paid
 
-A week after it's due, the shop becomes **read-only**: everyone can still sign in and look things up, and the owner can export the data, but nothing can be sold or changed. Paying the invoice unlocks the shop straight away. Offline sales rung up before the lock are still accepted.
+A week after it's due, the shop becomes **read-only**: everyone can still sign in and look things up, and the owner can export the data, but nothing can be sold or changed. Paying the invoice unlocks the shop straight away, and the month (or year) you've paid for starts that day: the time the shop was read-only isn't charged. Offline sales rung up before the lock are still accepted.
 
 <a id="connecting-apps"></a>
 
