@@ -41,8 +41,9 @@
 </ul>
 <p>The buttons along the top are <strong>New quote</strong>, <strong>Statement</strong>, <strong>Record payment</strong> (when they owe
   something) and, with contractor jobs switched on in <strong>Settings › Features</strong>, <strong>Add a job</strong>. When SMS is set up
-  and they owe money, <strong>Text a reminder</strong> sends their balance to their phone. A statement can also go by PDF, email or
-  WhatsApp.</p>
+  and they owe money, <strong>Text a reminder</strong> sends their balance to their phone, once a day at most. A statement can also go by PDF, email or
+  WhatsApp. A customer who asks not to be texted gets <strong>Don't text this customer</strong> ticked on their record; after that no receipt,
+  order text or reminder goes to their number.</p>
 
 <%= render "help/walkthrough", tour: HelpTour.find("customer") %>
 

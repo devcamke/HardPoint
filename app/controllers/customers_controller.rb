@@ -52,7 +52,7 @@ class CustomersController < ApplicationController
 
     # Only owners and managers decide who buys on credit and at what prices.
     def customer_params
-      permitted = %i[ name phone email tax_pin address notes ]
+      permitted = %i[ name phone email tax_pin address notes sms_opt_out ]
       permitted += %i[ price_list_id credit_limit payment_terms_days ] if current_membership.approver?
       params.expect(customer: permitted)
     end

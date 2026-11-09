@@ -224,7 +224,7 @@ Once it's on:
 
 - **Receipts**: after a sale, type the customer's number in **Text receipt to…** and press **Text**. On a past sale, use **Text the receipt**.
 - **Order ready**: on a customer order, **Mark ready and text** (with the customer's first name) tells them to come and collect, with anything left to pay. The customer needs a phone number.
-- **Balance reminders**: on a customer who owes money, **Text a reminder** sends their balance, what's overdue, and your Paybill if you have one. Owners, managers and accountants can send these.
+- **Balance reminders**: on a customer who owes money, **Text a reminder** sends their balance, what's overdue, and your Paybill if you have one. Owners, managers and accountants can send these, once a day per customer. Nothing is texted to a customer with **Don't text this customer** ticked.
 - **Online orders**: customers who order from your online store get a text saying you have their order.
 
 Texts only go to Kenyan mobile numbers. A shop can send up to 500 texts a day, so a mistake can't run up a bill.
@@ -664,7 +664,7 @@ Open a customer from the list (search by name or phone) to see:
 - **Unpaid account sales** with their due dates, and **Payments on account**.
 - Open quotes and orders, open jobs, and their **Recent purchases**.
 
-The buttons along the top are **New quote**, **Statement**, **Record payment** (when they owe something) and, with contractor jobs switched on in **Settings › Features**, **Add a job**. When SMS is set up and they owe money, **Text a reminder** sends their balance to their phone. A statement can also go by PDF, email or WhatsApp.
+The buttons along the top are **New quote**, **Statement**, **Record payment** (when they owe something) and, with contractor jobs switched on in **Settings › Features**, **Add a job**. When SMS is set up and they owe money, **Text a reminder** sends their balance to their phone, once a day at most. A statement can also go by PDF, email or WhatsApp. A customer who asks not to be texted gets **Don't text this customer** ticked on their record; after that no receipt, order text or reminder goes to their number.
 
 **Walkthrough: A customer's account**
 

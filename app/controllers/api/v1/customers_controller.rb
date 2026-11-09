@@ -32,6 +32,6 @@ class Api::V1::CustomersController < Api::V1::BaseController
 
     # Credit limits and price lists stay with the shop's staff.
     def customer_params
-      params.expect(customer: %i[ name phone email tax_pin address notes ])
+      params.expect(customer: %i[ name phone email tax_pin address notes sms_opt_out ])
     end
 end
