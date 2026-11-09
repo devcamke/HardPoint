@@ -37,6 +37,20 @@ class CustomerOrderLine < ApplicationRecord
     product_unit&.unit || product.unit
   end
 
+  # What the customer hasn't picked up yet.
+  def remaining_quantity
+    [ quantity - collected_quantity, 0 ].max
+  end
+
+  def collected?
+    remaining_quantity.zero?
+  end
+
+  # In the product's base unit, for stock: a pack line of 2 boxes of 100 reserves 200.
+  def remaining_base_quantity
+    remaining_quantity * (product_unit&.quantity || 1)
+  end
+
   def calculate_totals
     self.total_cents = (unit_price_cents.to_i * quantity.to_d).round
     self.tax_cents = (total_cents * tax_rate / (100 + tax_rate)).round

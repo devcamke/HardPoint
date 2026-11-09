@@ -96,6 +96,19 @@ class StorefrontTest < ActiveSupport::TestCase
     end
   end
 
+  test "the store won't promise stock that isn't there, or that earlier orders already hold" do
+    assert_match "left to order", @cart.set(products(:acme_cement), 51)
+    assert_nil @cart.set(products(:acme_cement), 40)
+
+    held = @account.customer_orders.create!(branch: branches(:acme_main), customer: customers(:acme_contractor), status: :ordered,
+      lines_attributes: [ { account: @account, product_code: "CEM-50", quantity: 30 } ])
+    assert held.ordered?
+
+    order = checkout(branch_id: branches(:acme_main).id)
+    assert_not order.place
+    assert_match "Only 20 Bamburi cement 50kg can be collected", order.errors.full_messages.to_sentence
+  end
+
   test "a locked shop doesn't take orders" do
     assert @store.taking_orders?
     @account.update!(subscription_status: "read_only")
