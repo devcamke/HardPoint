@@ -45,7 +45,8 @@ class Pos::OfflineControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal "error", response.parsed_body["results"].sole["status"]
     event = Account.without_isolation { accounts(:acme).account_events.where(action: "offline_sale_refused").sole }
-    assert_equal registers(:acme_front), event.eventable
+    # Compared by id: under row-level security the register itself can't be loaded outside the shop's scope.
+    assert_equal [ "Register", registers(:acme_front).id ], [ event.eventable_type, event.eventable_id ]
 
     sign_in_as users(:amina)
     get events_path
