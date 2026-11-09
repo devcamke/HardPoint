@@ -15,7 +15,7 @@ class ProductsController < ApplicationController
           @groups = product_groups(@products)
         else
           @products = paginate(@products.includes(:category, :unit))
-          @stock = StockLevel.where(branch: selected_branch, product_id: @products.map(&:id)).pluck(:product_id, :quantity).to_h
+          @levels = StockLevel.where(branch: selected_branch, product_id: @products.map(&:id)).index_by(&:product_id)
         end
       end
 

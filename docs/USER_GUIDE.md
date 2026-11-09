@@ -975,6 +975,8 @@ Selling carries on during a stock take; HardPoint allows for what was sold while
 
 Give products a **reorder level**. **Stock › Reorder** shows everything at or below it at a branch, and owners, managers and stock clerks get a low-stock email each morning. To turn the list into orders, see [Buying from suppliers](#buying-from-suppliers).
 
+A branch that sells a product faster or slower than the others can have its own level: on the product's page, type it under **Reorder at** next to the branch and press **Set**. Leave it blank to use the product's level. Stock already on order, or on its way from another branch, counts as coming, so it isn't suggested twice.
+
 #### Stock history
 
 **All movements** on **Stock › Stock levels** lists every change to stock, filtered by product, branch and reason. Each product's page shows its latest movements too.
@@ -1016,6 +1018,8 @@ Use **Group By › Supplier** on the orders list to see what's still to come fro
 3. Press **Receive into stock**. The goods go into the branch, the extra costs are spread over the lines by value, and each product's cost becomes the average of the old and new stock.
 
 Deliveries can also be checked in [on your phone](#stock-on-your-phone). Products tracked by batch ask for the batch number and expiry date.
+
+If the supplier can't send the rest of a partly delivered order, open it and press **Close short**. The order shows what never came, and those goods stop counting as on order, so **Stock › Reorder** suggests them again.
 
 **Walkthrough: Receive a delivery**
 

@@ -30,7 +30,8 @@
         </thead>
         <tbody>
           <% @products.each do |product| %>
-            <% stock = product.kit? ? product.stock_at(selected_branch) : @stock.fetch(product.id, 0) %>
+            <% level = @levels[product.id] %>
+            <% stock = product.kit? ? product.stock_at(selected_branch) : (level&.quantity || 0) %>
             <tr id="<%= dom_id(product) %>" class="[&>td:first-child]:pl-6">
               <td>
                 <%= link_to product.name, product, class: "font-medium hover:text-primary-700", data: { turbo_frame: "_top" } %>
@@ -41,7 +42,7 @@
               <td><%= product.category&.name %></td>
               <td class="text-right tabular-nums"><%= money(product.price_cents) %></td>
               <td class="text-right tabular-nums"><%= quantity(stock, product.unit) if product.track_stock? || product.kit? %></td>
-              <td class="pr-6 text-right"><%= stock_badge(product, stock, selected_branch) %></td>
+              <td class="pr-6 text-right"><%= stock_badge(product, stock, selected_branch, reorder_level: level&.reorder_level || product.reorder_level) %></td>
             </tr>
           <% end %>
         </tbody>

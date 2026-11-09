@@ -1,5 +1,6 @@
 # An order to a supplier for delivery to a branch: a draft while it's being put together, sent
-# (emailed as a PDF), then partially or fully received through goods received notes.
+# (emailed as a PDF), then partially or fully received through goods received notes. One the
+# supplier can't finish is closed short, so the rest stops being waited for.
 class PurchaseOrder < ApplicationRecord
   include AccountOwned, Eventable, Monetary
 
@@ -9,7 +10,7 @@ class PurchaseOrder < ApplicationRecord
   has_many :lines, -> { order(:id) }, class_name: "PurchaseOrderLine", dependent: :destroy, inverse_of: :purchase_order
   has_many :goods_receipts, dependent: :restrict_with_error
 
-  enum :status, %w[ draft sent partially_received received cancelled ].index_by(&:itself), default: :draft
+  enum :status, %w[ draft sent partially_received received closed cancelled ].index_by(&:itself), default: :draft
 
   money_attribute :total
 
@@ -50,6 +51,15 @@ class PurchaseOrder < ApplicationRecord
 
   def cancel
     (draft? || sent?) && update(status: :cancelled).tap { |cancelled| track_event "cancelled" if cancelled }
+  end
+
+  # The supplier can't send the rest: what's still to come is written off the order, so Reorder stops
+  # counting on it and suggests it again. An order with nothing received is cancelled instead.
+  def close(user = Current.user)
+    return false unless partially_received?
+
+    short = lines.select { _1.outstanding_quantity.positive? }.map { "#{_1.outstanding_quantity.to_s("F").delete_suffix(".0")} #{_1.product.name}" }
+    update(status: :closed).tap { |closed| track_event "closed", creator: user, short: short.to_sentence if closed }
   end
 
   def refresh_receipt_status

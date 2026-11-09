@@ -5,9 +5,7 @@ class ReorderListsController < ApplicationController
     if current_membership.can_purchase?
       @suggestion = ReorderSuggestion.new(Current.account, selected_branch)
     else
-      @products = Current.account.products.active.below_reorder_level_at(selected_branch)
-        .includes(:unit, :category).select("products.*, COALESCE(stock_levels.quantity, 0) AS stock_quantity")
-        .order(Arel.sql("COALESCE(stock_levels.quantity, 0) - products.reorder_level"), :name)
+      @products = Current.account.products.active.below_reorder_level_at(selected_branch).most_short_first.includes(:unit, :category).order(:name)
     end
   end
 end

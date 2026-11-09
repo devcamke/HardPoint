@@ -45,6 +45,40 @@ class PurchasingTest < ActiveSupport::TestCase
     assert_not po.receivable?
   end
 
+  test "an order the supplier can't fill is closed short, and the rest stops counting as on order" do
+    po = order([ { product_code: "PVC-2", quantity: 10 } ], supplier: suppliers(:acme_plumbing_supplies))
+    po.mark_sent
+    assert_not po.close, "nothing received yet: cancel it instead"
+
+    accounts(:acme).goods_receipts.create!(supplier: po.supplier, branch: po.branch, purchase_order: po,
+      lines_attributes: [ { purchase_order_line_id: po.lines.sole.id, quantity: 1 } ])
+    assert_nil ReorderSuggestion.new(accounts(:acme), branches(:acme_main)).rows.find { _1.product.sku == "PVC-2" }, "4 on hand and 9 still to come"
+
+    assert po.close
+    assert po.reload.closed?
+    assert_not po.receivable?
+    assert_equal [ 0, 9 ], [ po.lines.sole.outstanding_quantity, po.lines.sole.short_quantity ]
+    assert_equal "closed", po.events.last.action
+    assert_equal 10, ReorderSuggestion.new(accounts(:acme), branches(:acme_main)).rows.find { _1.product.sku == "PVC-2" }.quantity, "the 9 that never came are no longer on order"
+    assert_not po.close, "only once"
+
+    late = accounts(:acme).goods_receipts.new(supplier: po.supplier, branch: po.branch, purchase_order: po,
+      lines_attributes: [ { purchase_order_line_id: po.lines.sole.id, quantity: 1 } ])
+    assert_not late.valid?, "a closed order takes no more deliveries"
+  end
+
+  test "stock on its way from another branch counts as on order" do
+    products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -40, reason: "sold")
+    row = -> { ReorderSuggestion.new(accounts(:acme), branches(:acme_main)).rows.find { _1.product.sku == "CEM-50" } }
+    assert_equal [ 0, 30 ], [ row.().on_order, row.().quantity ]
+
+    transfer = accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_yard), to_branch: branches(:acme_main), lines_attributes: [ { product_code: "CEM-50", quantity: 10 } ])
+    assert_equal [ 10, 20 ], [ row.().on_order, row.().quantity ], "the 10 in transit are counted"
+
+    transfer.cancel
+    assert_equal 0, row.().on_order
+  end
+
   test "receiving updates the weighted-average cost" do
     # 60 bags on hand at 700.00; 40 more arrive at 750.00 → (60×700 + 40×750) / 100 = 720.00
     accounts(:acme).goods_receipts.create!(supplier: suppliers(:acme_cement_distributor), branch: branches(:acme_main),

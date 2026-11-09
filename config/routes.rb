@@ -160,6 +160,7 @@ Rails.application.routes.draw do
         resources :prices, only: %i[ create destroy ]
         resources :components, only: %i[ create destroy ]
         resources :movements, only: :index
+        resource :reorder_level, only: :update
       end
     end
     resources :product_imports, only: %i[ index new create show ] do
@@ -352,6 +353,7 @@ Rails.application.routes.draw do
       scope module: :purchase_orders do
         resource :sending, only: :create
         resource :cancellation, only: :create
+        resource :closure, only: :create
       end
     end
     resources :goods_receipts, only: %i[ index new create show ]
