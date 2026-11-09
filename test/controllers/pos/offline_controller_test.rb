@@ -36,6 +36,22 @@ class Pos::OfflineControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ uuid, "duplicate", "MAIN-000001" ], result.values_at("uuid", "status", "receipt_number")
   end
 
+  test "a refused offline sale is answered as an error and shows in Activity against this till" do
+    get new_pos_offline_sale_path, as: :json
+    token = response.parsed_body["token"]
+    sale = { uuid: SecureRandom.uuid, receipt_number: "MAIN-OFF1-0002", happened_at: 5.minutes.ago.iso8601, shift_id: shifts(:acme_front_open).id, cashier_id: users(:carl).id,
+             total_cents: 100, lines: [ { product_id: 0, quantity: "1", unit_price_cents: 100 } ], payments: [ { tender: "cash", tendered_cents: 100 } ] }
+    post pos_offline_sales_path, params: { sales: [ sale ] }, as: :json, headers: { "X-CSRF-Token" => token }
+
+    assert_equal "error", response.parsed_body["results"].sole["status"]
+    event = Account.without_isolation { accounts(:acme).account_events.where(action: "offline_sale_refused").sole }
+    assert_equal registers(:acme_front), event.eventable
+
+    sign_in_as users(:amina)
+    get events_path
+    assert_select "li", /offline sale MAIN-OFF1-0002 for KES 1.00 on Front counter .* couldn't be recorded: .*ring it up by hand/m
+  end
+
   test "the offline till page and the installable app" do
     get pos_offline_path
     assert_select "[data-controller=offline-till]"

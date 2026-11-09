@@ -3,6 +3,9 @@
 # charged what its catalogue said; anything worth a second look (a price that has since gone
 # up, stock taken below zero, a shift already closed, points already spent on another till) comes
 # back as a warning and goes in Activity, rather than refusing a sale the customer has already paid for.
+# A sale that can't be recorded at all (a product deleted since, a cashier who has left) is refused,
+# and the refusal goes in Activity with what the till sent, once per sale: the money is in the drawer,
+# so a manager has to know.
 module Sale::Offline
   extend ActiveSupport::Concern
 
@@ -38,10 +41,28 @@ module Sale::Offline
     rescue ActiveRecord::RecordNotUnique
       Result.new(uuid, "duplicate", find_by(offline_uuid: uuid), [], nil)
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound, ArgumentError => error
+      note_offline_refusal(data, uuid, error.message, register: register)
       Result.new(uuid, "error", nil, [], error.message)
     end
 
     private
+      # Activity keeps the refused sale: the till, the time, the cashier, the total and what went wrong, so a
+      # manager can ring it up by hand. Once per sale ID, however many times the till sends it.
+      def note_offline_refusal(data, uuid, message, register:)
+        account = Current.account
+        return if account.account_events.where(action: "offline_sale_refused").where("particulars->>'uuid' = ?", uuid).exists?
+
+        shift = account.shifts.find_by(id: data["shift_id"])
+        subject = register || shift&.register || account
+        cashier = account.users.find_by(id: data["cashier_id"])
+        subject.track_event "offline_sale_refused", creator: cashier,
+          uuid: uuid, receipt_number: data["receipt_number"].to_s.first(30).presence, happened_at: data["happened_at"].to_s.presence,
+          total: data["total_cents"].to_i, cashier: cashier&.name, lines: Array(data["lines"]).size, error: message,
+          payments: Array(data["payments"]).map { |payment| "#{payment["tender"]} #{Money.format(payment["amount_cents"] || payment["tendered_cents"])}" }
+      rescue StandardError => failure
+        Rails.error.report(failure, handled: true, context: { offline_uuid: uuid })
+      end
+
       def build_offline(data, register:)
         account = Current.account
         shift = (register ? account.shifts.where(register: register) : account.shifts).find_by(id: data["shift_id"])

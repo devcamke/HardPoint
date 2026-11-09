@@ -20,6 +20,9 @@ module EventsHelper
     in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
     in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"
     in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{event.particulars["approver"]}"
+    in [ _, "offline_sale_refused" ] then "rang up offline sale #{event.particulars["receipt_number"] || "without a number"} for #{money(event.particulars["total"])}" \
+      "#{" on #{subject}" if event.eventable_type == "Register"}#{" at #{Time.zone.parse(event.particulars["happened_at"]).to_fs(:short)}" if event.particulars["happened_at"]}, " \
+      "which couldn't be recorded: #{event.particulars["error"]}. The money is in the drawer; ring it up by hand"
     in [ "Membership", "approval_pin_set" ] then "set their approval PIN"
     in [ "Membership", "two_factor_reset" ] then "reset #{subject}'s two-factor sign-in#{by_platform(event)}"
     in [ "PurchaseOrder", "sent" ] then "sent purchase order #{subject} to #{event.particulars["supplier"]} (#{money(event.particulars["total"])})"
