@@ -36,9 +36,11 @@ class Storefront::Checkout
     return errors.add(:base, "Something went wrong; please try again") && false if website.present?
     return false unless in_stock_at_branch?
 
+    # The lines take the cart's prices with them, so the order confirms at the total the customer saw at checkout,
+    # not re-priced for the branch's offers or a returning customer's price list.
     CustomerOrder.transaction do
-      @order = account.customer_orders.create!(branch: branch, customer: customer, status: :ordered, ordered_at: Time.current,
-        source: "online", note: order_note, lines_attributes: @cart.lines.map { { account: account, product_id: _1.product.id, quantity: _1.quantity } })
+      @order = account.customer_orders.create!(branch: branch, customer: customer, status: :ordered, ordered_at: Time.current, source: "online", note: order_note,
+        lines_attributes: @cart.lines.map { { account: account, product_id: _1.product.id, quantity: _1.quantity, unit_price_cents: _1.unit_price_cents, promotion: _1.promotion } })
     end
     @cart.clear
     notify

@@ -1,8 +1,15 @@
 # A customer's cart in the online store, kept in their session as { product id => quantity }.
 # Only products the store sells count; anything taken off sale since drops out.
 class Storefront::Cart
+  # Priced the way the order will be charged (Storefront::Checkout carries these prices onto it): the retail
+  # price with any quantity break, less the best offer running at every branch. No customer's price list
+  # applies online, since anyone can type anyone's phone number, and a branch's own offer isn't shown because
+  # the customer hasn't chosen a branch yet.
   Line = Data.define(:product, :quantity) do
-    def unit_price_cents = product.promotion_price&.last || product.price_cents
+    def list_price_cents = product.price_cents_for(quantity: quantity)
+    def offer = product.promotion_price(unit_price_cents: list_price_cents)
+    def promotion = offer&.first
+    def unit_price_cents = offer&.last || list_price_cents
     def total_cents = (unit_price_cents * quantity).round
   end
 

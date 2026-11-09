@@ -705,7 +705,7 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 #### Quotes and orders
 
 1. In **Sell › Orders & quotes**, press **New**, choose the customer and add the goods. Save it as a quote, and send it as a PDF or by email. Quotes are valid for 14 days unless you change it.
-2. When the customer agrees, press **Confirm order**. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
+2. When the customer agrees, press **Confirm order**. For a customer who buys on account, an order worth more than the credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
 3. When the goods are in, press **Mark ready to collect** (with SMS on, the customer can be texted).
 4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted.
 
@@ -792,13 +792,13 @@ Don't see it? It's one of the optional features: the owner switches on **Contrac
 
 #### What a job has cost
 
-The job's page shows what it has cost so far (sales less anything returned), how that compares with the budget, every material that went into it, and its sales, returns and open orders. **Cost summary (PDF)** gives the contractor the same on your letterhead.
+The job's page shows what it has cost so far (sales less anything returned), how that compares with the budget, every material that went into it, and its sales, returns and open orders. **Cost summary (PDF)** gives the contractor the same on your letterhead. Owners and managers also see the shop's **Margin** on the job: what the goods cost when they were sold, against the price ex tax.
 
 #### A bill for the contractor's client
 
 Contractors often pass the materials on to the people they're building for, with something added. On the job's **Edit** page, fill in **Client** and **Markup on materials**. Then **Bill for … (PDF)** on the job's page gives a materials bill on the contractor's own letterhead (their name, address, phone and PIN, not your shop's). It lists each material, net of returns, at your price plus the markup, with the total. The markup percentage isn't printed. Leave the markup empty to bill at your prices.
 
-When the work is finished, press **Close job** so it stops showing at the till. You can reopen it at any time.
+When the work is finished, press **Close job** so it stops showing at the till. A job with orders still to be collected can't be closed until they're collected, cancelled or moved to another job, so nothing is rung up without its job. You can reopen it at any time.
 
 <a id="online-store"></a>
 
@@ -816,7 +816,7 @@ Don't see it? It's one of the optional features: the owner switches on **Online 
 2. Tick **Online store is on**, choose the branches customers can collect from, and add a headline, a few words about the shop and when orders are ready (for example "Orders before 3pm are ready the same day").
 3. Choose whether customers see how many are in stock, or only "In stock", "Low stock" and "Out of stock".
 
-Every active product with a price is in the store. To keep one out, open the product and untick **Show in the online store**. Photos you add to products appear in the store.
+Every active product with a price is in the store. To keep one out, open the product and untick **Show in the online store**. Photos you add to products appear in the store. Online prices are your retail prices (with quantity breaks) less any offer running at every branch; a customer's price list and offers at one branch only don't apply online, and the order confirms at exactly the total shown at checkout.
 
 #### When an order comes in
 

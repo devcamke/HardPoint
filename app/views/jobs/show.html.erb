@@ -22,9 +22,17 @@
   </div>
 </div>
 
-<div class="mb-6 grid gap-4 sm:grid-cols-3">
+<% shows_margin = current_membership.can_view_reports? %>
+<div class="mb-6 grid gap-4 sm:grid-cols-<%= shows_margin ? 4 : 3 %>">
   <div class="card"><p class="hint">Spent</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(spent) %></p>
     <p class="hint"><%= pluralize(@sales.count(&:completed?), "sale") %><%= ", #{pluralize(@returns.size, "return")}" if @returns.any? %></p></div>
+  <% if shows_margin %>
+    <%# The shop's side, not the contractor's: what the goods cost when sold, and what's left of the price ex tax. %>
+    <% margin = @job.margin_cents %>
+    <div class="card"><p class="hint">Margin</p>
+      <p class="mt-1 text-2xl font-bold tabular-nums <%= "text-red-700" if margin.negative? %>"><%= money(margin) %><%= tag.span(" · #{@job.margin_percent.round(1).to_s.delete_suffix(".0")}%", class: "text-base font-semibold") if @job.margin_percent %></p>
+      <p class="hint">cost <%= money(@job.cost_cents) %>, ex tax</p></div>
+  <% end %>
   <div class="card"><p class="hint">Budget</p>
     <% if @job.budget_cents %>
       <% left = @job.budget_cents - spent %>
