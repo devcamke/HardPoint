@@ -322,3 +322,50 @@ textarea.input {
   .o-main .table thead { display: table-header-group; }
   .o-main .table tr { break-inside: avoid; }
 }
+
+/* The landing page's "Getting started" path (pages/home, setup_steps_controller.js): numbered tabs on a progress
+   line and a browser frame that shows each step's screen. */
+@layer components {
+  .setup-tab-disc {
+    @apply flex size-10 items-center justify-center rounded-full bg-white text-lg font-bold text-primary-600 tabular-nums shadow-sm ring-1 ring-primary-200 transition duration-300;
+  }
+  .setup-tab:hover .setup-tab-disc {
+    @apply ring-primary-400;
+  }
+  .setup-tab.is-active .setup-tab-disc {
+    @apply scale-110 bg-primary-500 text-white shadow-md ring-4 ring-primary-200;
+  }
+  .setup-tab.is-done .setup-tab-disc {
+    @apply bg-primary-500 text-white ring-primary-500;
+  }
+  .setup-tab-check { display: none; }
+  .setup-tab.is-done .setup-tab-number { display: none; }
+  .setup-tab.is-done .setup-tab-check { display: block; }
+  .setup-tab.is-active .setup-tab-title {
+    @apply text-gray-950;
+  }
+  .setup-fill {
+    transition: width 0.5s ease;
+  }
+  .setup-screen {
+    @apply absolute inset-0 flex flex-col opacity-0 transition-opacity duration-500;
+  }
+  .setup-screen.is-active, .setup-steps:not(.is-interactive) .setup-screen:first-child {
+    @apply opacity-100;
+  }
+  /* While it plays on its own, the active number fills like a clock. */
+  .setup-steps.is-playing .setup-tab.is-active .setup-tab-disc {
+    animation: setup-tick 5s linear infinite;
+  }
+  .setup-steps:not(.is-interactive) .setup-panel + .setup-panel {
+    @apply mt-6 border-t border-primary-100 pt-6;
+  }
+}
+@keyframes setup-tick {
+  from { box-shadow: 0 0 0 0 rgb(15 94 110 / 0.45); }
+  to { box-shadow: 0 0 0 14px rgb(15 94 110 / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .setup-steps.is-playing .setup-tab.is-active .setup-tab-disc { animation: none; }
+  .setup-fill, .setup-screen, .setup-tab-disc { transition: none; }
+}

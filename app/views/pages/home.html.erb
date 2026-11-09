@@ -149,7 +149,8 @@
   </div>
 </section>
 
-<%# The five setup steps as a path: white cards on a teal panel, their numbers strung on a dashed line. %>
+<%# The five setup steps as a path you can walk: numbered tabs on a progress line, and a browser frame showing each
+    step's real screen (setup_steps_controller.js). It plays through on its own until touched. %>
 <section class="border-t border-gray-200 bg-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
@@ -158,27 +159,78 @@
       <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">A <strong class="font-semibold text-gray-900">Set up your shop</strong> checklist walks you through it, and guided tours show each
         screen when you first use it.</p>
     </div>
-    <div class="mt-14 rounded-3xl bg-primary-50 px-5 pt-12 pb-8 sm:px-10 sm:pb-10">
-      <ol class="relative grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-5">
-        <div class="absolute top-0 right-[10%] left-[10%] hidden border-t-2 border-dashed border-primary-300 lg:block" aria-hidden="true"></div>
-        <% [ [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed." ],
-             [ "Name your branches and tills", "Check your tax rates and switch on only the features you use." ],
-             [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time." ],
-             [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work." ],
-             [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till." ] ].each.with_index(1) do |(title, body), step| %>
-          <li class="relative flex flex-col items-center rounded-2xl bg-white px-5 pt-8 pb-6 text-center shadow-sm ring-1 ring-primary-100 <%= "sm:col-span-2 lg:col-span-1" if step == 5 %>">
-            <span class="absolute -top-5 left-1/2 flex size-10 -translate-x-1/2 items-center justify-center rounded-full text-lg font-bold text-white tabular-nums shadow-md ring-4 ring-primary-50 <%= step == 5 ? "bg-primary-700" : "bg-primary-500" %>"><%= step %></span>
-            <p class="font-semibold text-gray-950 text-balance"><%= title %></p>
-            <p class="mt-2 text-sm text-gray-600 text-balance"><%= body %></p>
-          </li>
-        <% end %>
-      </ol>
+
+    <% steps = [
+         [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed.",
+           [ "Your shop at its own address", "The owner's login, ready to go", "#{trial.capitalize} free, no card needed" ], "home", "yourshop.hardpoint.app" ],
+         [ "Name your branches and tills", "Check your tax rates and switch on only the features you use.",
+           [ "Branches and yards", "Tills and receipt printers", "Tax rates, and only the features you use" ], "settings", "yourshop.hardpoint.app/settings" ],
+         [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time.",
+           [ "A spreadsheet of thousands in seconds", "Categories, units and barcodes", "Change prices later the same way" ], "products", "yourshop.hardpoint.app/products" ],
+         [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work.",
+           [ "Owner, manager, cashier, stock clerk, accountant", "Each sees only their own work", "On a touch screen, tablet or phone" ], "staff", "yourshop.hardpoint.app/memberships/new" ],
+         [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till.",
+           [ "Print a test receipt", "Connect M-Pesa and KRA eTIMS", "Open the till" ], "till", "yourshop.hardpoint.app/pos" ]
+       ] %>
+    <div class="setup-steps mt-14 rounded-3xl bg-primary-50 px-5 py-8 sm:px-10 sm:py-10" data-controller="setup-steps"
+         data-action="keydown->setup-steps#keydown mouseenter->setup-steps#pause mouseleave->setup-steps#resume focusin->setup-steps#pause focusout->setup-steps#resume">
+      <div class="relative" role="tablist" aria-label="Setting up your shop">
+        <div class="absolute top-5 right-[10%] left-[10%] h-0.5 -translate-y-px bg-primary-200" aria-hidden="true"></div>
+        <div class="setup-fill absolute top-5 left-[10%] h-0.5 w-0 -translate-y-px bg-primary-500" data-setup-steps-target="fill" aria-hidden="true"></div>
+        <div class="relative grid grid-cols-5 gap-x-2">
+          <% steps.each.with_index do |(title, *), i| %>
+            <button type="button" id="setup-tab-<%= i + 1 %>" class="setup-tab group flex cursor-pointer flex-col items-center gap-3 text-center focus-visible:outline-hidden" role="tab"
+                    aria-selected="<%= i.zero? %>" aria-controls="setup-panel-<%= i + 1 %>" data-setup-steps-target="tab" data-index="<%= i %>" data-action="setup-steps#select">
+              <span class="setup-tab-disc group-focus-visible:ring-4 group-focus-visible:ring-primary-400">
+                <span class="setup-tab-number"><%= i + 1 %></span>
+                <svg class="setup-tab-check size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-8"/></svg>
+              </span>
+              <span class="setup-tab-title text-sm font-medium text-gray-600 text-balance max-md:sr-only"><%= title %></span>
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="mt-10 grid items-center gap-8 lg:mt-12 lg:grid-cols-5 lg:gap-12">
+        <div class="lg:col-span-2">
+          <p class="text-sm font-semibold text-primary-600" data-setup-steps-target="count">Five steps</p>
+          <% steps.each.with_index do |(title, body, points, *), i| %>
+            <div id="setup-panel-<%= i + 1 %>" class="setup-panel" role="tabpanel" aria-labelledby="setup-tab-<%= i + 1 %>" data-setup-steps-target="panel">
+              <h3 class="mt-2 text-2xl font-bold tracking-tight text-gray-950 text-balance sm:text-3xl"><%= title %></h3>
+              <p class="mt-3 text-gray-600"><%= body %></p>
+              <ul class="mt-5 space-y-2 text-sm text-gray-700">
+                <% points.each do |point| %><li class="flex gap-2.5"><%= render "pages/check" %><%= point %></li><% end %>
+              </ul>
+              <% if i == steps.size - 1 %>
+                <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary mt-6 rounded-full px-6 py-2.5" %>
+              <% end %>
+            </div>
+          <% end %>
+          <div class="mt-8 flex items-center gap-3">
+            <button type="button" class="btn-secondary rounded-full px-5" data-action="setup-steps#previous" data-setup-steps-target="previous" disabled>Back</button>
+            <button type="button" class="btn-primary rounded-full px-5" data-action="setup-steps#next" data-setup-steps-target="next">Next</button>
+            <p class="ml-auto text-xs text-gray-500 max-sm:hidden">Or use the arrow keys</p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-3">
+          <div class="relative aspect-[16/11] overflow-hidden rounded-xl bg-white shadow-2xl shadow-primary-900/15 ring-1 ring-primary-200">
+            <% steps.each.with_index do |(title, _, _, image, address), i| %>
+              <div class="setup-screen" data-setup-steps-target="screen" aria-hidden="<%= !i.zero? %>">
+                <div class="flex h-9 shrink-0 items-center gap-1.5 border-b border-gray-200 bg-gray-50 px-3">
+                  <span class="size-2.5 rounded-full bg-gray-300"></span><span class="size-2.5 rounded-full bg-gray-300"></span><span class="size-2.5 rounded-full bg-gray-300"></span>
+                  <span class="mx-auto truncate rounded-md bg-white px-3 py-0.5 text-xs text-gray-500 ring-1 ring-gray-200"><%= address %></span>
+                </div>
+                <%= image_tag "help/tours/#{image}.png", alt: "Step #{i + 1}: #{title}", class: "min-h-0 flex-1 object-cover object-top", loading: "lazy" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
       <div class="mt-10 flex flex-col items-center gap-3 border-t border-primary-200 pt-8 text-center sm:flex-row sm:justify-between sm:text-left">
         <p class="text-gray-700">Stuck on a step? A person on WhatsApp will walk you through it.</p>
-        <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-          <%= link_to whatsapp_support_url("Hello HardPoint, I'm setting up my shop and need a hand."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>WhatsApp us <span aria-hidden="true">›</span><% end %>
-          <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5" %>
-        </div>
+        <%= link_to whatsapp_support_url("Hello HardPoint, I'm setting up my shop and need a hand."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>WhatsApp us <span aria-hidden="true">›</span><% end %>
       </div>
     </div>
   </div>
