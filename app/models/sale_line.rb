@@ -69,11 +69,17 @@ class SaleLine < ApplicationRecord
   end
 
   # Recorded when the sale completes, so margins stay true after costs change.
+  # An offline till couldn't know a batch had expired, and the goods have gone, so its sales may take them.
   def deduct_stock
     update_columns cost_cents: current_cost_cents
     stock_items.each do |item, amount|
-      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier)
+      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier, allow_expired: sale.offline_uuid.present?)
     end
+  end
+
+  # Stock on the shelf that may be sold: in date, in this line's unit.
+  def stock_in_date
+    product.in_date_stock_at(sale.branch) / (product_unit&.quantity || 1)
   end
 
   # Batch-tracked stock goes back into the batches the sale took it from.

@@ -1,5 +1,8 @@
 class Product < ApplicationRecord
   include AccountOwned, Eventable, Monetary, Pricing, Stockable, Searchable, Barcoded, Purchasing, PublishesWebhooks
+
+  # Raised when a sale or transfer would have to take stock from an expired batch.
+  ExpiredStock = Class.new(StandardError)
   publishes_webhooks "product"
   tracks_lifecycle
 

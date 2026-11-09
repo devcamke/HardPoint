@@ -133,11 +133,17 @@ module Sale::Payable
 
     def check_ready_to_complete(payment)
       missing_serials = lines.select { |line| line.product.serialized? && line.serial_number.blank? }
+      # Batch-tracked stock is sold in date only; the offline till couldn't have known, so its sales are let through.
+      out_of_date = offline_uuid ? [] : lines.select { |line| line.product.tracks_batches? && line.stock_in_date < line.quantity && line.stock_on_hand >= line.quantity }
 
       if lines.empty?
         payment.errors.add :base, "Add something to sell first"
       elsif missing_serials.any?
         payment.errors.add :base, "Enter the serial number for #{missing_serials.map { _1.product.name }.to_sentence}"
+      elsif out_of_date.any?
+        line = out_of_date.first
+        payment.errors.add :base, "Only #{line.stock_in_date.to_s("F").delete_suffix(".0")} #{line.product.name} here are in date; the rest have expired. " \
+          "Write the expired ones off, or sell fewer"
       elsif discount_needs_approval?
         # The till checks this on every change; this catches whatever reached the payment another way.
         payment.errors.add :base, "The discount on this sale is #{highest_discount_percent.round(1).to_s.delete_suffix(".0")}%, " \

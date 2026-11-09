@@ -175,6 +175,27 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal @sale, @shift.current_sale
   end
 
+  test "a sale can't complete with expired stock; written off, it can" do
+    cement = products(:acme_cement)
+    cement.move_stock(branch: branches(:acme_main), quantity: -cement.stock_at(branches(:acme_main)), reason: "correction")
+    cement.update!(tracks_batches: true)
+    cement.move_stock(branch: branches(:acme_main), quantity: 1, reason: "received", batch: { number: "FRESH", expires_on: 60.days.from_now.to_date })
+    cement.move_stock(branch: branches(:acme_main), quantity: 3, reason: "received", batch: { number: "OLD", expires_on: 2.days.ago.to_date })
+
+    @sale.add(cement, quantity: 2)
+    payment = @sale.pay(tender: "cash", tendered_cents: 160000)
+    assert_match "Only 1 Bamburi cement 50kg here are in date", payment.errors.full_messages.to_sentence
+    assert @sale.reload.open?
+
+    cement.stock_batches.find_by!(number: "OLD").write_off(3, reason: "expired")
+    @sale.lines.first.update!(quantity: 1)
+    @sale.recalculate
+    payment = @sale.pay(tender: "cash", tendered_cents: 80000)
+    assert payment.errors.empty?, payment.errors.full_messages.to_sentence
+    assert @sale.reload.completed?
+    assert_equal 0, cement.stock_at(branches(:acme_main))
+  end
+
   test "returns refund what was paid and restock by choice" do
     @sale.add(products(:acme_cement), quantity: 4)
     @sale.update!(discount_cents: 20000, discount_approver: users(:amina), approved_discount_percent: 6.25) # 320,000 → 300,000, a manager's discount
