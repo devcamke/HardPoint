@@ -67,6 +67,12 @@ class Shift < ApplicationRecord
     foreign_payments.sum("payments.tendered_cents - payments.amount_cents")
   end
 
+  # Cash handed back when a phone payment came to more than was due.
+  def mobile_money_change_cents
+    Payment.where(tender: %w[ mobile_money airtel_money ]).joins(:sale).where(sales: { shift_id: id, status: "completed" })
+      .sum("COALESCE(payments.tendered_cents, payments.amount_cents) - payments.amount_cents")
+  end
+
   # Foreign notes that should be in the drawer, by currency: { "USD" => cents }.
   def expected_foreign_cents_now
     foreign_payments.group(:currency).sum(:foreign_tendered_cents)
@@ -74,7 +80,7 @@ class Shift < ApplicationRecord
 
   def expected_cash_cents_now
     movements = cash_movement_totals
-    opening_float_cents + cash_sales_cents - foreign_change_cents - cash_refunds_cents + cash_deposits_cents + cash_account_payments_cents +
+    opening_float_cents + cash_sales_cents - foreign_change_cents - mobile_money_change_cents - cash_refunds_cents + cash_deposits_cents + cash_account_payments_cents +
       movements.fetch("pay_in", 0) - movements.fetch("payout", 0) - movements.fetch("drop", 0)
   end
 

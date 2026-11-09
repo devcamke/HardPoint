@@ -66,9 +66,24 @@ class OfflineSaleTest < ActiveSupport::TestCase
     broken = record(payload(lines: [ { product_id: 0, quantity: "1", unit_price_cents: 100 } ]))
     assert_equal "error", broken.status
     assert_equal 0, accounts(:acme).sales.offline.count
+    assert_equal 2, accounts(:acme).account_events.where(action: "offline_sale_refused").count, "each refusal is in Activity"
 
     future = record(payload(happened_at: 3.days.from_now))
     assert_operator future.sale.completed_at, :<=, 6.minutes.from_now
+  end
+
+  test "a sale that can't be recorded goes in Activity for a manager, once, with what the till sent" do
+    uuid = SecureRandom.uuid
+    gone = payload(uuid: uuid, lines: [ { product_id: 0, quantity: "2", unit_price_cents: 50000 } ], total_cents: 100000)
+
+    2.times { assert_equal "error", accounts(:acme).sales.record_offline(gone, register: registers(:acme_front)).status }
+
+    event = accounts(:acme).account_events.where(action: "offline_sale_refused").sole
+    assert_equal registers(:acme_front), event.eventable
+    assert_equal users(:carl), event.creator
+    assert_equal [ uuid, "MAIN-OFF1-0001", 100000, "Carl Cashier", 1, [ "cash KES 1,000.00" ] ],
+      event.particulars.values_at("uuid", "receipt_number", "total", "cashier", "lines", "payments")
+    assert_match "Couldn't find Product", event.particulars["error"]
   end
 
   test "another shop's shift can't be named" do

@@ -64,8 +64,13 @@ module Sale::Payable
     elsif tender.to_s == "deposit"
       payment.amount_cents = [ amount_cents || due, due, deposit_available_cents ].min
       payment.errors.add :base, "There's no deposit to use on this sale" unless payment.amount_cents.positive?
+    elsif tender.to_s.in?(%w[ mobile_money airtel_money ]) && tendered_cents.to_i > (amount_cents || due)
+      # The phone sent more than was asked: the sale takes what's due and the rest is change, in cash.
+      payment.tendered_cents = tendered_cents
+      payment.amount_cents = [ amount_cents || due, due ].min
     else
       payment.amount_cents = amount_cents || due
+      payment.tendered_cents = payment.amount_cents if tender.to_s.in?(%w[ mobile_money airtel_money ])
       payment.errors.add :amount, "is more than the #{Money.format(due)} due" if payment.amount_cents > due
     end
 
@@ -133,6 +138,10 @@ module Sale::Payable
         payment.errors.add :base, "Add something to sell first"
       elsif missing_serials.any?
         payment.errors.add :base, "Enter the serial number for #{missing_serials.map { _1.product.name }.to_sentence}"
+      elsif discount_needs_approval?
+        # The till checks this on every change; this catches whatever reached the payment another way.
+        payment.errors.add :base, "The discount on this sale is #{highest_discount_percent.round(1).to_s.delete_suffix(".0")}%, " \
+          "over the #{account.max_cashier_discount_percent.to_s("F").delete_suffix(".0")}% a cashier can give. It needs a manager's approval PIN"
       end
     end
 

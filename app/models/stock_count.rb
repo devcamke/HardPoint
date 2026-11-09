@@ -1,7 +1,9 @@
 # A stock take. Starting one snapshots what the system expects at the branch (for everything,
-# or one category for a cycle count). Staff record what they actually count; a manager approves,
-# and the differences are posted to the ledger. Differences are measured against the snapshot,
-# so sales during the count don't distort them. Batch-tracked products are counted batch by batch.
+# or one category for a cycle count), so the sheet is complete from the first minute. Staff record
+# what they actually count; as each line is counted, its expected quantity is refreshed to what the
+# system holds at that moment, so a bag sold before the counter reached the shelf isn't posted as a
+# shortage. A manager approves, and the differences are posted to the ledger as deltas, so a bag
+# sold after the shelf was counted isn't put back either. Batch-tracked products are counted batch by batch.
 class StockCount < ApplicationRecord
   include AccountOwned, Eventable
 

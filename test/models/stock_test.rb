@@ -85,17 +85,48 @@ class StockTest < ActiveSupport::TestCase
     assert_equal 50, line.expected_quantity
     assert_equal 1, count.lines.count, "only the category's stocked products"
 
-    # A sale during the count doesn't distort the variance.
+    # Five sold before the counter reaches the shelf: the shelf shows 45 and so does the system.
     products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -5, reason: "sold")
-    line.update!(counted_quantity: 48)
+    assert line.record(48)
+    assert_equal 45, line.expected_quantity, "measured against the level at the moment of counting"
+    assert_equal 3, line.variance, "three more on the shelf than the system knew"
+
+    # One sold after the shelf was counted: the difference is posted as a delta, so it isn't put back.
+    products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -1, reason: "sold")
 
     assert_not count.approve, "must be submitted first"
     assert count.submit
     assert count.approve
 
-    # Expected 50, counted 48: two bags missing, taken off the current 45.
-    assert_equal 43, products(:acme_cement).stock_at(branches(:acme_main))
-    assert_equal "count", StockMovement.where(source: count).sole.reason
+    assert_equal 44 + 3, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_equal [ "count", 3 ], StockMovement.where(source: count).sole.values_at(:reason, :quantity)
     assert count.approved?
+  end
+
+  test "a count that agrees with the shelf posts nothing, however many sales happened during the take" do
+    count = accounts(:acme).stock_counts.create!(branch: branches(:acme_main), category: categories(:acme_building))
+    line = count.lines.find_by!(product: products(:acme_cement))
+    products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -2, reason: "sold")
+
+    line.record(48)
+    count.submit
+    count.approve
+
+    assert_equal 0, line.reload.variance
+    assert_equal 48, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_not StockMovement.where(source: count).exists?
+  end
+
+  test "counting in several places adds up, against the live level" do
+    count = accounts(:acme).stock_counts.create!(branch: branches(:acme_main), category: categories(:acme_building))
+    line = count.lines.find_by!(product: products(:acme_cement))
+
+    line.record(30, mode: "add")
+    line.record(18, mode: "add")
+    assert_equal 48, line.counted_quantity
+    line.record(47)
+    assert_equal 47, line.counted_quantity, "set corrects the total"
+    assert line.record(nil), "and a count can be cleared"
+    assert_nil line.counted_quantity
   end
 end

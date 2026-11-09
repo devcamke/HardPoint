@@ -39,17 +39,32 @@ class StockCountBatchTest < ActiveSupport::TestCase
     assert_equal [ -2, 4 ], @cement.stock_movements.where(reason: "count").order(:id).pluck(:quantity)
   end
 
-  test "a batch sold from during the count doesn't go below nothing" do
+  test "a batch sold from before it was counted is measured as it is now" do
     count = start
     line = count.lines.find_by!(product: @cement)
-    @cement.move_stock(branch: @main, quantity: -9, reason: "sold") # 3 not in a batch, then 6 of A1
-    line.count_batch(number: "A1", quantity: 1)
+    @cement.move_stock(branch: @main, quantity: -9, reason: "sold") # 3 not in a batch, then 6 of A1: A1 holds 4
+    row = line.count_batch(number: "A1", quantity: 1)
+    assert_equal 4, row.expected_quantity, "A1 as it is when counted, not the 10 the take began with"
+    assert_equal 19 - 9 - 3, line.reload.counted_quantity, "the line totals the live level and the batch's difference"
 
     count.submit
     count.approve(users(:amina))
-    assert_equal 0, batch("A1").quantity
+    assert_equal 1, batch("A1").quantity
     assert StockBatch.where(product: @cement).all? { _1.quantity >= 0 }
-    assert_equal 19 - 9 - 9, @cement.stock_at(@main), "the 9 short still comes off"
+    assert_equal 19 - 9 - 3, @cement.stock_at(@main), "only the 3 really missing come off"
+  end
+
+  test "a batch counted short of what remains can't go below nothing" do
+    count = start
+    line = count.lines.find_by!(product: @cement)
+    line.count_batch(number: "A1", quantity: 1) # A1 holds 10 when counted
+    @cement.move_stock(branch: @main, quantity: -12, reason: "sold") # 3 not in a batch, then 9 of A1: A1 holds 1 now
+
+    count.submit
+    count.approve(users(:amina))
+    assert_equal 0, batch("A1").quantity, "the 9 missing: 1 from what's left of A1, the rest from the product's other stock"
+    assert StockBatch.where(product: @cement).all? { _1.quantity >= 0 }
+    assert_equal 19 - 12 - 9, @cement.stock_at(@main)
   end
 
   test "counting a batch-tracked product's total directly is refused; the line counts its batches" do

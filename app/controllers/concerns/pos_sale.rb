@@ -14,12 +14,18 @@ module PosSale
     end
 
     # Discounts past the shop's limit need an owner or manager: at the till, or by approval PIN.
-    # Raised inside the transaction that applied the discount, so it's rolled back.
+    # Raised inside the transaction that applied the discount, so it's rolled back. The percentage can also grow
+    # without a discount being touched: a line removed, a quantity cut, a customer with lower prices chosen. Every
+    # change that recalculates the sale runs this, so an approved 5% can't quietly become 50%.
     def approve_discount!
       return unless @sale.discount_needs_approval?
 
       approver = approver_for_action
-      raise ApprovalMissing, "A discount over #{Current.account.max_cashier_discount_percent.to_s("F").delete_suffix(".0")}% needs a manager's approval PIN" unless approver
+      unless approver
+        limit = Current.account.max_cashier_discount_percent.to_s("F").delete_suffix(".0")
+        raise ApprovalMissing, "That makes the discount #{@sale.highest_discount_percent.round(1).to_s.delete_suffix(".0")}% of the sale. " \
+          "A discount over #{limit}% needs a manager's approval PIN"
+      end
 
       @sale.update!(discount_approver: approver, approved_discount_percent: @sale.highest_discount_percent.ceil(2))
       @sale.track_event "discount_approved", approver: approver.name, percent: @sale.highest_discount_percent.round(1)
