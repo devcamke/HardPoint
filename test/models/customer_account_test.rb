@@ -104,6 +104,48 @@ class CustomerAccountTest < ActiveSupport::TestCase
     assert DeliveryNotePdf.new(note).render.start_with?("%PDF")
   end
 
+  test "a delivery note can cover part of a sale, and a later note takes the rest" do
+    sale = account_sale(quantity: 10)
+    line = sale.lines.sole
+
+    first = Current.account.delivery_notes.create!(sale: sale, address: "Plot 12", lines_attributes: [ { sale_line_id: line.id, quantity: 6 } ])
+    assert_equal [ [ line, 6 ] ], first.lines.map { [ _1.sale_line, _1.quantity ] }
+    assert_equal({ line.id => 4 }, DeliveryNote.undelivered_by_line(sale))
+    assert DeliveryNotePdf.new(first).render.start_with?("%PDF")
+
+    too_many = Current.account.delivery_notes.new(sale: sale, address: "Plot 12", lines_attributes: [ { sale_line_id: line.id, quantity: 5 } ])
+    assert_not too_many.valid?
+    assert_match "Only 4", too_many.errors.full_messages.to_sentence
+
+    rest = Current.account.delivery_notes.create!(sale: sale, address: "Plot 12")
+    assert_equal [ 4 ], rest.lines.map(&:quantity), "a note made without lines covers whatever is left"
+    assert_equal({}, DeliveryNote.undelivered_by_line(sale))
+
+    nothing_left = Current.account.delivery_notes.new(sale: sale, address: "Plot 12")
+    assert_not nothing_left.valid?
+    assert_match "already", nothing_left.errors.full_messages.to_sentence
+
+    assert first.cancel
+    assert_equal({ line.id => 6 }, DeliveryNote.undelivered_by_line(sale), "a cancelled note's goods are waiting again")
+  end
+
+  test "cancelling a delivery note cancels the transport it charged, unless a deposit is held on it" do
+    @customer.update!(address: "Plot 12, Mombasa Road")
+    note = Current.account.delivery_notes.create!(sale: account_sale(quantity: 4), transport_charge_cents: 2_000_00)
+    order = note.transport_order
+    assert order.ordered?
+
+    assert note.cancel
+    assert order.reload.cancelled?
+    assert_equal order.reference, note.events.last.particulars["transport_order"]
+
+    paid_up_front = Current.account.delivery_notes.create!(sale: account_sale(quantity: 4), transport_charge_cents: 2_000_00)
+    paid_up_front.transport_order.take_deposit(amount_cents: 500_00, tender: "mobile_money", reference: "SJK4H7T2QQ")
+    assert_not paid_up_front.cancel
+    assert_match "deposit", paid_up_front.errors.full_messages.to_sentence
+    assert paid_up_front.reload.pending?
+  end
+
   test "only completed sales go out for delivery" do
     note = Current.account.delivery_notes.new(sale: @shift.current_sale, address: "Somewhere")
 
