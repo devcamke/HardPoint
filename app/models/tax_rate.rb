@@ -3,6 +3,7 @@ class TaxRate < ApplicationRecord
   tracks_lifecycle
 
   has_many :products, dependent: :restrict_with_error
+  has_many :sale_lines, dependent: :restrict_with_error
 
   validates :name, presence: true, uniqueness: { scope: :account_id }
   validates :rate, numericality: { greater_than_or_equal_to: 0, less_than: 100 }

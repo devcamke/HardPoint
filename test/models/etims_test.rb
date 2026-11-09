@@ -43,6 +43,23 @@ class EtimsTest < ActiveSupport::TestCase
     assert_equal({ "tin" => "P051234567X", "bhfId" => "00" }, @kra.last("/etims-api/selectInitOsdcInfo").headers)
   end
 
+  test "exempt and zero-rated lines, both 0%, go to KRA under their own tax types" do
+    exempt = accounts(:acme).tax_rates.create!(name: "Exempt", rate: 0, etims_code: "A")
+    tax_rates(:acme_zero).update!(etims_code: "C")
+    products(:acme_nails).update!(tax_rate: exempt)        # 250.00 a kilo
+    products(:acme_screws).update!(tax_rate: tax_rates(:acme_zero)) # 5.00 each
+
+    sale = @shift.current_sale
+    sale.add(products(:acme_nails), quantity: 4)
+    sale.add(products(:acme_screws), quantity: 10)
+    transmitting { sale.pay(tender: "card", reference: "VISA 1") }
+
+    sent = @kra.last("/etims-api/saveTrnsSalesOsdc")
+    assert_equal %w[ A C ], sent.json[:itemList].map { _1[:taxTyCd] }
+    assert_equal [ 1000.0, 50.0, 0.0 ], sent.json.values_at(:taxblAmtA, :taxblAmtC, :taxblAmtB)
+    assert_equal [ "A", "C" ], sale.reload.lines.order(:id).map { _1.tax_rate_record.etims_code }
+  end
+
   test "a completed sale is registered, sent and signed" do
     sale = sell(products(:acme_nails), quantity: 4, discount_cents: 10000)
     submission = sale.etims_submission

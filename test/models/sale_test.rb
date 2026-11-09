@@ -18,6 +18,15 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal 160000 + 37500, @sale.total_cents
   end
 
+  test "a line remembers which tax rate it was sold under, and its percentage even if that rate is later edited" do
+    @sale.add(products(:acme_cement))
+    line = @sale.lines.sole
+    assert_equal tax_rates(:acme_vat), line.tax_rate_record
+    assert_equal 16, line.tax_rate
+
+    assert_not tax_rates(:acme_vat).destroy, "a rate that lines were sold under can't be deleted"
+  end
+
   test "a sale whose discount is over the cashier's limit can't be completed without approval" do
     @sale.add(products(:acme_cement))
     @sale.update!(discount_cents: 40000) # half of 80,000, far past the 5% a cashier may give

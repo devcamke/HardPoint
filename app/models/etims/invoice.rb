@@ -1,7 +1,7 @@
 # A sale, void or return in the shape OSCU's saveTrnsSalesOsdc wants. Prices include tax;
 # amounts are shillings; cart discounts are spread over the lines, as on the receipt.
 class Etims::Invoice
-  Line = Data.define(:product, :description, :unit, :quantity, :unit_price_cents, :gross_cents, :total_cents, :tax_cents, :tax_rate)
+  Line = Data.define(:product, :description, :unit, :quantity, :unit_price_cents, :gross_cents, :total_cents, :tax_cents, :tax_rate, :tax_rate_record)
 
   TAX_RATES = { "A" => 0, "B" => 16, "C" => 0, "D" => 0, "E" => 8 }.freeze
   REFUND_REASONS = { "return" => "06", "void" => "13" }.freeze
@@ -64,17 +64,17 @@ class Etims::Invoice
 
     def sale_lines
       share = sale.subtotal_cents.zero? ? 0 : sale.total_cents.to_r / sale.subtotal_cents
-      sale.lines.includes(:product, product_unit: :unit).map do |line|
+      sale.lines.includes(:product, :tax_rate_record, product_unit: :unit).map do |line|
         Line.new(line.product, line.description, line.unit, line.quantity, line.unit_price_cents, line.gross_cents,
-          (line.total_cents * share).round, (line.tax_cents * share).round, line.tax_rate)
+          (line.total_cents * share).round, (line.tax_cents * share).round, line.tax_rate, line.tax_rate_record)
       end
     end
 
     def return_lines
-      @document.lines.includes(sale_line: [ :product, { product_unit: :unit } ]).map do |line|
+      @document.lines.includes(sale_line: [ :product, :tax_rate_record, { product_unit: :unit } ]).map do |line|
         sold = line.sale_line
         Line.new(sold.product, sold.description, sold.unit, line.quantity, sold.unit_price_cents, (sold.unit_price_cents * line.quantity).round,
-          line.total_cents, line.tax_cents, sold.tax_rate)
+          line.total_cents, line.tax_cents, sold.tax_rate, sold.tax_rate_record)
       end
     end
 
@@ -85,7 +85,7 @@ class Etims::Invoice
         itemNm: line.description, bcd: nil, pkgUnitCd: "NT", pkg: 1, qtyUnitCd: line.unit.etims_code.presence || "U", qty: line.quantity.to_f,
         prc: shillings(line.unit_price_cents), splyAmt: shillings(line.gross_cents),
         dcRt: line.gross_cents.zero? ? 0 : (discount * 100.0 / line.gross_cents).round(2), dcAmt: shillings(discount),
-        isrccCd: nil, isrccNm: nil, isrcRt: nil, isrcAmt: nil, taxTyCd: Etims.tax_type_for(account, line.tax_rate),
+        isrccCd: nil, isrccNm: nil, isrcRt: nil, isrcAmt: nil, taxTyCd: Etims.tax_type_for(account, line.tax_rate, tax_rate: line.tax_rate_record),
         taxblAmt: line.total_cents, taxAmt: line.tax_cents, totAmt: line.total_cents }
     end
 

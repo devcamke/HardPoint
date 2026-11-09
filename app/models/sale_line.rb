@@ -5,15 +5,21 @@ class SaleLine < ApplicationRecord
   belongs_to :product
   belongs_to :product_unit, optional: true
   belongs_to :promotion, optional: true
+  # The shop's tax rate the line was sold under. The percentage is kept on the line too (tax_rate), so the sums
+  # never change if the rate is edited; the record says which 0% it was, exempt or zero-rated, for KRA and the return.
+  belongs_to :tax_rate_record, class_name: "TaxRate", foreign_key: :tax_rate_id, optional: true
 
   money_attribute :unit_price, :discount, :total, :tax, :promotion_discount
 
   validates :quantity, numericality: { greater_than: 0 }
   validates :discount_cents, numericality: { greater_than_or_equal_to: 0 }
-  validates_same_account :sale, :product, :product_unit
+  validates_same_account :sale, :product, :product_unit, :tax_rate_record
   validate :whole_units, :one_per_serial_number, :discount_within_price
 
-  before_validation(on: :create) { self.tax_rate = product.effective_tax_rate&.rate || 0 }
+  before_validation(on: :create) do
+    self.tax_rate_record = product.effective_tax_rate
+    self.tax_rate = tax_rate_record&.rate || 0
+  end
   before_save :calculate_totals
 
   def unit

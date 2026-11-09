@@ -26,6 +26,19 @@ class ReportTest < ActiveSupport::TestCase
     Report.find(key).new(account: Current.account, period: period, options: options)
   end
 
+  test "the VAT report returns exempt and zero-rated sales as separate rows, though both are 0%" do
+    exempt = accounts(:acme).tax_rates.create!(name: "Exempt", rate: 0, etims_code: "A")
+    products(:acme_nails).update!(tax_rate: exempt)
+    products(:acme_screws).update!(tax_rate: tax_rates(:acme_zero))
+    sell(products(:acme_nails), quantity: 4)   # 1,000.00 exempt
+    sell(products(:acme_screws), quantity: 10) # 50.00 zero-rated
+    sell(products(:acme_cement))               # 800.00 at 16%
+
+    rows = report("tax").sections.first.rows
+    assert_equal [ [ "Exempt (0%)", 100000, 0 ], [ "Zero-rated (0%)", 5000, 0 ], [ "Standard VAT (16%)", 80000, (80000 * 16 / 116.0).round ] ],
+      rows.map { [ _1[0], _1[1], _1[4] ] }
+  end
+
   test "a sale line keeps what it cost when it was sold" do
     sale = sell(products(:acme_nails), quantity: 4)
     products(:acme_nails).update!(cost_cents: 99_999)
