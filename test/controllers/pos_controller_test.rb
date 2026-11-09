@@ -201,6 +201,22 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", /MAIN-000001/
   end
 
+  test "once money is taken the sale can't shrink below it" do
+    post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
+    post pos_lines_path, params: { code: "PVC-2" }, as: :turbo_stream
+    cement, pvc = Account.without_isolation { current_sale.lines.order(:id).to_a }
+    post pos_payments_path, params: { tender: "mobile_money", amount: "800", reference: "SJK4H7T2QP" }, as: :turbo_stream
+    assert_response :success
+
+    delete pos_line_path(cement), as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "Remove the payment first", response.body
+    assert Account.without_isolation { SaleLine.exists?(cement.id) }
+
+    delete pos_line_path(pvc), as: :turbo_stream
+    assert_response :success, "the sale still covers what was paid"
+  end
+
   test "park, serve someone else, recall" do
     post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
     parked = current_sale

@@ -22,10 +22,11 @@ class Pos::LinesController < ApplicationController
     SaleLine.transaction do
       line.save!
       @sale.recalculate
+      keep_what_is_paid!
       approve_discount!
     end
     render_cart message: stock_warning(line)
-  rescue ActiveRecord::RecordInvalid, ApprovalMissing => error
+  rescue ActiveRecord::RecordInvalid, ApprovalMissing, PaidAlready => error
     render_cart alert: error.message, status: :unprocessable_entity
   end
 
@@ -34,10 +35,11 @@ class Pos::LinesController < ApplicationController
     SaleLine.transaction do
       line.destroy!
       @sale.recalculate
+      keep_what_is_paid!
       approve_discount!
     end
     render_cart message: "Removed #{line.product.name}"
-  rescue ApprovalMissing => error
+  rescue ApprovalMissing, PaidAlready => error
     render_cart alert: error.message, status: :unprocessable_entity
   end
 

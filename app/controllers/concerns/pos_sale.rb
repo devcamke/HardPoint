@@ -7,6 +7,7 @@ module PosSale
   end
 
   ApprovalMissing = Class.new(StandardError)
+  PaidAlready = Class.new(StandardError)
 
   private
     def set_sale
@@ -29,6 +30,14 @@ module PosSale
 
       @sale.update!(discount_approver: approver, approved_discount_percent: @sale.highest_discount_percent.ceil(2))
       @sale.track_event "discount_approved", approver: approver.name, percent: @sale.highest_discount_percent.round(1)
+    end
+
+    # Once money has been taken, the sale can't shrink below it: the payment would be left paying for nothing,
+    # and with the last line gone the sale would be swept away at shift close with the money still on it.
+    def keep_what_is_paid!
+      return if @sale.payments.none? || @sale.balance_due_cents >= 0
+
+      raise PaidAlready, "#{Money.format(@sale.paid_cents)} has already been taken on this sale. Remove the payment first"
     end
 
     def render_cart(message: nil, alert: nil, status: :ok)
