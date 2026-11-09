@@ -17,7 +17,9 @@ module EventsHelper
     in [ "Membership", "pin_removed" ] then "removed #{whose(event)} till PIN"
     in [ "Shift", "opened" ] then "opened a shift on #{subject} with #{money(event.particulars["opening_float"])} float"
     in [ "Shift", "closed" ] then "closed the shift on #{subject}: counted #{money(event.particulars["counted"])}, #{variance_words(event.particulars["variance"])}"
-    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
+    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}" \
+      "#{"; #{Sale::Voidable.refund_words(event.particulars["refund_method"], event.particulars["refund_reference"])}" if event.particulars["refund_method"]}"
+    in [ "Sale", "completed_without_payment" ] then "completed sale #{subject} with nothing to pay, approved by #{event.particulars["approver"]}"
     in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"
     in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{event.particulars["approver"]}"
     in [ "CustomerOrder", "part_collected" ] then "collected part of #{subject} (#{event.particulars["receipt_number"]}); still waiting: #{Array(event.particulars["remaining"]).to_sentence}"

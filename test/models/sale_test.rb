@@ -154,14 +154,76 @@ class SaleTest < ActiveSupport::TestCase
     assert @sale.reload.completed?
   end
 
-  test "voiding during the shift puts stock back and drops the takings" do
+  test "voiding during the shift puts stock back and drops the takings, and cash given back comes out of the drawer" do
     @sale.add(products(:acme_cement), quantity: 2)
     @sale.pay(tender: "cash", tendered_cents: 160000)
 
     assert @sale.void(reason: "Rang up twice", approver: users(:amina))
     assert @sale.voided?
+    assert_equal "cash", @sale.void_refund_method, "money goes back the way it came unless told otherwise"
     assert_equal 50, products(:acme_cement).stock_at(branches(:acme_main))
     assert_equal 500000, @shift.expected_cash_cents_now
+    assert_equal "refunded in cash", @sale.void_refund_words
+    assert_equal [ "cash", nil ], @sale.events.last.particulars.values_at("refund_method", "refund_reference")
+  end
+
+  test "a void says how non-cash money went back: an M-Pesa reversal keeps its code and frees the money for reconciliation" do
+    shortcode = accounts(:acme).mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator")
+    received = Mpesa::Transaction.record(shortcode, source: "c2b", trans_id: "SJK4H7T2QP", amount_cents: 160000, transacted_at: Time.current)
+    @sale.add(products(:acme_cement), quantity: 2)
+    @sale.pay(tender: "mobile_money", reference: "SJK4H7T2QP")
+    assert_equal @sale.payments.sole, received.reload.matched
+
+    assert_not @sale.void(reason: "Rang up twice", approver: users(:amina)), "the reversal's code is needed"
+    assert_match "M-Pesa reversal code", @sale.errors.full_messages.to_sentence
+    assert @sale.reload.completed?
+
+    assert @sale.void(reason: "Rang up twice", approver: users(:amina), refund_method: "mobile_money", refund_reference: "sjk4h7t2qr")
+    assert_equal [ "mobile_money", "SJK4H7T2QR" ], [ @sale.void_refund_method, @sale.void_refund_reference ]
+    assert_equal "refunded by M-Pesa (SJK4H7T2QR)", @sale.void_refund_words
+    assert received.reload.refunded_at, "the money Safaricom sent is no longer money used on a sale"
+    assert_equal @sale.payments.sole, received.matched, "but it isn't offered at the till as money to use either"
+    assert_equal 500000, @shift.expected_cash_cents_now, "no cash moved"
+
+    summary = Report::MobileMoney.new(account: accounts(:acme), period: Report::Period.for_preset("today")).sections.first
+    assert_equal [ [ "Used on sales", 0, 0 ], [ "Reversed after a void", 1, 160000 ] ], [ summary.rows[1], summary.rows[5] ]
+  end
+
+  test "an M-Pesa sale handed back in cash takes the cash out of the drawer, and a split sale has to say which" do
+    @sale.add(products(:acme_cement), quantity: 2)
+    @sale.pay(tender: "mobile_money", reference: "SJK4H7T2QP")
+    assert @sale.void(reason: "Customer changed their mind", approver: users(:amina), refund_method: "cash")
+    assert_equal 500000 - 160000, @shift.expected_cash_cents_now
+
+    split = @shift.current_sale
+    split.add(products(:acme_cement), quantity: 2)
+    split.pay(tender: "card", amount_cents: 100000)
+    split.pay(tender: "cash", tendered_cents: 60000)
+    assert_nil split.default_void_refund_method
+    assert_not split.void(reason: "Rang up twice", approver: users(:amina))
+    assert_match "Say how the KES 1,600.00 paid went back", split.errors.full_messages.to_sentence
+    assert split.void(reason: "Rang up twice", approver: users(:amina), refund_method: "cash")
+    assert_equal 500000 - 160000 + 60000 - 160000, @shift.expected_cash_cents_now, "the cash part came in, and the whole lot went back in cash"
+  end
+
+  test "a sale that comes to nothing is completed without a payment, by a manager" do
+    @sale.add(products(:acme_cement))
+    @sale.update!(discount_cents: 80000, discount_approver: users(:amina), approved_discount_percent: 100)
+    @sale.recalculate
+    assert_equal 0, @sale.total_cents
+    assert @sale.pay(tender: "cash", tendered_cents: 0).errors.any?, "there's no payment to complete it through"
+
+    assert @sale.complete_without_payment(approver: users(:amina))
+    assert @sale.reload.completed?
+    assert_equal "MAIN-000001", @sale.receipt_number
+    assert_equal 49, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_equal [ "completed_without_payment", "Amina Owner" ], [ @sale.events.last.action, @sale.events.last.particulars["approver"] ]
+
+    owed = @shift.current_sale
+    owed.add(products(:acme_nails))
+    assert_not owed.complete_without_payment(approver: users(:amina))
+    assert_match "KES 250.00 is still due", owed.errors.full_messages.to_sentence
+    assert owed.reload.open?
   end
 
   test "park and recall" do

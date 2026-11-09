@@ -58,7 +58,32 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     post sale_void_path(@sale), params: { reason: "Rang up twice", approval_pin: "2468" }
     assert_redirected_to sale_path(@sale)
     assert Account.without_isolation { @sale.reload.voided? }
+    assert_equal "cash", @sale.void_refund_method, "a cash sale is refunded in cash unless told otherwise"
     assert_equal 50, Account.without_isolation { products(:acme_cement).stock_at(branches(:acme_main)) }
+
+    follow_redirect!
+    assert_select "p", /KES 1,600.00 refunded in cash/
+  end
+
+  test "voiding a sale paid by phone asks for the reversal's code, and Activity records how the money went back" do
+    paid_by_phone = Current.set(account: accounts(:acme), session: Account.without_isolation { accounts(:acme).sessions.create!(user: users(:carl)) }) do
+      shifts(:acme_front_open).current_sale.tap { |sale| sale.add(products(:acme_pipe)); sale.pay(tender: "mobile_money", reference: "SJK4H7T2QP") }
+    end
+
+    get new_sale_void_path(paid_by_phone)
+    assert_select "input[name=refund_method][value=mobile_money][checked]"
+
+    post sale_void_path(paid_by_phone), params: { reason: "Wrong customer", approval_pin: "2468", refund_method: "mobile_money" }
+    assert_response :unprocessable_entity
+    assert_select "#alert", /M-Pesa reversal code/
+
+    post sale_void_path(paid_by_phone), params: { reason: "Wrong customer", approval_pin: "2468", refund_method: "mobile_money", refund_reference: "SJK4H7T2QR" }
+    assert_redirected_to sale_path(paid_by_phone)
+    assert_equal [ "mobile_money", "SJK4H7T2QR" ], Account.without_isolation { paid_by_phone.reload.values_at(:void_refund_method, :void_refund_reference) }
+
+    sign_in_as users(:amina)
+    get events_path
+    assert_select "li", /voided sale MAIN-000002 .*: Wrong customer; refunded by M-Pesa \(SJK4H7T2QR\)/
   end
 
   test "returning one bag with approval" do
