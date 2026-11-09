@@ -20,8 +20,21 @@ class Api::V1::BaseController < ActionController::API
   rate_limit to: 600, within: 1.minute, by: -> { @api_key.id }, name: "key",
     with: -> { render_error :too_many_requests, "rate_limited", "At most 600 requests a minute per key; slow down and retry." }
 
+  # A record named in the request (a branch_id in an order's body, say), as opposed to the one in the URL.
+  class RelatedNotFound < StandardError
+    attr_reader :field
+
+    def initialize(message, field:)
+      super(message)
+      @field = field
+    end
+  end
+
   rescue_from ActiveRecord::RecordNotFound do
     render_error :not_found, "not_found", "No such #{controller_name.singularize.humanize(capitalize: false)} in this shop."
+  end
+  rescue_from RelatedNotFound do |error|
+    render_error :not_found, "not_found", error.message, details: { field: error.field }
   end
   rescue_from ActionController::ParameterMissing, ActionController::BadRequest do |error|
     render_error :bad_request, "bad_request", error.message
@@ -57,6 +70,11 @@ class Api::V1::BaseController < ActionController::API
 
     def render_error(status, code, message, details: nil)
       render json: { error: { code: code, message: message, details: details }.compact }, status: status
+    end
+
+    # Finds a record the request names by id in `field`; if it isn't this shop's, the error says which field.
+    def find_related(scope, id, field:, name: scope.model_name.human.downcase)
+      scope.find_by(id: id) or raise RelatedNotFound.new("No such #{name} in this shop.", field: field.to_s)
     end
 
     def render_invalid(record)
