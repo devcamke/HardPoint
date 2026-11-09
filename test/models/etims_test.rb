@@ -28,7 +28,7 @@ class EtimsTest < ActiveSupport::TestCase
     sale = @shift.current_sale
     sale.add(product, quantity: quantity)
     if discount_cents.positive?
-      sale.update!(discount_cents: discount_cents)
+      sale.update!(discount_cents: discount_cents, discount_approver: users(:amina), approved_discount_percent: 100) # a manager's discount
       sale.recalculate
     end
     transmitting { sale.pay(tender: "card", reference: "VISA 1") }

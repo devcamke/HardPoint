@@ -18,6 +18,21 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal 160000 + 37500, @sale.total_cents
   end
 
+  test "a sale whose discount is over the cashier's limit can't be completed without approval" do
+    @sale.add(products(:acme_cement))
+    @sale.update!(discount_cents: 40000) # half of 80,000, far past the 5% a cashier may give
+    @sale.recalculate
+
+    payment = @sale.pay(tender: "cash", tendered_cents: 40000)
+    assert_match "needs a manager's approval PIN", payment.errors.full_messages.to_sentence
+    assert @sale.reload.open?
+
+    @sale.update!(discount_approver: users(:amina), approved_discount_percent: 50)
+    payment = @sale.pay(tender: "cash", tendered_cents: 40000)
+    assert payment.errors.empty?, payment.errors.full_messages.to_sentence
+    assert @sale.reload.completed?
+  end
+
   test "prices include tax; the tax share is worked out per line" do
     @sale.add(products(:acme_cement)) # 800.00 at 16% VAT
     @sale.add(products(:acme_screws), quantity: 10) # 50.00, no tax rate set → shop default 16%
@@ -153,7 +168,7 @@ class SaleTest < ActiveSupport::TestCase
 
   test "returns refund what was paid and restock by choice" do
     @sale.add(products(:acme_cement), quantity: 4)
-    @sale.update!(discount_cents: 20000) # 320,000 → 300,000
+    @sale.update!(discount_cents: 20000, discount_approver: users(:amina), approved_discount_percent: 6.25) # 320,000 → 300,000, a manager's discount
     @sale.recalculate
     @sale.pay(tender: "cash", tendered_cents: 300000)
     line = @sale.lines.first

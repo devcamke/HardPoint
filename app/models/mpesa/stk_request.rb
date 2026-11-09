@@ -77,7 +77,8 @@ class Mpesa::StkRequest < ApplicationRecord
       return unless sale.open? && transaction.matched.nil?
 
       Current.set(user: requested_by) do
-        payment = sale.pay(tender: "mobile_money", amount_cents: [ transaction.amount_cents, sale.balance_due_cents ].min, reference: transaction.trans_id)
+        payment = sale.pay(tender: "mobile_money", amount_cents: [ transaction.amount_cents, sale.balance_due_cents ].min, tendered_cents: transaction.amount_cents,
+          reference: transaction.trans_id)
         if payment.persisted?
           update!(payment: payment)
           transaction.match(payment)
