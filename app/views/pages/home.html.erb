@@ -1,10 +1,12 @@
 <% trial = Plan::TRIAL.inspect %>
-<% structured_data seo_organization, seo_software(@plans) %>
+<% structured_data seo_organization, seo_software(@plans), seo_faq(landing_faqs) %>
 <%# In the manner of odoo.com: a white page, short bold headlines, the price said out loud in the hero with a
     hand-drawn arrow pointing at it, "Start now, it's free" everywhere, and a grid of app tiles standing in for a
     hero picture. The brand teal does the work Odoo's purple does: buttons, tiles, arrows and one full-colour band
     for the offline till. The order is an argument: the promise and what it does, a sale to click through, why it's
-    different, the claims, the owner's view, how to start, the price, and the door. %>
+    different, the claims, the owner's view, the hardware, how to start, the price, the questions, and the door.
+    From the market: a "works with" strip where Shopify puts its logo wall, Square's "ready for what you've got"
+    hardware section, and the questions before the door that both of them carry. %>
 <% from_price = "KES #{number_with_delimiter(@plans.map(&:price_cents).min / 100)}" %>
 <% learn_more = ->(text, slug) { link_to help_article_path(slug), class: "mt-4 inline-block font-medium text-accent-600 hover:underline" do
      safe_join([ text, " ", tag.span("›", aria: { hidden: true }) ])
@@ -58,8 +60,21 @@
   </div>
 </section>
 
+<%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
+<section class="border-t border-gray-200 bg-white">
+  <div class="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-7 lg:flex-row lg:justify-between">
+    <p class="shrink-0 text-sm font-semibold text-gray-500">Works with what your shop already uses</p>
+    <ul class="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm font-medium text-gray-700">
+      <% [ [ :mpesa, "M-Pesa" ], [ :airtel, "Airtel Money" ], [ :card, "Cards" ], [ :etims, "KRA eTIMS" ], [ :barcode, "USB scanners" ],
+           [ :printer, "Thermal printers" ], [ :quickbooks, "QuickBooks" ], [ :whatsapp, "WhatsApp" ] ].each do |icon, label| %>
+        <li class="flex items-center gap-2"><span class="text-primary-600"><%= render "pages/icon", name: icon, classes: "size-5" %></span><%= label %></li>
+      <% end %>
+    </ul>
+  </div>
+</section>
+
 <%# The help centre's walkthrough of the till, so a visitor clicks through a sale before signing up. %>
-<section class="border-y border-gray-200 bg-gray-50">
+<section class="border-t border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
       <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Try it</p>
@@ -148,6 +163,31 @@
     </div>
     <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "mt-14 w-full rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800 %>
     <p class="mt-8 text-center text-gray-600">Sales, profit, VAT, stock and shift reports to print or export. <%= link_to "The reports", help_article_path("reports"), class: "link" %></p>
+  </div>
+</section>
+
+<%# Square sells a till that's "ready for what you've got". So is this one, and it says so: no special hardware. %>
+<section class="bg-white">
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Hardware</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Runs on what you've got.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Nothing to install and nothing special to buy. HardPoint runs in the browser, and the scanner and printer on your counter work as they are.</p>
+    </div>
+    <div class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <% [ [ :monitor, "Any computer or tablet", "Windows, Mac, Android or iPad. Open the shop's address in the browser and sign in. Touch screens get finger-sized buttons." ],
+           [ :barcode, "Barcode scanners", "USB and Bluetooth scanners that type like a keyboard work with no setup. Scan on the till and the product is in the sale." ],
+           [ :printer, "Thermal receipt printers", "58 mm or 80 mm. Print from the browser, or silently straight to the printer through QZ Tray." ],
+           [ :drawer, "Cash drawer", "Pops open on cash sales, through the printer's driver or QZ Tray." ] ].each do |icon, title, body| %>
+        <div class="rounded-3xl border border-gray-200 p-7">
+          <span class="flex size-12 items-center justify-center rounded-xl bg-primary-100 text-primary-700"><%= render "pages/icon", name: icon, classes: "size-6" %></span>
+          <h3 class="mt-5 text-xl font-bold tracking-tight text-gray-950 text-balance"><%= title %></h3>
+          <p class="mt-3 text-sm text-gray-600"><%= body %></p>
+        </div>
+      <% end %>
+    </div>
+    <p class="mt-10 text-center text-gray-600 text-balance">Rather have it all arrive ready to plug in? We quote a till kit: printer, cash drawer, scanner and, if you want one, a touch screen.
+      <%= link_to "The till kit", pricing_path(anchor: "setup"), class: "link" %> · <%= link_to "Tills and printers", help_article_path("tills-and-printers"), class: "link" %></p>
   </div>
 </section>
 
@@ -243,7 +283,19 @@
   </div>
 </section>
 
+<%# The questions a visitor has before clicking Start. The pricing page has the full list. %>
 <section class="bg-white">
+  <div class="mx-auto max-w-3xl px-4 py-20 sm:py-28">
+    <div class="text-center">
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Questions</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Before you start.</h2>
+    </div>
+    <div class="mt-12"><%= render "pages/faqs", faqs: landing_faqs %></div>
+    <p class="mt-8 text-center text-gray-600">More answers on the <%= link_to "pricing page", pricing_path, class: "link" %>, and a person on WhatsApp for the rest.</p>
+  </div>
+</section>
+
+<section class="border-t border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
     <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Open the till.</h2>
     <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>

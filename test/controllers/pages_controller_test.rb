@@ -18,7 +18,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='og:image'][content*='dashboard']"
     assert_select "meta[name=robots]", count: 0
     types = css_select("script[type='application/ld+json']").flat_map { JSON.parse(_1.text).pluck("@type") }
-    assert_equal %w[ Organization SoftwareApplication ], types
+    assert_equal %w[ Organization SoftwareApplication FAQPage ], types
 
     get pricing_path
     assert_select "meta[name=description][content^=?]", "Starter KES 2,500, Business KES 6,500, and Enterprise KES 15,000 a month"
