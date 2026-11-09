@@ -65,6 +65,6 @@
   </div>
 
   <% if sale.lines.any? %>
-    <%= render "pos/payment", sale: sale %>
+    <%= render(sale.total_cents.zero? ? "pos/free_completion" : "pos/payment", sale: sale) %>
   <% end %>
 </div>

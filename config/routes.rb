@@ -203,6 +203,7 @@ Rails.application.routes.draw do
       resources :lines, only: %i[ create update destroy ]
       resource :discount, only: :update
       resources :payments, only: %i[ create destroy ]
+      resource :completion, only: :create
       resource :parking, only: :create
       resource :transport, only: :create
       resources :parked_sales, only: :index

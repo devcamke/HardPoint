@@ -21,13 +21,16 @@ class Report::MobileMoney < Report
     end
 
     def summary_rows
-      matched = transactions.where.not(matched_id: nil).group(:matched_type).pluck(:matched_type, Arel.sql("COUNT(*)"), Arel.sql("SUM(amount_cents)")).to_h { [ _1, [ _2, _3.to_i ] ] }
+      matched = transactions.where.not(matched_id: nil).where(refunded_at: nil).group(:matched_type).pluck(:matched_type, Arel.sql("COUNT(*)"), Arel.sql("SUM(amount_cents)")).to_h { [ _1, [ _2, _3.to_i ] ] }
       unmatched = transactions.unmatched.pluck(Arel.sql("COUNT(*)"), Arel.sql("COALESCE(SUM(amount_cents), 0)")).first
+      # Money sent back after its sale was voided: no longer used on a sale, and not waiting to be used either.
+      refunded = transactions.where.not(refunded_at: nil).pluck(Arel.sql("COUNT(*)"), Arel.sql("COALESCE(SUM(amount_cents), 0)")).first
       [ [ "Received from Safaricom", transactions.count, transactions.sum(:amount_cents) ],
         [ "Used on sales", *matched.fetch("Payment", [ 0, 0 ]) ],
         [ "Deposits on orders", *matched.fetch("Deposit", [ 0, 0 ]) ],
         [ "Payments on account", *matched.fetch("CustomerPayment", [ 0, 0 ]) ],
         [ "Received but not used", unmatched.first, unmatched.last.to_i ],
+        [ "Reversed after a void", refunded.first, refunded.last.to_i ],
         [ "Recorded at a till, not confirmed", unconfirmed_payments.count, unconfirmed_payments.sum(:amount_cents) ] ]
     end
 

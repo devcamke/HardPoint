@@ -221,6 +221,25 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success, "with the payment gone the sale can shrink"
   end
 
+  test "a sale that comes to nothing is completed with a manager's PIN, not a payment" do
+    Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
+    post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
+    patch pos_discount_path, params: { discount: "100%", approval_pin: "2468" }, as: :turbo_stream
+    assert_response :success
+    assert_match "Complete sale, nothing to pay", response.body
+    assert_no_match "Take payment", response.body
+
+    post pos_completion_path, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "needs a manager's approval PIN", response.body
+
+    post pos_completion_path, params: { approval_pin: "2468" }, as: :turbo_stream
+    sale = Account.without_isolation { Sale.completed.last }
+    assert_redirected_to pos_path(completed: sale.id)
+    assert_equal [ 0, "MAIN-000001" ], [ sale.total_cents, sale.receipt_number ]
+    assert_equal "completed_without_payment", Account.without_isolation { sale.events.last.action }
+  end
+
   test "park, serve someone else, recall" do
     post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
     parked = current_sale
