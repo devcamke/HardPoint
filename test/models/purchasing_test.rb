@@ -45,6 +45,43 @@ class PurchasingTest < ActiveSupport::TestCase
     assert_not po.receivable?
   end
 
+  test "ordering and receiving by the pack: stock and cost in the product's unit, the pack kept for the paperwork" do
+    po = order([ { product_code: "SCR-815", pack: "box", quantity: 3, unit_cost: "400" } ]) # a box holds 100 screws
+    line = po.lines.sole
+    assert_equal [ product_units(:acme_screws_box), 3, 300, 400 ], [ line.product_unit, line.pack_quantity, line.quantity, line.unit_cost_cents ]
+    assert_equal 120_000, po.total_cents
+    assert_equal [ "3 box", 40_000 ], [ line.packs_description, line.pack_unit_cost_cents ]
+
+    unknown = accounts(:acme).purchase_orders.new(supplier: po.supplier, branch: po.branch, lines_attributes: [ { product_code: "SCR-815", pack: "crate", quantity: 1 } ])
+    assert_not unknown.valid?
+    assert_match "has no pack called “crate”", unknown.errors.full_messages.to_sentence
+
+    po.mark_sent
+    grn = accounts(:acme).goods_receipts.create!(supplier: po.supplier, branch: po.branch, purchase_order: po,
+      lines_attributes: [ { purchase_order_line_id: line.id, pack: "box", quantity: 2 } ])
+    assert_equal [ 200, 400, "2 box" ], [ grn.lines.sole.quantity, grn.lines.sole.unit_cost_cents, grn.lines.sole.packs_description ]
+    assert_equal 1200, products(:acme_screws).stock_at(branches(:acme_main))
+    assert_equal [ 100, 1 ], [ line.reload.outstanding_quantity, line.outstanding_packs ]
+    assert po.reload.partially_received?
+
+    assert po.update(lines_attributes: [ { id: line.id, pack: "", quantity: 300 } ]) == false, "sent orders still can't be changed"
+  end
+
+  test "an invoice against a delivery is matched to the goods value; a difference is flagged, and a delivery has one invoice" do
+    supplier = suppliers(:acme_cement_distributor)
+    grn = accounts(:acme).goods_receipts.create!(supplier: supplier, branch: branches(:acme_main), extra_costs: "3000",
+      lines_attributes: [ { product_code: "CEM-50", quantity: 20, unit_cost: "700" } ]) # goods 14,000; landed 17,000 with the transport the shop paid
+    invoice = supplier.supplier_invoices.create!(account: accounts(:acme), goods_receipt: grn, number: "NCD-9", invoice_date: Date.current, total: "16240", tax: "2240")
+    assert_not invoice.variance?
+    assert_equal 0, invoice.variance_cents
+
+    landed = supplier.supplier_invoices.new(account: accounts(:acme), goods_receipt: grn, number: "NCD-10", invoice_date: Date.current, total: "17000")
+    assert landed.variance?, "keyed with the transport the shop paid itself"
+    assert_equal 300_000, landed.variance_cents
+    assert_not landed.valid?
+    assert_match "already has an invoice", landed.errors.full_messages.to_sentence
+  end
+
   test "an order the supplier can't fill is closed short, and the rest stops counting as on order" do
     po = order([ { product_code: "PVC-2", quantity: 10 } ], supplier: suppliers(:acme_plumbing_supplies))
     po.mark_sent
@@ -163,7 +200,7 @@ class PurchasingTest < ActiveSupport::TestCase
 
   test "the order renders as a PDF" do
     products(:acme_pipe).update!(name: "PVC pipe 2½ inch × 6m")
-    po = order([ { product_code: "CEM-50", quantity: 100 }, { product_code: "PVC-2", quantity: 4 } ])
+    po = order([ { product_code: "CEM-50", quantity: 100 }, { product_code: "PVC-2", quantity: 4 }, { product_code: "SCR-815", pack: "box", quantity: 2 } ])
     pdf = PurchaseOrderPdf.new(po).render
 
     assert pdf.start_with?("%PDF")

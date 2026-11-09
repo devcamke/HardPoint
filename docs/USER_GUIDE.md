@@ -1001,7 +1001,7 @@ Add each supplier in **Buy › Suppliers** with their contacts, payment terms an
 
 #### Ordering
 
-1. In **Buy › Purchase orders**, press **New**, choose the supplier and branch, and add the products.
+1. In **Buy › Purchase orders**, press **New**, choose the supplier and branch, and add the products. To order by the box or bag, type one of the product's pack sizes under **Pack**; the quantity and cost are then per pack, and stock still counts the pieces.
 2. Press **Email to …** to send it with a PDF attached, or **Mark sent (phoned in)** if you ordered by phone.
 
 **Stock › Reorder** works out what to order per branch from reorder levels, the last 30 days' sales, lead times, what's already on order and minimum order sizes, grouped by supplier. **Draft an order for …** turns a supplier's suggestions into a draft order to check and send, and when several suppliers have suggestions, **Draft … purchase orders** does them all at once. **Order them** on Home takes you there.
@@ -1039,7 +1039,7 @@ If the supplier can't send the rest of a partly delivered order, open it and pre
 
 #### Invoices and payments
 
-When the supplier's invoice comes, press **Record the supplier's invoice** on the delivery, or **Record invoice** on the supplier. **Record payment** settles their oldest invoices first. **Buy › What we owe** shows every supplier's balance by age: not yet due, 1–30, 31–60, 61–90 and over 90 days.
+When the supplier's invoice comes, press **Record the supplier's invoice** on the delivery, or **Record invoice** on the supplier. An invoice for a delivery starts at the value of the goods, in the supplier's currency, without the transport or duty you paid yourself; if what you record differs from that by more than a little, HardPoint says so, and a delivery takes one invoice. **Record payment** settles their oldest invoices first. **Buy › What we owe** shows every supplier's balance by age: not yet due, 1–30, 31–60, 61–90 and over 90 days.
 
 Something wrong with a delivery? See [Sending goods back to a supplier](#supplier-returns).
 
@@ -1127,7 +1127,7 @@ When a delivery arrives damaged, or the supplier sent the wrong thing, record th
 #### Recording a return
 
 1. Open the delivery (**Buy › Receiving**) and press **Return goods to …**. Its products are listed at what you paid. Or open the supplier and press **Return goods**.
-2. Enter how many of each are going back and choose the reason. For products tracked by batch, choose the batch, or leave it to take the one that expires first.
+2. Enter how many of each are going back and choose the reason. For products tracked by batch, choose the batch the goods came from, so the right one leaves the books.
 3. Leave **Email the debit note to the supplier** ticked to send them the PDF straight away.
 
 The goods leave stock at once ("returned to supplier" in the stock history), and the debit note, which is the cost plus VAT, comes off what you owe the supplier. It settles their oldest invoice first, like a payment. The VAT report takes its VAT off the period's input tax.

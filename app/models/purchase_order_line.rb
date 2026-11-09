@@ -1,5 +1,6 @@
 class PurchaseOrderLine < ApplicationRecord
   include AccountOwned, Monetary
+  include BoughtByThePack
 
   belongs_to :purchase_order, inverse_of: :lines
   belongs_to :product
@@ -31,6 +32,11 @@ class PurchaseOrderLine < ApplicationRecord
   # Ordered but never delivered, on an order closed short.
   def short_quantity
     purchase_order&.closed? ? quantity - received_quantity : 0.to_d
+  end
+
+  # What's still to come, in packs, when the line was ordered by the pack and whole packs are left.
+  def outstanding_packs
+    outstanding_quantity / product_unit.quantity if product_unit && outstanding_quantity.positive? && (outstanding_quantity % product_unit.quantity).zero?
   end
 
   def line_total_cents

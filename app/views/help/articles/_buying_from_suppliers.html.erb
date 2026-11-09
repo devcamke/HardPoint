@@ -8,7 +8,9 @@
 
 <h2>Ordering</h2>
 <ol>
-  <li>In <strong>Buy › Purchase orders</strong>, press <strong>New</strong>, choose the supplier and branch, and add the products.</li>
+  <li>In <strong>Buy › Purchase orders</strong>, press <strong>New</strong>, choose the supplier and branch, and add the products. To order
+    by the box or bag, type one of the product's pack sizes under <strong>Pack</strong>; the quantity and cost are then per pack, and
+    stock still counts the pieces.</li>
   <li>Press <strong>Email to …</strong> to send it with a PDF attached, or <strong>Mark sent (phoned in)</strong> if you ordered by phone.</li>
 </ol>
 <p><strong>Stock › Reorder</strong> works out what to order per branch from reorder levels, the last 30 days' sales, lead
@@ -36,6 +38,7 @@
 
 <h2>Invoices and payments</h2>
 <p>When the supplier's invoice comes, press <strong>Record the supplier's invoice</strong> on the delivery, or <strong>Record invoice</strong>
-  on the supplier. <strong>Record payment</strong> settles their oldest invoices first. <strong>Buy › What we owe</strong> shows every
+  on the supplier. An invoice for a delivery starts at the value of the goods, in the supplier's currency, without the transport or duty you paid
+  yourself; if what you record differs from that by more than a little, HardPoint says so, and a delivery takes one invoice. <strong>Record payment</strong> settles their oldest invoices first. <strong>Buy › What we owe</strong> shows every
   supplier's balance by age: not yet due, 1–30, 31–60, 61–90 and over 90 days.</p>
 <p>Something wrong with a delivery? See <%= link_to "Sending goods back to a supplier", help_article_path("supplier-returns"), class: "link" %>.</p>

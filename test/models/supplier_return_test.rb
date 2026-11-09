@@ -47,10 +47,16 @@ class SupplierReturnTest < ActiveSupport::TestCase
       lines_attributes: [ { account: accounts(:acme), product: @cement, quantity: 1 } ]).valid?, "the delivery was to another branch"
   end
 
-  test "a batch can be chosen; the supplier's credit note is noted" do
+  test "a batch-tracked product names the batch going back; the supplier's credit note is noted" do
     @cement.update!(tracks_batches: true)
     @cement.move_stock(branch: @main, quantity: 5, reason: "received", batch: { number: "BAD-1", expires_on: 1.year.from_now.to_date })
     batch = @cement.stock_batches.find_by!(number: "BAD-1")
+
+    unnamed = accounts(:acme).supplier_returns.new(supplier: @supplier, branch: @main, reason: "faulty",
+      lines_attributes: [ { account: accounts(:acme), product: @cement, quantity: 5 } ])
+    assert_not unnamed.valid?, "first-expiring-first would send back a batch nobody checked"
+    assert_match "which batch of #{@cement.name}", unnamed.errors.full_messages.to_sentence
+
     returned = accounts(:acme).supplier_returns.create!(supplier: @supplier, branch: @main, reason: "faulty",
       lines_attributes: [ { account: accounts(:acme), product: @cement, quantity: 5, stock_batch: batch } ])
     assert_equal 0, batch.reload.quantity
