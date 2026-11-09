@@ -45,6 +45,43 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     assert Account.without_isolation { order.reload.received? }
   end
 
+  test "packs on the order and receiving forms, in packs; stock in pieces" do
+    order = new_order({ "0" => { product_code: "SCR-815", pack: "box", quantity: "3", unit_cost: "400" } })
+    assert_equal 300, Account.without_isolation { order.lines.sole.quantity }
+
+    get edit_purchase_order_path(order)
+    assert_select "input[name*='[pack]'][value='box']"
+    assert_select "input[name*='[quantity]'][value='3']"
+    assert_select "input[name*='[unit_cost]'][value='400']"
+
+    post purchase_order_sending_path(order)
+    get new_goods_receipt_path(purchase_order_id: order.id)
+    assert_select "input[name*='[pack]'][value='box']"
+    assert_select "input[name*='[quantity]'][value='3']"
+
+    get purchase_order_path(order)
+    assert_select "td", /3 box/
+  end
+
+  test "a partly delivered order is closed short from its page" do
+    order = new_order
+    post purchase_order_sending_path(order)
+    line = Account.without_isolation { order.lines.sole }
+    post goods_receipts_path, params: { goods_receipt: { purchase_order_id: order.id, lines_attributes: { "0" => { purchase_order_line_id: line.id, quantity: "60" } } } }
+
+    get purchase_order_path(order)
+    assert_select "button", "Close short"
+
+    post purchase_order_closure_path(order)
+    assert_redirected_to purchase_order_path(order)
+    assert Account.without_isolation { order.reload.closed? }
+
+    get purchase_order_path(order)
+    assert_select "td", /40 short/
+    assert_select "button", text: "Close short", count: 0
+    assert_select "a", text: "Receive goods", count: 0
+  end
+
   test "purchase orders are searched by supplier" do
     reference = Account.without_isolation { new_order.reference }
 
@@ -159,5 +196,27 @@ class PayablesControllerTest < ActionDispatch::IntegrationTest
 
     get supplier_path(suppliers(:acme_cement_distributor))
     assert_select "td", /NCD-771/
+  end
+
+  test "the invoice for a delivery starts from its goods value and warns when it differs" do
+    Account.without_isolation { memberships(:carl_acme).update!(role: :accountant) }
+    sign_in_as users(:carl)
+    receipt = Account.without_isolation do
+      Current.set(account: accounts(:acme)) do
+        accounts(:acme).goods_receipts.create!(supplier: suppliers(:acme_cement_distributor), branch: branches(:acme_main), extra_costs: "3000",
+          lines_attributes: [ { product_code: "CEM-50", quantity: 20, unit_cost: "700" } ])
+      end
+    end
+
+    get new_supplier_invoice_path(goods_receipt_id: receipt.id)
+    assert_select "input[name='supplier_invoice[total]'][value='14000']", true, "the goods, not the landed total with the shop's own transport"
+
+    post supplier_invoices_path, params: { supplier_invoice: { supplier_id: suppliers(:acme_cement_distributor).id, goods_receipt_id: receipt.id, number: "NCD-9", invoice_date: Date.current, total: "17000" } }
+    follow_redirect!
+    assert_select "#alert", /KES 3,000.00 more than the goods on MAIN-GRN00001/
+
+    post supplier_invoices_path, params: { supplier_invoice: { supplier_id: suppliers(:acme_cement_distributor).id, goods_receipt_id: receipt.id, number: "NCD-10", invoice_date: Date.current, total: "14000" } }
+    assert_response :unprocessable_entity
+    assert_select "#error_explanation", /already has an invoice/
   end
 end

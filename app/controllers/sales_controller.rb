@@ -4,7 +4,7 @@ class SalesController < ApplicationController
   def index
     sales = within_visible_branches(Current.account.sales.finished).chronologically.includes(:branch, :customer, :cashier, :register)
     if params[:query].present?
-      sales = sales.where(id: Current.account.sales.find_by_receipt_number(params[:query])&.id)
+      sales = sales.where(id: Current.account.sales.with_receipt_number(params[:query]))
     else
       @date = (Date.parse(params[:date]) rescue Time.zone.today)
       sales = sales.where(completed_at: @date.all_day)

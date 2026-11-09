@@ -364,7 +364,7 @@ Count the cash in the drawer and press **Open shift** with that float. Everythin
 3. Choose a customer if the sale goes on their account, needs their KRA PIN on the receipt, or is for one of their jobs. Their price list applies as soon as you pick them.
 4. If you're taking the goods to site, **Add transport** puts the delivery charge on the sale, with where it's going.
 5. Promotions apply by themselves. To give a discount, use the line's or the sale's discount, as an amount or a percentage.
-6. Press **Take payment**: cash (the till works out the change), M-Pesa, Airtel Money, card, foreign notes, on account for approved customers, or a mix.
+6. Press **Take payment**: cash (the till works out the change), M-Pesa, Airtel Money, card, foreign notes, on account for approved customers, or a mix. If the sale comes to nothing (a replacement under warranty discounted to zero, say), there's no payment to take: press **Complete sale, nothing to pay** instead. A cashier needs a manager's approval PIN for that.
 7. The receipt prints. KRA's signature and QR code are on it when eTIMS is connected. It can also be emailed or texted, or sent with **WhatsApp receipt**.
 
 Keyboard shortcuts: **F2** goes to the scan box, **F8** parks the sale, **F9** takes payment.
@@ -430,6 +430,8 @@ Press **Shift** in the till's top bar, then **Cash drop / payout**. Choose what'
 - **Pay out**: cash paid from the till, for transport or a supplier, say.
 - **Pay in**: more change added to the float.
 
+Cash movements go on the till this device is set to, since that's the drawer the cash is in. A payout above the shop's limit (KES 5,000 to start with; owners change it under **Settings › Shop details**) needs an owner's or manager's approval PIN, and **Settings › Activity** records who approved it.
+
 Each one shows on the shift report with its reason. On tills that print through QZ Tray, **Open drawer** in the top bar opens the drawer without a sale. It's logged as "No sale" in **Settings › Activity**.
 
 #### The X report
@@ -456,7 +458,7 @@ The count is blind: the closing page doesn't show what's expected. Afterwards th
 
 #### What's expected in the drawer
 
-The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds, change given for foreign notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.
+The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds (on returns and on voided sales), change given for foreign notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.
 
 #### Past shifts
 
@@ -490,7 +492,7 @@ Returns are done at a till with an open shift, because a cash refund comes out o
 4. Choose **Refund by**: Cash, Card, M-Pesa, Airtel Money, or **Credit to customer's account**. It starts as the way the customer paid. Account credit needs a sale with a customer.
 5. Type a **Reason** if you like, then press **Process return**.
 
-The refund is what the customer actually paid for those items, including their share of any discount. HardPoint records how you paid them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.
+The refund is what the customer actually paid for those items, including their share of any discount. If the items were part of a promotion the rest of the sale no longer qualifies for (one pipe of "any 3 for 3,000", or the free bag of "buy 10, get 1"), the refund is only what the kept goods no longer earn, so the customer doesn't keep a saving on goods that aren't a bundle any more. HardPoint records how you paid them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.
 
 **Walkthrough: Return goods**
 
@@ -520,9 +522,10 @@ When the branch is connected to eTIMS and the original sale went to KRA, each re
 
 1. On the sale, press **Void sale**.
 2. Type the **Reason** (required) and, for a cashier, the manager approval PIN.
-3. Press **Void sale**, and give back any money the customer paid.
+3. Say how the money goes back. The way the sale was paid is chosen for you: cash from this till's drawer, an M-Pesa or Airtel Money reversal (type its code), a refund to the card, or credit to the customer's account. A sale paid two ways needs you to choose.
+4. Press **Void sale**, and give the money back that way.
 
-All the stock goes back, and the sale stops counting in the shift's takings. It stays in the sales list, crossed out and marked **Voided**, with who voided it and why. If it was a collected order, the order is reopened.
+All the stock goes back, and the sale stops counting in the shift's takings. It stays in the sales list, crossed out and marked **Voided**, with who voided it, why and how the money went back; **Settings › Activity** has the same. A cash refund comes off the cash expected in the drawer. An M-Pesa payment that's reversed shows apart in the **M-Pesa reconciliation** report. If it was a collected order, the order is reopened.
 
 #### The returns list
 
@@ -543,7 +546,7 @@ _How the till keeps selling offline and sends the sales when it's back._
 If the internet drops, the till says so and offers the **offline till**. It has your products and prices from the last time it was online, so you can keep scanning, taking cash and printing receipts.
 
 - Offline sales are kept on that computer and sent to HardPoint as soon as the connection is back. Each one is sent only once, however many times the connection comes and goes.
-- Offline receipts have their own numbers (starting with the till's name), so they never clash with sales made online.
+- Offline receipts have their own numbers (the till's and a code for the device, such as MAIN-OFF1-K7Q2-0001), so they never clash with sales made online or with another device on the same till. Searching **Sell › Sales** for the number on an offline receipt finds the sale, for a return.
 - Customers can be chosen for their prices, and a contractor's sale can go on one of their jobs.
 - M-Pesa and Airtel Money prompts, account sales and eTIMS need the internet; a cashier can still type the M-Pesa or Airtel transaction code. KRA gets offline sales when they're sent.
 - Stock levels update when the sales reach HardPoint.
@@ -717,7 +720,7 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 
 #### Payments and statements
 
-Press **Record payment** on the customer to take money against their account; it settles their oldest sales first. **Statement** prints or emails what's owed and how old it is, and balance reminders can go by SMS. **Customers › Who owes us** lists every customer's balance by how late it is.
+Press **Record payment** on the customer to take money against their account; it settles their oldest sales first unless you fill in amounts under **Put against particular sales**, which pays those sales and leaves the others (a disputed invoice, say) open. If they've paid more than they owe, **Refund credit** hands the credit back; cash goes out of this device's till. A debt the shop has given up on is removed with **Write off**: an owner or manager approves it (an accountant types a manager's approval PIN) with a reason, and it stays on the statement and in Activity. **Statement** prints or emails what's owed and how old it is at the end of the period, and balance reminders can go by SMS. **Customers › Who owes us** lists every customer's balance by how late it is.
 
 #### Deliveries
 
@@ -745,7 +748,10 @@ Transport lines keep the amount you typed: customer price lists and quantity bre
 
 1. Open the sale and press **Deliver**.
 2. Check the delivery address, and add the transport charge if it wasn't on the sale (see below).
-3. Print the delivery note. It has a line for the customer to sign.
+3. Under **What's going out**, lower a quantity to send part of the sale now. The note prints only what's on the lorry; the sale then shows **Deliver the rest** for a later note.
+4. Print the delivery note. It has a line for the customer to sign.
+
+**Cancel delivery** cancels the transport order charged on the note too, while it's still unpaid. If a deposit was taken on it, refund that first; if the transport was already paid at the till, refund it from that receipt with a return.
 
 #### Charging transport afterwards
 
@@ -930,16 +936,20 @@ When each product needs its own new price, use a spreadsheet instead: press **Ex
 
 _Adjusting stock, moving it between branches, counting it, and the reorder list._
 
-HardPoint keeps stock per branch. Every sale, delivery, transfer and correction is a line in the stock history, so you can always see why a number is what it is. **Stock › Stock levels** shows what each branch holds and what it's worth.
+HardPoint keeps stock per branch. Every sale, delivery, transfer and correction is a line in the stock history, so you can always see why a number is what it is. **Stock › Stock levels** shows what each branch holds and what it's worth, with stock on its way between branches on its own line.
 
 #### Correcting stock
 
 Open the product and press **Adjust stock**. Choose the branch, how many to add or take off, and the reason: opening stock, found, damaged, stolen, expired, internal use or a correction. Adjustments are in the activity log with who made them.
 
+A level can go below zero when something is sold before its delivery is recorded. **Stock › Stock levels** counts these for the branch; press **Below zero** to list them (the same **Below zero** filter is on the products list), then record the delivery or adjust the stock.
+
+A product's unit, whether it tracks stock and whether it is a kit can't change while any branch has stock of it, since the quantities on hand would mean something else: adjust the stock to zero first.
+
 #### Moving stock between branches
 
 1. In **Stock › Transfers**, press **New**, choose the branches and the products, and press **Send transfer**. The stock leaves the sending branch and shows as in transit.
-2. When it arrives, the other branch presses **Mark received at …** and the stock is theirs.
+2. When it arrives, the other branch counts it in. If anything is short, type what arrived against that line and say whether the rest was lost on the way (it is written off at the receiving branch) or never left (it goes back into the sending branch's stock), then press **Mark received at …**. What arrived is theirs, and the transfer shows what was short.
 3. While it is still in transit, **Cancel transfer** puts the stock back at the sending branch.
 
 **Walkthrough: Move stock between branches**
@@ -974,6 +984,8 @@ Selling carries on during a stock take; HardPoint allows for what was sold while
 
 Give products a **reorder level**. **Stock › Reorder** shows everything at or below it at a branch, and owners, managers and stock clerks get a low-stock email each morning. To turn the list into orders, see [Buying from suppliers](#buying-from-suppliers).
 
+A branch that sells a product faster or slower than the others can have its own level: on the product's page, type it under **Reorder at** next to the branch and press **Set**. Leave it blank to use the product's level. Stock already on order, or on its way from another branch, counts as coming, so it isn't suggested twice.
+
 #### Stock history
 
 **All movements** on **Stock › Stock levels** lists every change to stock, filtered by product, branch and reason. Each product's page shows its latest movements too.
@@ -992,7 +1004,7 @@ Add each supplier in **Buy › Suppliers** with their contacts, payment terms an
 
 #### Ordering
 
-1. In **Buy › Purchase orders**, press **New**, choose the supplier and branch, and add the products.
+1. In **Buy › Purchase orders**, press **New**, choose the supplier and branch, and add the products. To order by the box or bag, type one of the product's pack sizes under **Pack**; the quantity and cost are then per pack, and stock still counts the pieces.
 2. Press **Email to …** to send it with a PDF attached, or **Mark sent (phoned in)** if you ordered by phone.
 
 **Stock › Reorder** works out what to order per branch from reorder levels, the last 30 days' sales, lead times, what's already on order and minimum order sizes, grouped by supplier. **Draft an order for …** turns a supplier's suggestions into a draft order to check and send, and when several suppliers have suggestions, **Draft … purchase orders** does them all at once. **Order them** on Home takes you there.
@@ -1016,6 +1028,8 @@ Use **Group By › Supplier** on the orders list to see what's still to come fro
 
 Deliveries can also be checked in [on your phone](#stock-on-your-phone). Products tracked by batch ask for the batch number and expiry date.
 
+If the supplier can't send the rest of a partly delivered order, open it and press **Close short**. The order shows what never came, and those goods stop counting as on order, so **Stock › Reorder** suggests them again.
+
 **Walkthrough: Receive a delivery**
 
 ![Screenshot: Receive a delivery](../app/assets/images/help/tours/receiving.png)
@@ -1028,7 +1042,7 @@ Deliveries can also be checked in [on your phone](#stock-on-your-phone). Product
 
 #### Invoices and payments
 
-When the supplier's invoice comes, press **Record the supplier's invoice** on the delivery, or **Record invoice** on the supplier. **Record payment** settles their oldest invoices first. **Buy › What we owe** shows every supplier's balance by age: not yet due, 1–30, 31–60, 61–90 and over 90 days.
+When the supplier's invoice comes, press **Record the supplier's invoice** on the delivery, or **Record invoice** on the supplier. An invoice for a delivery starts at the value of the goods, in the supplier's currency, without the transport or duty you paid yourself; if what you record differs from that by more than a little, HardPoint says so, and a delivery takes one invoice. **Record payment** settles their oldest invoices first. **Buy › What we owe** shows every supplier's balance by age: not yet due, 1–30, 31–60, 61–90 and over 90 days.
 
 Something wrong with a delivery? See [Sending goods back to a supplier](#supplier-returns).
 
@@ -1116,7 +1130,7 @@ When a delivery arrives damaged, or the supplier sent the wrong thing, record th
 #### Recording a return
 
 1. Open the delivery (**Buy › Receiving**) and press **Return goods to …**. Its products are listed at what you paid. Or open the supplier and press **Return goods**.
-2. Enter how many of each are going back and choose the reason. For products tracked by batch, choose the batch, or leave it to take the one that expires first.
+2. Enter how many of each are going back and choose the reason. For products tracked by batch, choose the batch the goods came from, so the right one leaves the books.
 3. Leave **Email the debit note to the supplier** ticked to send them the PDF straight away.
 
 The goods leave stock at once ("returned to supplier" in the stock history), and the debit note, which is the cost plus VAT, comes off what you owe the supplier. It settles their oldest invoice first, like a payment. The VAT report takes its VAT off the period's input tax.

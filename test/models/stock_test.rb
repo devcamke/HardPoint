@@ -54,6 +54,52 @@ class StockTest < ActiveSupport::TestCase
     assert_not transfer.receive, "can only be received once"
   end
 
+  test "a transfer received short: what was lost is written off where it arrived" do
+    transfer = accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard),
+      lines_attributes: [ { product_code: "CEM-50", quantity: 20 }, { product_code: "6001234500012", quantity: 100 } ])
+    cement_line = transfer.lines.find { _1.product == products(:acme_cement) }
+
+    assert_not transfer.receive(received: { cement_line.id.to_s => "18" }), "must say what happened to the two"
+    assert_match "lost on the way, or still at Main branch", transfer.errors.full_messages.to_sentence
+    assert transfer.reload.in_transit?
+    assert_equal 10, products(:acme_cement).stock_at(branches(:acme_yard)), "nothing moved"
+
+    assert_not transfer.receive(received: { cement_line.id.to_s => "21" }, shortfall: "lost")
+    assert_match "Only 20", transfer.errors.full_messages.to_sentence
+
+    assert transfer.receive(received: { cement_line.id.to_s => "18" }, shortfall: "lost")
+    assert transfer.received?
+    assert_equal [ 18, 2 ], [ cement_line.reload.received_quantity, cement_line.short_quantity ]
+    assert_equal 28, products(:acme_cement).stock_at(branches(:acme_yard))
+    assert_equal 30, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_equal 100, products(:acme_screws).stock_at(branches(:acme_yard)), "lines not mentioned arrived in full"
+    lost = StockMovement.where(product: products(:acme_cement), reason: "lost_in_transit").sole
+    assert_equal [ -2, branches(:acme_yard), transfer ], [ lost.quantity, lost.branch, lost.source ]
+  end
+
+  test "a transfer received short: what stayed behind goes back into the sender's stock" do
+    transfer = accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard),
+      lines_attributes: [ { product_code: "CEM-50", quantity: 5 } ])
+
+    assert transfer.receive(received: { transfer.lines.sole.id => 3 }, shortfall: "returned")
+    assert_equal 13, products(:acme_cement).stock_at(branches(:acme_yard))
+    assert_equal 47, products(:acme_cement).stock_at(branches(:acme_main)), "45 after sending, plus the 2 that never left"
+    assert_equal "transfer_returned", StockMovement.where(product: products(:acme_cement), branch: branches(:acme_main)).chronologically.first.reason
+    assert_equal "returned", transfer.shortfall
+  end
+
+  test "stock in transit is valued on its own: in no branch, but not forgotten" do
+    before = StockValuation.new(accounts(:acme))
+    total = before.total_value_cents
+    accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard), lines_attributes: [ { product_code: "CEM-50", quantity: 20 } ])
+
+    valuation = StockValuation.new(accounts(:acme))
+    assert_equal 20 * 70000, valuation.in_transit.value_cents
+    assert_equal 1, valuation.in_transit.lines
+    assert_equal before.rows.find { _1.branch == branches(:acme_main) }.value_cents - 20 * 70000, valuation.rows.find { _1.branch == branches(:acme_main) }.value_cents
+    assert_equal total, valuation.total_value_cents, "the total still counts what's on the road"
+  end
+
   test "cancelling a transfer returns the stock" do
     transfer = accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard),
       lines_attributes: [ { product_code: "CEM-50", quantity: 20 } ])

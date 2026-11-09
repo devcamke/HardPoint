@@ -22,9 +22,16 @@ class PurchaseOrderPdf < DocumentPdf
       two_blocks "Supplier", [ supplier.name, supplier.contact_name, supplier.phone, supplier.email, supplier.address ],
         "Deliver to", [ "#{account.name}, #{branch.name}", branch.address, branch.phone ]
 
-      table(@order.lines.includes(product: :unit).map do |line|
-        [ "#{line.product.name}\n#{line.product.sku}", line.supplier_product&.supplier_sku.to_s, quantity(line.quantity),
-          line.product.unit.abbreviation, money(line.unit_cost_cents), money(line.line_total_cents) ]
+      # A line ordered by the pack reads as the supplier sells it: "3 box" at the price of a box, with the
+      # pieces it comes to underneath.
+      table(@order.lines.includes(product: :unit, product_unit: :unit).map do |line|
+        if line.product_unit
+          [ "#{line.product.name}\n#{line.product.sku} · #{quantity(line.quantity)} #{line.product.unit.abbreviation}", line.supplier_product&.supplier_sku.to_s, quantity(line.pack_quantity),
+            line.product_unit.unit.abbreviation, money(line.pack_unit_cost_cents), money(line.line_total_cents) ]
+        else
+          [ "#{line.product.name}\n#{line.product.sku}", line.supplier_product&.supplier_sku.to_s, quantity(line.quantity),
+            line.product.unit.abbreviation, money(line.unit_cost_cents), money(line.line_total_cents) ]
+        end
       end)
       total "Total", @order.total_cents, currency: @order.currency
 

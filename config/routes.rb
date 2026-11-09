@@ -160,6 +160,7 @@ Rails.application.routes.draw do
         resources :prices, only: %i[ create destroy ]
         resources :components, only: %i[ create destroy ]
         resources :movements, only: :index
+        resource :reorder_level, only: :update
       end
     end
     resources :product_imports, only: %i[ index new create show ] do
@@ -203,6 +204,7 @@ Rails.application.routes.draw do
       resources :lines, only: %i[ create update destroy ]
       resource :discount, only: :update
       resources :payments, only: %i[ create destroy ]
+      resource :completion, only: :create
       resource :parking, only: :create
       resource :transport, only: :create
       resources :parked_sales, only: :index
@@ -240,6 +242,7 @@ Rails.application.routes.draw do
     resources :customers, except: :destroy do
       scope module: :customers do
         resources :payments, only: %i[ new create ]
+        resources :write_offs, only: %i[ new create ]
         resource :statement, only: :show
         resource :statement_email, only: :create
         resource :balance_reminder, only: :create
@@ -351,6 +354,7 @@ Rails.application.routes.draw do
       scope module: :purchase_orders do
         resource :sending, only: :create
         resource :cancellation, only: :create
+        resource :closure, only: :create
       end
     end
     resources :goods_receipts, only: %i[ index new create show ]

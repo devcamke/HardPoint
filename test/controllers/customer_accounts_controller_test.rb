@@ -111,6 +111,68 @@ class CustomerAccountsControllerTest < ActionDispatch::IntegrationTest
     assert_match "statement", mail.attachments.sole.filename
   end
 
+  test "a payment put against one sale, a refund of the credit left, and a write-off with a reason" do
+    sign_in_as users(:amina)
+    customer = customers(:acme_contractor)
+    old, recent = without_isolation do
+      Current.set(account: accounts(:acme), user: users(:carl)) do
+        [ 40, 20 ].map do |quantity|
+          sale = shifts(:acme_front_open).current_sale
+          sale.change_customer(customer)
+          sale.add(products(:acme_nails), quantity: quantity)
+          sale.pay(tender: "on_account")
+          sale
+        end
+      end
+    end
+
+    get new_customer_payment_path(customer)
+    assert_select "input[name='customer_payment[allocations][#{recent.id}]']"
+
+    post customer_payments_path(customer), params: { customer_payment: { amount: "6000", payment_method: "bank_transfer", paid_on: Date.current,
+      allocations: { recent.id => "5000", old.id => "" } } }
+    assert_redirected_to customer_path(customer)
+    assert_equal [ [ old.id, 9_000_00 ] ], without_isolation { customer.open_invoices.map { [ _1.sale.id, _1.outstanding_cents ] } }
+
+    post customer_write_offs_path(customer), params: { customer_payment: { amount: "9000", reason: "Disputed, not worth chasing", allocations: { old.id => "9000" } } }
+    assert_redirected_to customer_path(customer)
+    assert_equal 0, without_isolation { customer.balance_cents }
+    get customer_path(customer)
+    assert_select "td", /Written off/
+
+    post customer_payments_path(customer), params: { customer_payment: { amount: "500", payment_method: "bank_transfer", paid_on: Date.current } }
+    assert_equal(-500_00, without_isolation { customer.balance_cents })
+    get customer_path(customer)
+    assert_select "a", "Refund credit"
+    post customer_payments_path(customer, refund: 1), params: { customer_payment: { amount: "500", payment_method: "cash", paid_on: Date.current } }
+    assert_redirected_to customer_path(customer)
+    assert_equal 0, without_isolation { customer.balance_cents }
+    assert_equal 5_000_00 - 500_00, without_isolation { shifts(:acme_front_open).expected_cash_cents_now }
+  end
+
+  test "an accountant writes off with a manager's PIN" do
+    accountant = User.create!(name: "Alice Accounts", email_address: "alice@acme.test", password_digest: BCrypt::Password.create("password"))
+    without_isolation { accounts(:acme).memberships.create!(user: accountant, role: :accountant) }
+    customer = customers(:acme_contractor)
+    without_isolation do
+      Current.set(account: accounts(:acme), user: users(:carl)) do
+        sale = shifts(:acme_front_open).current_sale
+        sale.change_customer(customer)
+        sale.add(products(:acme_nails), quantity: 4)
+        sale.pay(tender: "on_account")
+      end
+    end
+    sign_in_as accountant
+
+    get new_customer_write_off_path(customer)
+    assert_select "input[name=approval_pin]"
+    post customer_write_offs_path(customer), params: { customer_payment: { amount: "1000", reason: "Bad debt" } }
+    assert_response :unprocessable_entity
+    post customer_write_offs_path(customer), params: { customer_payment: { amount: "1000", reason: "Bad debt" }, approval_pin: "2468" }
+    assert_redirected_to customer_path(customer)
+    assert_equal 0, without_isolation { customer.balance_cents }
+  end
+
   test "cashiers take account payments but don't see statements or who owes us" do
     get receivables_path
     assert_response :forbidden
@@ -142,9 +204,15 @@ class CustomerAccountsControllerTest < ActionDispatch::IntegrationTest
 
     get new_delivery_note_path(sale_id: sale.id)
     assert_response :success
-    post delivery_notes_path, params: { delivery_note: { sale_id: sale.id, address: "Plot 12, Mombasa Road", contact_phone: "0722000111" } }
+    line = without_isolation { sale.lines.sole }
+    assert_select "input[name='delivery_note[lines_attributes][0][quantity]'][max='4']"
+    post delivery_notes_path, params: { delivery_note: { sale_id: sale.id, address: "Plot 12, Mombasa Road", contact_phone: "0722000111",
+      lines_attributes: { "0" => { sale_line_id: line.id, quantity: "3" } } } }
     note = without_isolation { DeliveryNote.last }
     assert_redirected_to delivery_note_path(note)
+    assert_equal [ 3 ], without_isolation { note.lines.map(&:quantity) }
+    get sale_path(sale)
+    assert_select "a", "Deliver the rest"
 
     post delivery_note_dispatch_path(note), params: { driver_name: "Joseph", vehicle: "KDA 123B" }
     post delivery_note_delivery_path(note), params: { received_by: "Peter", proof_photo: fixture_file_upload("signed-note.png", "image/png") }

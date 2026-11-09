@@ -96,6 +96,32 @@ module Sale::Payable
     payment.destroy
   end
 
+  # A sale that comes to nothing (a replacement under warranty discounted to zero, a bundle's free item on its own)
+  # has no payment to complete it through, so an owner or manager completes it by hand, and Activity says who. The
+  # same checks as a final payment apply: something on the sale, serial numbers, in-date stock, an approved discount.
+  def complete_without_payment(approver:)
+    raise ArgumentError, "This sale can't be completed" unless open?
+
+    transaction do
+      lock!
+      raise ArgumentError, "This sale can't be completed" unless open?
+
+      reload_lines
+      payments.reset
+      errors.clear
+      if balance_due_cents.positive?
+        errors.add :base, "#{Money.format(balance_due_cents)} is still due on this sale; take a payment instead"
+      else
+        check_ready_to_complete(self)
+      end
+      return false if errors.any?
+
+      complete
+      track_event "completed_without_payment", approver: approver.name, total: total_cents
+      true
+    end
+  end
+
   def over_credit_limit?(payment)
     customer && payment.amount_cents.to_i > customer.available_credit_cents
   end
