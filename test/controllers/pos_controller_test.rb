@@ -231,7 +231,7 @@ class PosControllerTest < ActionDispatch::IntegrationTest
 
     post pos_completion_path, as: :turbo_stream
     assert_response :unprocessable_entity
-    assert_match "needs a manager's approval PIN", response.body
+    assert_match "Completing a sale with nothing to pay needs a manager", response.body
 
     post pos_completion_path, params: { approval_pin: "2468" }, as: :turbo_stream
     sale = Account.without_isolation { Sale.completed.last }
