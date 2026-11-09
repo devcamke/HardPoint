@@ -54,20 +54,35 @@
         <%= link_to "Adjust stock", new_stock_adjustment_path(product_id: @product.id), class: "btn-secondary" %>
       <% end %>
     </div>
+    <% own_levels = @product.track_stock? && current_membership.can_manage_catalogue? %>
     <table class="table">
+      <% if own_levels %><thead><tr><th>Branch</th><th class="text-right">On hand</th><th></th><th class="text-right">Reorder at</th></tr></thead><% end %>
       <tbody>
         <% Current.account.branches.alphabetically.each do |branch| %>
-          <% stock = @product.kit? ? @product.stock_at(branch) : (@levels[branch.id]&.quantity || 0) %>
+          <% level = @levels[branch.id] %>
+          <% stock = @product.kit? ? @product.stock_at(branch) : (level&.quantity || 0) %>
           <tr>
             <td><%= branch.name %></td>
             <td class="text-right tabular-nums"><%= quantity(stock, @product.unit) %></td>
-            <td class="text-right"><%= stock_badge(@product, stock, branch) %></td>
+            <td class="text-right"><%= stock_badge(@product, stock, branch, reorder_level: level&.reorder_level || @product.reorder_level) %></td>
+            <% if own_levels %>
+              <td class="text-right">
+                <%= form_with url: product_reorder_level_path(@product), method: :patch, class: "flex items-center justify-end gap-1" do |form| %>
+                  <%= hidden_field_tag :branch_id, branch.id, id: nil %>
+                  <%= number_field_tag :reorder_level, plain_number(level&.reorder_level), id: nil, step: "any", min: 0, inputmode: "decimal", placeholder: plain_number(@product.reorder_level),
+                        class: "input w-24 py-1 text-right", "aria-label": "Reorder level at #{branch.name}" %>
+                  <%= form.submit "Set", class: "btn-secondary py-1" %>
+                <% end %>
+              </td>
+            <% end %>
           </tr>
         <% end %>
       </tbody>
     </table>
     <% if @product.kit? %>
       <p class="hint mt-2">A kit's stock is how many can be made from its parts.</p>
+    <% elsif own_levels %>
+      <p class="hint mt-2">A branch can reorder at its own level; blank uses the product's (<%= quantity(@product.reorder_level, @product.unit) %>).</p>
     <% end %>
   </section>
 

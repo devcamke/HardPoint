@@ -15,8 +15,12 @@ class Sales::VoidsController < ApplicationController
     elsif approver.nil?
       flash.now[:alert] = "Voiding needs a manager's approval PIN."
       render :new, status: :unprocessable_entity
-    elsif @sale.void(reason: params[:reason], approver: approver)
-      redirect_to @sale, notice: "Sale voided. Stock is back and it no longer counts in the shift's takings — give back any money received."
+    elsif @sale.void(reason: params[:reason], approver: approver, refund_method: params[:refund_method], refund_reference: params[:refund_reference])
+      redirect_to @sale, notice: "Sale voided. Stock is back and it no longer counts in the shift's takings" \
+        "#{"; #{Money.format(@sale.total_cents)} #{@sale.void_refund_words}" if @sale.void_refund_method}."
+    elsif @sale.errors.any?
+      flash.now[:alert] = @sale.errors.full_messages.to_sentence
+      render :new, status: :unprocessable_entity
     else
       redirect_to @sale, alert: "This sale can't be voided."
     end
