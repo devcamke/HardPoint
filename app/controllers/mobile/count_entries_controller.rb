@@ -17,10 +17,8 @@ class Mobile::CountEntriesController < Mobile::BaseController
       batch = @line.count_batch(number: params[:new_batch_number].presence || params[:batch_number], quantity: amount, mode: params[:mode])
       @error = batch.errors.full_messages.to_sentence if batch.errors.any?
       @batch_label = batch.label
-    elsif params[:mode] == "set"
-      @line.update!(counted_quantity: amount)
     else
-      StockCountLine.where(id: @line.id).update_all([ "counted_quantity = COALESCE(counted_quantity, 0) + ?, updated_at = ?", amount, Time.current ])
+      @line.record(amount, mode: params[:mode] == "set" ? "set" : "add")
     end
 
     @line.reload

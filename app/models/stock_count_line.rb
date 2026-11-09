@@ -18,6 +18,17 @@ class StockCountLine < ApplicationRecord
     counted_quantity ? counted_quantity - expected_quantity : 0
   end
 
+  # Records a count against what the system holds right now, not what it held when the take began,
+  # so sales made before the counter reached this shelf aren't posted as shortages. "add" accumulates
+  # (the shelf, then the store room; two people on one product); "set" corrects the total. Nil clears.
+  def record(quantity, mode: "set")
+    with_lock do
+      self.expected_quantity = product.stock_at(stock_count.branch)
+      self.counted_quantity = mode == "add" ? counted_quantity.to_d + quantity.to_d : quantity
+      save
+    end
+  end
+
   def by_batch?
     batch_counts.loaded? ? batch_counts.any? : batch_counts.exists?
   end
@@ -31,15 +42,21 @@ class StockCountLine < ApplicationRecord
         found.stock_batch = product.stock_batches.find_by(branch: stock_count.branch, number: found.number) if found.number
         found.expires_on = expires_on.presence || found.stock_batch&.expires_on
       end
+      # Against the batch as it is now, for the same reason as `record`.
+      row.expected_quantity = if row.stock_batch then row.stock_batch.reload.quantity
+      elsif row.number then 0
+      else product.unbatched_stock_at(stock_count.branch)
+      end
       row.counted_quantity = mode == "add" ? row.counted_quantity.to_d + quantity.to_d : quantity
       row.save
       row
     end
   end
 
-  # The batches' differences, on top of what was expected; uncounted batches are left as they are.
+  # The batches' differences, on top of what the system holds now; uncounted batches are left as they are.
   def total_up_batches
     counted = batch_counts.counted
-    update_columns counted_quantity: (expected_quantity + counted.sum(&:variance) if counted.any?), updated_at: Time.current
+    level = product.stock_at(stock_count.branch)
+    update_columns expected_quantity: level, counted_quantity: (level + counted.sum(&:variance) if counted.any?), updated_at: Time.current
   end
 end
