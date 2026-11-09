@@ -82,21 +82,38 @@ class Api::V1::BaseController < ActionController::API
     end
 
     # With an Idempotency-Key header, a repeated create gets the first answer back instead of doing it again.
+    # The key is claimed before the work, not after: two identical requests arriving together then can't both
+    # create, since the second's claim fails on the unique index and it's told the first is in progress.
     def idempotently
-      key = request.headers["Idempotency-Key"].to_s.strip
+      key = request.headers["Idempotency-Key"].to_s.strip.first(255)
       return yield if key.empty?
 
       digest = OpenSSL::Digest::SHA256.hexdigest([ request.method, request.path, request.raw_post ].join("\n"))
-      if (earlier = @api_key.idempotency_keys.find_by(key: key))
-        return render_error(:unprocessable_entity, "idempotency_key_reused", "This Idempotency-Key was used for a different request.") if earlier.request_digest != digest
-
-        return render(json: earlier.response_body, status: earlier.response_status)
+      claim = ApiIdempotencyKey.claim(@api_key, key, digest)
+      case claim
+      when ApiIdempotencyKey
+        if claim.pending?
+          answer_once(claim) { yield }
+        elsif claim.request_digest != digest
+          render_error :unprocessable_entity, "idempotency_key_reused", "This Idempotency-Key was used for a different request."
+        else
+          render json: claim.response_body, status: claim.response_status
+        end
+      else
+        render_error :conflict, "in_progress", "A request with this Idempotency-Key is already being handled; retry shortly."
       end
+    end
 
+    # Runs the request and keeps its answer on the claim; a crash or a server error releases the key for a retry.
+    def answer_once(claim)
       yield
-      @api_key.idempotency_keys.create!(account: Current.account, key: key.first(255), request_digest: digest,
-        response_status: response.status, response_body: JSON.parse(response.body)) if response.status < 500
-    rescue ActiveRecord::RecordNotUnique
-      render_error :conflict, "in_progress", "A request with this Idempotency-Key is already being handled; retry shortly."
+      if response.status < 500
+        claim.update!(response_status: response.status, response_body: JSON.parse(response.body))
+      else
+        claim.destroy
+      end
+    rescue Exception
+      claim.destroy
+      raise
     end
 end
