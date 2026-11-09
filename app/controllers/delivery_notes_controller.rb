@@ -3,7 +3,7 @@ class DeliveryNotesController < ApplicationController
   before_action :set_delivery_note, only: :show
 
   def index
-    notes = Current.account.delivery_notes.chronologically.includes(:branch, sale: :customer)
+    notes = within_visible_branches(Current.account.delivery_notes).chronologically.includes(:branch, sale: :customer)
     @status = params[:status].presence_in(%w[ outstanding delivered cancelled all ]) || "outstanding"
     notes = case @status
     when "outstanding" then notes.outstanding
@@ -43,6 +43,6 @@ class DeliveryNotesController < ApplicationController
 
   private
     def set_delivery_note
-      @delivery_note = Current.account.delivery_notes.find(params[:id])
+      @delivery_note = within_visible_branches(Current.account.delivery_notes).find(params[:id])
     end
 end

@@ -7,6 +7,6 @@ module SaleScoped
 
   private
     def set_sale
-      @sale = Current.account.sales.find(params[:sale_id])
+      @sale = within_visible_branches(Current.account.sales).find(params[:sale_id])
     end
 end

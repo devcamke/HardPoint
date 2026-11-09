@@ -1585,7 +1585,8 @@ CREATE TABLE public.memberships (
     pin_digest character varying,
     failed_pin_attempts integer DEFAULT 0 NOT NULL,
     approval_pin_digest character varying,
-    daily_summary boolean DEFAULT true NOT NULL
+    daily_summary boolean DEFAULT true NOT NULL,
+    branch_id bigint
 );
 
 ALTER TABLE ONLY public.memberships FORCE ROW LEVEL SECURITY;
@@ -5452,6 +5453,13 @@ CREATE UNIQUE INDEX index_memberships_on_account_id_and_user_id ON public.member
 
 
 --
+-- Name: index_memberships_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_memberships_on_branch_id ON public.memberships USING btree (branch_id);
+
+
+--
 -- Name: index_memberships_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6889,6 +6897,14 @@ ALTER TABLE ONLY public.support_requests
 
 ALTER TABLE ONLY public.supplier_invoices
     ADD CONSTRAINT fk_rails_291f86350e FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
+-- Name: memberships fk_rails_2acf58e0b4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.memberships
+    ADD CONSTRAINT fk_rails_2acf58e0b4 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE NOT VALID;
 
 
 --
@@ -9351,6 +9367,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261109180000'),
 ('20261109160000'),
 ('20261108130000'),
 ('20261108123000'),

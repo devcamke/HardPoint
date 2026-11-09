@@ -37,6 +37,26 @@ class MembershipTest < ActiveSupport::TestCase
     assert_includes duplicate.errors[:user], "is already a member of this shop"
   end
 
+  test "staff can be bound to one branch; owners never are" do
+    carl = memberships(:carl_acme)
+    assert_not carl.bound_to_branch?
+    assert_equal accounts(:acme).branches.count, carl.visible_branches.count
+
+    carl.update!(branch: branches(:acme_yard))
+    assert_equal [ branches(:acme_yard) ], carl.visible_branches.to_a
+    assert carl.sees_branch?(branches(:acme_yard))
+    assert_not carl.sees_branch?(branches(:acme_main))
+
+    carl.branch = branches(:bolt_main)
+    assert_not carl.valid?
+    assert_match "one of this shop's", carl.errors.full_messages.to_sentence
+
+    amina = memberships(:amina_acme)
+    amina.branch = branches(:acme_yard)
+    assert_not amina.valid?
+    assert_match "owners see every branch", amina.errors.full_messages.to_sentence
+  end
+
   test "permissions follow the role" do
     assert memberships(:amina_acme).can_manage_staff?
     assert_not memberships(:carl_acme).can_manage_staff?

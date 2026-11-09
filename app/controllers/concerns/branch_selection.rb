@@ -12,11 +12,11 @@ module BranchSelection
     end
 
     def find_selected_branch
-      branches = Current.account.branches
+      branches = visible_branches
       branches.find_by(id: params[:branch_id]) || branches.find_by(id: session[:branch_id]) || branches.alphabetically.first
     end
 
     def branches_for_selection
-      Current.account.branches.alphabetically
+      visible_branches.alphabetically
     end
 end

@@ -2,12 +2,23 @@ module Authorization
   extend ActiveSupport::Concern
 
   included do
-    helper_method :current_membership
+    helper_method :current_membership, :visible_branches
   end
 
   private
     def current_membership
       Current.membership
+    end
+
+    # The branches the signed-in member may see. Staff bound to a branch see nothing of the others: not its
+    # tills, sales, shifts, returns, orders, deliveries, stock counts or reports.
+    def visible_branches
+      current_membership&.visible_branches || Current.account.branches
+    end
+
+    # A relation of records that belong to a branch, cut down to what the member may see.
+    def within_visible_branches(relation, column = :branch_id)
+      current_membership&.bound_to_branch? ? relation.where(column => current_membership.branch_id) : relation
     end
 
     def ensure_can_manage_account

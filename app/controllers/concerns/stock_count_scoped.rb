@@ -7,7 +7,7 @@ module StockCountScoped
 
   private
     def set_stock_count
-      @count = Current.account.stock_counts.find(params[:stock_count_id])
+      @count = within_visible_branches(Current.account.stock_counts).find(params[:stock_count_id])
     end
 
     def ensure_counting
