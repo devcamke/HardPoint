@@ -98,7 +98,7 @@ module Sale::Offline
             serial_number: line["serial_number"].presence)
         end
         sale.recalculate
-        sale.offline_expected_total_cents = data["total_cents"].to_i
+        sale.offline_expected_total_cents = data["total_cents"].presence&.to_i
         sale
       end
   end
@@ -115,9 +115,12 @@ module Sale::Offline
         break unless open?
 
         tender, intended = payment["tender"].to_s, payment["amount_cents"]&.to_i
-        # Cash pays what the till charged it with.
+        # Cash pays what the till charged it with, and never more than the till's total: the sale may come to more
+        # here (a hand discount ignored, a price worked out differently), but the change was given from the till's
+        # drawer, and taking the whole of what was tendered would only put cash in the drawer that isn't there.
+        cash_limit = [ intended, offline_expected_total_cents ].compact.min if tender == "cash"
         taken = pay(tender: tender, amount_cents: intended, tendered_cents: payment["tendered_cents"]&.to_i,
-          reference: payment["reference"].presence || (tender.in?(%w[ mobile_money airtel_money ]) ? "OFFLINE" : nil), cash_limit_cents: (intended if tender == "cash"))
+          reference: payment["reference"].presence || (tender.in?(%w[ mobile_money airtel_money ]) ? "OFFLINE" : nil), cash_limit_cents: cash_limit)
         if taken.errors.any?
           offline_warnings << "#{taken.label} payment not recorded: #{taken.errors.full_messages.to_sentence}"
         end
@@ -131,7 +134,7 @@ module Sale::Offline
 
   private
     def note_offline_differences
-      if offline_expected_total_cents.to_i != total_cents
+      if offline_expected_total_cents && offline_expected_total_cents != total_cents
         offline_warnings << "The till worked out #{Money.format(offline_expected_total_cents)}; the total is #{Money.format(total_cents)}"
       end
       offline_warnings << "#{Money.format(balance_due_cents)} is still due, so the sale is parked at #{register.name} for someone to finish" unless completed?

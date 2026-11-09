@@ -182,7 +182,8 @@ CREATE TABLE public.accounts (
     billing_interval character varying DEFAULT 'monthly'::character varying NOT NULL,
     qz_private_key text,
     qz_certificate text,
-    terms_accepted_at timestamp(6) without time zone
+    terms_accepted_at timestamp(6) without time zone,
+    payout_approval_above_cents bigint DEFAULT 500000 NOT NULL
 );
 
 
@@ -1464,7 +1465,9 @@ CREATE TABLE public.goods_receipt_lines (
     unit_cost_cents bigint NOT NULL,
     landed_unit_cost_cents bigint DEFAULT 0 NOT NULL,
     batch_number character varying,
-    expires_on date
+    expires_on date,
+    product_unit_id bigint,
+    pack_quantity numeric(14,3)
 );
 
 ALTER TABLE ONLY public.goods_receipt_lines FORCE ROW LEVEL SECURITY;
@@ -1761,7 +1764,8 @@ CREATE TABLE public.mpesa_transactions (
     matched_id bigint,
     matched_at timestamp(6) without time zone,
     payload jsonb DEFAULT '{}'::jsonb NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    refunded_at timestamp(6) without time zone
 );
 
 ALTER TABLE ONLY public.mpesa_transactions FORCE ROW LEVEL SECURITY;
@@ -2088,7 +2092,9 @@ CREATE TABLE public.purchase_order_lines (
     received_quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
     unit_cost_cents bigint DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    product_unit_id bigint,
+    pack_quantity numeric(14,3)
 );
 
 ALTER TABLE ONLY public.purchase_order_lines FORCE ROW LEVEL SECURITY;
@@ -2355,7 +2361,9 @@ CREATE TABLE public.sales (
     credit_approver_id bigint,
     offline_uuid uuid,
     offline_receipt_number character varying,
-    job_id bigint
+    job_id bigint,
+    void_refund_method character varying,
+    void_refund_reference character varying
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -2721,7 +2729,8 @@ CREATE TABLE public.stock_levels (
     product_id bigint NOT NULL,
     quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reorder_level numeric(14,3)
 );
 
 ALTER TABLE ONLY public.stock_levels FORCE ROW LEVEL SECURITY;
@@ -2800,7 +2809,8 @@ CREATE TABLE public.stock_transfer_lines (
     product_id bigint NOT NULL,
     quantity numeric(14,3) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    received_quantity numeric(14,3)
 );
 
 ALTER TABLE ONLY public.stock_transfer_lines FORCE ROW LEVEL SECURITY;
@@ -2841,7 +2851,8 @@ CREATE TABLE public.stock_transfers (
     sent_at timestamp(6) without time zone,
     received_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    shortfall character varying
 );
 
 ALTER TABLE ONLY public.stock_transfers FORCE ROW LEVEL SECURITY;
@@ -5431,6 +5442,13 @@ CREATE INDEX index_goods_receipt_lines_on_product_id ON public.goods_receipt_lin
 
 
 --
+-- Name: index_goods_receipt_lines_on_product_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_goods_receipt_lines_on_product_unit_id ON public.goods_receipt_lines USING btree (product_unit_id);
+
+
+--
 -- Name: index_goods_receipt_lines_on_purchase_order_line_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5806,6 +5824,13 @@ CREATE INDEX index_purchase_order_lines_on_account_id ON public.purchase_order_l
 --
 
 CREATE INDEX index_purchase_order_lines_on_product_id ON public.purchase_order_lines USING btree (product_id);
+
+
+--
+-- Name: index_purchase_order_lines_on_product_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_purchase_order_lines_on_product_unit_id ON public.purchase_order_lines USING btree (product_unit_id);
 
 
 --
@@ -7423,6 +7448,14 @@ ALTER TABLE ONLY public.airtel_requests
 
 
 --
+-- Name: goods_receipt_lines fk_rails_679c903fb8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.goods_receipt_lines
+    ADD CONSTRAINT fk_rails_679c903fb8 FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) DEFERRABLE NOT VALID;
+
+
+--
 -- Name: goods_receipts fk_rails_68b64d7d0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8527,6 +8560,14 @@ ALTER TABLE ONLY public.stock_transfers
 
 
 --
+-- Name: purchase_order_lines fk_rails_fce507dece; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_order_lines
+    ADD CONSTRAINT fk_rails_fce507dece FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) DEFERRABLE NOT VALID;
+
+
+--
 -- Name: account_backups; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9497,6 +9538,11 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20261110100100'),
 ('20261110100000'),
+('20261109210000'),
+('20261109200100'),
+('20261109200000'),
+('20261109190100'),
+('20261109190000'),
 ('20261109180000'),
 ('20261109170000'),
 ('20261109160000'),

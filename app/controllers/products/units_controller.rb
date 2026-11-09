@@ -13,7 +13,12 @@ class Products::UnitsController < ApplicationController
   end
 
   def destroy
-    @product.product_units.find(params[:id]).destroy
-    redirect_to_product notice: "Pack size removed."
+    product_unit = @product.product_units.find(params[:id])
+
+    if product_unit.destroy
+      redirect_to_product notice: "Pack size removed."
+    else
+      redirect_to_product alert: "This pack size is on purchase orders or deliveries, so it stays."
+    end
   end
 end

@@ -17,6 +17,8 @@ class SupplierReturnLine < ApplicationRecord
   validate { errors.add :quantity, "of #{product.name} must be a whole number" if product && quantity && !product.quantity_allowed?(quantity) }
   validate :on_hand_to_send
   validate :batch_is_this_products
+  # Without a batch the return would take the first to expire, which may not be the faulty one.
+  validate { errors.add :base, "Choose which batch of #{product.name} is going back" if product&.tracks_batches? && stock_batch.nil? }
 
   before_validation { self.unit_cost_cents = default_unit_cost if unit_cost_cents.nil? && product }
   before_validation { self.tax_rate = product.effective_tax_rate&.rate || 0 if product && tax_rate.to_d.zero? }

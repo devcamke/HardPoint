@@ -6,5 +6,7 @@ class StockLevel < ApplicationRecord
   belongs_to :branch
   belongs_to :product
 
+  # The branch's own reorder level for the product; nil means the product's applies here.
+  validates :reorder_level, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates_same_account :branch, :product
 end

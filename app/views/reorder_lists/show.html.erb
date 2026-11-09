@@ -13,7 +13,7 @@
   </div>
 
   <p class="hint mb-4 max-w-3xl">At <%= selected_branch&.name %>: products at or below their reorder level, or selling fast enough to run out before a delivery could arrive.
-    Each suggestion covers the supplier's lead time plus two weeks of sales (or twice the reorder level), less what's on hand and already on order, rounded up to the supplier's minimum.
+    Each suggestion covers the supplier's lead time plus two weeks of sales (or twice the reorder level), less what's on hand, already on order or on its way from another branch, rounded up to the supplier's minimum.
     Owners, managers and stock clerks also get the low-stock list by email each morning.</p>
 
   <% if @suggestion.rows.empty? %>
@@ -41,7 +41,7 @@
                 <td class="text-right tabular-nums <%= "text-red-700" unless row.on_hand.positive? %>"><%= quantity(row.on_hand, row.product.unit) %></td>
                 <td class="text-right tabular-nums"><%= quantity(row.on_order) %></td>
                 <td class="text-right tabular-nums"><%= quantity(row.sold) %></td>
-                <td class="text-right tabular-nums"><%= quantity(row.product.reorder_level) %></td>
+                <td class="text-right tabular-nums"><%= quantity(row.reorder_level) %></td>
                 <td class="text-right"><%= row.lead_time %> days</td>
                 <td class="text-right font-semibold tabular-nums"><%= quantity(row.quantity, row.product.unit) %></td>
                 <td class="text-right tabular-nums"><%= money(row.cost_cents, currency: supplier&.currency_code || Current.account.currency) %></td>
@@ -71,8 +71,8 @@
               <td class="font-mono text-xs"><%= product.sku %></td>
               <td><%= product.category&.name %></td>
               <td class="text-right tabular-nums <%= "text-red-700" if product.stock_quantity <= 0 %>"><%= quantity(product.stock_quantity, product.unit) %></td>
-              <td class="text-right tabular-nums"><%= quantity(product.reorder_level, product.unit) %></td>
-              <td class="text-right tabular-nums font-semibold"><%= quantity(product.reorder_level - product.stock_quantity, product.unit) %></td>
+              <td class="text-right tabular-nums"><%= quantity(product.branch_reorder_level, product.unit) %></td>
+              <td class="text-right tabular-nums font-semibold"><%= quantity(product.branch_reorder_level - product.stock_quantity, product.unit) %></td>
             </tr>
           <% end %>
         </tbody>

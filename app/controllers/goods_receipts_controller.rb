@@ -20,7 +20,12 @@ class GoodsReceiptsController < ApplicationController
 
     if order
       return redirect_to order, alert: "This order is #{order.status.humanize.downcase}." unless order.receivable?
-      order.outstanding_lines.each { |line| @goods_receipt.lines.build(purchase_order_line: line, product: line.product, quantity: line.outstanding_quantity, unit_cost_cents: line.unit_cost_cents) }
+      # Lines ordered by the pack are offered in packs, while whole packs are still to come.
+      order.outstanding_lines.each do |line|
+        packs = line.outstanding_packs
+        @goods_receipt.lines.build(purchase_order_line: line, product: line.product, quantity: line.outstanding_quantity, unit_cost_cents: line.unit_cost_cents,
+          product_unit: (line.product_unit if packs), pack_quantity: packs)
+      end
     else
       BLANK_LINES.times { @goods_receipt.lines.build }
     end
@@ -40,7 +45,7 @@ class GoodsReceiptsController < ApplicationController
   private
     def goods_receipt_params
       permitted = params.expect(goods_receipt: [ :supplier_id, :branch_id, :purchase_order_id, :supplier_reference, :extra_costs, :note, :exchange_rate,
-        lines_attributes: [ [ :purchase_order_line_id, :product_code, :quantity, :unit_cost, :batch_number, :expires_on ] ] ])
+        lines_attributes: [ [ :purchase_order_line_id, :product_code, :pack, :quantity, :unit_cost, :batch_number, :expires_on ] ] ])
       order = Current.account.purchase_orders.find(permitted.delete(:purchase_order_id)) if permitted[:purchase_order_id].present?
 
       permitted[:purchase_order] = order
