@@ -1,4 +1,4 @@
-<%# locals: (tour:) %>
+<%# locals: (tour:, caption: nil) %>
 <%# A guided tour as a walkthrough of its screenshot: numbered hotspots on the screen, and a pop-up with an arrow that
     points at each in turn. Without JavaScript it's the screenshot with numbers on it and the steps listed underneath,
     which is also what the user guide export reads. %>
@@ -60,6 +60,6 @@
   </ol>
   <figcaption class="walkthrough-caption">
     Use ‹ › or the arrow keys to move between steps.
-    Signed in to your shop? Take this as a live tour on your own screen: <strong>Guided tours</strong>, under your name.
+    <% if caption %><%= caption %><% else %>Signed in to your shop? Take this as a live tour on your own screen: <strong>Guided tours</strong>, under your name.<% end %>
   </figcaption>
 </figure>
