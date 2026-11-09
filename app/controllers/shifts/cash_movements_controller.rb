@@ -8,7 +8,7 @@ class Shifts::CashMovementsController < ApplicationController
   end
 
   def create
-    @movement = @shift.cash_movements.new(params.expect(cash_movement: %i[ kind amount reason ]).merge(account: Current.account))
+    @movement = @shift.cash_movements.new(params.expect(cash_movement: %i[ kind amount reason supplier_id ]).merge(account: Current.account))
     approver = approver_for_action if @movement.needs_approval?
 
     if @movement.valid? && @movement.needs_approval? && approver.nil?

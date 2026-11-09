@@ -427,7 +427,7 @@ A shift belongs to the till, not to one person. Each till has one open shift at 
 Press **Shift** in the till's top bar, then **Cash drop / payout**. Choose what's happening, type the amount and a reason, and press **Record**:
 
 - **Drop to the safe**: takings taken out of the drawer.
-- **Pay out**: cash paid from the till, for transport or a supplier, say.
+- **Pay out**: cash paid from the till, for transport or a supplier, say. When it pays a supplier's bill, pick the supplier under **Paying a supplier's bill?**: it's recorded as a cash payment to them, and the profit and loss doesn't count it as an expense on top of the goods.
 - **Pay in**: more change added to the float.
 
 Cash movements go on the till this device is set to, since that's the drawer the cash is in. A payout above the shop's limit (KES 5,000 to start with; owners change it under **Settings › Shop details**) needs an owner's or manager's approval PIN, and **Settings › Activity** records who approved it.
