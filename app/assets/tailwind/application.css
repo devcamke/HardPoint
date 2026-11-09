@@ -9,6 +9,8 @@
  */
 @theme {
   --font-sans: "Roboto", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  /* Handwriting for the marketing page's annotations, from whatever the device has. */
+  --font-hand: "Kalam", "Segoe Print", "Bradley Hand", "Marker Felt", "Comic Sans MS", cursive;
 
   --color-primary-50: #f3f7f8;
   --color-primary-100: #e2ecee;
@@ -24,6 +26,16 @@
   --color-accent-500: #4b8692;
   --color-accent-600: #0d505e;
   --color-accent-700: #0a424d;
+}
+
+/* The marker pen for the landing page's headline and handwritten notes: Kalam Bold (SIL Open Font Licence),
+   served from app/assets/fonts so nothing is fetched from Google. */
+@font-face {
+  font-family: "Kalam";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("kalam-700.woff2") format("woff2");
 }
 
 @layer base {

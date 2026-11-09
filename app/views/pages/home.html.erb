@@ -18,65 +18,29 @@
    } } %>
 
 <section class="bg-white" data-controller="dialog">
-  <div class="mx-auto max-w-4xl px-4 pt-16 pb-20 text-center sm:pt-24 sm:pb-24">
-    <h1 class="text-5xl font-bold tracking-tight text-gray-950 text-balance sm:text-6xl">Point of sale and stock control for hardware stores.</h1>
-    <p class="mt-5 text-2xl font-medium text-gray-700 text-balance sm:text-3xl">Simple, works offline, and affordable.</p>
-    <p class="relative mx-auto mt-3 inline-flex items-center gap-3 text-lg text-gray-600">
-      <%= doodle_arrow.("absolute -left-14 -top-6 size-12 -rotate-12 text-primary-500 max-sm:hidden") %>
-      <span>From <strong class="font-bold text-primary-600 tabular-nums"><%= from_price %></strong> a month for the whole shop</span>
-    </p>
-    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+  <%# The hero as odoo.com draws its own: the headline in marker pen with a highlighter swash behind the words that
+      matter, a hand-drawn underline on "affordable", and the price scribbled beside an arrow. %>
+  <div class="relative mx-auto max-w-5xl px-4 pt-24 pb-20 text-center sm:pt-32 sm:pb-24">
+    <h1 class="font-hand text-5xl leading-[1.15] text-gray-950 text-balance sm:text-6xl lg:text-7xl">Point of sale and stock control for
+      <span class="relative inline-block isolate whitespace-nowrap">
+        <svg class="absolute -inset-x-[0.15em] bottom-[0.02em] -z-10 h-[0.8em] w-[calc(100%+0.3em)] text-amber-300" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M4 22C40 12 120 8 196 14L194 32C120 36 50 38 6 34Z" fill="currentColor"/></svg>
+        <span class="relative">hardware stores</span></span>.</h1>
+    <p class="font-hand mt-6 text-3xl leading-tight text-gray-800 text-balance sm:text-4xl">Simple, works offline, and
+      <span class="relative inline-block whitespace-nowrap">affordable<svg class="absolute -bottom-1.5 left-0 h-3 w-full text-sky-500" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 8C50 3 120 2 197 6" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/></svg></span>!</p>
+
+    <div class="mt-12 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
       <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-7 py-3 text-lg" %>
-      <button type="button" class="btn rounded-full border-gray-300 bg-white px-7 py-3 text-lg text-gray-800 hover:bg-gray-50" data-action="dialog#open">
+      <button type="button" class="btn rounded-full border-gray-100 bg-gray-100 px-7 py-3 text-lg text-gray-800 hover:bg-gray-200" data-action="dialog#open">
         <svg viewBox="0 0 24 24" fill="currentColor" class="size-5 text-primary-600" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Watch a sale
       </button>
     </div>
     <p class="mt-4 text-sm text-gray-500"><%= trial.capitalize %> free. No card needed. Questions? <%= link_to "Talk to us on WhatsApp", whatsapp_support_url("Hello HardPoint, I'd like to know more about the POS."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" %></p>
-  </div>
 
-  <%# The product as a grid of tiles, one per thing a hardware shop does, each opening its help guide. %>
-  <div id="features" class="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28">
-    <%# Each tile in a colour of its own, as Odoo's app icons are: the money ones in their brands' greens and red,
-        the rest by feel. Written out in full so Tailwind finds every class. %>
-    <% tiles = [
-         [ "Till", "selling", :till, "from-primary-400 to-primary-600 shadow-primary-600/30" ],
-         [ "Stock", "stock-and-stock-takes", :stock, "from-amber-400 to-amber-600 shadow-amber-600/30" ],
-         [ "M-Pesa", "mpesa", :mpesa, "from-green-500 to-green-700 shadow-green-700/30" ],
-         [ "KRA eTIMS", "etims", :etims, "from-rose-500 to-rose-700 shadow-rose-700/30" ],
-         [ "Customers", "customer-accounts", :customers, "from-violet-400 to-violet-600 shadow-violet-600/30" ],
-         [ "Purchasing", "buying-from-suppliers", :purchasing, "from-orange-400 to-orange-600 shadow-orange-600/30" ],
-         [ "Reports", "reports", :reports, "from-blue-400 to-blue-600 shadow-blue-600/30" ],
-         [ "Promotions", "promotions", :promotions, "from-pink-400 to-pink-600 shadow-pink-600/30" ],
-         [ "Deliveries", "deliveries", :deliveries, "from-sky-400 to-sky-600 shadow-sky-600/30" ],
-         [ "Contractors' jobs", "contractor-jobs", :jobs, "from-yellow-400 to-yellow-600 shadow-yellow-600/30" ],
-         [ "Online store", "online-store", :online_store, "from-indigo-400 to-indigo-600 shadow-indigo-600/30" ],
-         [ "WhatsApp", "whatsapp", :whatsapp, "from-emerald-400 to-emerald-600 shadow-emerald-600/30" ],
-         [ "Shifts and cash", "shifts-and-cash", :shifts, "from-lime-400 to-lime-600 shadow-lime-600/30" ],
-         [ "Branches", "shop-settings", :branches, "from-teal-400 to-teal-600 shadow-teal-600/30" ],
-         [ "Returns", "returns-and-refunds", :returns, "from-red-400 to-red-600 shadow-red-600/30" ],
-         [ "Batches and expiry", "batches-and-expiry", :batches, "from-cyan-400 to-cyan-600 shadow-cyan-600/30" ],
-         [ "Staff and roles", "staff-and-roles", :staff, "from-purple-400 to-purple-600 shadow-purple-600/30" ],
-         [ "Import products", "importing-products", :import, "from-fuchsia-400 to-fuchsia-600 shadow-fuchsia-600/30" ],
-         [ "Stock on your phone", "stock-on-your-phone", :barcode, "from-slate-500 to-slate-700 shadow-slate-700/30" ],
-         [ "Offline till", "offline", :offline, "from-gray-700 to-gray-900 shadow-gray-900/30" ],
-         [ "Airtel Money", "airtel-money", :airtel, "from-red-500 to-red-700 shadow-red-700/30" ],
-         [ "Your data", "your-data", :data, "from-blue-500 to-blue-700 shadow-blue-700/30" ],
-         [ "QuickBooks", "quickbooks", :quickbooks, "from-green-400 to-green-600 shadow-green-600/30" ],
-         [ "Apps and the API", "connecting-apps", :api, "from-stone-500 to-stone-700 shadow-stone-700/30" ]
-       ] %>
-    <ul class="grid grid-cols-3 gap-x-3 gap-y-6 text-center sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-      <% tiles.each do |label, slug, icon, colour| %>
-        <li>
-          <%= link_to help_article_path(slug), class: "group flex flex-col items-center gap-2.5" do %>
-            <span class="flex size-16 items-center justify-center rounded-2xl bg-linear-to-br text-white shadow-lg transition group-hover:-translate-y-1 group-hover:shadow-xl <%= colour %>">
-              <%= render "pages/icon", name: icon %>
-            </span>
-            <span class="text-xs font-medium text-gray-700 group-hover:text-gray-950 sm:text-sm"><%= label %></span>
-          <% end %>
-        </li>
-      <% end %>
-    </ul>
-    <p class="mt-10 text-center text-gray-600">Every one of these on every plan. <%= link_to "See all the guides", help_path, class: "link" %></p>
+    <%# The price, in the margin, with an arrow down to it from the underline. %>
+    <div class="font-hand mt-8 text-2xl leading-tight text-primary-700 lg:absolute lg:right-0 lg:bottom-24 lg:mt-0 lg:w-60 lg:-rotate-6 lg:text-left">
+      <svg class="mx-auto mb-1 h-12 w-16 lg:absolute lg:-top-16 lg:-left-8 lg:-rotate-12" viewBox="0 0 64 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4c6 18 20 32 50 38"/><path d="M44 34l12 8-13 4"/></svg>
+      <%= from_price %> / month<br>for the whole shop
+    </div>
   </div>
 
   <%# "Watch a sale": the help centre's walkthrough of the till, in a dialog over the page, screen only. %>
@@ -94,6 +58,57 @@
     </div>
     <p class="border-t border-gray-200 bg-gray-50 px-5 py-3 text-center text-sm text-gray-600">Liked it? <%= link_to "Start now, it's free", new_signup_path, class: "font-medium text-accent-600 hover:underline" %> · Every screen has a guide like this one in the <%= link_to "help centre", help_path, class: "link" %>.</p>
   </dialog>
+</section>
+
+<%# The product as a grid of tiles, one per thing a hardware shop does, each opening its help guide: white tiles with
+      a coloured glyph, as Odoo draws its apps. Twelve, the ones a shop decides on; the guides hold the rest. The switch beneath, "Imagine without HardPoint", greys the tiles and
+      writes by hand what each one replaces in a hardware shop. CSS alone: the switch is a checkbox the grid listens to. %>
+<section id="features" class="scroll-mt-20 border-y border-gray-200/70 bg-gray-50">
+  <div class="group/imagine mx-auto max-w-5xl px-4 py-20 sm:py-24">
+    <% tiles = [
+         [ "Till", "selling", :till, "text-primary-600", "A calculator and a receipt book" ],
+         [ "Stock", "stock-and-stock-takes", :stock, "text-amber-500", "An exercise book" ],
+         [ "M-Pesa", "mpesa", :mpesa, "text-green-600", "Checking the phone" ],
+         [ "KRA eTIMS", "etims", :etims, "text-rose-600", "An ETR machine" ],
+         [ "Customers", "customer-accounts", :customers, "text-violet-500", "The debtors' notebook" ],
+         [ "Purchasing", "buying-from-suppliers", :purchasing, "text-orange-500", "Ringing round suppliers" ],
+         [ "Reports", "reports", :reports, "text-blue-500", "Excel on Sunday night" ],
+         [ "Promotions", "promotions", :promotions, "text-pink-500", "A chalkboard" ],
+         [ "Contractors' jobs", "contractor-jobs", :jobs, "text-yellow-500", "Quotes on a notepad" ],
+         [ "Staff and roles", "staff-and-roles", :staff, "text-purple-500", "One password for everyone" ],
+         [ "Branches", "shop-settings", :branches, "text-teal-500", "Driving over to check" ],
+         [ "Offline till", "offline", :offline, "text-gray-800", "Closing when the net is down" ]
+       ] %>
+    <ul class="grid grid-cols-3 gap-x-4 gap-y-10 text-center sm:grid-cols-4 lg:grid-cols-6">
+      <% tiles.each do |label, slug, icon, colour, without| %>
+        <li>
+          <%= link_to help_article_path(slug), class: "group flex flex-col items-center gap-4" do %>
+            <span class="flex size-20 items-center justify-center rounded-2xl bg-white shadow-lg shadow-gray-950/10 ring-1 ring-gray-950/5 transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-has-[:checked]/imagine:opacity-30 group-has-[:checked]/imagine:grayscale sm:size-24 <%= colour %>">
+              <%= render "pages/icon", name: icon, classes: "size-10 sm:size-12" %>
+            </span>
+            <span class="font-medium text-gray-800 group-hover:text-gray-950 group-has-[:checked]/imagine:hidden sm:text-lg"><%= label %></span>
+            <span class="font-hand hidden -rotate-3 text-lg leading-tight text-primary-700 text-balance group-has-[:checked]/imagine:block sm:text-xl"><%= without %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+
+    <div class="mt-16 flex flex-col items-center justify-between gap-6 sm:flex-row">
+      <label class="relative flex cursor-pointer items-center gap-4 select-none">
+        <%# Sparks off the switch, as on odoo.com. %>
+        <svg class="absolute -top-7 -left-8 size-10 text-primary-500" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M20 4v10M8 10l7 7M32 10l-7 7"/></svg>
+        <input type="checkbox" class="peer sr-only">
+        <span class="relative h-8 w-14 rounded-full bg-gray-300 transition peer-checked:bg-primary-500 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-400">
+          <span class="absolute top-1 left-1 size-6 rounded-full bg-white shadow transition group-has-[:checked]/imagine:translate-x-6"></span>
+        </span>
+        <span class="text-xl font-semibold text-gray-800 sm:text-2xl">Imagine without HardPoint</span>
+      </label>
+      <%= link_to help_path, class: "group flex items-center gap-3 text-xl font-semibold text-primary-700 hover:text-primary-800 sm:text-2xl" do %>
+        See all the guides
+        <svg class="h-6 w-14 transition group-hover:translate-x-1" viewBox="0 0 56 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13c14-5 28-5 44 0"/><path d="M38 6l10 7-11 6"/></svg>
+      <% end %>
+    </div>
+  </div>
 </section>
 
 <%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
