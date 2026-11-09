@@ -9370,7 +9370,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20261109200000'),
+('20261109200100'),
 ('20261109180000'),
 ('20261109170000'),
 ('20261109160000'),
