@@ -1,5 +1,6 @@
 # Goods brought back against a receipt. Refunds are worth what the customer actually paid for
-# those items (their share of line and cart discounts included). Restocked items go back on the
+# those items (their share of line and cart discounts included), less any promotion the goods they
+# keep no longer earn (SaleReturnLine.price). Restocked items go back on the
 # shelf of the branch taking them back, which need not be the one that sold them; the return is
 # numbered there and a cash refund comes from that till's drawer. Money is only refunded as money
 # the customer actually handed over: the part of a sale put on account is refunded to the account.
@@ -57,7 +58,7 @@ class SaleReturn < ApplicationRecord
     def only_money_paid_is_refunded_as_money
       return unless sale&.completed? && refund_method.present? && refund_method != "on_account"
 
-      lines.each(&:calculate_totals)
+      SaleReturnLine.price(lines, sale)
       refundable = self.class.money_refundable_cents(sale)
       if lines.sum(&:total_cents) > refundable
         errors.add :refund_method, refundable.positive? ?
@@ -68,7 +69,7 @@ class SaleReturn < ApplicationRecord
 
     def number_and_total
       self.number = DocumentSequence.next_number(branch, "return")
-      lines.each(&:calculate_totals)
+      SaleReturnLine.price(lines, sale)
       self.total_cents = lines.sum(&:total_cents)
       self.tax_cents = lines.sum(&:tax_cents)
     end

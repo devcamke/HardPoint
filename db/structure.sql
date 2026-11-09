@@ -1088,6 +1088,42 @@ ALTER SEQUENCE public.customers_id_seq OWNED BY public.customers.id;
 
 
 --
+-- Name: delivery_note_lines; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.delivery_note_lines (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    delivery_note_id bigint NOT NULL,
+    sale_line_id bigint NOT NULL,
+    quantity numeric(14,3) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.delivery_note_lines FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: delivery_note_lines_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.delivery_note_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: delivery_note_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.delivery_note_lines_id_seq OWNED BY public.delivery_note_lines.id;
+
+
+--
 -- Name: delivery_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3621,6 +3657,13 @@ ALTER TABLE ONLY public.customers ALTER COLUMN id SET DEFAULT nextval('public.cu
 
 
 --
+-- Name: delivery_note_lines id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_note_lines ALTER COLUMN id SET DEFAULT nextval('public.delivery_note_lines_id_seq'::regclass);
+
+
+--
 -- Name: delivery_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4233,6 +4276,14 @@ ALTER TABLE ONLY public.customer_payments
 
 ALTER TABLE ONLY public.customers
     ADD CONSTRAINT customers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: delivery_note_lines delivery_note_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_note_lines
+    ADD CONSTRAINT delivery_note_lines_pkey PRIMARY KEY (id);
 
 
 --
@@ -5236,6 +5287,27 @@ CREATE INDEX index_customers_on_phone ON public.customers USING btree (phone);
 --
 
 CREATE INDEX index_customers_on_price_list_id ON public.customers USING btree (price_list_id);
+
+
+--
+-- Name: index_delivery_note_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delivery_note_lines_on_account_id ON public.delivery_note_lines USING btree (account_id);
+
+
+--
+-- Name: index_delivery_note_lines_on_delivery_note_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delivery_note_lines_on_delivery_note_id ON public.delivery_note_lines USING btree (delivery_note_id);
+
+
+--
+-- Name: index_delivery_note_lines_on_sale_line_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delivery_note_lines_on_sale_line_id ON public.delivery_note_lines USING btree (sale_line_id);
 
 
 --
@@ -7776,6 +7848,14 @@ ALTER TABLE ONLY public.sale_returns
 
 
 --
+-- Name: delivery_note_lines fk_rails_9533d5c2ba; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_note_lines
+    ADD CONSTRAINT fk_rails_9533d5c2ba FOREIGN KEY (delivery_note_id) REFERENCES public.delivery_notes(id) DEFERRABLE;
+
+
+--
 -- Name: stock_count_lines fk_rails_95d9016807; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8208,6 +8288,14 @@ ALTER TABLE ONLY public.customer_orders
 
 
 --
+-- Name: delivery_note_lines fk_rails_d6af4257fa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_note_lines
+    ADD CONSTRAINT fk_rails_d6af4257fa FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: stock_count_lines fk_rails_d96a46556a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8528,6 +8616,14 @@ ALTER TABLE ONLY public.sale_lines
 
 
 --
+-- Name: delivery_note_lines fk_rails_f90db4a5e0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_note_lines
+    ADD CONSTRAINT fk_rails_f90db4a5e0 FOREIGN KEY (sale_line_id) REFERENCES public.sale_lines(id) DEFERRABLE;
+
+
+--
 -- Name: products fk_rails_fb915499a4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8710,6 +8806,13 @@ CREATE POLICY account_isolation ON public.customer_payments USING (((current_set
 --
 
 CREATE POLICY account_isolation ON public.customers USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: delivery_note_lines account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.delivery_note_lines USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -9200,6 +9303,12 @@ ALTER TABLE public.customer_payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: delivery_note_lines; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.delivery_note_lines ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: delivery_notes; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9536,6 +9645,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261110110000'),
 ('20261110100100'),
 ('20261110100000'),
 ('20261109210000'),

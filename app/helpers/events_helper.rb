@@ -24,6 +24,8 @@ module EventsHelper
     in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"
     in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{event.particulars["approver"]}"
     in [ "CustomerOrder", "part_collected" ] then "collected part of #{subject} (#{event.particulars["receipt_number"]}); still waiting: #{Array(event.particulars["remaining"]).to_sentence}"
+    in [ "DeliveryNote", "cancelled" ] then "cancelled delivery #{subject}#{" and its transport order #{event.particulars["transport_order"]}" if event.particulars["transport_order"] && !event.particulars["transport_paid_on"]}" \
+      "#{"; the transport was paid on #{event.particulars["transport_paid_on"]}, so refund it from that receipt" if event.particulars["transport_paid_on"]}"
     in [ "Customer", "paid" ] then "took #{money(event.particulars["amount"])} from #{subject} on account by #{event.particulars["payment_method"].to_s.humanize.downcase}#{" (#{event.particulars["reference"]})" if event.particulars["reference"].present?}"
     in [ "Customer", "credit_refunded" ] then "refunded #{money(event.particulars["amount"])} of account credit to #{subject} by #{event.particulars["payment_method"].to_s.humanize.downcase}"
     in [ "Customer", "written_off" ] then "wrote off #{money(event.particulars["amount"])} of #{subject}'s account, approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"

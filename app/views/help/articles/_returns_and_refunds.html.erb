@@ -16,7 +16,9 @@
     way the customer paid. Account credit needs a sale with a customer.</li>
   <li>Type a <strong>Reason</strong> if you like, then press <strong>Process return</strong>.</li>
 </ol>
-<p>The refund is what the customer actually paid for those items, including their share of any discount. HardPoint records how you paid
+<p>The refund is what the customer actually paid for those items, including their share of any discount. If the items were part of a
+  promotion the rest of the sale no longer qualifies for (one pipe of "any 3 for 3,000", or the free bag of "buy 10, get 1"), the refund is
+  only what the kept goods no longer earn, so the customer doesn't keep a saving on goods that aren't a bundle any more. HardPoint records how you paid
   them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.</p>
 
 <%= render "help/walkthrough", tour: HelpTour.find("return") %>

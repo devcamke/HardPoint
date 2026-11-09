@@ -204,9 +204,15 @@ class CustomerAccountsControllerTest < ActionDispatch::IntegrationTest
 
     get new_delivery_note_path(sale_id: sale.id)
     assert_response :success
-    post delivery_notes_path, params: { delivery_note: { sale_id: sale.id, address: "Plot 12, Mombasa Road", contact_phone: "0722000111" } }
+    line = without_isolation { sale.lines.sole }
+    assert_select "input[name='delivery_note[lines_attributes][0][quantity]'][max='4']"
+    post delivery_notes_path, params: { delivery_note: { sale_id: sale.id, address: "Plot 12, Mombasa Road", contact_phone: "0722000111",
+      lines_attributes: { "0" => { sale_line_id: line.id, quantity: "3" } } } }
     note = without_isolation { DeliveryNote.last }
     assert_redirected_to delivery_note_path(note)
+    assert_equal [ 3 ], without_isolation { note.lines.map(&:quantity) }
+    get sale_path(sale)
+    assert_select "a", "Deliver the rest"
 
     post delivery_note_dispatch_path(note), params: { driver_name: "Joseph", vehicle: "KDA 123B" }
     post delivery_note_delivery_path(note), params: { received_by: "Peter", proof_photo: fixture_file_upload("signed-note.png", "image/png") }

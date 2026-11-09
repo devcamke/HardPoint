@@ -492,7 +492,7 @@ Returns are done at a till with an open shift, because a cash refund comes out o
 4. Choose **Refund by**: Cash, Card, M-Pesa, Airtel Money, or **Credit to customer's account**. It starts as the way the customer paid. Account credit needs a sale with a customer.
 5. Type a **Reason** if you like, then press **Process return**.
 
-The refund is what the customer actually paid for those items, including their share of any discount. HardPoint records how you paid them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.
+The refund is what the customer actually paid for those items, including their share of any discount. If the items were part of a promotion the rest of the sale no longer qualifies for (one pipe of "any 3 for 3,000", or the free bag of "buy 10, get 1"), the refund is only what the kept goods no longer earn, so the customer doesn't keep a saving on goods that aren't a bundle any more. HardPoint records how you paid them back; for card, M-Pesa and Airtel Money refunds, send the money yourself. Credit to the account lowers what the customer owes.
 
 **Walkthrough: Return goods**
 
@@ -748,7 +748,10 @@ Transport lines keep the amount you typed: customer price lists and quantity bre
 
 1. Open the sale and press **Deliver**.
 2. Check the delivery address, and add the transport charge if it wasn't on the sale (see below).
-3. Print the delivery note. It has a line for the customer to sign.
+3. Under **What's going out**, lower a quantity to send part of the sale now. The note prints only what's on the lorry; the sale then shows **Deliver the rest** for a later note.
+4. Print the delivery note. It has a line for the customer to sign.
+
+**Cancel delivery** cancels the transport order charged on the note too, while it's still unpaid. If a deposit was taken on it, refund that first; if the transport was already paid at the till, refund it from that receipt with a return.
 
 #### Charging transport afterwards
 
