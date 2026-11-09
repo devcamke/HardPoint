@@ -37,6 +37,14 @@ module Account::Subscription
     read_only? || suspended? || closing?
   end
 
+  # When the current lock began, from the event that applied it: the offline till's sales from before then are
+  # still taken, since they were rung up while the shop was allowed to sell.
+  def locked_since
+    return unless locked?
+
+    account_events.where(eventable: self, action: %w[ made_read_only suspended closure_requested ]).maximum(:created_at)
+  end
+
   def trial_days_left
     [ ((trial_ends_at - Time.current) / 1.day).ceil, 0 ].max if trialing? && trial_ends_at
   end

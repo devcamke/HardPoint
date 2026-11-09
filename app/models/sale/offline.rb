@@ -50,6 +50,10 @@ module Sale::Offline
         raise ArgumentError, "#{cashier.name} can't sell at this shop" unless account.memberships.find_by(user: cashier)&.can_sell?
         happened_at = Time.zone.parse(data["happened_at"].to_s) || Time.current
         happened_at = happened_at.clamp(shift.opened_at - CLOCK_TOLERANCE, Time.current + CLOCK_TOLERANCE)
+        # A read-only, suspended or closing shop still gets the sales its tills rang up before the lock, and no others.
+        if (locked_since = account.locked_since) && happened_at > locked_since + CLOCK_TOLERANCE
+          raise ArgumentError, "This shop has been read-only since #{I18n.l(locked_since.in_time_zone(account.time_zone), format: :short)}; a sale rung up after that can't be recorded"
+        end
 
         customer = account.customers.find(data["customer_id"]) if data["customer_id"].present?
         job = customer.jobs.find_by(id: data["job_id"]) if customer && data["job_id"].present?

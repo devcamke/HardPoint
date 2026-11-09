@@ -71,6 +71,27 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_operator future.sale.completed_at, :<=, 6.minutes.from_now
   end
 
+  test "a read-only shop takes the offline sales rung up before the lock, and refuses the ones after" do
+    locked_at = 10.minutes.ago
+    travel_to locked_at do
+      accounts(:acme).update!(subscription_status: "read_only")
+      accounts(:acme).track_event "made_read_only", creator: nil, invoice: "HP-2026-000001"
+    end
+    assert_in_delta locked_at, accounts(:acme).locked_since, 1.second
+
+    before = record(payload(happened_at: 30.minutes.ago))
+    assert_equal "recorded", before.status
+
+    after = record(payload(happened_at: 2.minutes.ago))
+    assert_equal "error", after.status
+    assert_match "read-only since", after.error
+    assert_equal 1, accounts(:acme).sales.offline.count
+  end
+
+  test "an open shop has no lock time" do
+    assert_nil accounts(:acme).locked_since
+  end
+
   test "another shop's shift can't be named" do
     assert_equal "error", record(payload.merge(shift_id: Account.without_isolation { Shift.create!(account: accounts(:bolt),
       register: accounts(:bolt).registers.create!(account: accounts(:bolt), branch: branches(:bolt_main), name: "Counter")).id })).status
