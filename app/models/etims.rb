@@ -10,9 +10,12 @@ module Etims
     "etims_"
   end
 
-  # The tax type for a rate, from the shop's tax rate with that rate, else KRA's usual one.
-  def self.tax_type_for(account, rate)
-    account.tax_rates.find { _1.rate.to_d == rate.to_d }&.etims_code.presence ||
+  # The tax type for a line or product: the code on the tax rate it was sold under (exempt and zero-rated
+  # are both 0%, so the percentage alone can't tell them apart); failing that, the shop's rate with that
+  # percentage; failing that, KRA's usual type for the percentage.
+  def self.tax_type_for(account, rate, tax_rate: nil)
+    tax_rate&.etims_code.presence ||
+      account.tax_rates.find { _1.rate.to_d == rate.to_d }&.etims_code.presence ||
       { 16 => "B", 8 => "E", 0 => "C" }.fetch(rate.to_d.to_i, "B")
   end
 end

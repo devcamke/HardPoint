@@ -2178,7 +2178,8 @@ CREATE TABLE public.sale_lines (
     cost_cents bigint DEFAULT 0 NOT NULL,
     detail character varying,
     promotion_id bigint,
-    promotion_discount_cents bigint DEFAULT 0 NOT NULL
+    promotion_discount_cents bigint DEFAULT 0 NOT NULL,
+    tax_rate_id bigint
 );
 
 ALTER TABLE ONLY public.sale_lines FORCE ROW LEVEL SECURITY;
@@ -5815,6 +5816,13 @@ CREATE INDEX index_sale_lines_on_sale_id ON public.sale_lines USING btree (sale_
 
 
 --
+-- Name: index_sale_lines_on_tax_rate_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sale_lines_on_tax_rate_id ON public.sale_lines USING btree (tax_rate_id);
+
+
+--
 -- Name: index_sale_return_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7305,6 +7313,14 @@ ALTER TABLE ONLY public.airtel_requests
 
 ALTER TABLE ONLY public.goods_receipts
     ADD CONSTRAINT fk_rails_68b64d7d0c FOREIGN KEY (receiver_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
+-- Name: sale_lines fk_rails_68c27cc389; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sale_lines
+    ADD CONSTRAINT fk_rails_68c27cc389 FOREIGN KEY (tax_rate_id) REFERENCES public.tax_rates(id) DEFERRABLE NOT VALID;
 
 
 --
@@ -9335,6 +9351,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261109160000'),
 ('20261108130000'),
 ('20261108123000'),
 ('20261108122000'),

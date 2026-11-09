@@ -18,7 +18,7 @@ class Etims::Item
   def to_h
     { itemCd: self.class.code_for(@product), itemClsCd: class_code, itemTyCd: self.class.type_for(@product), itemNm: @product.name,
       orgnNatCd: "KE", pkgUnitCd: "NT", qtyUnitCd: @product.unit.etims_code.presence || "U",
-      taxTyCd: Etims.tax_type_for(@product.account, @product.effective_tax_rate&.rate || 0),
+      taxTyCd: Etims.tax_type_for(@product.account, @product.effective_tax_rate&.rate || 0, tax_rate: @product.effective_tax_rate),
       bcd: @product.barcodes.first&.code, dftPrc: @product.price_cents / 100.0, isrcAplcbYn: "N", useYn: "Y",
       regrId: "HardPoint", regrNm: "HardPoint", modrId: "HardPoint", modrNm: "HardPoint" }
   end

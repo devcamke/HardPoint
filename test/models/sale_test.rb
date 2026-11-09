@@ -18,6 +18,15 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal 160000 + 37500, @sale.total_cents
   end
 
+  test "a line remembers which tax rate it was sold under, and its percentage even if that rate is later edited" do
+    @sale.add(products(:acme_cement))
+    line = @sale.lines.sole
+    assert_equal tax_rates(:acme_vat), line.tax_rate_record
+    assert_equal 16, line.tax_rate
+
+    assert_not tax_rates(:acme_vat).destroy, "a rate that lines were sold under can't be deleted"
+  end
+
   test "prices include tax; the tax share is worked out per line" do
     @sale.add(products(:acme_cement)) # 800.00 at 16% VAT
     @sale.add(products(:acme_screws), quantity: 10) # 50.00, no tax rate set → shop default 16%
