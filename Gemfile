@@ -70,8 +70,8 @@ gem "strong_migrations", "~> 2.8"
 
 # Error reporting to Sentry when SENTRY_DSN is set; without it the gems stay quiet and
 # config/initializers/error_reporting.rb emails the operators instead.
-gem "sentry-ruby", "~> 6.2"
-gem "sentry-rails", "~> 6.2"
+gem "sentry-ruby", "~> 7.2"
+gem "sentry-rails", "~> 7.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
