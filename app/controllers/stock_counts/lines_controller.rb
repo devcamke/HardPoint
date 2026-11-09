@@ -7,7 +7,7 @@ class StockCounts::LinesController < ApplicationController
     if @line.by_batch?
       @line.errors.add :base, "Count #{@line.product.name} batch by batch"
     else
-      @line.update(counted_quantity: params.dig(:stock_count_line, :counted_quantity).presence)
+      @line.record(params.dig(:stock_count_line, :counted_quantity).presence)
     end
 
     respond_to do |format|
