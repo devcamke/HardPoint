@@ -36,6 +36,26 @@ class CustomerOrderTest < ActiveSupport::TestCase
     assert order.ordered_at
   end
 
+  test "confirming a quote worth more than the customer's credit left needs a manager's approval, as the till does" do
+    order = quote(lines: { "CEM-50" => 70 }) # 53,200.00 at contractor prices, against a 50,000.00 limit
+
+    assert_not order.confirm
+    assert_match "Mwangi Builders Ltd has only KES 50,000.00 of credit left", order.errors.full_messages.to_sentence
+    assert order.reload.quote?
+
+    assert order.confirm(approver: users(:amina))
+    assert order.ordered?
+    assert_equal %w[ credit_approved confirmed ], order.events.order(:id).last(2).pluck(:action)
+    assert_equal "Amina Owner", order.events.find_by(action: "credit_approved").particulars["approver"]
+
+    assert quote(lines: { "CEM-50" => 10 }).confirm, "within the credit left, nothing to approve"
+    assert quote(customer: customers(:acme_walk_in), lines: { "CEM-50" => 70 }).confirm, "a cash customer pays at the till"
+
+    with_deposit = quote(lines: { "CEM-50" => 70 })
+    with_deposit.take_deposit(amount_cents: 1_000_00, tender: "mobile_money", reference: "SJK4H7T2QR")
+    assert with_deposit.reload.ordered?, "money down confirms it; the till checks the credit again when the rest goes on account"
+  end
+
   test "taking a deposit confirms the quote; cash needs an open shift" do
     order = quote
 
