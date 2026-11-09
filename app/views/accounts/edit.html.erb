@@ -27,6 +27,11 @@
     </div>
 
     <div class="field">
+      <%= form.label :payout_approval_above, "Payouts from a till above this need a manager's approval PIN (#{@account.currency})", class: "label" %>
+      <%= form.number_field :payout_approval_above, value: plain_number(@account.payout_approval_above), step: "0.01", min: 0, class: "input w-40" %>
+    </div>
+
+    <div class="field">
       <%= form.label :receipt_footer, "Receipt footer", class: "label" %>
       <%= form.text_area :receipt_footer, rows: 2, class: "input", placeholder: "e.g. Goods sold are returnable within 7 days with this receipt. PIN P051234567X" %>
     </div>

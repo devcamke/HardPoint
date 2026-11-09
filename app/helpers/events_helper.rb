@@ -16,6 +16,7 @@ module EventsHelper
     in [ "Membership", "pin_set" ] then "set #{whose(event)} till PIN"
     in [ "Membership", "pin_removed" ] then "removed #{whose(event)} till PIN"
     in [ "Shift", "opened" ] then "opened a shift on #{subject} with #{money(event.particulars["opening_float"])} float"
+    in [ "Shift", "payout_approved" ] then "paid out #{money(event.particulars["amount"])} from the drawer on #{subject}, approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
     in [ "Shift", "closed" ] then "closed the shift on #{subject}: counted #{money(event.particulars["counted"])}, #{variance_words(event.particulars["variance"])}"
     in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
     in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"

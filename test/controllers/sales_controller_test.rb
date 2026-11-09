@@ -93,6 +93,28 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_select "div", /Expected in drawer\s*KES 5,600.00/
   end
 
+  test "cash movements go on this device's till only, and a big payout needs a manager's PIN" do
+    yard = Account.without_isolation { accounts(:acme).shifts.create!(branch: branches(:acme_yard), register: registers(:acme_yard), opened_by: users(:carl), opening_float_cents: 100000) }
+    get new_shift_cash_movement_path(yard)
+    assert_response :not_found
+    post shift_cash_movements_path(yard), params: { cash_movement: { kind: "drop", amount: "100", reason: "To safe" } }
+    assert_response :not_found
+
+    post shift_cash_movements_path(shifts(:acme_front_open)), params: { cash_movement: { kind: "payout", amount: "6000", reason: "Cement delivery" } }
+    assert_response :unprocessable_entity
+    assert_select "#error_explanation li", /payout over KES 5,000.00 needs a manager's approval PIN/
+    assert_equal 0, Account.without_isolation { shifts(:acme_front_open).cash_movements.count }
+
+    post shift_cash_movements_path(shifts(:acme_front_open)), params: { approval_pin: "2468", cash_movement: { kind: "payout", amount: "6000", reason: "Cement delivery" } }
+    assert_redirected_to shift_path(shifts(:acme_front_open))
+    event = Account.without_isolation { shifts(:acme_front_open).events.last }
+    assert_equal [ "payout_approved", "Amina Owner", 600000 ], [ event.action, event.particulars["approver"], event.particulars["amount"] ]
+
+    post shift_cash_movements_path(shifts(:acme_front_open)), params: { cash_movement: { kind: "payout", amount: "4000", reason: "Lunch" } }
+    assert_redirected_to shift_path(shifts(:acme_front_open)), "under the limit, no PIN needed"
+    assert_equal 500000 + 160000 - 600000 - 400000, Account.without_isolation { shifts(:acme_front_open).expected_cash_cents_now }
+  end
+
   test "another shop's sales are out of reach" do
     sign_in_as users(:bob)
     get sale_path(@sale)

@@ -19,4 +19,9 @@ class CashMovement < ApplicationRecord
   def outgoing?
     kind.in?(%w[ drop payout ])
   end
+
+  # Payouts above the shop's limit need an owner's or manager's say-so; drops to the safe and pay-ins don't.
+  def needs_approval?
+    kind == "payout" && amount_cents.to_i > account.payout_approval_above_cents
+  end
 end
