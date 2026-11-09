@@ -71,6 +71,46 @@ class MpesaTest < ActiveSupport::TestCase
     assert_nil accounts(:acme).mpesa_transactions.sole.matched
   end
 
+  test "a cart with a prompt still waiting can't be cleared, so the answer has somewhere to land" do
+    request = @shortcode.request_payment(sale: @sale, phone: "0722000111", amount_cents: @sale.balance_due_cents)
+
+    assert_not @sale.discard
+    assert_match "prompt is still waiting", @sale.errors.full_messages.to_sentence
+    assert Sale.exists?(@sale.id)
+
+    request.cancel
+    assert @sale.reload.discard
+  end
+
+  test "money sent over the amount due is change, handed back in cash and taken off the drawer" do
+    @shortcode.request_payment(sale: @sale, phone: "0722000111", amount_cents: @sale.balance_due_cents)
+    @shortcode.receive_stk_callback(paid_callback(amount: 1200))
+
+    payment = @sale.reload.payments.sole
+    assert @sale.completed?
+    assert_equal [ 100000, 120000, 20000 ], [ payment.amount_cents, payment.tendered_cents, payment.change_cents ]
+    assert_equal 20000, @sale.change_cents, "shown on the receipt"
+    assert_equal 20000, shifts(:acme_front_open).mobile_money_change_cents
+    assert_equal shifts(:acme_front_open).opening_float_cents - 20000, shifts(:acme_front_open).expected_cash_cents_now
+
+    # The same for money sent straight to the Paybill and picked from the list.
+    other = shifts(:acme_front_open).current_sale
+    other.add(products(:acme_nails)) # 250.00
+    received = @shortcode.receive_c2b_confirmation(c2b(trans_id: "GGG7", amount: "300.00"))
+    taken = received.attach_to(other)
+    assert_equal [ 25000, 30000, 5000 ], [ taken.amount_cents, taken.tendered_cents, taken.change_cents ]
+  end
+
+  test "taking a payment off the sale frees the money it was matched to" do
+    received = @shortcode.receive_c2b_confirmation(c2b(trans_id: "HHH8", amount: "400.00"))
+    payment = received.attach_to(@sale)
+    assert_equal payment, received.reload.matched
+
+    @sale.remove_payment(payment)
+    assert_nil received.reload.matched
+    assert_equal 400_00, received.attach_to(@sale).amount_cents, "usable again"
+  end
+
   test "a late callback is chased with a status check" do
     request = @shortcode.request_payment(sale: @sale, phone: "0722000111", amount_cents: @sale.balance_due_cents)
     request.update_columns(created_at: 1.minute.ago)

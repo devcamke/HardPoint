@@ -53,7 +53,7 @@ class Mpesa::Transaction < ApplicationRecord
     with_lock do
       raise ArgumentError, "This M-Pesa payment has already been used" if matched
 
-      payment = sale.pay(tender: "mobile_money", amount_cents: [ amount_cents, sale.balance_due_cents ].min, reference: trans_id)
+      payment = sale.pay(tender: "mobile_money", amount_cents: [ amount_cents, sale.balance_due_cents ].min, tendered_cents: amount_cents, reference: trans_id)
       match(payment) if payment.persisted?
       payment
     end

@@ -72,7 +72,7 @@ class Airtel::Request < ApplicationRecord
   def use_on(sale)
     return unless paid? && payment.nil?
 
-    taken = sale.pay(tender: "airtel_money", amount_cents: [ amount_cents, sale.balance_due_cents ].min, reference: airtel_money_id)
+    taken = sale.pay(tender: "airtel_money", amount_cents: [ amount_cents, sale.balance_due_cents ].min, tendered_cents: amount_cents, reference: airtel_money_id)
     update!(payment: taken) if taken.persisted?
     taken
   end
