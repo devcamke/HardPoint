@@ -134,26 +134,38 @@
   </div>
 </section>
 
-<section class="border-t border-gray-200 bg-gray-50">
+<%# The five setup steps as a path: white cards on a teal panel, their numbers strung on a dashed line. %>
+<section class="border-t border-gray-200 bg-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
-      <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Up and running in an afternoon.</h2>
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Getting started</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Up and running in an afternoon.</h2>
       <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">A <strong class="font-semibold text-gray-900">Set up your shop</strong> checklist walks you through it, and guided tours show each
         screen when you first use it.</p>
     </div>
-    <ol class="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-5">
-      <% [ [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed." ],
-           [ "Name your branches and tills", "Check your tax rates and switch on only the features you use." ],
-           [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time." ],
-           [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work." ],
-           [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till." ] ].each.with_index(1) do |(title, body), step| %>
-        <li>
-          <p class="flex size-10 items-center justify-center rounded-full bg-primary-500 text-lg font-bold text-white tabular-nums"><%= step %></p>
-          <p class="mt-4 font-semibold text-gray-950"><%= title %></p>
-          <p class="mt-1 text-sm text-gray-600"><%= body %></p>
-        </li>
-      <% end %>
-    </ol>
+    <div class="mt-14 rounded-3xl bg-primary-50 px-5 pt-12 pb-8 sm:px-10 sm:pb-10">
+      <ol class="relative grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="absolute top-0 right-[10%] left-[10%] hidden border-t-2 border-dashed border-primary-300 lg:block" aria-hidden="true"></div>
+        <% [ [ "Create your shop", "Choose a web address and set up the owner's login. #{trial.capitalize} free, no card needed." ],
+             [ "Name your branches and tills", "Check your tax rates and switch on only the features you use." ],
+             [ "Bring in your products", "Import a spreadsheet of thousands in seconds, or add them one at a time." ],
+             [ "Invite your staff", "Owner, manager, cashier, stock clerk or accountant, each seeing only their work." ],
+             [ "Connect and sell", "Print a test receipt, connect M-Pesa and KRA eTIMS, and open the till." ] ].each.with_index(1) do |(title, body), step| %>
+          <li class="relative flex flex-col items-center rounded-2xl bg-white px-5 pt-8 pb-6 text-center shadow-sm ring-1 ring-primary-100 <%= "sm:col-span-2 lg:col-span-1" if step == 5 %>">
+            <span class="absolute -top-5 left-1/2 flex size-10 -translate-x-1/2 items-center justify-center rounded-full text-lg font-bold text-white tabular-nums shadow-md ring-4 ring-primary-50 <%= step == 5 ? "bg-primary-700" : "bg-primary-500" %>"><%= step %></span>
+            <p class="font-semibold text-gray-950 text-balance"><%= title %></p>
+            <p class="mt-2 text-sm text-gray-600 text-balance"><%= body %></p>
+          </li>
+        <% end %>
+      </ol>
+      <div class="mt-10 flex flex-col items-center gap-3 border-t border-primary-200 pt-8 text-center sm:flex-row sm:justify-between sm:text-left">
+        <p class="text-gray-700">Stuck on a step? A person on WhatsApp will walk you through it.</p>
+        <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          <%= link_to whatsapp_support_url("Hello HardPoint, I'm setting up my shop and need a hand."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>WhatsApp us <span aria-hidden="true">›</span><% end %>
+          <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5" %>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
