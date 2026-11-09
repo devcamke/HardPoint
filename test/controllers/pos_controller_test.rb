@@ -236,7 +236,7 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     post pos_completion_path, params: { approval_pin: "2468" }, as: :turbo_stream
     sale = Account.without_isolation { Sale.completed.last }
     assert_redirected_to pos_path(completed: sale.id)
-    assert_equal [ 0, "MAIN-000001" ], [ sale.total_cents, sale.receipt_number ]
+    assert_equal [ 0, "MAIN-000001" ], Account.without_isolation { [ sale.total_cents, sale.receipt_number ] }
     assert_equal "completed_without_payment", Account.without_isolation { sale.events.last.action }
   end
 
