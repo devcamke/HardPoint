@@ -6,7 +6,8 @@
     for the offline till. The order is the usual one for the trade, and an argument: the promise, what it works with,
     what it does, why it's different, the offline till, the owner's view, the hardware, how to start, how the data
     is kept, the price, the questions, and the door. Sections alternate white, light grey and a pale tint of the
-    theme colour, so no two neighbours share a background (the security promise and the closing call wear the tint).
+    theme colour, so no two neighbours share a background, with two full-colour bands (the offline till and the closing
+    call) as anchors; every section opens the same way, a small label, a bold headline and a line under it.
     The walkthrough of a sale is one click away, "Watch a sale" in the hero, in a dialog over the page.
     From the market: a "works with" strip where Shopify puts its logo wall, Square's "ready for what you've got"
     hardware section, and the questions before the door that both of them carry. %>
@@ -418,7 +419,8 @@
 <section id="pricing" class="scroll-mt-20 bg-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto mb-12 max-w-3xl text-center">
-      <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Fair pricing.</h2>
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Pricing</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Fair pricing.</h2>
       <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">One price per shop a month. Pay by M-Pesa or card, monthly or yearly.</p>
     </div>
     <%= render "pages/plans", plans: @plans %>
@@ -437,18 +439,21 @@
   </div>
 </section>
 
-<section class="bg-primary-50/70">
+<%# The door, in the same full-colour band as the offline till: the page ends on its strongest colour. %>
+<section class="offline-band relative overflow-hidden text-white">
   <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
-    <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Open the till.</h2>
-    <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>
+    <p class="text-sm font-semibold tracking-wide text-white/75 uppercase">Ready when you are</p>
+    <h2 class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">Open the till.</h2>
+    <p class="mt-5 text-lg text-white/85 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email
+      <%= mail_to Rails.configuration.x.support[:email], nil, class: "font-medium text-white underline decoration-white/50 underline-offset-2 hover:decoration-white" %>.</p>
     <div class="relative mt-9 inline-flex flex-col items-center">
-      <%= doodle_arrow.("absolute -left-16 -top-8 size-14 -rotate-6 text-primary-500 max-sm:hidden") %>
-      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary px-8 py-3 text-lg" %>
+      <%= doodle_arrow.("absolute -left-16 -top-8 size-14 -rotate-6 text-white/70 max-sm:hidden") %>
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn rounded-md border border-white bg-white px-8 py-3 text-lg font-semibold text-primary-700 shadow-lg shadow-primary-900/20 hover:bg-primary-50 focus-visible:outline-white" %>
     </div>
-    <ul class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-gray-600">
-      <li class="flex items-center gap-1.5"><%= render "pages/check" %>No card needed</li>
-      <li class="flex items-center gap-1.5"><%= render "pages/check" %><%= trial.capitalize %> free</li>
-      <li class="flex items-center gap-1.5"><%= render "pages/check" %>Selling the same afternoon</li>
+    <ul class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-white/85">
+      <li class="flex items-center gap-1.5"><%= render "pages/check", classes: "text-white" %>No card needed</li>
+      <li class="flex items-center gap-1.5"><%= render "pages/check", classes: "text-white" %><%= trial.capitalize %> free</li>
+      <li class="flex items-center gap-1.5"><%= render "pages/check", classes: "text-white" %>Selling the same afternoon</li>
     </ul>
   </div>
 </section>
