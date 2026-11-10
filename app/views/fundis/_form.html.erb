@@ -1,0 +1,22 @@
+<%= form_with model: fundi, class: "card max-w-2xl" do |form| %>
+  <%= render "shared/errors", model: fundi %>
+  <%= hidden_field_tag :for_till, params[:for_till] if params[:for_till].present? %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field"><%= form.label :name, class: "label" %><%= form.text_field :name, required: true, class: "input", placeholder: "Otieno Ouma" %></div>
+    <div class="field"><%= form.label :phone, "Phone (their M-Pesa number)", class: "label" %><%= form.telephone_field :phone, class: "input", placeholder: "0712 345 678" %></div>
+    <div class="field"><%= form.label :trade, class: "label" %><%= form.select :trade, Fundi::TRADES.invert, {}, class: "input" %></div>
+    <% if current_membership.approver? %>
+      <div class="field"><%= form.label :commission_percent, "Their own rate on everything (%, optional)", class: "label" %>
+        <%= form.number_field :commission_percent, value: (plain_number(fundi.commission_percent) if fundi.commission_percent), step: "0.1", min: 0, max: 50, inputmode: "decimal", class: "input" %>
+        <p class="hint mt-1">Leave empty to use the category and shop rates.</p></div>
+    <% end %>
+  </div>
+  <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "Works mostly in Kitengela" %></div>
+  <% if fundi.persisted? %>
+    <div class="field flex items-center gap-2"><%= form.check_box :active, class: "size-4 accent-primary-500" %><%= form.label :active, "Active (can be named at the till)", class: "text-sm" %></div>
+  <% end %>
+  <div class="flex items-center gap-3">
+    <%= form.submit "Save", class: "btn-primary" %>
+    <%= link_to "Cancel", fundi.persisted? ? fundi : fundis_path, class: "link" %>
+  </div>
+<% end %>

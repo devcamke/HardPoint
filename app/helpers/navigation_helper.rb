@@ -40,6 +40,7 @@ module NavigationHelper
         menu = [ [ "Customers", customers_path ] ]
         menu << [ "Who owes us", receivables_path ] if m.can_manage_receivables?
         menu << [ "Jobs", jobs_path ] if feature?(:jobs)
+        menu << [ "Fundis", fundis_path ] if feature?(:fundis)
         apps << App.new(:customers, "Customers", customers_path, "#d9534f", :staff, menu, [])
       end
 

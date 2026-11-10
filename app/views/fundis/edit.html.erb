@@ -1,0 +1,3 @@
+<% content_for :title, "Edit #{@fundi.name}" %>
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Fundis", fundis_path, class: "link" %> <span class="text-gray-400">/</span> <%= link_to @fundi.name, @fundi, class: "link" %> <span class="text-gray-400">/</span> Edit</h1>
+<%= render "form", fundi: @fundi %>

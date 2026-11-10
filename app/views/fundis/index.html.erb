@@ -1,0 +1,38 @@
+<% content_for :title, "Fundis" %>
+
+<%= render "shared/control_panel",
+      title: "Fundis",
+      new_button: ([ "New", new_fundi_path ] if current_membership.can_sell?),
+      search: { placeholder: "Name or phone" },
+      filters: [ search_filter(:filter, label: "Show", value: @filter, clear: "all",
+                   options: FundisController::FILTERS.without("all").map { [ _1, _1.humanize ] }) ],
+      records: @fundis %>
+
+<div class="mb-4 grid gap-4 sm:grid-cols-3">
+  <div class="card"><p class="hint">Owed to fundis</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@total_owed) %></p></div>
+  <div class="card"><p class="hint">Shop rate</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= plain_number(Current.account.fundi_commission_percent) %>%</p>
+    <% if current_membership.approver? %><%= link_to "Commission rates", edit_fundi_rates_path, class: "link text-sm" %><% end %></div>
+  <div class="card"><p class="hint">How it works</p><p class="mt-1 text-sm text-gray-700">Name the fundi at the till. A completed sale earns them commission; a void or return takes it back.</p></div>
+</div>
+
+<div class="card overflow-x-auto">
+  <% if @fundis.any? %>
+    <table class="table">
+      <thead><tr><th>Fundi</th><th>Phone</th><th class="text-right">Brought in this month</th><th class="text-right">Earned this month</th><th class="text-right">Owed</th></tr></thead>
+      <tbody>
+        <% @fundis.each do |fundi| %>
+          <tr id="<%= dom_id(fundi) %>">
+            <td><%= link_to fundi.name, fundi, class: "link font-semibold" %> <span class="hint"><%= fundi.trade_name %></span>
+              <%= status_dot("Inactive", :muted, class: "ml-2") unless fundi.active? %></td>
+            <td class="text-sm tabular-nums"><%= PhoneNumber.display(fundi.phone) %></td>
+            <td class="text-right tabular-nums"><%= money(@brought[fundi.id].to_i) %></td>
+            <td class="text-right tabular-nums"><%= money(@earned[fundi.id].to_i) %></td>
+            <td class="text-right font-semibold tabular-nums"><%= money(@owed[fundi.id].to_i) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-gray-500">No fundis here yet. Add the masons, plumbers and electricians who bring you customers, then name them at the till.</p>
+  <% end %>
+</div>

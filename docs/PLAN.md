@@ -22,7 +22,7 @@ customers, staff, or reports.
 | Stock takes | Differences are measured against the snapshot taken at the start, so selling during a count is fine |
 | Prices and tax | Shelf prices include tax (the norm for Kenyan retail); each line's tax is its tax-inclusive share at the product's rate |
 | Approvals | Owners and managers have a separate **approval PIN** that authorises one action at a cashier's till (big discount, void, return) without signing anyone in; a discount only needs approving again if it goes beyond what was already approved |
-| Negative stock | Sales aren't blocked when the system shows no stock (deliveries are often booked late); the till warns and the Stock page flags branches below zero |
+| Negative stock | Stock can't be sold below zero (Phase 34): the till refuses the one too many and the owner's morning email lists what was turned away. Only the offline till's sales, already made, may still take a level below zero, and they're flagged |
 | Voids vs returns | A sale can be voided only while its shift is open; after that it's a return against the receipt |
 | Cash drawer | Opened by the receipt printer's driver on print, or by QZ Tray's ESC/POS drawer kick on tills set up for it (Phase 8) |
 | Costing | Weighted-average cost, updated on each delivery from its landed cost (goods plus a value-weighted share of transport and duty); FIFO costing stays in the backlog |
@@ -818,6 +818,61 @@ set of books.
 - **Safe deploys:** migrations run once per deploy from `.kamal/hooks/pre-deploy`, never from booting containers;
   `strong_migrations` refuses unsafe migrations.
 
+### Phase 34 — Stock can't go below zero, and the owner's emails
+**Goal:** the till sells only what's on the shelf, and the owner hears what matters without opening the app.
+- **No selling below zero:** scanning or raising a quantity past what the branch has is refused (kits count their
+  parts); the final payment re-checks; `move_stock(allow_negative: false)` checks with the level locked. Offline sales
+  still sync and are flagged. Each refusal is kept (`stock_refusals`) as demand the shop couldn't meet.
+- **Daily summary** redesigned with charts and a "Worth a look" section (out of stock, turned away, write-offs, cash
+  counts, give-aways per cashier, sold below cost, offline flags, tills left open, unmatched M-Pesa); a **weekly
+  summary** each Monday; **alerts** straight away for a till closing short, a big void or a costly stock count, over
+  amounts each shop sets; the low-stock email also lists products at zero with no reorder level.
+
+### Phases 35–39 — Ahead of the competition
+Chosen for how Kenyan hardware counters actually trade, in build order. Each is its own pull request.
+
+#### Phase 35 — Fundi commissions *(in progress)*
+**Why:** masons, plumbers, electricians and other fundis bring much of a hardware shop's trade, and shops pay them a
+commission for it, tracked today in a notebook or from memory. No general-purpose till does this.
+- **Fundis:** name, phone (their M-Pesa number), trade, an optional commission rate of their own, active or not; kept
+  apart from customers (a fundi isn't the one paying), searchable by name or phone.
+- **Rates:** a shop-wide default percentage and a rate per category (a subcategory uses its parent's unless it has
+  its own), worked on each line's value before tax. Transport and other services earn nothing unless given a rate.
+- **Tagging:** the till picks the fundi who brought the customer, as it picks a customer; a quote or order can name
+  one, and collecting it carries the fundi to the sale.
+- **The ledger:** a completed sale earns its commission; a void takes it all back and a return its share. Each entry
+  is a row of its own, never changed, so a fundi's statement always adds up.
+- **Payouts:** cash from a till (a till payout, so the drawer still balances) or M-Pesa with its code, needing an owner
+  or manager; the fundi's balance is earned less paid.
+- **Owner view:** a Fundis page (brought in this month, earned, owed), each fundi's statement, a Fundi commissions
+  report, and the top fundis in the weekly summary.
+- **Later:** paying by M-Pesa B2C from HardPoint, a fundi's own statement by link, the offline till naming a fundi.
+
+#### Phase 36 — Material calculator on quotes
+**Why:** "a 3-bedroom house" or "a 40 m wall" has to become blocks, cement, sand, ballast, steel and sheets; doing it
+in the counter's head is slow and loses sales to the shop that answers first.
+- Calculators for walls (blocks or stones, mortar), concrete slabs and footings (cement, sand, ballast, steel),
+  plastering, roofing (sheets, ridges, nails), tiling and painting, with the usual Kenyan sizes and mixes and an
+  allowance for waste.
+- Each material maps to one of the shop's products, set once; the result fills a quote at today's prices, which then
+  takes a deposit or goes to the till like any quote.
+
+#### Phase 37 — Branch rebalancing from what was turned away
+**Why:** one branch at zero while another has plenty (the demo shop's Y12 bar) loses the sale and then over-orders.
+- Suggested transfers when a branch is at or below its reorder level, or turned customers away, and another branch
+  has more than it needs; one tap drafts the stock transfer. Shown on Stock › Reorder and in the daily summary.
+
+#### Phase 38 — Reorder suggestions that learn
+**Why:** fixed reorder levels don't follow the rains, the building season or a supplier's lead time.
+- Suggested quantities from the last weeks' sales and turned-away demand, each supplier's real lead time (from orders
+  to deliveries) and a safety margin; a suggested reorder level the owner can accept.
+
+#### Phase 39 — WhatsApp sending
+**Why:** customers and fundis live on WhatsApp; the share links (Phase 31) still need someone to press send.
+- Quotes, receipts, statements and payment reminders sent from HardPoint through the WhatsApp Business Platform, each
+  with an M-Pesa link to pay. **Needs:** a Meta business account and approved message templates per shop or for the
+  platform, and a cost per conversation; SMS stays the fallback.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -840,12 +895,12 @@ set of books.
    with "Pay with M-Pesa" (STK) for the balance. Speeds up collections, the biggest cash-flow pain for credit shops.
 2. **Credit control:** put an account on hold automatically past N days overdue or over the limit, with an owner's
    override, and a weekly reminder run by WhatsApp/SMS.
-3. **Loss prevention alerts:** daily exceptions to owners (voids, discounts, returns and no-sale drawer openings per
-   cashier against their usual; cash variances by shift), built on the Activity log already kept.
+3. **Loss prevention alerts:** partly done (Phase 34: give-aways per cashier, cash counts and instant alerts). Still
+   to do: each cashier against their own usual, and no-sale drawer openings.
 4. **Stock reserved for confirmed orders**, so a deposit-paid order's goods aren't sold to a walk-in (deferred "until
    shops ask"; pilot shops with yards are likely to).
 5. **Cutting and weighing:** sell by length or weight from a bulk item with offcut tracking, and Web Serial scales.
-6. **Branch rebalancing:** suggested transfers from a branch with excess to one below its reorder level, before ordering.
+6. ~~**Branch rebalancing**~~: planned as Phase 37.
 7. **Supplier invoices from eTIMS:** pull purchase invoices KRA already holds, to receive and pay without retyping.
 8. **Shelf-label queue:** products whose price changed (bulk changes, receiving) wait in a print queue for new labels.
 9. **Kiswahili** throughout the till and receipts (the screens are English-only today).

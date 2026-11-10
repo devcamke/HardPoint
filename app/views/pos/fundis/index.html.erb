@@ -1,0 +1,16 @@
+<%= turbo_frame_tag "fundi_results" do %>
+  <ul class="mt-2 max-h-64 divide-y divide-gray-100 overflow-y-auto text-sm">
+    <% @fundis.each do |fundi| %>
+      <li>
+        <%= button_to pos_fundi_path, method: :patch, params: { fundi_id: fundi.id }, class: "w-full cursor-pointer py-2 text-left hover:bg-gray-50",
+              form: { data: { turbo_frame: "_top" } } do %>
+          <span class="font-medium"><%= fundi.name %></span>
+          <span class="block text-xs text-gray-500"><%= [ fundi.trade_name, PhoneNumber.display(fundi.phone).presence ].compact.join(" · ") %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+  <% query = params[:query].to_s.strip %>
+  <%= link_to "New fundi", new_fundi_path(for_till: 1, **(query.match?(/\A[\d +]+\z/) ? { phone: query } : { name: query.presence }).compact),
+        class: "link mt-2 inline-block text-sm", data: { turbo_frame: "_top" } %>
+<% end %>

@@ -4,7 +4,7 @@ class ReportsController < ApplicationController
   around_action(only: :show) { |_, action| Account.reading(&action) }
 
   def index
-    @reports = Report::KEYS.map { Report.find(_1) }.group_by(&:group)
+    @reports = Report::KEYS.map { Report.find(_1) }.select { _1.feature.nil? || Current.account.feature?(_1.feature) }.group_by(&:group)
   end
 
   def show

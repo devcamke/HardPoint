@@ -198,6 +198,7 @@ module Sale::Payable
       self.number = DocumentSequence.next_number(branch, "sale")
       lines.each(&:deduct_stock)
       update! status: :completed, completed_at: happened_at || Time.current
+      earn_fundi_commission
       customer_order&.mark_collected(self)
     end
 end

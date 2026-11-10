@@ -147,6 +147,13 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     ruiru = account.jobs.create!(customer: otieno, name: "Ruiru plumbing", site: "Ruiru, Kamakis", budget: 40_000)
     account.jobs.create!(customer: otieno, name: "Thika Road offices", site: "Roysambu", status: "closed", closed_at: 60.days.ago)
 
+    # Fundis who bring customers, at 2% unless the category says otherwise (less on building materials and steel).
+    account.update!(fundi_commission_percent: 2)
+    account.categories.where(name: [ "Building materials", "Steel" ]).update_all(fundi_commission_percent: 1)
+    account.fundis.create!(name: "Otieno Ouma", phone: "0711 222 333", trade: "mason", note: "Works mostly in Kitengela")
+    account.fundis.create!(name: "Njeri Wambui", phone: "0722 333 444", trade: "plumber")
+    account.fundis.create!(name: "Kiprono Electrician", phone: "0733 444 555", trade: "electrician", commission_percent: 3)
+
     account_sale = ->(customer, days_ago, items, job: nil) do
       shift = account.shifts.create!(register: front_counter, opening_float: 5000, opened_at: days_ago.days.ago)
       sale = shift.current_sale

@@ -8,6 +8,7 @@ class Category < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :account_id }
   validates_same_account :parent
+  validates :fundi_commission_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 50 }, allow_nil: true
   validates :etims_class_code, format: { with: /\A\d{8,10}\z/, message: "must be KRA's 8–10 digit code" }, allow_blank: true
   validate { errors.add :parent, "can't be the category itself" if parent_id.present? && parent_id == id }
 

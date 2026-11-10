@@ -8,6 +8,10 @@ class Account < ApplicationRecord
   has_many :memberships, dependent: :destroy
   has_many :users, through: :memberships
   has_many :sessions, dependent: :delete_all
+  # Fundi payouts hold till payouts (cash_movements), so they go before the shifts do.
+  has_many :fundi_payouts, dependent: :delete_all
+  has_many :fundi_entries, dependent: :delete_all
+  has_many :fundis, dependent: :delete_all
   has_many :branches, dependent: :destroy
   has_many :account_events, class_name: "Event", dependent: :delete_all
   has_many :registers, dependent: :destroy
@@ -89,6 +93,8 @@ class Account < ApplicationRecord
   validates :payout_approval_above_cents, numericality: { greater_than_or_equal_to: 0 }
   # Instant emails to owners: a shift closing short, a completed sale voided, or a stock count losing more than these.
   money_attribute :alert_shift_short_above, :alert_void_above, :alert_count_loss_above
+  # Fundi commission on what the customers they bring buy, unless a category or the fundi has a rate of its own.
+  validates :fundi_commission_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 50 }
   validates :alert_shift_short_above_cents, :alert_void_above_cents, :alert_count_loss_above_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :backup_frequency, inclusion: { in: AccountBackup::FREQUENCIES }
   validates :backup_notifications, inclusion: { in: AccountBackup::NOTIFICATIONS }
