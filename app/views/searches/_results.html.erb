@@ -15,7 +15,7 @@
               <%= link_to tracked_path(result.path, "search:#{search_group_key(heading)}"), class: "flex items-baseline justify-between gap-4 px-4 py-2 hover:bg-primary-50 focus:bg-primary-100 focus:outline-hidden focus-visible:shadow-[inset_3px_0_0_0_var(--color-primary-600)] aria-selected:bg-primary-100 aria-selected:shadow-[inset_3px_0_0_0_var(--color-primary-600)]",
                     role: "option", data: { search_result: true, command_palette_target: "result" } do %>
                 <span class="min-w-0 truncate font-medium text-gray-900"><%= result.label %></span>
-                <span class="hint shrink-0 truncate"><%= result.detail %></span>
+                <span class="hint min-w-0 truncate"><%= result.detail %></span>
               <% end %>
             </li>
           <% end %>

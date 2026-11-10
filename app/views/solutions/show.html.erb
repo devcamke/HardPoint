@@ -11,7 +11,7 @@
     <h1 class="mt-4 text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl"><%= @page.heading %></h1>
     <p class="mx-auto mt-6 max-w-2xl text-lg text-gray-600 text-balance sm:text-xl"><%= @page.intro %></p>
     <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5 text-lg" %>
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary px-6 py-2.5 text-lg" %>
       <%= link_to pricing_path, class: "text-lg font-medium text-accent-600 hover:underline" do %>From <%= from_price %> a month <span aria-hidden="true">›</span><% end %>
     </div>
   </div>
@@ -61,7 +61,7 @@
     <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Try it free for <%= Plan::TRIAL.inspect %>.</h2>
     <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">No card needed. Your data is yours to export at any time.</p>
     <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5 text-lg" %>
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary px-6 py-2.5 text-lg" %>
       <%= link_to whatsapp_support_url("Hello HardPoint, I'd like to know more about #{@page.title}."), class: "text-lg font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>Ask us on WhatsApp <span aria-hidden="true">›</span><% end %>
     </div>
   </div>

@@ -41,20 +41,37 @@
 
   <body class="flex min-h-screen flex-col bg-gray-50 text-gray-900">
     <%= render "shared/staging_banner" %>
-    <%# The main nav is the brand teal, with the logo and links in white and the trial button inverted so it still stands out.
-        Logo on the left, the page links centred, sign in and the trial on the right; on a phone the three groups wrap and centre. %>
-    <header class="sticky top-0 z-40 border-b border-primary-600 bg-primary-500 text-white">
-      <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 text-base font-medium md:grid md:grid-cols-[1fr_auto_1fr]">
-        <% nav_link = "text-white/85 transition-colors hover:text-white" %>
-        <%= link_to marketing_root_path, aria: { label: "HardPoint home" }, class: "md:justify-self-start" do %><%= render "shared/logo", dark: true %><% end %>
-        <div class="flex items-center gap-x-6">
+    <%# The main nav is white, with the logo in teal, the links large and near-black, and the trial as a solid teal button
+        lightly shaded top to bottom.
+        Logo on the left, the page links centred, sign in and the trial on the right. On a phone it stays one row: the logo, a
+        shorter trial button and a menu button that opens the page links and sign in underneath. %>
+    <header class="sticky top-0 z-40 border-b border-gray-200 bg-white text-gray-900">
+      <nav class="relative mx-auto flex max-w-6xl items-center justify-between gap-x-3 px-4 py-3 text-lg font-medium md:grid md:grid-cols-[1fr_auto_1fr] md:gap-x-6"
+           data-controller="dropdown" data-action="click@window->dropdown#closeOnOutsideClick keydown.esc@window->dropdown#close">
+        <% nav_link = "whitespace-nowrap text-gray-800 transition-colors hover:text-gray-950" %>
+        <% menu_link = "block border-b border-gray-100 py-3 text-gray-800 last:border-0 hover:text-primary-600" %>
+        <%= link_to marketing_root_path, aria: { label: "HardPoint home" }, class: "md:justify-self-start" do %><%= render "shared/logo" %><% end %>
+        <div class="flex items-center gap-x-6 max-md:hidden">
           <%= link_to "Features", marketing_root_path(anchor: "features"), class: nav_link %>
           <%= link_to "Pricing", pricing_path, class: nav_link %>
           <%= link_to "Help", help_path, class: nav_link %>
         </div>
-        <div class="flex items-center gap-x-5 md:justify-self-end">
-          <%= link_to "Sign in", new_shop_lookup_path, class: nav_link %>
-          <%= link_to "Start now, it's free", new_signup_path, class: "btn rounded-full border-white bg-white px-4 font-semibold text-primary-600 hover:bg-primary-50 focus-visible:outline-white" %>
+        <div class="flex items-center gap-x-2 md:justify-self-end md:gap-x-5 lg:gap-x-8">
+          <%= link_to "Sign in", new_shop_lookup_path, class: "#{nav_link} max-md:hidden" %>
+          <%= link_to new_signup_path, class: "btn border border-primary-700 bg-linear-to-b from-primary-500 to-primary-700 px-4 py-2 text-base font-semibold text-white shadow-sm hover:from-primary-600 hover:to-primary-800 md:px-6 md:py-2.5" do %>
+            <span class="md:hidden">Start free</span><span class="max-md:hidden">Start now, it's free</span>
+          <% end %>
+          <button type="button" class="flex size-11 cursor-pointer items-center justify-center rounded-md text-gray-800 hover:bg-gray-100 md:hidden"
+                  aria-label="Menu" aria-expanded="false" aria-controls="site-menu" data-dropdown-target="toggle" data-action="dropdown#toggle">
+            <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+        </div>
+        <div id="site-menu" hidden data-dropdown-target="menu" data-action="click->dropdown#close"
+             class="absolute inset-x-0 top-full border-b border-gray-200 bg-white px-4 py-1 shadow-lg md:hidden">
+          <%= link_to "Features", marketing_root_path(anchor: "features"), class: menu_link %>
+          <%= link_to "Pricing", pricing_path, class: menu_link %>
+          <%= link_to "Help", help_path, class: menu_link %>
+          <%= link_to "Sign in", new_shop_lookup_path, class: menu_link %>
         </div>
       </nav>
     </header>
@@ -70,23 +87,23 @@
           <%= render "shared/logo" %>
           <p class="mt-3 text-gray-500">Point of sale and stock control for hardware stores in Kenya.</p>
         </div>
-        <ul class="space-y-2">
-          <li><%= link_to "Pricing", pricing_path, class: "hover:text-primary-600" %></li>
+        <ul class="space-y-1 sm:space-y-2">
+          <li><%= link_to "Pricing", pricing_path, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
           <% SolutionPage.all.each do |page| %>
-            <li><%= link_to page.label, solution_path(page), class: "hover:text-primary-600" %></li>
+            <li><%= link_to page.label, solution_path(page), class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
           <% end %>
-          <li><%= link_to "Help centre", help_path, class: "hover:text-primary-600" %></li>
-          <li><%= link_to "API for developers", developer_docs_path, class: "hover:text-primary-600" %></li>
-          <li><%= link_to "Service level agreement", sla_path, class: "hover:text-primary-600" %></li>
+          <li><%= link_to "Help centre", help_path, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
+          <li><%= link_to "API for developers", developer_docs_path, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
+          <li><%= link_to "Service level agreement", sla_path, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
         </ul>
-        <ul class="space-y-2">
-          <li><%= link_to "Privacy and your data", privacy_path, class: "hover:text-primary-600" %></li>
-          <li><%= link_to "Terms of service", terms_path, class: "hover:text-primary-600" %></li>
-          <li><%= link_to "Data processing terms", data_processing_path, class: "hover:text-primary-600" %></li>
+        <ul class="space-y-1 sm:space-y-2">
+          <li><%= link_to "Privacy and your data", privacy_path, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
+          <li><%= link_to "Terms of service", terms_path, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
+          <li><%= link_to "Data processing terms", data_processing_path, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
         </ul>
-        <ul class="space-y-2">
-          <li><%= link_to "WhatsApp us", whatsapp_support_url, class: "hover:text-primary-600", target: "_blank", rel: "noopener" %></li>
-          <li><%= mail_to Rails.configuration.x.support[:email], nil, class: "hover:text-primary-600" %></li>
+        <ul class="space-y-1 sm:space-y-2">
+          <li><%= link_to "WhatsApp us", whatsapp_support_url, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0", target: "_blank", rel: "noopener" %></li>
+          <li><%= mail_to Rails.configuration.x.support[:email], nil, class: "inline-block py-1.5 hover:text-primary-600 sm:py-0" %></li>
           <li class="text-gray-500">© <%= Date.current.year %> HardPoint</li>
         </ul>
       </div>

@@ -3,7 +3,8 @@
   <p class="hint mb-3">Customers get the lowest price that applies to them.</p>
   <% items = product.price_list_items.includes(:price_list).sort_by { [ _1.label, _1.min_quantity ] } %>
   <% if items.any? %>
-    <table class="table mb-4">
+    <div class="mb-4 overflow-x-auto">
+    <table class="table">
       <tbody>
         <% items.each do |item| %>
           <tr>
@@ -15,6 +16,7 @@
         <% end %>
       </tbody>
     </table>
+    </div>
   <% end %>
   <% if current_membership.can_manage_catalogue? %>
     <%= form_with model: PriceListItem.new, url: product_prices_path(product), class: "flex flex-wrap items-end gap-2" do |form| %>

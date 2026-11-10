@@ -54,7 +54,7 @@
 }
 
 @utility btn {
-  @apply inline-flex items-center justify-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium cursor-pointer whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-400 disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:min-h-11;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-400 disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:min-h-11;
 }
 
 @utility btn-primary {
