@@ -119,12 +119,14 @@
 
 <%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
 <section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-7 lg:flex-row lg:justify-between">
-    <p class="shrink-0 text-sm font-semibold text-gray-500">Works with what your shop already uses</p>
-    <ul class="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm font-medium text-gray-700">
+  <%# The label on its own line, then the eight: one row spaced evenly on a wide screen; two or four neat columns,
+      icons lined up, on smaller ones, so nothing is left alone on a row. %>
+  <div class="mx-auto max-w-6xl px-4 py-8">
+    <p class="text-center text-xs font-semibold tracking-wide text-gray-500 uppercase">Works with what your shop already uses</p>
+    <ul class="mx-auto mt-5 grid w-fit grid-cols-2 gap-x-10 gap-y-4 text-sm font-medium text-gray-700 sm:grid-cols-4 lg:flex lg:w-full lg:justify-between">
       <% [ [ :mpesa, "M-Pesa" ], [ :airtel, "Airtel Money" ], [ :card, "Cards" ], [ :etims, "KRA eTIMS" ], [ :barcode, "USB scanners" ],
            [ :printer, "Thermal printers" ], [ :quickbooks, "QuickBooks" ], [ :whatsapp, "WhatsApp" ] ].each do |icon, label| %>
-        <li class="flex items-center gap-2"><span class="text-primary-600"><%= render "pages/icon", name: icon, classes: "size-5" %></span><%= label %></li>
+        <li class="flex items-center gap-2 whitespace-nowrap"><span class="shrink-0 text-primary-600"><%= render "pages/icon", name: icon, classes: "size-5" %></span><%= label %></li>
       <% end %>
     </ul>
   </div>
