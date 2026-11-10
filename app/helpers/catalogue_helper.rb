@@ -1,6 +1,7 @@
 module CatalogueHelper
   def money(cents, currency: Current.account&.currency)
     return "—" if cents.nil?
+    cents = cents.to_d if cents.is_a?(String) # amounts kept in Activity entries before they were stored as integers
 
     number_to_currency(cents / 100.0, unit: "#{currency} ", precision: Currency.decimals(currency), format: "%u%n", negative_format: "-%u%n")
   end

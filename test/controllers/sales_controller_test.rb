@@ -164,7 +164,8 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     end
 
     post shift_closing_path(other), params: { counted_cash: "0" }
-    assert_response :not_found
+    assert_redirected_to shifts_path
+    assert_equal "Close this shift from #{registers(:acme_yard).name}, or ask a manager to close it.", flash[:alert]
     assert Account.without_isolation { other.reload.open? }
   end
 

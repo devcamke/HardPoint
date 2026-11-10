@@ -45,6 +45,12 @@ class StoreTest < ActionDispatch::IntegrationTest
     assert_select "#cart_link .badge", "0"
   end
 
+  test "the second page of everything has a heading, not an error" do
+    get store_products_path(page: 2)
+    assert_response :success
+    assert_select "h1", "Everything"
+  end
+
   test "orders can only be followed with their token" do
     get store_order_path("not-a-token")
     assert_response :not_found

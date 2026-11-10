@@ -4,7 +4,7 @@ class Pos::LinesController < ApplicationController
   # A scan or a tap. Pack barcodes add the pack; everything else adds one of the product.
   def create
     product, product_unit = find_product
-    return render_cart(alert: "Nothing found for “#{params[:code]}”", status: :unprocessable_entity) unless product
+    return render_cart(alert: not_found_words(params[:code].to_s.strip), status: :unprocessable_entity) unless product
 
     line = @sale.add(product, product_unit: product_unit, quantity: params[:quantity].presence || 1)
     if line.errors.any?
@@ -55,8 +55,21 @@ class Pos::LinesController < ApplicationController
         [ product, product.product_units.find_by(id: params[:product_unit_id]) ]
       elsif (barcode = Current.account.barcodes.includes(:product, :product_unit).find_by(code: code))
         [ barcode.product, barcode.product_unit ]
+      elsif (product = Current.account.products.active.find_by(sku: code.upcase))
+        [ product, nil ]
       else
-        [ Current.account.products.active.find_by(sku: code.upcase), nil ]
+        # Enter after typing a name: one match is what they meant; several are for them to tap. A scanned
+        # barcode we don't know (all digits) never adds whatever happens to contain those digits.
+        @name_matches = code.match?(/[[:alpha:]]/) ? Current.account.products.active.search(code).limit(2).to_a : []
+        [ (@name_matches.first if @name_matches.one?), nil ]
+      end
+    end
+
+    def not_found_words(code)
+      if @name_matches.to_a.size > 1
+        "More than one product matches “#{code}”: tap the one you want"
+      else
+        "Nothing found for “#{code}”"
       end
     end
 

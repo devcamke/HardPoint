@@ -50,6 +50,23 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_match "Nothing found", response.body
   end
 
+  test "a name typed and entered adds its one match, and asks for a tap when several match" do
+    post pos_lines_path, params: { code: "bamburi" }, as: :turbo_stream
+    assert_response :success
+    assert_equal [ "CEM-50" ], Account.without_isolation { current_sale.lines.map { _1.product.sku } }
+
+    post pos_lines_path, params: { code: "p" }, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "More than one product matches “p”: tap the one you want", response.body
+    assert_equal 1, Account.without_isolation { current_sale.lines.count }
+  end
+
+  test "an unknown barcode never adds a product that merely contains its digits" do
+    post pos_lines_path, params: { code: "50" }, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "Nothing found", response.body
+  end
+
   test "another shop's barcode isn't found" do
     post pos_lines_path, params: { code: "0076174512345" }, as: :turbo_stream
     assert_response :unprocessable_entity

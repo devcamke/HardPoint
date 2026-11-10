@@ -9,7 +9,11 @@
     <% if @shift.open? %>
       <%= link_to "Cash drop / payout", new_shift_cash_movement_path(@shift), class: "btn-secondary" if @shift == current_shift %>
       <%= link_to "Back to till", pos_path, class: "btn-secondary" %>
-      <%= link_to "Close shift", new_shift_closing_path(@shift), class: "btn-primary" %>
+      <% if current_membership.approver? || @shift.register == current_till %>
+        <%= link_to "Close shift", new_shift_closing_path(@shift), class: "btn-primary" %>
+      <% else %>
+        <p class="hint self-center">Close it from <%= @shift.register.name %>, or ask a manager.</p>
+      <% end %>
     <% end %>
   </div>
 </div>
