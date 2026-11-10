@@ -13,14 +13,16 @@ class SupplierInvoicesController < ApplicationController
 
   def new
     receipt = Current.account.goods_receipts.find_by(id: params[:goods_receipt_id])
+    # The invoice is for the goods, in the supplier's currency; the transport and duty on the delivery were paid here.
     @invoice = Current.account.supplier_invoices.new(invoice_date: Date.current, goods_receipt: receipt,
-      supplier: receipt&.supplier || Current.account.suppliers.find_by(id: params[:supplier_id]), total_cents: receipt&.total_cents)
+      supplier: receipt&.supplier || Current.account.suppliers.find_by(id: params[:supplier_id]), total_cents: receipt&.goods_value_cents)
   end
 
   def create
     @invoice = Current.account.supplier_invoices.new(invoice_params)
 
     if @invoice.save
+      flash[:alert] = "Check it: the invoice is #{@invoice.variance_description}." if @invoice.variance?
       redirect_to @invoice.supplier, notice: "Invoice #{@invoice.number} recorded, due #{@invoice.due_date.to_fs(:long)}."
     else
       render :new, status: :unprocessable_entity

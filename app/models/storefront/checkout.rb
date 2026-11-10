@@ -34,10 +34,13 @@ class Storefront::Checkout
     return false unless valid?
     return errors.add(:base, "Your cart is empty") && false if @cart.empty?
     return errors.add(:base, "Something went wrong; please try again") && false if website.present?
+    return false unless in_stock_at_branch?
 
+    # The lines take the cart's prices with them, so the order confirms at the total the customer saw at checkout,
+    # not re-priced for the branch's offers or a returning customer's price list.
     CustomerOrder.transaction do
-      @order = account.customer_orders.create!(branch: branch, customer: customer, status: :ordered, ordered_at: Time.current,
-        source: "online", note: order_note, lines_attributes: @cart.lines.map { { account: account, product_id: _1.product.id, quantity: _1.quantity } })
+      @order = account.customer_orders.create!(branch: branch, customer: customer, status: :ordered, ordered_at: Time.current, source: "online", note: order_note,
+        lines_attributes: @cart.lines.map { { account: account, product_id: _1.product.id, quantity: _1.quantity, unit_price_cents: _1.unit_price_cents, promotion: _1.promotion } })
     end
     @cart.clear
     notify
@@ -49,6 +52,16 @@ class Storefront::Checkout
 
   private
     def account = @storefront.account
+
+    # Two customers can't both be promised the last pallet: what's on hand less what earlier orders hold.
+    def in_stock_at_branch?
+      short = @cart.lines.select { |line| line.product.track_stock? && !line.product.kit? && line.product.available_at(branch) < line.quantity }
+      short.each do |line|
+        available = [ line.product.available_at(branch), 0 ].max
+        errors.add :base, "Only #{available.to_s("F").delete_suffix(".0")} #{line.product.name} can be collected at #{branch.name} right now"
+      end
+      short.empty?
+    end
 
     # Anyone can type any phone number here, so a customer the shop already has is never changed from the store:
     # the name and email typed go on the order's note for the shop to check, rather than onto their record.

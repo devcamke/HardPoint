@@ -7,6 +7,6 @@ module CustomerOrderScoped
 
   private
     def set_customer_order
-      @customer_order = Current.account.customer_orders.find(params[:customer_order_id])
+      @customer_order = within_visible_branches(Current.account.customer_orders).find(params[:customer_order_id])
     end
 end

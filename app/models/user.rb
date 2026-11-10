@@ -3,17 +3,53 @@ class User < ApplicationRecord
 
   has_secure_password
   has_many :sessions, dependent: :destroy
+  has_many :admin_sessions, dependent: :delete_all
   has_many :memberships, dependent: :destroy
   has_many :accounts, through: :memberships
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
   MINIMUM_PASSWORD_LENGTH = 10
+  INVITATION_EXPIRES_IN = 3.days
+
+  # The set-password link in a new member's invitation. It lasts longer than a reset link (staff are often added
+  # before they start), and stops working once a password has been chosen, as a reset link does.
+  generates_token_for :invitation, expires_in: INVITATION_EXPIRES_IN do
+    password_salt&.last(10)
+  end
 
   validates :name, presence: true
   # Every way of setting a password (sign-up, an invitation, a reset, My profile) needs at least this many characters.
   validates :password, length: { minimum: MINIMUM_PASSWORD_LENGTH }, allow_nil: true
   validates :email_address, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+
+  # The link sent at sign-up. It stops working once the address is confirmed or changed.
+  generates_token_for :email_confirmation, expires_in: 7.days do
+    [ email_address, email_confirmed_at ]
+  end
+
+  def email_confirmed?
+    email_confirmed_at.present?
+  end
+
+  def confirm_email
+    update_column(:email_confirmed_at, Time.current) unless email_confirmed?
+  end
+
+  # A login made at sign-up for an address nobody has shown is theirs. When a shop adds that address, the person
+  # who really has it chooses the password (from the invitation), and whoever made the login is signed out of it.
+  def take_back_unconfirmed_login
+    return if email_confirmed?
+
+    Account.without_isolation { sessions.destroy_all }
+    update!(password: SecureRandom.base58(32))
+  end
+
+  # Signs this person out of every shop and of the admin area, but for the session +except+ (the one in use).
+  def end_sessions(except: nil)
+    Account.without_isolation { sessions.where.not(id: except&.id).destroy_all }
+    admin_sessions.delete_all
+  end
 
   private
     # Users span shops, so their events are recorded in the shop they're acting in.

@@ -11,6 +11,13 @@
   </section>
 
   <section class="card">
+    <h2 class="text-lg font-semibold">Signed-in devices</h2>
+    <p class="hint mt-2">Every computer and phone you're signed in on here. Sign out one you've stopped using or don't recognise.</p>
+    <p class="mt-2"><%= status_dot pluralize(@sessions_count, "device"), :success %></p>
+    <%= link_to "See devices", my_devices_path, class: "btn-secondary mt-4" %>
+  </section>
+
+  <section class="card">
     <h2 class="text-lg font-semibold">Two-factor sign-in</h2>
     <% if @user.two_factor_enabled? %>
       <p class="mt-2"><%= status_dot "On", :success %> since <%= l(@user.two_factor_enabled_at.to_date, format: :long) %></p>
@@ -20,6 +27,10 @@
         <div class="field">
           <%= form.label :password, "Confirm your password to turn it off", class: "label" %>
           <%= form.password_field :password, required: true, autocomplete: "current-password", class: "input" %>
+        </div>
+        <div class="field">
+          <%= form.label :code, "and a code from your app, or a recovery code", class: "label" %>
+          <%= form.text_field :code, required: true, autocomplete: "one-time-code", class: "input font-mono" %>
         </div>
         <%= form.submit "Turn off two-factor", class: "btn-danger" %>
       <% end %>

@@ -2,13 +2,16 @@ class ShiftsController < ApplicationController
   before_action :ensure_can_sell
 
   def index
-    shifts = Current.account.shifts.chronologically.includes(:register, :branch, :opened_by, :closed_by)
+    shifts = within_visible_branches(Current.account.shifts).chronologically.includes(:register, :branch, :opened_by, :closed_by)
     shifts = shifts.where(register: current_till) unless current_membership.approver? || current_till.nil?
     @shifts = paginate(shifts)
   end
 
   def show
-    @shift = Current.account.shifts.find(params[:id])
+    # The same cut as the list: a cashier sees their own till's shifts, and no one sees another branch's.
+    shifts = within_visible_branches(Current.account.shifts)
+    shifts = shifts.where(register: current_till) unless current_membership.approver? || current_till.nil?
+    @shift = shifts.find(params[:id])
     @report = @shift.report
   end
 

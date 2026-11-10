@@ -3,7 +3,8 @@
 #   - when a trial or paid period ends, the next period's invoice (a month, or a year for shops
 #     paying yearly), due a week later;
 #   - two days before it's due, a reminder;
-#   - once it's overdue, the shop goes read-only until it's paid.
+#   - once it's overdue, the shop goes read-only until it's paid; paid then, its period runs from
+#     the day it paid.
 module Account::BillingCycle
   extend ActiveSupport::Concern
 
@@ -23,7 +24,7 @@ module Account::BillingCycle
 
     remind_trial_ending(now) if trialing?
     start_period(trial_ends_at.to_date) if trialing? && trial_ends_at <= now
-    start_period(current_period_ends_at.to_date) if active? && current_period_ends_at && current_period_ends_at <= now && open_subscription_invoice.nil?
+    start_period(current_period_ends_at.in_time_zone(time_zone).to_date) if active? && current_period_ends_at && current_period_ends_at <= now && open_subscription_invoice.nil?
 
     if (invoice = open_invoice)
       remind_payment(invoice, now)
@@ -53,7 +54,7 @@ module Account::BillingCycle
     if invoice.one_off?
       update!(subscription_status: status_from_billing) unless suspended?
     else
-      update!(subscription_status: suspended? ? "suspended" : "active", current_period_ends_at: invoice.period_end.in_time_zone(time_zone).beginning_of_day,
+      update!(subscription_status: suspended? ? "suspended" : "active", current_period_ends_at: paid_period_end(invoice).in_time_zone(time_zone).beginning_of_day,
               trial_ends_at: [ trial_ends_at, Time.current ].compact.min)
     end
   end
@@ -63,6 +64,18 @@ module Account::BillingCycle
   end
 
   private
+    # A shop locked for not paying gets the period it pays for from the day it pays, so the time
+    # it couldn't use HardPoint isn't billed and the next invoice isn't for a month already gone.
+    # One that pays before it's locked keeps the invoice's dates.
+    def paid_period_end(invoice)
+      today = Time.current.in_time_zone(time_zone).to_date
+      return invoice.period_end unless read_only? && invoice.due_on < today
+
+      (today + (invoice.yearly? ? 1.year : 1.month)).tap do |period_end|
+        track_event "period_restarted", creator: nil, invoice: invoice.number, from: today.iso8601, until: period_end.iso8601
+      end
+    end
+
     def start_period(start)
       invoice = billing_invoices.create!(plan: plan, interval: billing_interval, extra_branches: extra_branches, extra_registers: extra_registers,
         period_start: start, period_end: start + (yearly? ? 1.year : 1.month), amount_cents: period_price_cents,

@@ -46,11 +46,23 @@ class Airtel::Merchant < ApplicationRecord
     requests.create!(account: account, sale: sale, phone: PhoneNumber.normalize(phone) || phone.to_s, amount_cents: amount_cents).tap(&:send_prompt)
   end
 
-  # Airtel's callback for a prompt; safe to receive more than once.
+  # Airtel's callback for a prompt; safe to receive more than once. A callback that says "paid" is only taken as a
+  # hint: Airtel doesn't publish the addresses its callbacks come from, so before a sale is paid the payment is
+  # confirmed with Airtel itself, and it's Airtel's answer that counts. If Airtel can't be asked right now, the
+  # prompt stays pending and is asked about again shortly (the till is asking too).
   def receive_callback(payload)
     transaction = payload["transaction"] or return
     request = requests.find_by(transaction_id: transaction["id"].to_s) or return
-    request.resolve(status_code: transaction["status_code"].to_s, airtel_money_id: transaction["airtel_money_id"], message: transaction["message"])
+
+    if transaction["status_code"].to_s == Airtel::Request::PAID && !simulator?
+      confirmed = client.status(request.transaction_id)
+      request.resolve(status_code: confirmed["status"].to_s, airtel_money_id: confirmed["airtel_money_id"], message: confirmed["message"])
+    else
+      request.resolve(status_code: transaction["status_code"].to_s, airtel_money_id: transaction["airtel_money_id"], message: transaction["message"])
+    end
+  rescue Airtel::Client::Refused, JsonHttp::Unreachable => error
+    Rails.logger.warn "Airtel: couldn't confirm callback for #{request.transaction_id}: #{error.message}"
+    Airtel::StatusCheckJob.set(wait: 15.seconds).perform_later(request)
   end
 
   def callback_url

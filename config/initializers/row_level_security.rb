@@ -4,24 +4,29 @@
 # keeps in sync. With no account set, no rows are visible (fail closed).
 module RowLevelSecurity
   module MigrationHelpers
+    # Known safe to strong_migrations: enabling a policy takes a brief lock on the table and reads no rows.
     def enable_row_level_security(table)
       reversible do |direction|
         direction.up do
-          execute <<~SQL
-            ALTER TABLE #{table} ENABLE ROW LEVEL SECURITY;
-            ALTER TABLE #{table} FORCE ROW LEVEL SECURITY;
-            CREATE POLICY account_isolation ON #{table}
-              USING (#{account_isolation_condition})
-              WITH CHECK (#{account_isolation_condition});
-          SQL
+          safety_assured do
+            execute <<~SQL
+              ALTER TABLE #{table} ENABLE ROW LEVEL SECURITY;
+              ALTER TABLE #{table} FORCE ROW LEVEL SECURITY;
+              CREATE POLICY account_isolation ON #{table}
+                USING (#{account_isolation_condition})
+                WITH CHECK (#{account_isolation_condition});
+            SQL
+          end
         end
 
         direction.down do
-          execute <<~SQL
-            DROP POLICY IF EXISTS account_isolation ON #{table};
-            ALTER TABLE #{table} NO FORCE ROW LEVEL SECURITY;
-            ALTER TABLE #{table} DISABLE ROW LEVEL SECURITY;
-          SQL
+          safety_assured do
+            execute <<~SQL
+              DROP POLICY IF EXISTS account_isolation ON #{table};
+              ALTER TABLE #{table} NO FORCE ROW LEVEL SECURITY;
+              ALTER TABLE #{table} DISABLE ROW LEVEL SECURITY;
+            SQL
+          end
         end
       end
     end

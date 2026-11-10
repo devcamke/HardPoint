@@ -26,6 +26,19 @@ class ReportTest < ActiveSupport::TestCase
     Report.find(key).new(account: Current.account, period: period, options: options)
   end
 
+  test "the VAT report returns exempt and zero-rated sales as separate rows, though both are 0%" do
+    exempt = accounts(:acme).tax_rates.create!(name: "Exempt", rate: 0, etims_code: "A")
+    products(:acme_nails).update!(tax_rate: exempt)
+    products(:acme_screws).update!(tax_rate: tax_rates(:acme_zero))
+    sell(products(:acme_nails), quantity: 4)   # 1,000.00 exempt
+    sell(products(:acme_screws), quantity: 10) # 50.00 zero-rated
+    sell(products(:acme_cement))               # 800.00 at 16%
+
+    rows = report("tax").sections.first.rows
+    assert_equal [ [ "Exempt (0%)", 100000, 0 ], [ "Zero-rated (0%)", 5000, 0 ], [ "Standard VAT (16%)", 80000, (80000 * 16 / 116.0).round ] ],
+      rows.map { [ _1[0], _1[1], _1[4] ] }
+  end
+
   test "a sale line keeps what it cost when it was sold" do
     sale = sell(products(:acme_nails), quantity: 4)
     products(:acme_nails).update!(cost_cents: 99_999)
@@ -74,6 +87,20 @@ class ReportTest < ActiveSupport::TestCase
     assert_equal(-2 * 70000, pnl.stock_adjustments_cents)
     assert_equal 5000, pnl.payouts_cents
     assert_equal pnl.gross_profit_cents - 140000 - 5000, pnl.trading_profit_cents
+  end
+
+  test "a payout that paid a supplier is a payment to them, not an expense counted again on top of the goods" do
+    supplier = suppliers(:acme_cement_distributor)
+    owed = supplier.balance_cents
+    @shift.cash_movements.create!(account: Current.account, kind: "payout", amount_cents: 5000, reason: "Tea")
+    payout = @shift.cash_movements.create!(account: Current.account, kind: "payout", amount_cents: 30000, reason: "Cement delivery", supplier_id: supplier.id)
+
+    assert_equal [ supplier, 30000, "cash" ], payout.supplier_payment.values_at(:supplier, :amount_cents, :payment_method)
+    assert_equal owed - 30000, supplier.reload.balance_cents
+    assert_equal 5000, report("profit_and_loss").payouts_cents
+
+    drop = @shift.cash_movements.create(account: Current.account, kind: "drop", amount_cents: 1000, reason: "Safe", supplier_id: supplier.id)
+    assert_match "only by a payout", drop.errors.full_messages.to_sentence
   end
 
   test "VAT payable is output tax less input tax" do
@@ -148,5 +175,22 @@ class ReportTest < ActiveSupport::TestCase
     csv = CSV.parse(report("sales", by: "branch").to_csv)
     assert_equal [ "Main branch", "1", "1000.00" ], csv[3].first(3)
     assert_equal "Total", csv.last.first
+  end
+
+  test "the M-Pesa report for a branch shows its own Till's payments, not another branch's or unused shop-wide ones" do
+    now = Time.current.in_time_zone("Nairobi").strftime("%Y%m%d%H%M%S")
+    shop_wide = accounts(:acme).mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator")
+    main = accounts(:acme).mpesa_shortcodes.create!(name: "Main till", shortcode: "600200", transaction_type: "buy_goods", till_number: "5223456",
+      environment: "simulator", branch: branches(:acme_main))
+    yard = accounts(:acme).mpesa_shortcodes.create!(name: "Yard till", shortcode: "600100", transaction_type: "buy_goods", till_number: "5123456",
+      environment: "simulator", branch: branches(:acme_yard))
+    main.receive_c2b_confirmation("TransID" => "SJQMAIN001", "TransAmount" => "100.00", "TransTime" => now, "MSISDN" => "254722000111", "FirstName" => "Mainpayer")
+    yard.receive_c2b_confirmation("TransID" => "SJQYARD002", "TransAmount" => "100.00", "TransTime" => now, "MSISDN" => "254722000222", "FirstName" => "Yardpayer")
+    shop_wide.receive_c2b_confirmation("TransID" => "SJQSHOP003", "TransAmount" => "100.00", "TransTime" => now, "MSISDN" => "254722000333", "FirstName" => "Shoppayer")
+
+    unused = ->(branch) { Report::MobileMoney.new(account: Current.account, period: @today, branch: branch).sections.second.rows.map(&:second) }
+    assert_equal %w[ SJQMAIN001 SJQSHOP003 SJQYARD002 ], unused.(nil).sort
+    assert_equal %w[ SJQMAIN001 ], unused.(branches(:acme_main))
+    assert_equal %w[ SJQYARD002 ], unused.(branches(:acme_yard))
   end
 end

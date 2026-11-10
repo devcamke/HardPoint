@@ -52,7 +52,7 @@ export default class extends Controller {
         await this.refreshCatalogue().catch(() => {})
         await this.sendWaiting().catch(() => {})
       }
-      this.render(online, await store.sales.waiting())
+      this.render(online, await store.sales.waiting(), (await store.sales.all()).filter((sale) => sale.status === "error").length)
     } finally {
       this.updating = false
     }
@@ -100,7 +100,7 @@ export default class extends Controller {
       if (!sale) continue
 
       if (result.status === "error") {
-        Object.assign(sale, { status: "error", error: result.error })
+        Object.assign(sale, { status: "error", error: `${result.error}. Not recorded: a manager can see it in Activity. Fix the cause and press Try again, or ring it up by hand and clear it.` })
       } else {
         Object.assign(sale, { status: "sent", result: result.status, receipt_number: result.receipt_number, sale_id: result.sale_id,
                               warnings: result.warnings, sent_at: new Date().toISOString() })
@@ -116,11 +116,12 @@ export default class extends Controller {
     for (const sale of sent.slice(this.constructor.KEEP_SENT)) await store.sales.remove(sale.uuid)
   }
 
-  render(online, waiting) {
+  render(online, waiting, refused = 0) {
     if (this.hasStatusTarget) {
       const count = waiting.length
       const pending = count ? ` · ${count} sale${count === 1 ? "" : "s"} ${online ? "sending" : "waiting"}` : ""
-      this.statusTarget.textContent = (online ? "Online" : "Offline") + pending
+      const problems = refused ? ` · ${refused} not recorded` : ""
+      this.statusTarget.textContent = (online ? "Online" : "Offline") + pending + problems
       this.statusTarget.dataset.state = online ? "online" : "offline"
     }
     if (this.hasBannerTarget) {

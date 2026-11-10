@@ -24,6 +24,14 @@ class Airtel::Request < ApplicationRecord
 
   scope :unused, -> { paid.where(payment_id: nil) }
 
+  # The paid prompts a member may use at a till. Staff who see every branch may use any; staff bound to a branch
+  # only those sent from this till, through their branch's merchant account or a shop-wide one.
+  def self.usable_by(membership, at:)
+    return all unless membership&.bound_to_branch?
+
+    where(merchant_id: Airtel::Merchant.where(branch_id: [ membership.branch_id, nil ]).select(:id), sale_id: Sale.where(register_id: at.id).select(:id))
+  end
+
   # Airtel Money takes whole shillings, so a due amount with cents is rounded up; the sale is only ever paid what's due.
   def whole_shillings
     (amount_cents / 100.0).ceil
@@ -72,7 +80,7 @@ class Airtel::Request < ApplicationRecord
   def use_on(sale)
     return unless paid? && payment.nil?
 
-    taken = sale.pay(tender: "airtel_money", amount_cents: [ amount_cents, sale.balance_due_cents ].min, reference: airtel_money_id)
+    taken = sale.pay(tender: "airtel_money", amount_cents: [ amount_cents, sale.balance_due_cents ].min, tendered_cents: amount_cents, reference: airtel_money_id)
     update!(payment: taken) if taken.persisted?
     taken
   end

@@ -132,6 +132,45 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success, "within the cashier's own limit"
   end
 
+  test "an approved discount can't be grown by shrinking the sale" do
+    Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
+    post pos_lines_path, params: { code: "CEM-50", quantity: 10 }, as: :turbo_stream
+    post pos_lines_path, params: { code: "PVC-2" }, as: :turbo_stream
+    cement, pvc = Account.without_isolation { current_sale.lines.order(:id).to_a }
+    patch pos_discount_path, params: { discount: "5%" }, as: :turbo_stream
+    assert_response :success, "within the cashier's limit"
+    discount = Account.without_isolation { current_sale.discount_cents }
+
+    # Cutting the quantity would make the same shillings a 50% discount.
+    patch pos_line_path(cement), params: { sale_line: { quantity: 1 } }, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "needs a manager", response.body
+    assert_equal 10, Account.without_isolation { cement.reload.quantity }, "the change was rolled back"
+
+    # So would removing the big line.
+    delete pos_line_path(cement), as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "needs a manager", response.body
+    assert Account.without_isolation { SaleLine.exists?(cement.id) }, "the line is still there"
+    assert_equal discount, Account.without_isolation { current_sale.discount_cents }
+
+    # With a manager's PIN the change goes through, and the new percentage is what was approved.
+    delete pos_line_path(cement), params: { approval_pin: "2468" }, as: :turbo_stream
+    assert_response :success
+    assert_equal users(:amina), Account.without_isolation { current_sale.discount_approver }
+    assert_equal pvc.id, Account.without_isolation { current_sale.lines.sole.id }
+  end
+
+  test "a customer with lower prices can't turn a small discount into a big one" do
+    post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
+    Account.without_isolation { current_sale.update!(discount_cents: 3900) } # 4.9% of 80,000 at retail
+
+    patch pos_customer_path, params: { customer_id: customers(:acme_contractor).id }, as: :turbo_stream
+    assert_response :unprocessable_entity, "the same 3,900 is 5.1% of the contractor's 76,000"
+    assert_match "needs a manager", response.body
+    assert_nil Account.without_isolation { current_sale.customer_id }, "the customer change was rolled back"
+  end
+
   test "choosing a contractor switches to their prices" do
     post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
     patch pos_customer_path, params: { customer_id: customers(:acme_contractor).id }, as: :turbo_stream
@@ -160,6 +199,45 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_select "p", /Change KES 500.00/
     assert_select "p", /MAIN-000001/
+  end
+
+  test "once money is taken the sale can't shrink to it or below it" do
+    post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream # 800.00
+    post pos_lines_path, params: { code: "PVC-2" }, as: :turbo_stream   # 1,200.00
+    cement, pvc = Account.without_isolation { current_sale.lines.order(:id).to_a }
+    post pos_payments_path, params: { tender: "mobile_money", amount: "1200", reference: "SJK4H7T2QP" }, as: :turbo_stream
+    assert_response :success
+
+    delete pos_line_path(cement), as: :turbo_stream
+    assert_response :unprocessable_entity, "1,200 left for 1,200 paid: nothing would be due, so it could never complete"
+    assert_match "Remove the payment first", response.body
+    assert Account.without_isolation { SaleLine.exists?(cement.id) }
+
+    delete pos_line_path(pvc), as: :turbo_stream
+    assert_response :unprocessable_entity, "800 left for 1,200 paid"
+
+    delete pos_payment_path(Account.without_isolation { current_sale.payments.sole }), as: :turbo_stream
+    delete pos_line_path(pvc), as: :turbo_stream
+    assert_response :success, "with the payment gone the sale can shrink"
+  end
+
+  test "a sale that comes to nothing is completed with a manager's PIN, not a payment" do
+    Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
+    post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
+    patch pos_discount_path, params: { discount: "100%", approval_pin: "2468" }, as: :turbo_stream
+    assert_response :success
+    assert_match "Complete sale, nothing to pay", response.body
+    assert_no_match "Take payment", response.body
+
+    post pos_completion_path, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "Completing a sale with nothing to pay needs a manager", response.body
+
+    post pos_completion_path, params: { approval_pin: "2468" }, as: :turbo_stream
+    sale = Account.without_isolation { Sale.completed.last }
+    assert_redirected_to pos_path(completed: sale.id)
+    assert_equal [ 0, "MAIN-000001" ], Account.without_isolation { [ sale.total_cents, sale.receipt_number ] }
+    assert_equal "completed_without_payment", Account.without_isolation { sale.events.last.action }
   end
 
   test "park, serve someone else, recall" do

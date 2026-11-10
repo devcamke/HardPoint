@@ -5,12 +5,19 @@
   <%= render "shared/branch_picker" %>
 </div>
 
-<div class="mb-6 grid gap-4 sm:grid-cols-2 <%= @expiring ? "lg:grid-cols-5" : "lg:grid-cols-4" %>">
+<%# Tailwind only builds classes it can read, so each card count names its class in full. %>
+<% columns = { 4 => "lg:grid-cols-4", 5 => "lg:grid-cols-5", 6 => "lg:grid-cols-6" }[4 + (@expiring ? 1 : 0) + (@below_zero.positive? ? 1 : 0)] %>
+<div class="mb-6 grid gap-4 sm:grid-cols-2 <%= columns %>">
   <% if current_membership.can_see_costs? %>
-    <div class="card"><p class="hint">Stock value at cost</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@valuation.total_value_cents) %></p><p class="hint">all branches</p></div>
+    <div class="card"><p class="hint">Stock value at cost</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@valuation.total_value_cents) %></p><p class="hint"><%= current_membership.bound_to_branch? ? "at #{current_membership.branch.name}" : "all branches" %><%= " and in transit" if @valuation.in_transit.lines.positive? %></p></div>
   <% end %>
   <%= link_to reorder_list_path, class: "card block hover:border-primary-300" do %>
     <p class="hint">Low stock at <%= selected_branch&.name %></p><p class="mt-1 text-2xl font-bold <%= "text-primary-700" if @low_stock_count.positive? %>"><%= @low_stock_count %></p><p class="hint">products to reorder</p>
+  <% end %>
+  <% if @below_zero.positive? %>
+    <%= link_to products_path(below_zero: 1, branch_id: selected_branch&.id), class: "card block hover:border-primary-300" do %>
+      <p class="hint">Below zero at <%= selected_branch&.name %></p><p class="mt-1 text-2xl font-bold text-red-700"><%= @below_zero %></p><p class="hint">stock levels to correct</p>
+    <% end %>
   <% end %>
   <%= link_to stock_transfers_path, class: "card block hover:border-primary-300" do %>
     <p class="hint">Transfers in transit</p><p class="mt-1 text-2xl font-bold"><%= @in_transit %></p><p class="hint">waiting to be received</p>
@@ -33,9 +40,16 @@
       <tbody>
         <% @valuation.rows.each do |row| %>
           <tr>
-            <td><%= row.branch.name %><%= tag.span(" · #{row.negative_lines} below zero", class: "text-xs text-red-700") if row.negative_lines.positive? %></td>
+            <td><%= row.branch.name %><% if row.negative_lines.positive? %> · <%= link_to "#{row.negative_lines} below zero", products_path(below_zero: 1, branch_id: row.branch.id), class: "text-xs text-red-700 hover:underline" %><% end %></td>
             <td class="text-right tabular-nums"><%= number_with_delimiter(row.products_in_stock) %></td>
             <% if current_membership.can_see_costs? %><td class="text-right tabular-nums"><%= money(row.value_cents) %></td><% end %>
+          </tr>
+        <% end %>
+        <% if @valuation.in_transit.lines.positive? %>
+          <tr class="text-gray-600">
+            <td><%= link_to "In transit", stock_transfers_path, class: "hover:text-primary-700" %> <span class="text-xs">· between branches</span></td>
+            <td class="text-right tabular-nums"><%= number_with_delimiter(@valuation.in_transit.lines) %></td>
+            <% if current_membership.can_see_costs? %><td class="text-right tabular-nums"><%= money(@valuation.in_transit.value_cents) %></td><% end %>
           </tr>
         <% end %>
       </tbody>

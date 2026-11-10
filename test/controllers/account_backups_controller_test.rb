@@ -38,6 +38,15 @@ class AccountBackupsControllerTest < ActionDispatch::IntegrationTest
     assert_equal %w[ backup_requested backup_downloaded backup_deleted ], actions
   end
 
+  test "HardPoint support signed in as the owner can't download a backup" do
+    perform_enqueued_jobs(only: AccountBackupJob) { post account_backups_path }
+    Account.without_isolation { Session.where(user: users(:amina)).update_all(impersonator_id: users(:ada).id, expires_at: 1.hour.from_now) }
+
+    get account_backup_path(backups.last)
+    assert_redirected_to account_data_path(anchor: "backups")
+    assert_equal "Not while HardPoint support is signed in as you.", flash[:alert]
+  end
+
   test "a second backup isn't started while one is being made" do
     post account_backups_path
     assert_no_difference -> { backups.size } do

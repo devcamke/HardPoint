@@ -16,6 +16,11 @@ class StockTransferLine < ApplicationRecord
     self.product = Current.account.products.find_by_code(code) if code.present?
   end
 
+  # Sent but not received: nothing until the transfer is received, then what was lost or never left.
+  def short_quantity
+    received_quantity ? quantity - received_quantity : 0.to_d
+  end
+
   private
     def product_found
       errors.add :base, "No product with barcode or SKU “#{product_code}”" if product_code.present? && product.nil?

@@ -1,5 +1,7 @@
 // The till's offline storage in IndexedDB: the catalogue snapshot, sales waiting to be sent,
 // and a few counters. Each shop is its own web origin, so shops never share this storage.
+import { deviceCode } from "offline/payload"
+
 const NAME = "hardpoint-till"
 const VERSION = 1
 
@@ -37,8 +39,14 @@ export const sales = {
   all: () => run("sales", "readonly", (store) => store.getAll()),
   put: (sale) => run("sales", "readwrite", (store) => store.put(sale)),
   remove: (uuid) => run("sales", "readwrite", (store) => store.delete(uuid)),
+  // Sales still to send. A sale the server refused stays on the device, shown with its problem, until
+  // someone presses "Try again" (or clears it): re-sending it every 20 seconds would record nothing.
   async waiting() {
-    return (await this.all()).filter((sale) => sale.status !== "sent").sort((a, b) => a.happened_at.localeCompare(b.happened_at))
+    return (await this.all()).filter((sale) => sale.status === "waiting").sort((a, b) => a.happened_at.localeCompare(b.happened_at))
+  },
+  async retry(uuid) {
+    const sale = await run("sales", "readonly", (store) => store.get(uuid))
+    if (sale) await this.put({ ...sale, status: "waiting", error: null })
   }
 }
 
@@ -50,5 +58,14 @@ export const meta = {
     const value = ((await this.get(key)) || 0) + 1
     await this.put(key, value)
     return value
+  },
+  // The code this device signs its offline receipt numbers with, made once and kept with the counters.
+  async deviceCode() {
+    let code = await this.get("device-code")
+    if (!code) {
+      code = deviceCode()
+      await this.put("device-code", code)
+    }
+    return code
   }
 }

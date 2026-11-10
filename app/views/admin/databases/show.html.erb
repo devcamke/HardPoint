@@ -4,6 +4,22 @@
 
 <h1 class="mb-6 text-xl font-medium">Database</h1>
 
+<section id="platform" class="card mb-6 <%= "border-red-200" unless @platform.ok? %>">
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <h2 class="text-lg font-semibold">Platform checks</h2>
+    <p class="hint">What <code>/health</code> tells the uptime monitor, and what PlatformHealthJob emails about every 10 minutes while it fails.</p>
+  </div>
+  <table class="table mt-3 text-sm"><tbody>
+    <% @platform.checks.each do |check| %>
+      <tr id="check_<%= check.name %>">
+        <td class="w-40 font-medium"><%= check.name.to_s.humanize %></td>
+        <td class="w-28"><%= status_dot check.status.to_s.humanize, { ok: :success, warning: :warning, failing: :danger }.fetch(check.status) %></td>
+        <td class="text-gray-700"><%= check.detail %></td>
+      </tr>
+    <% end %>
+  </tbody></table>
+</section>
+
 <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <div class="card"><p class="hint">Size</p><p class="text-2xl font-bold"><%= @health.size %></p><p class="hint">PostgreSQL <%= @health.version %></p></div>
   <div class="card"><p class="hint">Connections</p><p class="text-2xl font-bold tabular-nums"><%= connections.values.sum %> <span class="text-base font-normal text-gray-500">of <%= @health.max_connections %></span></p>

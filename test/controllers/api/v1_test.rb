@@ -32,6 +32,24 @@ class Api::V1Test < ApiTestCase
     assert_response :unauthorized
   end
 
+  test "an order naming a branch or customer that isn't this shop's says which" do
+    body = { order: { lines: [ { sku: products(:acme_cement).sku, quantity: 1 } ] } }
+
+    api_post api_v1_orders_path, body.deep_merge(order: { branch_id: branches(:bolt_main).id, customer: { name: "X", phone: "0700000001" } })
+    assert_response :not_found
+    assert_equal "not_found", error_code
+    assert_equal "No such branch in this shop.", json.dig("error", "message")
+    assert_equal({ "field" => "branch_id" }, json.dig("error", "details"))
+
+    api_post api_v1_orders_path, body.deep_merge(order: { customer_id: 0 })
+    assert_response :not_found
+    assert_equal "No such customer in this shop.", json.dig("error", "message")
+    assert_equal({ "field" => "customer_id" }, json.dig("error", "details"))
+
+    api_get api_v1_order_path(0)
+    assert_equal "No such order in this shop.", json.dig("error", "message"), "the order itself still says order"
+  end
+
   test "a key only ever sees its own shop" do
     bolt_product = products(:bolt_hammer)
     api_get api_v1_product_path(bolt_product)
@@ -115,6 +133,34 @@ class Api::V1Test < ApiTestCase
 
     api_post api_v1_order_cancellation_path(order["id"]), {}
     assert_equal "cancelled", json["status"]
+  end
+
+  test "an idempotency key is claimed before the work, so a twin request arriving meanwhile is told to retry" do
+    body = { customer: { name: "Kamau" } }
+    digest = OpenSSL::Digest::SHA256.hexdigest([ "POST", api_v1_customers_path, body.to_json ].join("\n"))
+    Account.without_isolation { ApiIdempotencyKey.claim(@key, "cust-7", digest) } # the twin, mid-flight
+
+    assert_no_difference -> { Account.without_isolation { @acme.customers.count } } do
+      api_post api_v1_customers_path, body, "Idempotency-Key" => "cust-7"
+    end
+    assert_response :conflict
+    assert_equal "in_progress", error_code
+
+    # A claim nobody finished is cleared with the day's old keys, and the request then goes through.
+    Account.without_isolation { ApiIdempotencyKey.where(key: "cust-7").update_all(created_at: 5.minutes.ago); ApiIdempotencyKey.purge_old }
+    api_post api_v1_customers_path, body, "Idempotency-Key" => "cust-7"
+    assert_response :created
+    assert_equal 201, Account.without_isolation { ApiIdempotencyKey.find_by!(key: "cust-7").response_status }
+  end
+
+  test "a request refused for bad data releases its key, so the corrected request can reuse it" do
+    api_post api_v1_customers_path, { customer: { name: "" } }, "Idempotency-Key" => "cust-8"
+    assert_response :unprocessable_entity
+    assert_equal 0, Account.without_isolation { ApiIdempotencyKey.where(key: "cust-8").count }
+
+    api_post api_v1_customers_path, { customer: { name: "Kamau" } }, "Idempotency-Key" => "cust-8"
+    assert_response :created
+    assert_equal 201, Account.without_isolation { ApiIdempotencyKey.find_by!(key: "cust-8").response_status }
   end
 
   test "an order for something the shop doesn't sell is refused" do

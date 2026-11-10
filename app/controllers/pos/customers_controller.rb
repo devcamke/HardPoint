@@ -9,7 +9,12 @@ class Pos::CustomersController < ApplicationController
 
   def update
     customer = params[:customer_id].presence && Current.account.customers.find(params[:customer_id])
-    @sale.change_customer(customer)
+    Sale.transaction do
+      @sale.change_customer(customer)
+      approve_discount!
+    end
     render_cart message: customer ? "#{customer.name}#{" · #{customer.price_list.name} prices" if customer.price_list}" : "Walk-in customer"
+  rescue ApprovalMissing => error
+    render_cart alert: error.message, status: :unprocessable_entity
   end
 end

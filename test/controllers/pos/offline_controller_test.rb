@@ -36,6 +36,23 @@ class Pos::OfflineControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ uuid, "duplicate", "MAIN-000001" ], result.values_at("uuid", "status", "receipt_number")
   end
 
+  test "a refused offline sale is answered as an error and shows in Activity against this till" do
+    get new_pos_offline_sale_path, as: :json
+    token = response.parsed_body["token"]
+    sale = { uuid: SecureRandom.uuid, receipt_number: "MAIN-OFF1-0002", happened_at: 5.minutes.ago.iso8601, shift_id: shifts(:acme_front_open).id, cashier_id: users(:carl).id,
+             total_cents: 100, lines: [ { product_id: 0, quantity: "1", unit_price_cents: 100 } ], payments: [ { tender: "cash", tendered_cents: 100 } ] }
+    post pos_offline_sales_path, params: { sales: [ sale ] }, as: :json, headers: { "X-CSRF-Token" => token }
+
+    assert_equal "error", response.parsed_body["results"].sole["status"]
+    event = Account.without_isolation { accounts(:acme).account_events.where(action: "offline_sale_refused").sole }
+    # Compared by id: under row-level security the register itself can't be loaded outside the shop's scope.
+    assert_equal [ "Register", registers(:acme_front).id ], [ event.eventable_type, event.eventable_id ]
+
+    sign_in_as users(:amina)
+    get events_path
+    assert_select "li", /offline sale MAIN-OFF1-0002 for KES 1.00 on Front counter .* couldn't be recorded: .*ring it up by hand/m
+  end
+
   test "the offline till page and the installable app" do
     get pos_offline_path
     assert_select "[data-controller=offline-till]"
@@ -62,23 +79,43 @@ class Pos::OfflineControllerTest < ActionDispatch::IntegrationTest
     assert_equal "2 kg x 250.00", receipt["lines"].sole["detail"]
   end
 
-  test "QZ Tray gets the certificate and signatures when they're set up, and drawer openings are recorded" do
+  test "QZ Tray gets the shop's own certificate and signatures, and drawer openings are recorded" do
     get qz_certificate_path
-    assert_response :not_found
+    assert_response :success
+    certificate = OpenSSL::X509::Certificate.new(response.body)
+    assert_equal "/CN=acme.localhost/O=Acme Hardware", certificate.subject.to_s
+    assert_equal certificate.subject, certificate.issuer, "self-signed while the platform has no QZ certificate"
+    assert_not_includes response.body, Account::QzSigning::INTERMEDIATE_MARKER
 
-    key = OpenSSL::PKey::RSA.new(2048)
-    Rails.configuration.x.qz = { certificate: "-----BEGIN CERTIFICATE-----", private_key: key.to_pem }
-    get qz_certificate_path
-    assert_equal "-----BEGIN CERTIFICATE-----", response.body
     post qz_signature_path, params: { request: "to sign" }
     assert_response :forbidden, "only for a till that prints through QZ Tray"
     Account.without_isolation { registers(:acme_front).update_columns(print_mode: "qz_tray", printer_name: "EPSON") }
     post qz_signature_path, params: { request: "to sign" }
-    assert key.public_key.verify(OpenSSL::Digest.new("SHA512"), Base64.decode64(response.body), "to sign")
+    assert certificate.public_key.verify(OpenSSL::Digest.new("SHA512"), Base64.decode64(response.body), "to sign")
+    assert_not Account.without_isolation { accounts(:bolt).qz_public_key }.verify(OpenSSL::Digest.new("SHA512"), Base64.decode64(response.body), "to sign"),
+      "another shop's QZ Tray doesn't trust this shop's signatures"
 
     post pos_drawer_openings_path
     assert_response :no_content
     assert_equal "drawer_opened", Account.without_isolation { registers(:acme_front).events.last.action }
+  end
+
+  test "with a QZ-issued platform certificate, each shop's certificate is issued under it and sent with it" do
+    platform_key = OpenSSL::PKey::RSA.new(2048)
+    platform = OpenSSL::X509::Certificate.new.tap do |cert|
+      cert.version, cert.serial = 2, 1
+      cert.subject = cert.issuer = OpenSSL::X509::Name.parse("/CN=HardPoint/O=HardPoint")
+      cert.public_key, cert.not_before, cert.not_after = platform_key.public_key, Time.current - 1.day, Time.current + 1.year
+      cert.sign(platform_key, OpenSSL::Digest.new("SHA256"))
+    end
+    Rails.configuration.x.qz = { certificate: platform.to_pem, private_key: platform_key.to_pem }
+
+    get qz_certificate_path
+    shop_pem, platform_pem = response.body.split("#{Account::QzSigning::INTERMEDIATE_MARKER}\n")
+    shop = OpenSSL::X509::Certificate.new(shop_pem)
+    assert_equal platform.subject, shop.issuer
+    assert shop.verify(platform_key), "issued by the platform's key"
+    assert_equal platform.to_pem.strip, platform_pem.strip
   ensure
     Rails.configuration.x.qz = nil
   end

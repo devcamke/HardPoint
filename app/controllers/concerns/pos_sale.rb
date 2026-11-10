@@ -7,6 +7,7 @@ module PosSale
   end
 
   ApprovalMissing = Class.new(StandardError)
+  PaidAlready = Class.new(StandardError)
 
   private
     def set_sale
@@ -14,15 +15,30 @@ module PosSale
     end
 
     # Discounts past the shop's limit need an owner or manager: at the till, or by approval PIN.
-    # Raised inside the transaction that applied the discount, so it's rolled back.
+    # Raised inside the transaction that applied the discount, so it's rolled back. The percentage can also grow
+    # without a discount being touched: a line removed, a quantity cut, a customer with lower prices chosen. Every
+    # change that recalculates the sale runs this, so an approved 5% can't quietly become 50%.
     def approve_discount!
       return unless @sale.discount_needs_approval?
 
       approver = approver_for_action
-      raise ApprovalMissing, "A discount over #{Current.account.max_cashier_discount_percent.to_s("F").delete_suffix(".0")}% needs a manager's approval PIN" unless approver
+      unless approver
+        limit = Current.account.max_cashier_discount_percent.to_s("F").delete_suffix(".0")
+        raise ApprovalMissing, "That makes the discount #{@sale.highest_discount_percent.round(1).to_s.delete_suffix(".0")}% of the sale. " \
+          "A discount over #{limit}% needs a manager's approval PIN"
+      end
 
       @sale.update!(discount_approver: approver, approved_discount_percent: @sale.highest_discount_percent.ceil(2))
-      @sale.track_event "discount_approved", approver: approver.name, percent: @sale.highest_discount_percent.round(1)
+      @sale.track_event "discount_approved", approver: approver, percent: @sale.highest_discount_percent.round(1)
+    end
+
+    # Once money has been taken, the sale can't shrink to it or below it: the payment would be left paying for
+    # nothing, a sale paid in full can only complete through a further payment, and with the last line gone the
+    # sale would be swept away at shift close with the money still on it.
+    def keep_what_is_paid!
+      return if @sale.payments.none? || @sale.balance_due_cents.positive?
+
+      raise PaidAlready, "#{Money.format(@sale.paid_cents)} has already been taken on this sale. Remove the payment first"
     end
 
     def render_cart(message: nil, alert: nil, status: :ok)

@@ -37,12 +37,19 @@ class Shift < ApplicationRecord
     sales.find_by(status: "open") || sales.create!(account: account, branch: branch, register: register)
   end
 
+  # Cash taken on sales, voided ones included: their cash came into the drawer, and only leaves it again if the
+  # void says it was handed back in cash (void_cash_refunds_cents).
   def cash_sales_cents
-    Payment.cash.joins(:sale).where(sales: { shift_id: id, status: "completed" }).sum(:amount_cents)
+    Payment.cash.joins(:sale).where(sales: { shift_id: id, status: %w[ completed voided ] }).sum(:amount_cents)
   end
 
   def cash_refunds_cents
     sale_returns.where(refund_method: "cash").sum(:total_cents)
+  end
+
+  # Voided sales whose money was handed back in cash, out of this drawer, whatever they were paid with.
+  def void_cash_refunds_cents
+    sales.voided.where(void_refund_method: "cash").sum(:total_cents)
   end
 
   # Deposits on orders (less deposits refunded) and account payments, taken in cash.
@@ -67,6 +74,12 @@ class Shift < ApplicationRecord
     foreign_payments.sum("payments.tendered_cents - payments.amount_cents")
   end
 
+  # Cash handed back when a phone payment came to more than was due.
+  def mobile_money_change_cents
+    Payment.where(tender: %w[ mobile_money airtel_money ]).joins(:sale).where(sales: { shift_id: id, status: "completed" })
+      .sum("COALESCE(payments.tendered_cents, payments.amount_cents) - payments.amount_cents")
+  end
+
   # Foreign notes that should be in the drawer, by currency: { "USD" => cents }.
   def expected_foreign_cents_now
     foreign_payments.group(:currency).sum(:foreign_tendered_cents)
@@ -74,8 +87,8 @@ class Shift < ApplicationRecord
 
   def expected_cash_cents_now
     movements = cash_movement_totals
-    opening_float_cents + cash_sales_cents - foreign_change_cents - cash_refunds_cents + cash_deposits_cents + cash_account_payments_cents +
-      movements.fetch("pay_in", 0) - movements.fetch("payout", 0) - movements.fetch("drop", 0)
+    opening_float_cents + cash_sales_cents - foreign_change_cents - mobile_money_change_cents - cash_refunds_cents - void_cash_refunds_cents +
+      cash_deposits_cents + cash_account_payments_cents + movements.fetch("pay_in", 0) - movements.fetch("payout", 0) - movements.fetch("drop", 0)
   end
 
   # The currencies to count at close: any taken at the till, and any taken in this shift.

@@ -2,3 +2,10 @@
   <%= form.label :role, class: "label" %>
   <%= form.select :role, Membership.roles.keys.excluding(("owner" unless current_membership.owner? || form.object.owner?)).map { |role| [ role.humanize, role ] }, {}, class: "input" %>
 </div>
+<% if Current.account.branches.many? && !current_membership.bound_to_branch? %>
+  <div class="field">
+    <%= form.label :branch_id, "Branch", class: "label" %>
+    <%= form.select :branch_id, Current.account.branches.alphabetically.map { [ _1.name, _1.id ] }, { include_blank: "Every branch" }, class: "input" %>
+    <p class="hint mt-1">Bound to one branch, they sell on its tills and see only its sales, shifts, stock and orders. Owners always see every branch.</p>
+  </div>
+<% end %>

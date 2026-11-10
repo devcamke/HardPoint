@@ -13,7 +13,7 @@
     <% if current_membership.can_see_costs? %><p class="hint"><%= money(@batch.value_cents) %> at cost</p><% end %></div>
   <div class="card"><p class="hint">Expiry</p><p class="mt-2"><%= render "stock_batches/expiry", batch: @batch %></p></div>
   <div class="card"><p class="hint">Sold to</p><p class="mt-1 text-2xl font-bold"><%= pluralize(@sales.map(&:customer).compact.uniq.size, "named customer") %></p>
-    <p class="hint">in <%= pluralize(@sales.size, "sale") %>, all branches</p></div>
+    <p class="hint">in <%= pluralize(@sales.size, "sale") %>, <%= current_membership.bound_to_branch? ? "at #{@batch.branch.name}" : "all branches" %></p></div>
 </div>
 
 <div class="grid gap-6 lg:grid-cols-2">

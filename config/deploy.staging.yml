@@ -1,0 +1,42 @@
+# Staging: the same image as production on one small VPS at staging.hardpoint.app, with shops at
+# acme.staging.hardpoint.app, refreshed from last night's production backup with every name, number and
+# password scrambled (config/backup/refresh_staging.sh). Every release goes here first; the penetration
+# test and the load test run against it. A Kamal destination merged over config/deploy.yml:
+#
+#   bin/kamal setup -d staging     # first time
+#   bin/kamal deploy -d staging
+#
+# docs/RUNBOOK.md, "Staging".
+servers:
+  web:
+    - 192.168.0.2 # the staging VPS
+
+proxy:
+  hosts:
+    - staging.hardpoint.app
+    - "*.staging.hardpoint.app"
+  ssl:
+    # A second Cloudflare Origin CA certificate, for staging.hardpoint.app and *.staging.hardpoint.app.
+    certificate_pem: CLOUDFLARE_STAGING_ORIGIN_CERTIFICATE
+    private_key_pem: CLOUDFLARE_STAGING_ORIGIN_PRIVATE_KEY
+
+env:
+  clear:
+    APP_HOST: staging.hardpoint.app
+    # Shops are one level deeper than in production (acme.staging.hardpoint.app), so the subdomain is the first label.
+    APP_TLD_LENGTH: 2
+    # Marks error reports and alert emails, adds noindex headers and the staging banner, and sends every
+    # email to STAGING_MAIL_TO instead of to real owners and customers (config/initializers/staging.rb).
+    HARDPOINT_ENVIRONMENT: staging
+    STAGING_MAIL_TO: support@hardpoint.app
+    # The M-Pesa, Airtel and eTIMS simulators stand in for the real services, as in the public demo.
+    ALLOW_INTEGRATION_SIMULATORS: true
+    DATABASE_HOST: hardpoint-db
+    SOLID_QUEUE_IN_PUMA: true
+    # A smaller server than production.
+    WEB_CONCURRENCY: 2
+    RAILS_MAX_THREADS: 3
+
+accessories:
+  db:
+    host: 192.168.0.2

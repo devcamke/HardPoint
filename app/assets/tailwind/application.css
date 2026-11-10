@@ -9,6 +9,8 @@
  */
 @theme {
   --font-sans: "Roboto", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  /* Handwriting for the marketing page's annotations, from whatever the device has. */
+  --font-hand: "Kalam", "Segoe Print", "Bradley Hand", "Marker Felt", "Comic Sans MS", cursive;
 
   --color-primary-50: #f3f7f8;
   --color-primary-100: #e2ecee;
@@ -24,6 +26,16 @@
   --color-accent-500: #4b8692;
   --color-accent-600: #0d505e;
   --color-accent-700: #0a424d;
+}
+
+/* The marker pen for the landing page's headline and handwritten notes: Kalam Bold (SIL Open Font Licence),
+   served from app/assets/fonts so nothing is fetched from Google. */
+@font-face {
+  font-family: "Kalam";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("kalam-700.woff2") format("woff2");
 }
 
 @layer base {
@@ -321,4 +333,94 @@ textarea.input {
   .o-main .table th, .o-main .table td { padding: 4px 6px; }
   .o-main .table thead { display: table-header-group; }
   .o-main .table tr { break-inside: avoid; }
+}
+
+/* The landing page's "Getting started" path (pages/home, setup_steps_controller.js): numbered tabs on a progress
+   line and a browser frame that shows each step's screen. */
+@layer components {
+  .setup-tab-disc {
+    @apply flex size-10 items-center justify-center rounded-full bg-white text-lg font-bold text-primary-600 tabular-nums shadow-sm ring-1 ring-primary-200 transition duration-300;
+  }
+  .setup-tab:hover .setup-tab-disc {
+    @apply ring-primary-400;
+  }
+  .setup-tab.is-active .setup-tab-disc {
+    @apply scale-110 bg-primary-500 text-white shadow-md ring-4 ring-primary-200;
+  }
+  .setup-tab.is-done .setup-tab-disc {
+    @apply bg-primary-500 text-white ring-primary-500;
+  }
+  .setup-tab-check { display: none; }
+  .setup-tab.is-done .setup-tab-number { display: none; }
+  .setup-tab.is-done .setup-tab-check { display: block; }
+  .setup-tab.is-active .setup-tab-title {
+    @apply text-gray-950;
+  }
+  .setup-fill {
+    transition: width 0.5s ease;
+  }
+  .setup-screen {
+    @apply absolute inset-0 flex flex-col opacity-0 transition-opacity duration-500;
+  }
+  .setup-screen.is-active, .setup-steps:not(.is-interactive) .setup-screen:first-child {
+    @apply opacity-100;
+  }
+  /* While it plays on its own, the active number fills like a clock. */
+  .setup-steps.is-playing .setup-tab.is-active .setup-tab-disc {
+    animation: setup-tick 5s linear infinite;
+  }
+  .setup-steps:not(.is-interactive) .setup-panel + .setup-panel {
+    @apply mt-6 border-t border-primary-100 pt-6;
+  }
+}
+@keyframes setup-tick {
+  from { box-shadow: 0 0 0 0 rgb(15 94 110 / 0.45); }
+  to { box-shadow: 0 0 0 14px rgb(15 94 110 / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .setup-steps.is-playing .setup-tab.is-active .setup-tab-disc { animation: none; }
+  .setup-fill, .setup-screen, .setup-tab-disc { transition: none; }
+}
+
+/* The landing page's offline band (pages/home): a teal with depth, and a drawn till that plays a 12-second story:
+   the signal drops, three sales ring up and wait as orange dots, a receipt prints, the signal returns, the dots
+   fly to the cloud and it ticks. Each piece has its own timeline so they stay in step. */
+.offline-band {
+  background:
+    radial-gradient(60rem 28rem at 85% 40%, rgb(255 255 255 / 0.10), transparent 60%),
+    radial-gradient(40rem 24rem at 0% 110%, rgb(7 45 53 / 0.55), transparent 60%),
+    radial-gradient(rgb(255 255 255 / 0.10) 1px, transparent 1.5px) 0 0 / 22px 22px,
+    linear-gradient(135deg, var(--color-primary-600), var(--color-primary-500) 55%, var(--color-primary-700));
+}
+.offline-art .oa-line-1 { animation: oa-line-1 12s ease-in-out infinite; }
+.offline-art .oa-line-2 { animation: oa-line-2 12s ease-in-out infinite; }
+.offline-art .oa-line-3 { animation: oa-line-3 12s ease-in-out infinite; }
+.offline-art .oa-receipt { animation: oa-receipt 12s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom; }
+.offline-art .oa-slash, .offline-art .oa-offline-text { animation: oa-offline 12s ease-in-out infinite; }
+.offline-art .oa-online-text { animation: oa-online 12s ease-in-out infinite; }
+.offline-art .oa-arcs { animation: oa-arcs 12s ease-in-out infinite; }
+.offline-art .oa-dot { animation: oa-dot 12s ease-in-out infinite; }
+.offline-art .oa-sale-1 { animation: oa-sale-1 12s ease-in-out infinite; }
+.offline-art .oa-sale-2 { animation: oa-sale-2 12s ease-in-out infinite; }
+.offline-art .oa-sale-3 { animation: oa-sale-3 12s ease-in-out infinite; }
+.offline-art .oa-cloud { animation: oa-cloud 12s ease-in-out infinite; }
+.offline-art .oa-check { animation: oa-check 12s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+@keyframes oa-line-1 { 0%, 5% { opacity: 0; } 8%, 97% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes oa-line-2 { 0%, 15% { opacity: 0; } 18%, 97% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes oa-line-3 { 0%, 25% { opacity: 0; } 28%, 97% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes oa-receipt { 0%, 30% { transform: scaleY(0); } 42%, 97% { transform: scaleY(1); } 100% { transform: scaleY(0); } }
+@keyframes oa-offline { 0%, 50% { opacity: 1; } 53%, 97% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes oa-online { 0%, 50% { opacity: 0; } 53%, 97% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes oa-arcs { 0%, 50% { opacity: 0.3; } 53%, 97% { opacity: 1; } 100% { opacity: 0.3; } }
+@keyframes oa-dot { 0%, 50% { fill: #f59e0b; } 53%, 97% { fill: #4ade80; } 100% { fill: #f59e0b; } }
+@keyframes oa-sale-1 { 0%, 8% { opacity: 0; transform: none; } 11%, 56% { opacity: 1; transform: none; } 70% { opacity: 1; transform: translate(84px, -28px); } 73%, 100% { opacity: 0; transform: translate(84px, -28px); } }
+@keyframes oa-sale-2 { 0%, 18% { opacity: 0; transform: none; } 21%, 58% { opacity: 1; transform: none; } 72% { opacity: 1; transform: translate(70px, -23.3px); } 75%, 100% { opacity: 0; transform: translate(70px, -23.3px); } }
+@keyframes oa-sale-3 { 0%, 28% { opacity: 0; transform: none; } 31%, 60% { opacity: 1; transform: none; } 74% { opacity: 1; transform: translate(56px, -18.7px); } 77%, 100% { opacity: 0; transform: translate(56px, -18.7px); } }
+@keyframes oa-cloud { 0%, 68% { fill-opacity: 0.1; } 76% { fill-opacity: 0.4; } 96%, 100% { fill-opacity: 0.1; } }
+@keyframes oa-check { 0%, 72% { opacity: 0; transform: scale(0.6); } 77%, 95% { opacity: 1; transform: scale(1); } 98%, 100% { opacity: 0; transform: scale(0.6); } }
+
+/* With reduced motion the scene stands still at "offline, three sales waiting, receipt printed". */
+@media (prefers-reduced-motion: reduce) {
+  .offline-art * { animation: none !important; }
 }

@@ -1,0 +1,8 @@
+Hi <%= @user.name %>,
+
+You've been added to <%= @account.name %> on HardPoint as <%= @membership.role.humanize.downcase %>.
+
+Sign in with your existing password, the one you already use for HardPoint, at
+<%= new_session_url(subdomain: @account.subdomain) %>
+
+If you weren't expecting this, ask <%= @account.name %> to remove you.

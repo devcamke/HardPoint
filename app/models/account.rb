@@ -1,5 +1,5 @@
 class Account < ApplicationRecord
-  include CatalogueDefaults, DailySummary, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Subscription, BillingCycle, Closure
+  include CatalogueDefaults, DailySummary, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Monetary, Subscription, BillingCycle, Closure, QzSigning
   # Creation is recorded by Signup, once the new account is current.
   tracks_lifecycle only: :update
 
@@ -52,6 +52,7 @@ class Account < ApplicationRecord
   has_many :etims_submissions, class_name: "Etims::Submission", dependent: :destroy
   has_many :sms_messages, class_name: "Sms::Message", dependent: :delete_all
   has_many :support_requests, dependent: :delete_all
+  has_many :document_shares, dependent: :delete_all
   has_many :usage_counts, dependent: :delete_all
   has_one :storefront, dependent: :destroy
   has_many :jobs, dependent: :destroy
@@ -82,6 +83,9 @@ class Account < ApplicationRecord
     exclusion: { in: RESERVED_SUBDOMAINS, message: "is reserved" }
   validates :time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
   validates :max_cashier_discount_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+  # A payout from a till's drawer above this needs an owner's or manager's approval PIN.
+  money_attribute :payout_approval_above
+  validates :payout_approval_above_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :backup_frequency, inclusion: { in: AccountBackup::FREQUENCIES }
   validates :backup_notifications, inclusion: { in: AccountBackup::NOTIFICATIONS }
   validates :backups_kept, numericality: { only_integer: true, in: AccountBackup::KEPT_RANGE }

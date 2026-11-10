@@ -1,0 +1,25 @@
+<% content_for :title, "Signed-in devices" %>
+
+<h1 class="text-xl font-medium"><%= link_to "Your account", my_profile_path, class: "link" %> <span class="text-gray-400">/</span> Signed-in devices</h1>
+<p class="hint mt-1 mb-6">Everywhere you're signed in to <%= Current.account.name %>. A device signs itself out after <%= Session::IDLE_LIMIT.inspect %> without being used, and after <%= Session::ABSOLUTE_LIMIT.inspect %> whatever happens. Sign out anything you don't recognise, and change your password.</p>
+
+<section class="card">
+  <table class="table">
+    <thead><tr><th>Device</th><th>Signed in</th><th>Last used</th><th>From</th><th></th></tr></thead>
+    <tbody>
+      <% @sessions.each do |session| %>
+        <tr id="<%= dom_id(session) %>">
+          <td><%= session.device %><% if session == Current.session %> <%= status_dot "This device", :success, class: "ml-1" %><% end %>
+            <% if session.signed_in_with_pin? %><span class="hint block">Switched in with a PIN</span><% end %></td>
+          <td><%= l(session.created_at, format: :short) %></td>
+          <td><%= time_ago_in_words(session.last_seen_at) %> ago</td>
+          <td class="font-mono text-xs"><%= session.ip_address %></td>
+          <td class="text-right"><%= button_to "Sign out", my_device_path(session), method: :delete, class: "btn-secondary py-1" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @sessions.many? %>
+    <%= button_to "Sign out everywhere else", my_device_path("others"), method: :delete, class: "btn-danger mt-4", form: { data: { turbo_confirm: "Sign out every other device?" } } %>
+  <% end %>
+</section>

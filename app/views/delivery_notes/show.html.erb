@@ -16,6 +16,8 @@
   </div>
 </div>
 
+<%= shared_links note %>
+
 <div class="grid gap-6 lg:grid-cols-3">
   <section class="card lg:col-span-2">
     <p class="label">Deliver to</p>
@@ -29,11 +31,14 @@
     <table class="table">
       <thead><tr><th>Item</th><th class="text-right">Qty</th></tr></thead>
       <tbody>
-        <% note.sale.lines.includes(product: :unit, product_unit: :unit).each do |line| %>
+        <% note.lines.includes(sale_line: [ { product: :unit }, { product_unit: :unit } ]).each do |line| %>
           <tr><td><%= line.description %> <span class="font-mono text-xs text-gray-500"><%= line.product.sku %></span></td><td class="text-right tabular-nums"><%= quantity(line.quantity, line.unit) %></td></tr>
         <% end %>
       </tbody>
     </table>
+    <% if note.partial? %>
+      <p class="hint mt-3">Part of sale <%= note.sale.receipt_number %>; the rest goes on another note.</p>
+    <% end %>
   </section>
 
   <div class="space-y-6">

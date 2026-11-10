@@ -15,12 +15,17 @@ class GoodsReceiptsController < ApplicationController
 
   # Against an order: its outstanding lines, ready to confirm. Without one: blank lines to scan into.
   def new
-    order = Current.account.purchase_orders.find_by(id: params[:purchase_order_id])
+    order = within_visible_branches(Current.account.purchase_orders).find_by(id: params[:purchase_order_id])
     @goods_receipt = Current.account.goods_receipts.new(purchase_order: order, supplier: order&.supplier, branch: order&.branch || selected_branch)
 
     if order
       return redirect_to order, alert: "This order is #{order.status.humanize.downcase}." unless order.receivable?
-      order.outstanding_lines.each { |line| @goods_receipt.lines.build(purchase_order_line: line, product: line.product, quantity: line.outstanding_quantity, unit_cost_cents: line.unit_cost_cents) }
+      # Lines ordered by the pack are offered in packs, while whole packs are still to come.
+      order.outstanding_lines.each do |line|
+        packs = line.outstanding_packs
+        @goods_receipt.lines.build(purchase_order_line: line, product: line.product, quantity: line.outstanding_quantity, unit_cost_cents: line.unit_cost_cents,
+          product_unit: (line.product_unit if packs), pack_quantity: packs)
+      end
     else
       BLANK_LINES.times { @goods_receipt.lines.build }
     end
@@ -40,12 +45,12 @@ class GoodsReceiptsController < ApplicationController
   private
     def goods_receipt_params
       permitted = params.expect(goods_receipt: [ :supplier_id, :branch_id, :purchase_order_id, :supplier_reference, :extra_costs, :note, :exchange_rate,
-        lines_attributes: [ [ :purchase_order_line_id, :product_code, :quantity, :unit_cost, :batch_number, :expires_on ] ] ])
-      order = Current.account.purchase_orders.find(permitted.delete(:purchase_order_id)) if permitted[:purchase_order_id].present?
+        lines_attributes: [ [ :purchase_order_line_id, :product_code, :pack, :quantity, :unit_cost, :batch_number, :expires_on ] ] ])
+      order = within_visible_branches(Current.account.purchase_orders).find(permitted.delete(:purchase_order_id)) if permitted[:purchase_order_id].present?
 
       permitted[:purchase_order] = order
       permitted[:supplier] = order&.supplier || Current.account.suppliers.find(permitted.delete(:supplier_id))
-      permitted[:branch] = order&.branch || Current.account.branches.find(permitted.delete(:branch_id))
+      permitted[:branch] = order&.branch || visible_branches.find(permitted.delete(:branch_id))
       permitted.delete(:supplier_id)
       permitted.delete(:branch_id)
       permitted[:lines_attributes]&.each_value do |line|

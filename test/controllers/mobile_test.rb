@@ -115,4 +115,13 @@ class MobileTest < ActionDispatch::IntegrationTest
     get mobile_purchase_orders_path
     assert_response :forbidden
   end
+
+  test "staff bound to a branch see only its stock on the phone" do
+    acme { memberships(:sara_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:sara), account: @account
+
+    get mobile_product_path(products(:acme_cement))
+    assert_select "td", branches(:acme_yard).name
+    assert_select "td", text: branches(:acme_main).name, count: 0
+  end
 end

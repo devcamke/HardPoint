@@ -6,6 +6,8 @@ class Membership < ApplicationRecord
 
   belongs_to :account, default: -> { Current.account }
   belongs_to :user, autosave: true
+  # Set, the member sees and works at this branch only. Owners see every branch.
+  belongs_to :branch, optional: true
 
   PIN_ROLES = %w[ cashier stock_clerk ].freeze
   PIN_ATTEMPTS_ALLOWED = 5
@@ -21,18 +23,27 @@ class Membership < ApplicationRecord
   validate :pin_only_for_till_roles, if: -> { pin.present? }
   validates :approval_pin, format: { with: /\A\d{4,6}\z/, message: "must be 4 to 6 digits" }, allow_nil: true
   validate { errors.add :approval_pin, "is only for owners and managers" if approval_pin.present? && !approver? }
+  # A PIN must name one person, or an approval would be put down to the wrong manager.
+  validate(if: -> { approval_pin.present? && approver? }) do
+    # Saying it's taken would tell this person a colleague's PIN, so the message doesn't say why.
+    errors.add :approval_pin, "can't be used; choose a different PIN" if Approval.holder_of(account, approval_pin, except: self)
+  end
 
   validates :user, uniqueness: { scope: :account_id, message: "is already a member of this shop" }
+  validate { errors.add :branch, "must be one of this shop's" if branch && branch.account_id != account_id }
+  validate { errors.add :branch, "can't be set for an owner: owners see every branch" if owner? && branch }
   validate :account_keeps_an_owner, on: :update, if: -> { role_changed?(from: "owner") }
 
   before_destroy :ensure_not_last_owner
-  # Someone who no longer works here is signed out of every device at once, not on their next click.
-  after_destroy { account.sessions.where(user_id: user_id, impersonator_id: nil).destroy_all }
+  # Someone who no longer works here is signed out of every device at once, not on their next click, and
+  # HardPoint support signed in as them is signed out too.
+  after_destroy { account.sessions.where(user_id: user_id).destroy_all }
 
   scope :alphabetically, -> { joins(:user).order("users.name") }
   scope :with_pin, -> { where.not(pin_digest: nil).where(role: PIN_ROLES) }
 
   before_save :clear_pin, if: -> { role_changed? && !pin_role? }
+  before_validation { self.branch = nil if owner? && will_save_change_to_role? }
   before_save(if: -> { role_changed? && !approver? }) { self.approval_pin_digest = nil }
 
   # Finds the person by email address, or creates a user with an unusable random password
@@ -47,6 +58,19 @@ class Membership < ApplicationRecord
 
   def event_name
     user.name
+  end
+
+  # The branches this member may see: one, or all of them.
+  def visible_branches
+    branch ? account.branches.where(id: branch_id) : account.branches
+  end
+
+  def bound_to_branch?
+    branch_id.present?
+  end
+
+  def sees_branch?(other)
+    branch_id.nil? || other&.id == branch_id
   end
 
   def two_factor_required?
@@ -105,6 +129,11 @@ class Membership < ApplicationRecord
     owner? || manager?
   end
 
+  # Owners and managers approve their own voids, discounts and credit, unless the shop asks for a second person.
+  def approves_own_actions?
+    approver? && !account.require_second_approver?
+  end
+
   def can_sell?
     !accountant?
   end
@@ -120,8 +149,9 @@ class Membership < ApplicationRecord
 
   # A shop can reset two-factor only for someone whose sole shop it is: a person's sign-in is shared by every
   # shop they work for, so one shop mustn't weaken it for the others. HardPoint support can reset anyone's.
+  # A platform administrator's two-factor guards the admin area too, so no shop can ever reset it.
   def two_factor_resettable_by_shop?
-    Account.without_isolation { user.memberships.count } == 1
+    !user.admin? && Account.without_isolation { user.memberships.count } == 1
   end
 
   # For someone who has lost their phone and their recovery codes. They're signed out everywhere, told by
@@ -176,7 +206,14 @@ class Membership < ApplicationRecord
   end
 
   private
+    # Two owners removing or demoting each other at once would each see the other still there and both go
+    # ahead, leaving no owner. Locking the shop's row first makes the second wait and then see the first.
+    def lock_account
+      Account.where(id: account_id).lock.pluck(:id)
+    end
+
     def account_keeps_an_owner
+      lock_account
       errors.add :role, "can't be changed: the shop needs at least one owner" if account.memberships.owner.excluding(self).none?
     end
 
@@ -189,6 +226,7 @@ class Membership < ApplicationRecord
     end
 
     def ensure_not_last_owner
+      lock_account if role_in_database == "owner"
       if last_owner?
         errors.add :base, "The last owner can't be removed"
         throw :abort

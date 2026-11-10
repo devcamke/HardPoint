@@ -16,12 +16,13 @@ module CatalogueHelper
     decimal&.to_d&.to_s("F")&.delete_suffix(".0")
   end
 
-  def stock_badge(product, stock, branch)
+  # Pass the branch's reorder level when the list already has its stock levels, to save a query a row.
+  def stock_badge(product, stock, branch, reorder_level: nil)
     if !product.track_stock? && !product.kit?
       status_dot "Not tracked", :muted
     elsif stock <= 0
       status_dot "Out", :danger
-    elsif product.reorder_level.positive? && stock <= product.reorder_level
+    elsif (reorder_level ||= product.reorder_level_at(branch)).positive? && stock <= reorder_level
       status_dot "Low", :warning
     end
   end

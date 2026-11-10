@@ -6,19 +6,23 @@
       <% if @sale.voided? %><%= status_dot "Voided", :danger, class: "ml-2" %><% elsif !@sale.completed? %><%= status_dot @sale.status.humanize, :neutral, class: "ml-2" %><% end %></h1>
     <p class="hint mt-1"><%= @sale.branch.name %> · <%= @sale.register.name %> · <%= @sale.cashier.name %><%= " · #{l(@sale.completed_at, format: :long)}" if @sale.completed_at %></p>
     <% if @sale.offline_uuid %><p class="mt-1 text-sm"><%= status_dot "Rung up offline", :warning %> as <span class="font-mono"><%= @sale.offline_receipt_number %></span>, sent to HardPoint <%= l(@sale.updated_at, format: :short) %></p><% end %>
-    <% if @sale.voided? %><p class="mt-1 text-sm text-red-800">Voided <%= l(@sale.voided_at, format: :short) %> by <%= @sale.voided_by&.name %>: <%= @sale.void_reason %></p><% end %>
+    <% if @sale.voided? %><p class="mt-1 text-sm text-red-800">Voided <%= l(@sale.voided_at, format: :short) %> by <%= @sale.voided_by&.name %>: <%= @sale.void_reason %><%= " · #{money(@sale.total_cents)} #{@sale.void_refund_words}" if @sale.void_refund_method %></p><% end %>
   </div>
   <% if @sale.completed? || @sale.voided? %>
     <div class="flex flex-wrap gap-2">
       <%= link_to "Print receipt", sale_receipt_path(@sale, print: 1), target: "_blank", class: "btn-secondary" %>
       <%= whatsapp_button @sale, phone: @sale.customer&.phone if @sale.completed? %>
       <%= link_to "Tax invoice (A4)", sale_invoice_path(@sale), target: "_blank", class: "btn-secondary" if @sale.completed? && @sale.customer %>
-      <%= link_to "Deliver", new_delivery_note_path(sale_id: @sale.id), class: "btn-secondary" if @sale.completed? && feature?(:deliveries) %>
+      <% if @sale.completed? && feature?(:deliveries) && DeliveryNote.undelivered_by_line(@sale).any? %>
+        <%= link_to (@sale.delivery_notes.where.not(status: "cancelled").exists? ? "Deliver the rest" : "Deliver"), new_delivery_note_path(sale_id: @sale.id), class: "btn-secondary" %>
+      <% end %>
       <% if @sale.returnable? %><%= link_to "Return items", new_sale_return_path(@sale), class: "btn-secondary" %><% end %>
       <% if @sale.voidable? %><%= link_to "Void sale", new_sale_void_path(@sale), class: "btn-danger" %><% end %>
     </div>
   <% end %>
 </div>
+
+<%= shared_links @sale %>
 
 <div class="grid gap-6 lg:grid-cols-3">
   <section class="card lg:col-span-2">

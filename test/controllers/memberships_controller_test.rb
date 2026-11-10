@@ -26,6 +26,22 @@ class MembershipsControllerTest < ActionDispatch::IntegrationTest
     assert_match %r{http://acme\.localhost/passwords/.+/edit}, invitation.text_part.body.to_s
   end
 
+  test "someone who already uses HardPoint is told they've been added, not asked to choose a password" do
+    assert_no_difference -> { User.count } do
+      perform_enqueued_jobs do
+        post memberships_path, params: { membership: { role: "cashier", user_attributes: { name: "Bob", email_address: users(:bob).email_address } } }
+      end
+    end
+
+    mail = ActionMailer::Base.deliveries.last
+    assert_equal [ users(:bob).email_address ], mail.to
+    assert_match "Acme Hardware", mail.subject
+    assert_no_match "passwords/", mail.text_part.body.to_s
+    assert_no_match "Choose your password", mail.html_part.body.to_s
+    assert_match "http://acme.localhost/session/new", mail.text_part.body.to_s
+    assert_match "your existing password", mail.text_part.body.to_s
+  end
+
   test "adding with invalid details" do
     post memberships_path, params: { membership: { role: "cashier", user_attributes: { name: "", email_address: "not-an-email" } } }
 
@@ -87,11 +103,41 @@ class MembershipsControllerTest < ActionDispatch::IntegrationTest
     assert Account.without_isolation { memberships(:sara_acme).reload.cashier? }, "other roles are still the manager's to change"
   end
 
-  test "removing someone signs them out everywhere" do
+  test "removing someone signs them out everywhere, support signed in as them too" do
     session = Account.without_isolation { Session.create!(account: accounts(:acme), user: users(:carl)) }
+    support = Account.without_isolation { Session.create!(account: accounts(:acme), user: users(:carl), impersonator: users(:ada), sign_in_method: "impersonation") }
 
     delete membership_path(memberships(:carl_acme))
 
     assert_not Account.without_isolation { Session.exists?(session.id) }
+    assert_not Account.without_isolation { Session.exists?(support.id) }
+  end
+
+  test "a manager can't change their own role or branch" do
+    Account.without_isolation { memberships(:carl_acme).update!(role: "manager", branch: branches(:acme_main)) }
+    sign_in_as users(:carl), account: accounts(:acme)
+
+    patch membership_path(memberships(:carl_acme)), params: { membership: { role: "manager", branch_id: "" } }
+
+    assert_redirected_to memberships_path
+    assert_equal branches(:acme_main), Account.without_isolation { memberships(:carl_acme).reload.branch }
+  end
+
+  test "a manager bound to a branch manages only that branch's staff, and adds people to it" do
+    Account.without_isolation do
+      memberships(:carl_acme).update!(role: "manager", branch: branches(:acme_main))
+      memberships(:sara_acme).update!(branch: branches(:acme_yard))
+    end
+    sign_in_as users(:carl), account: accounts(:acme)
+
+    get memberships_path
+    assert_select "td", text: users(:sara).name, count: 0
+
+    patch membership_path(memberships(:sara_acme)), params: { membership: { role: "cashier", branch_id: branches(:acme_main).id } }
+    assert_response :not_found
+    assert Account.without_isolation { memberships(:sara_acme).reload.stock_clerk? }
+
+    post memberships_path, params: { membership: { role: "cashier", branch_id: "", user_attributes: { name: "Njeri", email_address: "njeri@acme.test" } } }
+    assert_equal branches(:acme_main), Account.without_isolation { User.find_by!(email_address: "njeri@acme.test").memberships.sole.branch }
   end
 end

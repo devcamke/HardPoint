@@ -3,7 +3,8 @@
 <div class="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="text-xl font-medium"><%= link_to "Customers", customers_path, class: "link" %> <span class="text-gray-400">/</span> <%= @customer.name %></h1>
-    <p class="hint mt-1" data-tour="customer-details"><%= [ @customer.phone, @customer.email, @customer.address, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %></p>
+    <p class="hint mt-1" data-tour="customer-details"><%= [ @customer.phone, @customer.email, @customer.address, ("PIN #{@customer.tax_pin}" if @customer.tax_pin.present?) ].compact_blank.join(" · ") %> <%= email_status(@customer.email) %></p>
+    <%= tag.p "Has asked not to be texted: no receipts, order texts or reminders go to this number.", class: "hint mt-1 font-semibold" if @customer.sms_opt_out? %>
   </div>
   <div class="flex flex-wrap gap-2" data-tour="customer-actions">
     <% if current_membership.can_sell? %>
@@ -12,16 +13,18 @@
       <%= link_to "Add a job", new_job_path(customer_id: @customer.id), class: "btn-secondary" if feature?(:jobs) %>
     <% end %>
     <%= link_to "Statement", customer_statement_path(@customer), class: "btn-secondary" if current_membership.can_manage_receivables? %>
-    <% if current_membership.can_manage_receivables? && Current.account.sms_enabled? && @customer.phone.present? && @customer.balance_cents.positive? %>
+    <% if current_membership.can_manage_receivables? && Current.account.sms_enabled? && @customer.phone.present? && @customer.balance_cents.positive? && !@customer.sms_opt_out? %>
       <%= button_to "Text a reminder", customer_balance_reminder_path(@customer), class: "btn-secondary" %>
     <% end %>
+    <%= link_to "Write off", new_customer_write_off_path(@customer), class: "btn-secondary" if current_membership.can_manage_receivables? && @customer.balance_cents.positive? %>
+    <%= link_to "Refund credit", new_customer_payment_path(@customer, refund: 1), class: "btn-secondary" if @customer.balance_cents.negative? %>
     <%= link_to "Record payment", new_customer_payment_path(@customer), class: "btn-primary" if @customer.balance_cents.positive? %>
   </div>
 </div>
 
 <div class="mb-6 grid gap-4 sm:grid-cols-4" data-tour="customer-account">
   <div class="card"><p class="hint">Prices</p><p class="mt-1 text-xl font-bold"><%= @customer.price_list&.name || "Retail" %></p></div>
-  <div class="card"><p class="hint">Owes on account</p><p class="mt-1 text-xl font-bold tabular-nums"><%= money(@customer.balance_cents) %></p>
+  <div class="card"><p class="hint"><%= @customer.balance_cents.negative? ? "Credit on account" : "Owes on account" %></p><p class="mt-1 text-xl font-bold tabular-nums"><%= money(@customer.balance_cents.abs) %></p>
     <% overdue = @customer.overdue_cents %><%= tag.p("#{money(overdue)} overdue", class: "text-sm font-semibold text-red-700") if overdue.positive? %></div>
   <div class="card"><p class="hint">Credit left</p><p class="mt-1 text-xl font-bold tabular-nums"><%= @customer.buys_on_account? ? money(@customer.available_credit_cents) : "Cash only" %></p>
     <% if @customer.buys_on_account? %><p class="hint">of <%= money(@customer.credit_limit_cents) %></p><% end %></div>
@@ -56,8 +59,9 @@
       <table class="table">
         <tbody>
           <% @payments.each do |payment| %>
-            <tr><td class="whitespace-nowrap"><%= l(payment.paid_on, format: :long) %></td><td><%= payment.payment_method.humanize %><%= " · #{payment.reference}" if payment.reference.present? %></td>
-              <td class="text-gray-500"><%= payment.creator&.name %></td><td class="text-right tabular-nums"><%= money(payment.amount_cents) %></td></tr>
+            <tr><td class="whitespace-nowrap"><%= l(payment.paid_on, format: :long) %></td><td><%= payment.description %><%= " · #{payment.reference}" if payment.reference.present? %></td>
+              <td class="text-gray-500"><%= payment.write_off? ? "approved by #{payment.approver&.name}" : payment.creator&.name %></td>
+              <td class="text-right tabular-nums <%= "text-red-700" if payment.refund? %>"><%= money(payment.amount_cents) %></td></tr>
           <% end %>
         </tbody>
       </table>

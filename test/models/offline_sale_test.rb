@@ -16,7 +16,9 @@ class OfflineSaleTest < ActiveSupport::TestCase
   def record(data) = accounts(:acme).sales.record_offline(data)
 
   test "an offline sale is recorded as it happened, and sending it again records nothing new" do
-    data = payload
+    # The time the till sends, whole seconds as it sends them, so the check doesn't depend on how long the test takes.
+    happened_at = 20.minutes.ago.change(usec: 0)
+    data = payload(happened_at: happened_at)
     result = record(data)
 
     assert_equal "recorded", result.status
@@ -25,7 +27,7 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_equal "MAIN-000001", sale.receipt_number
     assert_equal "MAIN-OFF1-0001", sale.offline_receipt_number
     assert_equal users(:carl), sale.cashier
-    assert_in_delta 20.minutes.ago, sale.completed_at, 2
+    assert_equal happened_at, sale.completed_at
     assert_equal 25.5 - 4, products(:acme_nails).stock_at(branches(:acme_main))
     assert_equal "recorded_offline", sale.events.last.action
 
@@ -61,14 +63,64 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_includes result.warnings, "The till worked out KES 990.00; the total is KES 1,000.00"
   end
 
+  test "cash is taken at what the till charged, since the change was given from its drawer" do
+    # An older till sends a hand discount, which isn't taken here: the sale comes to 1,000.00, but the till charged
+    # 500.00 of the 1,000.00 handed over and gave 500.00 back.
+    result = record(payload(total_cents: 50000, payments: [ { tender: "cash", amount_cents: 50000, tendered_cents: 100000 } ]).merge(discount_cents: 50000))
+    assert_equal "needs_attention", result.status
+    assert_equal [ 50000, 100000 ], result.sale.payments.sole.values_at(:amount_cents, :tendered_cents)
+    assert_equal 50000, result.sale.balance_due_cents
+
+    # A till that doesn't say how much of the cash paid the sale is still held to its own total.
+    older = record(payload(total_cents: 50000, payments: [ { tender: "cash", tendered_cents: 100000 } ]).merge(discount_cents: 50000))
+    assert_equal 50000, older.sale.payments.sole.amount_cents
+    assert_equal 50000, older.sale.balance_due_cents
+  end
+
   test "bad data is refused whole, and the till's clock isn't trusted beyond the shift" do
     assert_equal "error", record(payload(uuid: "not-a-uuid")).status
     broken = record(payload(lines: [ { product_id: 0, quantity: "1", unit_price_cents: 100 } ]))
     assert_equal "error", broken.status
     assert_equal 0, accounts(:acme).sales.offline.count
+    assert_equal 2, accounts(:acme).account_events.where(action: "offline_sale_refused").count, "each refusal is in Activity"
 
     future = record(payload(happened_at: 3.days.from_now))
     assert_operator future.sale.completed_at, :<=, 6.minutes.from_now
+  end
+
+  test "a read-only shop takes the offline sales rung up before the lock, and refuses the ones after" do
+    locked_at = 10.minutes.ago
+    travel_to locked_at do
+      accounts(:acme).update!(subscription_status: "read_only")
+      accounts(:acme).track_event "made_read_only", creator: nil, invoice: "HP-2026-000001"
+    end
+    assert_in_delta locked_at, accounts(:acme).locked_since, 1.second
+
+    before = record(payload(happened_at: 30.minutes.ago))
+    assert_equal "recorded", before.status
+
+    after = record(payload(happened_at: 2.minutes.ago))
+    assert_equal "error", after.status
+    assert_match "read-only since", after.error
+    assert_equal 1, accounts(:acme).sales.offline.count
+  end
+
+  test "an open shop has no lock time" do
+    assert_nil accounts(:acme).locked_since
+  end
+
+  test "a sale that can't be recorded goes in Activity for a manager, once, with what the till sent" do
+    uuid = SecureRandom.uuid
+    gone = payload(uuid: uuid, lines: [ { product_id: 0, quantity: "2", unit_price_cents: 50000 } ], total_cents: 100000)
+
+    2.times { assert_equal "error", accounts(:acme).sales.record_offline(gone, register: registers(:acme_front)).status }
+
+    event = accounts(:acme).account_events.where(action: "offline_sale_refused").sole
+    assert_equal registers(:acme_front), event.eventable
+    assert_equal users(:carl), event.creator
+    assert_equal [ uuid, "MAIN-OFF1-0001", 100000, "Carl Cashier", 1, [ "cash KES 1,000.00" ] ],
+      event.particulars.values_at("uuid", "receipt_number", "total", "cashier", "lines", "payments")
+    assert_match "Couldn't find Product", event.particulars["error"]
   end
 
   test "another shop's shift can't be named" do
@@ -140,6 +192,39 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_equal [ 440_81, 459_19 ], result.sale.lines.order(:id).map(&:promotion_discount_cents)
     assert_includes PosCatalogue.new(shift: @shift, user: users(:carl)).as_json[:promotions].map { _1.slice(:kind, :bundle_quantity, :bundle_price_cents) },
       { "kind" => "bundle", "bundle_quantity" => 3, "bundle_price_cents" => 4000_00 }
+  end
+
+  test "a promotion takes off no more than it would at the till, whatever the till sends" do
+    deal = accounts(:acme).promotions.create!(name: "Nail days", kind: "percent_off", percent_off: 10, product_ids: [ products(:acme_nails).id ],
+      starts_on: Date.yesterday, ends_on: Date.tomorrow)
+    result = record(payload(lines: [ { product_id: products(:acme_nails).id, quantity: "4", unit_price_cents: 25000, promotion_id: deal.id, promotion_discount_cents: 100000 } ],
+      payments: [ { tender: "mobile_money", amount_cents: 90000, reference: "SJK4H7T2QP" } ], total_cents: 0))
+
+    line = result.sale.lines.sole
+    assert_equal 10000, line.promotion_discount_cents, "10% of four at KES 250, not the whole line"
+    assert_equal 90000, result.sale.total_cents
+    assert_match "Nail days, which takes off KES 100.00", result.warnings.join
+  end
+
+  test "a bundle discount beyond what the bundle saves is brought down to it" do
+    bundle = accounts(:acme).promotions.create!(name: "Plumbing three", kind: "bundle", bundle_quantity: 3, bundle_price_cents: 4000_00,
+      category_ids: [ categories(:acme_plumbing).id ], starts_on: Date.yesterday, ends_on: Date.tomorrow)
+    result = record(payload(lines: [
+      { product_id: products(:acme_pipe).id, quantity: "2", unit_price_cents: 1200_00, promotion_id: bundle.id, promotion_discount_cents: 2400_00 },
+      { product_id: products(:acme_plumbing_kit).id, quantity: "1", unit_price_cents: 2500_00, promotion_id: bundle.id, promotion_discount_cents: 2500_00 } ],
+      payments: [ { tender: "cash", tendered_cents: 4000_00 } ], total_cents: 0))
+
+    assert_equal [ 440_81, 459_19 ], result.sale.lines.order(:id).map(&:promotion_discount_cents)
+    assert_equal 4000_00, result.sale.total_cents
+  end
+
+  test "a sale rung up in a colleague's name says who really sent it" do
+    Current.session = accounts(:acme).sessions.create!(user: users(:amina))
+    @shift.update!(opened_by: users(:amina))
+    result = record(payload)
+
+    assert_includes result.warnings, "Rung up as #{users(:carl).name} but sent by #{users(:amina).name}"
+    assert_equal users(:amina).name, result.sale.events.last.particulars["sent_by"]
   end
 
   test "the catalogue carries customers, their price lists and promotions coming up" do

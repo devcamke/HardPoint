@@ -10,7 +10,8 @@ class ReportsController < ApplicationController
   def show
     report_class = Report.find(params[:key]) || raise(ActiveRecord::RecordNotFound)
     @report = report_class.new(account: Current.account, period: Report::Period.from_params(params),
-      branch: Current.account.branches.find_by(id: params[:branch_id]), options: report_class.options.to_h { |name, *| [ name, params[name] ] })
+      branch: visible_branches.find_by(id: params[:branch_id]) || (current_membership.branch if current_membership.bound_to_branch?),
+      options: report_class.options.to_h { |name, *| [ name, params[name] ] })
 
     respond_to do |format|
       format.html

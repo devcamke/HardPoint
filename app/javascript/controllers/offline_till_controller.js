@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import * as store from "offline/store"
 import { unitPrice, bestPromotion, applyBundles, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
 import { printReceipt } from "offline/printer"
+import { offlinePayments, offlineReceiptNumber } from "offline/payload"
 
 // The offline till: sells from the catalogue snapshot on this device while the network is down.
 // Sales are kept on the device and sent by the offline-sync controller when it's back; they get
@@ -188,11 +189,11 @@ export default class extends Controller {
     if (due > 0 && tender !== "cash" && !reference) return this.show(`Enter the ${{ mobile_money: "M-Pesa", airtel_money: "Airtel Money" }[tender] || "card"} code; it's checked once the till is back online`, "alert")
 
     const counter = await store.meta.next(`receipt-counter-${till.register_id}`)
-    const receiptNumber = `${till.branch_code}-OFF${till.register_id}-${String(counter).padStart(4, "0")}`
+    const receiptNumber = offlineReceiptNumber(till, await store.meta.deviceCode(), counter)
     const happenedAt = new Date().toISOString()
     const uuid = crypto.randomUUID()
     const lines = this.pricedLines()
-    const payments = due > 0 ? [ { tender, amount_cents: tender === "cash" ? null : due, tendered_cents: tendered, reference: reference || null } ] : []
+    const payments = offlinePayments(tender, due, tendered, reference)
 
     const sale = {
       uuid, status: "waiting", happened_at: happenedAt, receipt_number: null, offline_receipt_number: receiptNumber, total_cents: total,
@@ -324,10 +325,25 @@ export default class extends Controller {
           <span class="block text-xs text-gray-500">${new Date(sale.happened_at).toLocaleTimeString("en-KE", { timeStyle: "short" })}
           ${sale.status === "sent" ? `· sent${sale.receipt_number ? ` (was ${escape(sale.offline_receipt_number)})` : ""}` : ""}</span>
           ${(sale.warnings || []).map((warning) => `<span class="block text-xs text-amber-800">${escape(warning)}</span>`).join("")}
-          ${sale.error ? `<span class="block text-xs text-red-700">${escape(sale.error)}</span>` : ""}</span>
+          ${sale.error ? `<span class="block text-xs text-red-700">${escape(sale.error)}</span>` : ""}
+          ${sale.status === "error" ? `<span class="mt-1 flex gap-3 text-xs"><button type="button" class="link" data-action="offline-till#retry" data-uuid="${sale.uuid}">Try again</button><button type="button" class="link" data-action="offline-till#forget" data-uuid="${sale.uuid}">Rung up by hand, clear it</button></span>` : ""}</span>
         <span class="whitespace-nowrap text-right tabular-nums">${formatMoney(sale.total_cents, currency)}
-          <span class="badge ${{ sent: "bg-green-50 text-green-800", error: "bg-red-50 text-red-800" }[sale.status] || "bg-amber-100 text-amber-800"}">${{ sent: "Sent", error: "Problem" }[sale.status] || "Waiting"}</span></span>
+          <span class="badge ${{ sent: "bg-green-50 text-green-800", error: "bg-red-50 text-red-800" }[sale.status] || "bg-amber-100 text-amber-800"}">${{ sent: "Sent", error: "Not recorded" }[sale.status] || "Waiting"}</span></span>
       </li>`).join("") : `<li class="py-2 text-sm text-gray-500">No offline sales on this till.</li>`
+  }
+
+  // A refused sale, sent again once whatever stopped it has been put right.
+  async retry(event) {
+    await store.sales.retry(event.currentTarget.dataset.uuid)
+    document.dispatchEvent(new CustomEvent("offline-till:queued"))
+    await this.renderQueue()
+  }
+
+  // A refused sale that was rung up by hand instead: off the device, and off the status line.
+  async forget(event) {
+    await store.sales.remove(event.currentTarget.dataset.uuid)
+    document.dispatchEvent(new CustomEvent("offline-till:queued"))
+    await this.renderQueue()
   }
 
   receiptData(receiptNumber, lines, payments) {

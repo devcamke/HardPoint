@@ -16,9 +16,7 @@ module Account::LowStockDigest
   # Branch → products at or below their reorder level; branches with nothing low are left out.
   def low_stock_by_branch(limit: DIGEST_LIMIT)
     branches.alphabetically.to_h do |branch|
-      [ branch, products.active.below_reorder_level_at(branch).includes(:unit)
-          .select("products.*, COALESCE(stock_levels.quantity, 0) AS stock_quantity")
-          .order(Arel.sql("COALESCE(stock_levels.quantity, 0) - products.reorder_level")).limit(limit).to_a ]
+      [ branch, products.active.below_reorder_level_at(branch).most_short_first.includes(:unit).limit(limit).to_a ]
     end.reject { |_, products| products.empty? }
   end
 

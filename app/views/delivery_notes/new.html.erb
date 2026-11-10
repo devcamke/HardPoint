@@ -9,6 +9,27 @@
   <div class="field"><%= form.label :address, "Deliver to", class: "label" %><%= form.text_field :address, required: true, autofocus: true, class: "input", placeholder: "Site, street, landmark" %></div>
   <div class="field"><%= form.label :contact_phone, "Contact on site", class: "label" %><%= form.telephone_field :contact_phone, class: "input" %></div>
   <div class="field"><%= form.label :note, "Note for the driver", class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. offload at the back gate" %></div>
+  <fieldset class="field">
+    <legend class="label">What's going out</legend>
+    <p class="hint mb-2">Lower a quantity to send part of the sale now; the rest goes on a later note.</p>
+    <table class="table">
+      <thead><tr><th>Item</th><th class="text-right">Sold</th><th class="text-right">On this note</th></tr></thead>
+      <tbody>
+        <% @delivery_note.lines.each_with_index do |line, index| %>
+          <% left = @undelivered.fetch(line.sale_line_id, 0) %>
+          <tr>
+            <td><%= line.description %><%= tag.span(" · #{quantity(line.sale_line.quantity - left)} already on a note", class: "hint") if left < line.sale_line.quantity %></td>
+            <td class="text-right tabular-nums"><%= quantity(line.sale_line.quantity, line.unit) %></td>
+            <td class="text-right">
+              <%= hidden_field_tag "delivery_note[lines_attributes][#{index}][sale_line_id]", line.sale_line_id %>
+              <%= number_field_tag "delivery_note[lines_attributes][#{index}][quantity]", plain_number(line.quantity), min: 0, max: plain_number(left), step: "any",
+                    class: "input w-28 text-right tabular-nums", "aria-label": "Quantity of #{line.description} on this note" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </fieldset>
   <div class="field">
     <%= form.label :transport_charge, "Transport charge (#{Current.account.currency})", class: "label" %>
     <% if (on_sale = sale.transport_cents).positive? %>

@@ -61,10 +61,10 @@ customers, staff, or reports.
 | Weighing scales | Left out (optional in the plan): Web Serial support and scale protocols vary; kilograms are typed |
 | Daily summary | Yesterday's figures at 04:15 UTC (07:15 in Nairobi), to owners, managers and accountants who haven't turned it off; nothing is sent after a day without sales |
 | Plans | Starter KES 2,500 (1 branch, 2 tills, 3 staff), Business KES 6,500 (3, 8, 15), Enterprise KES 15,000 (no limits), per shop per month. Limits count what's in use (active tills); every feature is on every plan. Products are never limited: a hardware shop carries thousands of lines, and a 2,000 cap would have pushed most Starter shops off the plan at their first import, so tills and branches, which grow with the shop's takings, are what's charged for. Plans live in code (`Plan`), not a table, until prices need changing without a deploy. **Prices are placeholders to confirm** |
-| Add-ons | One more branch or till than the plan allows is bought as an add-on (Starter: till KES 750, branch KES 2,000 a month; Business: 500 and 1,500) rather than by jumping a plan. Counts live on the account (`extra_branches`, `extra_registers`) and go on every subscription invoice; more room applies at once, less only if what's in use still fits; the price changes from the next invoice. Enterprise has no limits, so no add-ons |
+| Add-ons | One more branch or till than the plan allows is bought as an add-on (Starter: till KES 750, branch KES 2,000 a month; Business: 500 and 1,500) rather than by jumping a plan. Counts live on the account (`extra_branches`, `extra_registers`) and go on every subscription invoice; more room applies at once, with a one-off invoice for the rest of the current period (days left over days in the period, at the difference in price); less only if what's in use still fits, at the new price from the next invoice. Enterprise has no limits, so no add-ons |
 | Yearly billing | A shop can choose to be billed yearly: one invoice for twelve months at ten months' price. Same cycle as monthly (invoice at the period's end, due a week later, read-only after) with a year-long period |
 | One-off invoices | Setup and training visits (from KES 15,000, free with a year paid upfront) and till kits (quoted) are sold on the pricing page and billed by platform staff from the admin as one-off invoices, paid like any other and locking the shop if overdue. They never move the subscription period |
-| Trial and dunning | 30 days free on the chosen plan (no card). Invoice at the trial's end, due 7 days later; reminders 3 days before the trial ends and 2 days before the due date; read-only the day after. Monthly periods run from the trial's end; a smaller plan applies only if the shop fits it; new prices from the next invoice. No proration |
+| Trial and dunning | 30 days free on the chosen plan (no card). Invoice at the trial's end, due 7 days later; reminders 3 days before the trial ends and 2 days before the due date; read-only the day after. Monthly periods run from the trial's end; a smaller plan applies only if the shop fits it; new prices from the next invoice, except that an upgrade or more add-ons are billed for the rest of the period at once. A shop that pays after going read-only starts its paid period on the day it pays |
 | Read-only | Blocks every change (non-GET request) except paying, exporting, support, signing in/out and the user's own profile; offline sales rung up before the lock are still accepted. Suspension by the platform and closing a shop use the same lock |
 | Paying HardPoint | M-Pesa prompt to the platform's own Paybill (Daraja, reusing the Phase 7 client) and cards through Paystack's hosted checkout (Kenyan cards, M-Pesa and Airtel too). Stripe left out: it doesn't settle to Kenyan businesses. Paystack confirmed twice (return page and signed webhook), idempotently. Invoices numbered from one platform sequence (`HP-2026-000123`). Bank transfers recorded by platform staff |
 | Marketing site | Server-rendered pages on the bare domain in the same app (no separate CMS); help centre articles are ERB partials in the repo, searched by title and summary |
@@ -799,6 +799,25 @@ set of books.
 - ~~Scaling out: move Postgres to its own VPS (or managed DB), add read replica, split
   job workers onto a second VPS — Kamal handles multi-host.~~ Ready in Phase 17; PgBouncer with `SET LOCAL` isolation when there are four or more web servers.
 
+### Phase 33 — Ready to sell: alerts, redundancy, staging, security items, paper, safe deploys
+**Goal:** close the six gaps docs/GO_TO_MARKET.md found between "works" and "sellable".
+- **Alerts:** `Rails.error` goes to Sentry (`SENTRY_DSN`) or, without it, to the operators by email, throttled per error;
+  jobs that give up are reported; `PlatformHealth` checks the database, replica, workers, stuck and failed jobs, eTIMS
+  queues, shop backups and disk every 10 minutes (`PlatformHealthJob`), on the admin Database page and at `/health` for
+  the uptime monitor (docs/RUNBOOK.md §7).
+- **Redundancy:** continuous WAL archiving (`archive_timeout` 5 minutes) shipped off-site every minute
+  (`config/backup/wal_ship.sh`), weekly base backups, point-in-time restore (`restore_pitr.sh`), and a rehearsed
+  replica promotion (`config/postgres/promote_replica.sh`): RPO 5 minutes, RTO 30 minutes with a standby.
+- **Staging:** `config/deploy.staging.yml`, refreshed from production's backups and scrambled (`staging:anonymise`),
+  with every email redirected and a banner on every page.
+- **Security items:** sessions expire (14 days idle, 90 in all) with a Signed-in devices page; a QZ Tray key and
+  certificate per shop; Airtel "paid" callbacks confirmed with Airtel before crediting (plus an optional address list);
+  WhatsApp share links as revocable rows, statements fixed to their period.
+- **Paper:** terms of service, data processing terms and a service level agreement on the public site, agreed at
+  signup (`accounts.terms_accepted_at`); `/.well-known/security.txt`; privacy page updated.
+- **Safe deploys:** migrations run once per deploy from `.kamal/hooks/pre-deploy`, never from booting containers;
+  `strong_migrations` refuses unsafe migrations.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -807,13 +826,11 @@ set of books.
    20,000 products, on every keystroke at the till). Move search into a `SECURITY DEFINER` SQL function that takes the
    shop's id, or search a leakproof prefix/`tsvector` column. Grow `perf/setup.rb` to 20,000 products and add the
    catalogue download, category tabs, dashboard and a year's report to the k6 scenario.
-2. **A QZ Tray certificate per shop.** QZ Tray sends only a hash to sign, so the platform's key can't check what it
-   signs; one shop's till can obtain signatures another shop's QZ Tray would trust.
-3. **Session lifetime and devices.** Sessions last until sign-out; add an idle limit (e.g. 14 days) and an absolute one,
-   and a "Signed-in devices" list on My profile with sign-out per device.
-4. **Airtel Money callbacks:** accept only Airtel's published addresses (as M-Pesa does), or confirm each callback
-   with a status check before crediting. Share links: revocable, and statements fixed to the dates they were sent with.
-5. **Error reporting and uptime alerts** wired to `Rails.error` (LAUNCH.md), so pilot problems are seen first.
+2. ~~**A QZ Tray certificate per shop.**~~ Done (Phase 33): each shop signs with its own key (`Account::QzSigning`).
+3. ~~**Session lifetime and devices.**~~ Done (Phase 33): 14 days idle, 90 days in all, Signed-in devices on My profile.
+4. ~~**Airtel Money callbacks**~~ confirmed with Airtel before crediting, and ~~share links~~ revocable with statements
+   fixed to their period. Done (Phase 33).
+5. ~~**Error reporting and uptime alerts**~~ Done (Phase 33): Sentry or email alerts, `PlatformHealth`, `/health`.
 6. **Remaining query hot spots:** a customer's page works out its balance several times; reorder suggestions load
    every product with a reorder level; the eTIMS retry job sends shop after shop in one run.
 7. **Accessibility checks in CI:** an axe scan of the main screens in the system tests, so regressions are caught.

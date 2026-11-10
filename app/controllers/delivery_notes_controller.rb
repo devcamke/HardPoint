@@ -3,7 +3,7 @@ class DeliveryNotesController < ApplicationController
   before_action :set_delivery_note, only: :show
 
   def index
-    notes = Current.account.delivery_notes.chronologically.includes(:branch, sale: :customer)
+    notes = within_visible_branches(Current.account.delivery_notes).chronologically.includes(:branch, sale: :customer)
     @status = params[:status].presence_in(%w[ outstanding delivered cancelled all ]) || "outstanding"
     notes = case @status
     when "outstanding" then notes.outstanding
@@ -24,25 +24,28 @@ class DeliveryNotesController < ApplicationController
   end
 
   def new
-    @delivery_note = Current.account.delivery_notes.new(sale: Current.account.sales.completed.find(params[:sale_id]))
-    @delivery_note.valid? # fills in the customer's address and phone
+    @delivery_note = Current.account.delivery_notes.new(sale: within_visible_branches(Current.account.sales.completed).find(params[:sale_id]))
+    @delivery_note.valid? # fills in the customer's address and phone, and the lines not yet on a note
     @delivery_note.errors.clear
+    @undelivered = DeliveryNote.undelivered_by_line(@delivery_note.sale)
   end
 
   def create
-    attributes = params.expect(delivery_note: %i[ sale_id address contact_phone note transport_charge ])
-    sale = Current.account.sales.find(attributes.delete(:sale_id))
+    attributes = params.expect(delivery_note: [ :sale_id, :address, :contact_phone, :note, :transport_charge, lines_attributes: [ [ :sale_line_id, :quantity ] ] ])
+    sale = within_visible_branches(Current.account.sales).find(attributes.delete(:sale_id))
+    attributes[:lines_attributes]&.each_value { |line| line[:account] = Current.account }
     @delivery_note = Current.account.delivery_notes.new(attributes.merge(sale: sale))
 
     if @delivery_note.save
       redirect_to @delivery_note, notice: "Delivery note #{@delivery_note.reference} created. Print it to go with the goods."
     else
+      @undelivered = DeliveryNote.undelivered_by_line(sale)
       render :new, status: :unprocessable_entity
     end
   end
 
   private
     def set_delivery_note
-      @delivery_note = Current.account.delivery_notes.find(params[:id])
+      @delivery_note = within_visible_branches(Current.account.delivery_notes).find(params[:id])
     end
 end

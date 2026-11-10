@@ -8,10 +8,15 @@ class Sessions::ImpersonationsController < ApplicationController
   def new
   end
 
+  # Each link starts one session: a link that leaked (browser history, a proxy's logs) can't be followed again.
   def create
-    terminate_session if authenticated?
-    start_new_session_for @impersonation.membership.user, sign_in_method: :impersonation, impersonator: @impersonation.administrator
-    redirect_to root_path
+    if @impersonation.use
+      terminate_session if authenticated?
+      start_new_session_for @impersonation.membership.user, sign_in_method: :impersonation, impersonator: @impersonation.administrator
+      redirect_to root_path
+    else
+      redirect_to new_session_path, alert: "That support link has already been used."
+    end
   end
 
   private

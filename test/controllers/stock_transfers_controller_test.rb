@@ -15,6 +15,31 @@ class StockTransfersControllerTest < ActionDispatch::IntegrationTest
     assert_equal 15, Account.without_isolation { products(:acme_cement).stock_at(branches(:acme_yard)) }
   end
 
+  test "receiving short from the transfer page" do
+    post stock_transfers_path, params: { stock_transfer: { from_branch_id: branches(:acme_main).id, to_branch_id: branches(:acme_yard).id,
+      lines_attributes: { "0" => { product_code: "CEM-50", quantity: "5" } } } }
+    transfer = Account.without_isolation { StockTransfer.last }
+    line = Account.without_isolation { transfer.lines.sole }
+
+    get stock_transfer_path(transfer)
+    assert_select "input[name='received[#{line.id}]'][value='5']"
+    get stock_path
+    assert_select "td", /In transit/
+
+    post stock_transfer_receipt_path(transfer), params: { received: { line.id => "3" } }
+    assert_redirected_to stock_transfer_path(transfer)
+    assert Account.without_isolation { transfer.reload.in_transit? }, "not received until it says what happened to the two"
+    follow_redirect!
+    assert_select "#alert", /lost on the way/
+
+    post stock_transfer_receipt_path(transfer), params: { received: { line.id => "3" }, shortfall: "lost" }
+    assert Account.without_isolation { transfer.reload.received? }
+    assert_equal 13, Account.without_isolation { products(:acme_cement).stock_at(branches(:acme_yard)) }
+
+    get stock_transfer_path(transfer)
+    assert_select "td", /2 lost in transit/
+  end
+
   test "problems keep the form" do
     post stock_transfers_path, params: { stock_transfer: { from_branch_id: branches(:acme_yard).id, to_branch_id: branches(:acme_main).id,
       lines_attributes: { "0" => { product_code: "CEM-50", quantity: "99" } } } }
@@ -27,5 +52,27 @@ class StockTransfersControllerTest < ActionDispatch::IntegrationTest
     post stock_transfers_path, params: { stock_transfer: { from_branch_id: branches(:acme_main).id, to_branch_id: branches(:bolt_main).id,
       lines_attributes: { "0" => { product_code: "CEM-50", quantity: "1" } } } }
     assert_response :not_found
+  end
+
+  test "staff bound to a branch receive or cancel only transfers to or from it" do
+    westlands = Account.without_isolation { Current.set(account: accounts(:acme)) { accounts(:acme).branches.create!(name: "Westlands", code: "WST") } }
+    post stock_transfers_path, params: { stock_transfer: { from_branch_id: branches(:acme_main).id, to_branch_id: westlands.id,
+      lines_attributes: { "0" => { product_code: "CEM-50", quantity: "5" } } } }
+    elsewhere = Account.without_isolation { StockTransfer.last }
+    post stock_transfers_path, params: { stock_transfer: { from_branch_id: branches(:acme_main).id, to_branch_id: branches(:acme_yard).id,
+      lines_attributes: { "0" => { product_code: "CEM-50", quantity: "5" } } } }
+    to_yard = Account.without_isolation { StockTransfer.last }
+
+    Account.without_isolation { memberships(:sara_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:sara)
+
+    post stock_transfer_receipt_path(elsewhere)
+    assert_response :not_found
+    post stock_transfer_cancellation_path(elsewhere)
+    assert_response :not_found
+    assert Account.without_isolation { elsewhere.reload.in_transit? }
+
+    post stock_transfer_receipt_path(to_yard)
+    assert Account.without_isolation { to_yard.reload.received? }
   end
 end

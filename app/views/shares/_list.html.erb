@@ -1,0 +1,18 @@
+<details id="shared_links" class="mb-6 text-sm">
+  <summary class="cursor-pointer text-gray-600">Links sent on WhatsApp: <%= pluralize(shares.count(&:active?), "live link") %> of <%= shares.size %></summary>
+  <table class="table mt-2"><tbody>
+    <% shares.each do |share| %>
+      <tr id="<%= dom_id(share) %>">
+        <td><%= share.label %></td>
+        <td>sent <%= l(share.created_at, format: :short) %> by <%= share.created_by.name %></td>
+        <td><%= share.opened_count.zero? ? "not opened yet" : "opened #{pluralize(share.opened_count, "time")}, last #{l(share.last_opened_at, format: :short)}" %></td>
+        <td>
+          <% if share.revoked? %><%= status_dot "Taken back", :muted %>
+          <% elsif share.expired? %><%= status_dot "Expired", :muted %>
+          <% else %><%= status_dot "Opens until #{l(share.expires_at.to_date, format: :long)}", :success %><% end %>
+        </td>
+        <td class="text-right"><%= button_to "Take back", document_share_path(share), method: :delete, class: "btn-secondary py-1" if share.active? %></td>
+      </tr>
+    <% end %>
+  </tbody></table>
+</details>

@@ -12,6 +12,16 @@ class StockControllerTest < ActionDispatch::IntegrationTest
     assert_select "span", text: "Balanced"
   end
 
+  test "overview counts stock below zero at the branch and links to the list" do
+    get stock_path(branch_id: branches(:acme_main).id)
+    assert_select "a", text: /Below zero/, count: 0
+
+    Account.without_isolation { Current.set(account: accounts(:acme)) { products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: -5, reason: "sold") } }
+    get stock_path(branch_id: branches(:acme_main).id)
+    assert_select "a[href=?]", products_path(below_zero: 1, branch_id: branches(:acme_main).id), text: /Below zero at Main branch\s*1/
+    assert_select "td a[href=?]", products_path(below_zero: 1, branch_id: branches(:acme_main).id), text: "1 below zero"
+  end
+
   test "adjusting stock" do
     post stock_adjustments_path, params: { stock_adjustment: { product_id: products(:acme_cement).id, branch_id: branches(:acme_main).id, reason: "damaged", quantity: "-2", note: "Rain" } }
 
@@ -50,5 +60,26 @@ class StockControllerTest < ActionDispatch::IntegrationTest
     sign_in_as users(:carl)
     get new_stock_adjustment_path(product_id: products(:acme_cement).id)
     assert_response :forbidden
+  end
+
+  test "a stock clerk bound to the yard can't adjust the main branch's stock" do
+    Account.without_isolation { memberships(:sara_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:sara)
+
+    post stock_adjustments_path, params: { stock_adjustment: { product_id: products(:acme_cement).id, branch_id: branches(:acme_main).id, reason: "damaged", quantity: "-2" } }
+    assert_response :not_found
+    assert_equal 50, Account.without_isolation { products(:acme_cement).stock_at(branches(:acme_main)) }
+  end
+
+  test "a stock clerk bound to the yard sees only the yard's stock value and movements" do
+    Account.without_isolation { memberships(:sara_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:sara)
+
+    get stock_path
+    assert_select ".card", /KES 7,000.00/, "10 bags of cement at the yard × 700"
+    assert_select "td", text: /Main branch/, count: 0
+
+    get stock_movements_path(all_branches: "1", reason: "opening")
+    assert_select "tbody tr", 1
   end
 end

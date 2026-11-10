@@ -14,7 +14,8 @@ class WebhookDelivery < ApplicationRecord
 
   belongs_to :endpoint, class_name: "WebhookEndpoint", inverse_of: :deliveries
 
-  enum :status, %w[ pending delivered failed ].index_by(&:itself), default: "pending"
+  # Skipped: the event happened while the endpoint was switched off; it's sent when switched back on.
+  enum :status, %w[ pending delivered failed skipped ].index_by(&:itself), default: "pending"
 
   scope :chronologically, -> { order(created_at: :desc, id: :desc) }
   scope :due, -> { pending.where(next_attempt_at: ..Time.current) }
@@ -26,6 +27,7 @@ class WebhookDelivery < ApplicationRecord
 
   def deliver
     return unless pending? || failed?
+    return update!(status: :skipped, next_attempt_at: nil) unless endpoint.enabled?
 
     body = payload.to_json
     timestamp = Time.current.to_i
@@ -51,11 +53,16 @@ class WebhookDelivery < ApplicationRecord
   # Every minute: deliveries whose retry time has come, across shops.
   # Each delivery is claimed (its next attempt pushed back) before it's sent, so a delivery job and
   # a retry running at once can't both send it; one that dies mid-send is tried again after CLAIM.
+  # A first attempt is left to its own job, unless that job still hasn't run after FIRST_ATTEMPT_GRACE
+  # (lost in a deploy or a queue failure), when it's sent from here instead.
   CLAIM = 10.minutes
+  FIRST_ATTEMPT_GRACE = 5.minutes
   RETRY_BATCH = 500
 
   def self.retry_due
-    due_ids = Account.without_isolation { due.where("attempts > 0").order(:next_attempt_at).limit(RETRY_BATCH).pluck(:id, :account_id) }
+    due_ids = Account.without_isolation do
+      due.where("attempts > 0 OR next_attempt_at < ?", FIRST_ATTEMPT_GRACE.ago).order(:next_attempt_at).limit(RETRY_BATCH).pluck(:id, :account_id)
+    end
     due_ids.each do |id, account_id|
       claimed = Account.without_isolation { due.where(id: id).update_all(next_attempt_at: CLAIM.from_now) }
       next unless claimed == 1

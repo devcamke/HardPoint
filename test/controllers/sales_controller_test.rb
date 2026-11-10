@@ -34,6 +34,16 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".receipt svg.stamp textPath", /ACME/i
   end
 
+  test "the number on an offline receipt finds the sale" do
+    Account.without_isolation { @sale.update_columns(offline_uuid: SecureRandom.uuid, offline_receipt_number: "MAIN-OFF1-K7Q2-0001") }
+
+    get sales_path(query: "main-off1-k7q2-0001")
+    assert_select "td a", "MAIN-000001"
+
+    get sales_path(query: "MAIN-OFF1-K7Q2-0002")
+    assert_select "tbody tr", 0
+  end
+
   test "emailing the receipt" do
     perform_enqueued_jobs do
       post sale_receipt_email_path(@sale), params: { email: "grace@example.test" }
@@ -50,7 +60,66 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     post sale_void_path(@sale), params: { reason: "Rang up twice", approval_pin: "2468" }
     assert_redirected_to sale_path(@sale)
     assert Account.without_isolation { @sale.reload.voided? }
+    assert_equal "cash", @sale.void_refund_method, "a cash sale is refunded in cash unless told otherwise"
     assert_equal 50, Account.without_isolation { products(:acme_cement).stock_at(branches(:acme_main)) }
+
+    follow_redirect!
+    assert_select "p", /KES 1,600.00 refunded in cash/
+  end
+
+  test "an owner's own void is marked as approved by themselves" do
+    sign_in_as users(:amina)
+    post sale_void_path(@sale), params: { reason: "Rang up twice" }
+    assert_redirected_to sale_path(@sale)
+
+    event = Account.without_isolation { @sale.events.find_by!(action: "voided") }
+    assert event.particulars["self_approved"]
+    get events_path
+    assert_select "body", /approved by themselves/
+  end
+
+  test "a shop can require a second person to approve an owner's or manager's own void" do
+    Account.without_isolation do
+      accounts(:acme).update!(require_second_approver: true)
+      memberships(:sara_acme).update!(role: "manager")
+      Current.set(account: accounts(:acme)) { memberships(:sara_acme).set_approval_pin("1357") }
+    end
+    sign_in_as users(:amina)
+
+    get new_sale_void_path(@sale)
+    assert_select "input[name=approval_pin]"
+
+    post sale_void_path(@sale), params: { reason: "Rang up twice" }
+    assert_response :unprocessable_entity
+    post sale_void_path(@sale), params: { reason: "Rang up twice", approval_pin: "2468" }
+    assert_response :unprocessable_entity, "not with their own PIN"
+    assert_not Account.without_isolation { @sale.reload.voided? }
+
+    post sale_void_path(@sale), params: { reason: "Rang up twice", approval_pin: "1357" }
+    assert_redirected_to sale_path(@sale)
+    event = Account.without_isolation { @sale.events.find_by!(action: "voided") }
+    assert_equal [ users(:sara).name, nil ], event.particulars.values_at("approver", "self_approved")
+  end
+
+  test "voiding a sale paid by phone asks for the reversal's code, and Activity records how the money went back" do
+    paid_by_phone = Current.set(account: accounts(:acme), session: Account.without_isolation { accounts(:acme).sessions.create!(user: users(:carl)) }) do
+      shifts(:acme_front_open).current_sale.tap { |sale| sale.add(products(:acme_pipe)); sale.pay(tender: "mobile_money", reference: "SJK4H7T2QP") }
+    end
+
+    get new_sale_void_path(paid_by_phone)
+    assert_select "input[name=refund_method][value=mobile_money][checked]"
+
+    post sale_void_path(paid_by_phone), params: { reason: "Wrong customer", approval_pin: "2468", refund_method: "mobile_money" }
+    assert_response :unprocessable_entity
+    assert_select "#alert", /M-Pesa reversal code/
+
+    post sale_void_path(paid_by_phone), params: { reason: "Wrong customer", approval_pin: "2468", refund_method: "mobile_money", refund_reference: "SJK4H7T2QR" }
+    assert_redirected_to sale_path(paid_by_phone)
+    assert_equal [ "mobile_money", "SJK4H7T2QR" ], Account.without_isolation { paid_by_phone.reload.values_at(:void_refund_method, :void_refund_reference) }
+
+    sign_in_as users(:amina)
+    get events_path
+    assert_select "li", /voided sale MAIN-000002 .*: Wrong customer; refunded by M-Pesa \(SJK4H7T2QR\)/
   end
 
   test "returning one bag with approval" do
@@ -89,10 +158,52 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_select "div", /Short\s*-KES 10.00/
   end
 
+  test "a cashier closes only the shift on their own till" do
+    other = Account.without_isolation do
+      Current.set(account: accounts(:acme), user: users(:amina)) { accounts(:acme).shifts.create!(register: registers(:acme_yard), opening_float_cents: 0) }
+    end
+
+    post shift_closing_path(other), params: { counted_cash: "0" }
+    assert_response :not_found
+    assert Account.without_isolation { other.reload.open? }
+  end
+
   test "cash drops show in the X report" do
     post shift_cash_movements_path(shifts(:acme_front_open)), params: { cash_movement: { kind: "drop", amount: "1000", reason: "To safe" } }
     get shift_path(shifts(:acme_front_open))
     assert_select "div", /Expected in drawer\s*KES 5,600.00/
+  end
+
+  test "cash movements go on this device's till only, and a big payout needs a manager's PIN" do
+    yard = Account.without_isolation { accounts(:acme).shifts.create!(branch: branches(:acme_yard), register: registers(:acme_yard), opened_by: users(:carl), opening_float_cents: 100000) }
+    get new_shift_cash_movement_path(yard)
+    assert_response :not_found
+    post shift_cash_movements_path(yard), params: { cash_movement: { kind: "drop", amount: "100", reason: "To safe" } }
+    assert_response :not_found
+
+    post shift_cash_movements_path(shifts(:acme_front_open)), params: { cash_movement: { kind: "payout", amount: "6000", reason: "Cement delivery" } }
+    assert_response :unprocessable_entity
+    assert_select "#error_explanation li", /payout over KES 5,000.00 needs a manager's approval PIN/
+    assert_equal 0, Account.without_isolation { shifts(:acme_front_open).cash_movements.count }
+
+    post shift_cash_movements_path(shifts(:acme_front_open)), params: { approval_pin: "2468", cash_movement: { kind: "payout", amount: "6000", reason: "Cement delivery" } }
+    assert_redirected_to shift_path(shifts(:acme_front_open))
+    event = Account.without_isolation { shifts(:acme_front_open).events.last }
+    assert_equal [ "payout_approved", "Amina Owner", 600000 ], [ event.action, event.particulars["approver"], event.particulars["amount"] ]
+
+    post shift_cash_movements_path(shifts(:acme_front_open)), params: { cash_movement: { kind: "payout", amount: "4000", reason: "Lunch" } }
+    assert_redirected_to shift_path(shifts(:acme_front_open)), "under the limit, no PIN needed"
+    assert_equal 500000 + 160000 - 600000 - 400000, Account.without_isolation { shifts(:acme_front_open).expected_cash_cents_now }
+  end
+
+  test "a payout to a supplier is recorded against what the shop owes them" do
+    get new_shift_cash_movement_path(shifts(:acme_front_open), kind: "payout")
+    assert_select "select[name='cash_movement[supplier_id]'] option", /Cement/
+
+    post shift_cash_movements_path(shifts(:acme_front_open)), params: { cash_movement: { kind: "payout", amount: "300", reason: "Cement delivery", supplier_id: suppliers(:acme_cement_distributor).id } }
+    assert_redirected_to shift_path(shifts(:acme_front_open))
+    payment = Account.without_isolation { suppliers(:acme_cement_distributor).supplier_payments.last }
+    assert_equal [ 30000, "cash", "Cement delivery" ], [ payment.amount_cents, payment.payment_method, payment.note ]
   end
 
   test "another shop's sales are out of reach" do

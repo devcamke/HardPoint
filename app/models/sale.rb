@@ -63,4 +63,12 @@ class Sale < ApplicationRecord
     code, number = receipt_number.to_s.strip.upcase.split("-", 2)
     joins(:branch).find_by(branches: { code: code }, number: number.to_i) if number.to_i.positive?
   end
+
+  # The sales a receipt number as printed belongs to: the sale's own (MAIN-000123), or the one an offline till gave
+  # it (MAIN-OFF1-K7Q2-0001), since that's what's on the paper a customer brings back. Tills before the device code
+  # could repeat an offline number, so there may be more than one.
+  def self.with_receipt_number(receipt_number)
+    query = receipt_number.to_s.strip.upcase
+    where(id: find_by_receipt_number(query)&.id).or(where(offline_receipt_number: query))
+  end
 end

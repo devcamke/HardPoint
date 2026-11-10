@@ -1,0 +1,9 @@
+Hi <%= @user.name %>,
+
+Welcome to HardPoint. Confirm that this is your email address:
+<%= email_confirmation_url(@user.generate_token_for(:email_confirmation), subdomain: @account.subdomain) %>
+
+(the link works for 7 days)
+
+Until it's confirmed, a shop that adds this address as staff asks whoever reads this inbox to choose the
+password. If you didn't open <%= @account.name %> on HardPoint, you can ignore this email.

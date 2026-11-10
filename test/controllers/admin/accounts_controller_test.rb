@@ -63,7 +63,7 @@ class Admin::AccountsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "impersonation links expire and only work on their own shop" do
-    token = Impersonation.new(administrator: users(:ada), membership: memberships(:carl_acme)).token
+    token = Impersonation.issue(administrator: users(:ada), membership: memberships(:carl_acme)).token
 
     use_account accounts(:bolt)
     post session_impersonation_path, params: { token: token }

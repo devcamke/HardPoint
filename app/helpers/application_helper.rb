@@ -13,6 +13,12 @@ module ApplicationHelper
     end
   end
 
+  # "● Emails to this address bounce (since 3 Nov)" next to an address HardPoint has stopped writing to (EmailSuppression).
+  def email_status(email)
+    suppression = EmailSuppression.for(email) or return
+    status_dot "#{suppression.description} (since #{l(suppression.event_at.to_date, format: :short)})", :danger
+  end
+
   # How a payment method reads on screen: "M-Pesa", "Airtel Money", "Bank transfer"…
   def payment_method_label(method)
     { "mobile_money" => "M-Pesa", "airtel_money" => "Airtel Money", "on_account" => "On account", "foreign_cash" => "Foreign cash" }

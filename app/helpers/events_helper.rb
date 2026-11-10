@@ -16,14 +16,29 @@ module EventsHelper
     in [ "Membership", "pin_set" ] then "set #{whose(event)} till PIN"
     in [ "Membership", "pin_removed" ] then "removed #{whose(event)} till PIN"
     in [ "Shift", "opened" ] then "opened a shift on #{subject} with #{money(event.particulars["opening_float"])} float"
+    in [ "Shift", "payout_approved" ] then "paid out #{money(event.particulars["amount"])} from the drawer on #{subject}, approved by #{approver_words(event)}: #{event.particulars["reason"]}"
     in [ "Shift", "closed" ] then "closed the shift on #{subject}: counted #{money(event.particulars["counted"])}, #{variance_words(event.particulars["variance"])}"
-    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
+    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{approver_words(event)}: #{event.particulars["reason"]}" \
+      "#{"; #{Sale::Voidable.refund_words(event.particulars["refund_method"], event.particulars["refund_reference"])}" if event.particulars["refund_method"]}"
+    in [ "Sale", "completed_without_payment" ] then "completed sale #{subject} with nothing to pay, approved by #{approver_words(event)}"
     in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"
-    in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{event.particulars["approver"]}"
+    in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{approver_words(event)}"
+    in [ "CustomerOrder", "part_collected" ] then "collected part of #{subject} (#{event.particulars["receipt_number"]}); still waiting: #{Array(event.particulars["remaining"]).to_sentence}"
+    in [ "CustomerOrder", "credit_approved" ] then "had #{subject} (#{money(event.particulars["amount"])}, over #{event.particulars["customer"]}'s credit) approved by #{approver_words(event)}"
+    in [ "DeliveryNote", "cancelled" ] then "cancelled delivery #{subject}#{" and its transport order #{event.particulars["transport_order"]}" if event.particulars["transport_order"] && !event.particulars["transport_paid_on"]}" \
+      "#{"; the transport was paid on #{event.particulars["transport_paid_on"]}, so refund it from that receipt" if event.particulars["transport_paid_on"]}"
+    in [ "Customer", "paid" ] then "took #{money(event.particulars["amount"])} from #{subject} on account by #{event.particulars["payment_method"].to_s.humanize.downcase}#{" (#{event.particulars["reference"]})" if event.particulars["reference"].present?}"
+    in [ "Customer", "credit_refunded" ] then "refunded #{money(event.particulars["amount"])} of account credit to #{subject} by #{event.particulars["payment_method"].to_s.humanize.downcase}"
+    in [ "Customer", "written_off" ] then "wrote off #{money(event.particulars["amount"])} of #{subject}'s account, approved by #{approver_words(event)}: #{event.particulars["reason"]}"
+    in [ "CustomerOrder", "deposit_kept" ] then "kept the #{money(event.particulars["amount"])} deposit on #{subject} (#{event.particulars["receipt_number"]}), approved by #{approver_words(event)}#{": #{event.particulars["reason"]}" if event.particulars["reason"].present?}"
+    in [ _, "offline_sale_refused" ] then "rang up offline sale #{event.particulars["receipt_number"] || "without a number"} for #{money(event.particulars["total"])}" \
+      "#{" on #{subject}" if event.eventable_type == "Register"}#{" at #{Time.zone.parse(event.particulars["happened_at"]).to_fs(:short)}" if event.particulars["happened_at"]}, " \
+      "which couldn't be recorded: #{event.particulars["error"]}. The money is in the drawer; ring it up by hand"
     in [ "Membership", "approval_pin_set" ] then "set their approval PIN"
     in [ "Membership", "two_factor_reset" ] then "reset #{subject}'s two-factor sign-in#{by_platform(event)}"
     in [ "PurchaseOrder", "sent" ] then "sent purchase order #{subject} to #{event.particulars["supplier"]} (#{money(event.particulars["total"])})"
     in [ "PurchaseOrder", "cancelled" ] then "cancelled purchase order #{subject}"
+    in [ "PurchaseOrder", "closed" ] then "closed purchase order #{subject} short#{": #{event.particulars["short"]} never came" if event.particulars["short"].present?}"
     in [ "GoodsReceipt", "received" ] then "received #{subject} from #{event.particulars["supplier"]}#{" for #{event.particulars["purchase_order"]}" if event.particulars["purchase_order"]} (#{money(event.particulars["total"])})"
     in [ "SupplierInvoice", "recorded" ] then "recorded invoice #{subject} (#{money(event.particulars["total"])})"
     in [ "Supplier", "paid" ] then "paid #{subject} #{money(event.particulars["amount"])} by #{event.particulars["payment_method"].to_s.humanize.downcase}"
@@ -32,6 +47,7 @@ module EventsHelper
     in [ "Account", "add_ons_changed" ] then "changed the HardPoint add-ons to #{pluralize(event.particulars["extra_branches"], "extra branch")} and #{pluralize(event.particulars["extra_registers"], "extra till")}, billed #{event.particulars["billing_interval"]}#{by_platform(event)}"
     in [ "Account", "invoice_issued" ] then "issued HardPoint invoice #{event.particulars["invoice"]} for #{money(event.particulars["amount"])}#{" (#{event.particulars["description"]})" if event.particulars["description"]}#{by_platform(event)}"
     in [ "Account", "subscription_paid" ] then "paid HardPoint invoice #{event.particulars["invoice"]} by #{event.particulars["provider"] == "mpesa" ? "M-Pesa" : event.particulars["provider"]} (#{event.particulars["receipt"]})"
+    in [ "Account", "period_restarted" ] then "paid invoice #{event.particulars["invoice"]} while read-only, so the paid period runs from #{Date.parse(event.particulars["from"]).to_fs(:long)} to #{(Date.parse(event.particulars["until"]) - 1).to_fs(:long)}"
     in [ "Account", "made_read_only" ] then "made the shop read-only: invoice #{event.particulars["invoice"]} is overdue"
     in [ "Account", "trial_extended" ] then "extended the free trial by #{pluralize(event.particulars["days"], "day")}#{by_platform(event)}"
     in [ "Account", "suspended" ] then "suspended the shop#{": #{event.particulars["reason"]}" if event.particulars["reason"]}#{by_platform(event)}"
@@ -50,6 +66,8 @@ module EventsHelper
     in [ "WebhookEndpoint", "created" ] then "added a webhook to #{event.particulars["url"]}"
     in [ "WebhookEndpoint", "secret_rolled" ] then "made a new signing secret for the webhook to #{subject}"
     in [ "WebhookEndpoint", "disabled" ] then "switched off the webhook to #{event.particulars["url"]} after repeated failures"
+    in [ "DocumentShare", "shared" ] then "sent #{subject.downcase} by WhatsApp"
+    in [ "DocumentShare", "share_revoked" ] then "took back the WhatsApp link to #{subject.downcase}"
     in [ "User", "two_factor_enabled" ] then "turned on two-factor sign-in"
     in [ "User", "two_factor_disabled" ] then "turned off two-factor sign-in"
     in [ "User", "password_changed" ] then "changed their password"
@@ -61,7 +79,8 @@ module EventsHelper
   end
 
   def event_actor(event)
-    event.creator&.name || (event.particulars["api_key"] ? "API key “#{event.particulars["api_key"]}”" : "HardPoint")
+    actor = event.creator&.name || (event.particulars["api_key"] ? "API key “#{event.particulars["api_key"]}”" : "HardPoint")
+    event.particulars["impersonated_by"] ? "#{actor} (support: #{event.particulars["impersonated_by"]})" : actor
   end
 
   private
@@ -86,6 +105,11 @@ module EventsHelper
 
     def whose(event)
       event.creator&.name == event.particulars["name"] ? "their" : "#{event.particulars["name"]}'s"
+    end
+
+    # An owner or manager who approved their own void, discount or credit is called out, not just named.
+    def approver_words(event)
+      event.particulars["self_approved"] ? "themselves" : event.particulars["approver"]
     end
 
     def describe_changes(event)

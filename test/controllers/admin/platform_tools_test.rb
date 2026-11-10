@@ -111,6 +111,32 @@ class Admin::PlatformToolsTest < ActionDispatch::IntegrationTest
     assert Account.without_isolation { request.reload.resolved? }
   end
 
+  test "the email page shows SES's standing and lets a suppressed address be lifted" do
+    get admin_email_path
+    assert_response :success
+    assert_select "section", /Not configured/
+
+    Rails.configuration.x.ses = { region: "eu-west-1", access_key_id: "AKIATEST", secret_access_key: "secret" }
+    Ses.reset_clients!
+    client = Aws::SESV2::Client.new(stub_responses: true)
+    client.stub_responses(:get_account, { sending_enabled: true, production_access_enabled: false, enforcement_status: "HEALTHY", send_quota: { max_24_hour_send: 200.0, sent_last_24_hours: 20.0, max_send_rate: 1.0 } })
+    client.stub_responses(:get_email_identity, { verified_for_sending_status: true, dkim_attributes: { status: "SUCCESS", tokens: %w[ a b c ] } })
+    Ses.client = client
+    suppression = EmailSuppression.record_complaint("angry@example.com", detail: "abuse")
+
+    get admin_email_path
+    assert_select "section", /Sandbox: verified addresses only/
+    assert_select "section", /20 of 200 \(10%\)/
+    assert_select "##{dom_id(suppression)}", /angry@example.com/
+
+    delete admin_email_suppression_path(suppression)
+    assert_redirected_to admin_email_path
+    assert_not EmailSuppression.suppressed?("angry@example.com")
+  ensure
+    Rails.configuration.x.ses = nil
+    Ses.reset_clients!
+  end
+
   test "the database page reads Postgres' own statistics" do
     get admin_database_path
     assert_response :success

@@ -15,9 +15,12 @@
   and a reason, and press <strong>Record</strong>:</p>
 <ul>
   <li><strong>Drop to the safe</strong>: takings taken out of the drawer.</li>
-  <li><strong>Pay out</strong>: cash paid from the till, for transport or a supplier, say.</li>
+  <li><strong>Pay out</strong>: cash paid from the till, for transport or a supplier, say. When it pays a supplier's bill, pick the supplier under <strong>Paying a supplier's bill?</strong>: it's recorded as a cash payment to them, and the profit and loss doesn't count it as an expense on top of the goods.</li>
   <li><strong>Pay in</strong>: more change added to the float.</li>
 </ul>
+<p>Cash movements go on the till this device is set to, since that's the drawer the cash is in. A payout above the shop's limit
+  (KES 5,000 to start with; owners change it under <strong>Settings › Shop details</strong>) needs an owner's or manager's approval PIN,
+  and <strong>Settings › Activity</strong> records who approved it.</p>
 <p>Each one shows on the shift report with its reason. On tills that print through QZ Tray, <strong>Open drawer</strong> in the top bar opens
   the drawer without a sale. It's logged as "No sale" in <strong>Settings › Activity</strong>.</p>
 
@@ -42,7 +45,8 @@
 <%= render "help/walkthrough", tour: HelpTour.find("close-shift") %>
 
 <h2>What's expected in the drawer</h2>
-<p>The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds, change given for foreign
+<p>The opening float, plus cash sales, cash deposits on orders and cash account payments, less cash refunds (on returns and on voided
+  sales), change given for foreign
   notes, payouts and drops, plus pay-ins. M-Pesa, Airtel Money and card takings are listed on the report but don't count towards the drawer.</p>
 
 <h2>Past shifts</h2>

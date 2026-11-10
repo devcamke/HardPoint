@@ -65,6 +65,15 @@ class StorefrontTest < ActiveSupport::TestCase
     assert_equal customer, checkout_.order.customer
   end
 
+  test "a number two customers share matches neither, so the order gets a customer of its own" do
+    @account.customers.create!(name: "Grace W.", phone: "0711222333")
+    @account.customers.create!(name: "Grace's son", phone: "0711222333")
+    @cart.add(products(:acme_nails), 1)
+    checkout_ = checkout
+    assert checkout_.place
+    assert_equal "Grace Wanjiku", checkout_.order.customer.name
+  end
+
   test "checking out under someone's phone number never changes their record" do
     customer = @account.customers.create!(name: "Grace W.", phone: "0711222333")
     @cart.add(products(:acme_nails), 1)
@@ -94,6 +103,39 @@ class StorefrontTest < ActiveSupport::TestCase
     assert_no_difference -> { CustomerOrder.count } do
       assert_not checkout(website: "http://spam.example").place
     end
+  end
+
+  test "the store won't promise stock that isn't there, or that earlier orders already hold" do
+    assert_match "left to order", @cart.set(products(:acme_cement), 51)
+    assert_nil @cart.set(products(:acme_cement), 40)
+
+    held = @account.customer_orders.create!(branch: branches(:acme_main), customer: customers(:acme_contractor), status: :ordered,
+      lines_attributes: [ { account: @account, product_code: "CEM-50", quantity: 30 } ])
+    assert held.ordered?
+
+    order = checkout(branch_id: branches(:acme_main).id)
+    assert_not order.place
+    assert_match "Only 20 Bamburi cement 50kg can be collected", order.errors.full_messages.to_sentence
+  end
+
+  test "the store charges what it showed: retail prices and shop-wide offers, never a customer's price list or a branch's offer" do
+    contractor = customers(:acme_contractor) # on a price list: cement 760.00, not 800.00
+    @account.promotions.create!(name: "Main only", kind: "percent_off", percent_off: 10, starts_on: Date.current, ends_on: Date.current + 7,
+      product_ids: [ products(:acme_nails).id ], branch_ids: [ branches(:acme_main).id ])
+    @account.promotions.create!(name: "Everywhere", kind: "percent_off", percent_off: 10, starts_on: Date.current, ends_on: Date.current + 7,
+      product_ids: [ products(:acme_cement).id ])
+    @cart.add(products(:acme_cement), 1)
+    @cart.add(products(:acme_nails), 2)
+    shown = @cart.total_cents
+    assert_equal 720_00 + 2 * 250_00, shown, "ten percent off cement everywhere; the Main-only offer isn't shown"
+
+    checkout_ = checkout(phone: contractor.phone)
+    assert checkout_.place, checkout_.errors.full_messages.to_sentence
+    order = checkout_.order
+    assert_equal contractor, order.customer
+    assert_equal shown, order.total_cents, "the order confirms at the total the customer saw at checkout"
+    assert_equal [ 720_00, 250_00 ], order.lines.map(&:unit_price_cents)
+    assert_equal [ "Everywhere", nil ], order.lines.map { _1.promotion&.name }
   end
 
   test "a locked shop doesn't take orders" do

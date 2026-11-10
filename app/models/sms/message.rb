@@ -1,5 +1,7 @@
 # A text to a customer, kept with what happened to it. Shops turn SMS on in their settings;
-# each shop can send at most DAILY_LIMIT a day, so a mistake can't run up a bill.
+# each shop can send at most DAILY_LIMIT a day, so a mistake can't run up a bill. A customer who
+# has asked not to be texted (Customer#sms_opt_out) never is, and a balance reminder goes to a
+# customer at most once a day.
 class Sms::Message < ApplicationRecord
   include AccountOwned, Texts
 
@@ -19,6 +21,14 @@ class Sms::Message < ApplicationRecord
   validates :purpose, inclusion: { in: PURPOSES }
   validate(on: :create) { errors.add :base, "SMS is turned off for this shop (Settings › SMS)" unless account&.sms_enabled? }
   validate(on: :create) { errors.add :base, "This shop has sent its #{DAILY_LIMIT} texts for today" if account && account.sms_messages.where(created_at: Time.current.all_day).count >= DAILY_LIMIT }
+  # Whatever the text is about, a customer who has asked not to be texted isn't; and a customer is reminded of
+  # their balance at most once a day, however many people press the button.
+  validate(on: :create) { errors.add :base, "This customer has asked not to be texted" if account && account.customers.opted_out_of_sms?(recipient) }
+  validate(on: :create) do
+    if purpose == "balance_reminder" && source && account&.sms_messages&.where(source: source, purpose: purpose, created_at: Time.current.all_day)&.exists?
+      errors.add :base, "#{source.name} has already been texted a reminder today"
+    end
+  end
 
   after_create_commit :deliver_later
 

@@ -1,31 +1,79 @@
 module CustomerOrder::Fulfilment
   extend ActiveSupport::Concern
 
-  def confirm
+  # Confirming commits the shop's stock to the order. For a customer who buys on account, an order worth more
+  # than the credit they have left needs an owner's or manager's approval (approver), as putting it on account
+  # at the till would (Sale::Payable); a cash-only customer pays at the till, so there's nothing to check.
+  # A deposit skips the check: the customer has put money down, and the till checks the credit again when
+  # the rest goes on account.
+  def confirm(approver: nil, check_credit: true)
     return false unless quote?
 
     if expired?
       errors.add :base, "This quote expired on #{valid_until.to_fs(:long)}. Change its date to confirm it at the same prices"
       return false
+    elsif check_credit && over_credit_limit? && approver.nil?
+      errors.add :base, "#{customer.name} has only #{Money.format(customer.available_credit_cents)} of credit left. " \
+        "Confirming this #{Money.format(balance_to_pay_cents)} order needs a manager's approval PIN"
+      return false
     end
 
-    update(status: :ordered, ordered_at: Time.current).tap { |confirmed| track_event "confirmed", total: total_cents if confirmed }
+    transaction do
+      if check_credit && over_credit_limit?
+        track_event "credit_approved", approver: approver, customer: customer.name, amount: balance_to_pay_cents, available: customer.available_credit_cents
+      end
+      update(status: :ordered, ordered_at: Time.current).tap { |confirmed| track_event "confirmed", total: total_cents if confirmed }
+    end
+  end
+
+  # Whether what's still to pay on this order is more than the customer's credit allows.
+  def over_credit_limit?
+    customer.buys_on_account? && balance_to_pay_cents > customer.available_credit_cents
   end
 
   def mark_ready
     ordered? && update(status: :ready).tap { |ready| track_event "ready" if ready }
   end
 
-  # A deposit still held has to be refunded (or kept, by recording that) before cancelling.
+  # A deposit still held has to be refunded, or kept (forfeit_deposit), before cancelling.
   def cancel(reason: nil)
     return false unless quote? || ordered? || ready?
 
     if deposit_balance_cents.positive?
-      errors.add :base, "Refund the #{Money.format(deposit_balance_cents)} deposit first"
+      errors.add :base, "Refund the #{Money.format(deposit_balance_cents)} deposit first, or keep it"
       return false
     end
 
     update(status: :cancelled).tap { |cancelled| track_event "cancelled", reason: reason if cancelled }
+  end
+
+  # The customer isn't coming back, and the shop keeps the deposit. It's income, so it's rung through the till
+  # as a sale of "Forfeited deposit" paid from the deposit itself: KRA signs it, it's in the day's takings and the
+  # VAT return, and the drawer isn't touched. Then the order is cancelled. Needs a manager (the approver).
+  def forfeit_deposit(shift:, approver:, reason: nil)
+    errors.clear
+    errors.add :base, "This #{kind.downcase} holds no deposit" unless deposit_balance_cents.positive?
+    errors.add :base, "Keeping a deposit needs a manager's approval PIN" unless approver
+    errors.add :base, "Keeping a deposit goes through a till with an open shift" if shift.nil? || !shift.open?
+    return false if errors.any?
+
+    transaction do
+      lock!
+      amount = deposit_balance_cents
+      sale = shift.sales.create!(account: account, branch: shift.branch, register: shift.register, cashier: approver, customer: customer, customer_order: self)
+      sale.lines.create!(account: account, product: account.forfeited_deposit_product, quantity: 1, unit_price_cents: amount, detail: "on #{reference}")
+      sale.recalculate
+      payment = sale.pay(tender: "deposit", amount_cents: amount)
+      raise ActiveRecord::RecordInvalid, payment unless payment.persisted? && sale.reload.completed?
+
+      track_event "deposit_kept", amount: amount, approver: approver, receipt_number: sale.receipt_number, reason: reason
+      update!(status: :cancelled)
+      track_event "cancelled", reason: reason.presence || "Deposit kept"
+    end
+    true
+  rescue ActiveRecord::RecordInvalid => invalid
+    errors.add :base, invalid.record.errors.full_messages.to_sentence
+    false
   end
 
   def takes_deposits?
@@ -65,7 +113,7 @@ module CustomerOrder::Fulfilment
 
     transaction do
       deposit.save!
-      confirm if quote?
+      confirm(check_credit: false) if quote?
       track_event "deposit_taken", amount: amount_cents, tender: tender
     end
     deposit
@@ -96,7 +144,7 @@ module CustomerOrder::Fulfilment
   end
 
   def collectable?
-    (quote? && !expired?) || ordered? || ready?
+    ((quote? && !expired?) || ordered? || ready?) && lines.any? { _1.remaining_quantity.positive? }
   end
 
   # Puts the order into an empty cart at the prices agreed. Anything else the customer picks
@@ -116,22 +164,50 @@ module CustomerOrder::Fulfilment
       next if errors.any?
 
       sale.update!(customer_order: self, customer: customer, job: job&.open? ? job : nil)
-      lines.each do |line|
-        sale.lines.create!(account: account, product: line.product, product_unit: line.product_unit, quantity: line.quantity,
-          unit_price_cents: line.unit_price_cents, detail: line.detail, customer_order_line_id: line.id)
+      # A line quoted under a promotion is sold under it, so the promotion's results count the sale.
+      lines.reject(&:collected?).each do |line|
+        sale.lines.create!(account: account, product: line.product, product_unit: line.product_unit, quantity: line.remaining_quantity,
+          unit_price_cents: line.unit_price_cents, detail: line.detail, customer_order_line_id: line.id, promotion_id: line.promotion_id)
       end
       sale.recalculate
     end
     errors.none?
   end
 
+  # The sale that collected (some of) the order has completed. Each order line notes how much of it went; the
+  # order is collected once nothing is left, otherwise it stays ready with the rest still waiting, so a contractor
+  # taking 40 of 100 bags today isn't marked as having had them all.
   def mark_collected(sale)
-    update!(status: :collected, collected_at: sale.completed_at || Time.current)
-    track_event "collected", receipt_number: sale.receipt_number
+    taken = sale.lines.select(&:customer_order_line_id).group_by(&:customer_order_line_id)
+    return if taken.empty?
+
+    lines.each do |line|
+      next unless (sold = taken[line.id])
+      line.update_columns collected_quantity: [ line.collected_quantity + sold.sum(&:quantity), line.quantity ].min, updated_at: Time.current
+    end
+
+    if lines.reload.all?(&:collected?)
+      update!(status: :collected, collected_at: sale.completed_at || Time.current)
+      track_event "collected", receipt_number: sale.receipt_number
+    else
+      update!(status: :ready) unless ready?
+      track_event "part_collected", receipt_number: sale.receipt_number,
+        remaining: lines.reject(&:collected?).map { "#{_1.remaining_quantity.to_s("F").delete_suffix(".0")} × #{_1.description}" }
+    end
   end
 
-  # A voided collection puts the goods back on the shelf, so the order is waiting again.
-  def reopen
-    collected? && update!(status: :ready, collected_at: nil)
+  # A voided collection puts the goods back on the shelf, so what it took is waiting again.
+  def reopen(sale = nil)
+    return false unless collected? || ready?
+
+    if sale
+      sale.lines.select(&:customer_order_line_id).group_by(&:customer_order_line_id).each do |line_id, sold|
+        line = lines.find { _1.id == line_id } or next
+        line.update_columns collected_quantity: [ line.collected_quantity - sold.sum(&:quantity), 0 ].max, updated_at: Time.current
+      end
+    elsif collected?
+      lines.update_all(collected_quantity: 0)
+    end
+    update!(status: :ready, collected_at: nil)
   end
 end

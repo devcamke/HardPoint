@@ -1,7 +1,7 @@
 # A till: the point where sales are rung up, with how it prints receipts and opens its drawer.
 class Register < ApplicationRecord
   include Eventable, CountsTowardsPlan
-  counts_towards_plan :registers, counting: -> { active? }
+  counts_towards_plan :registers, counting: :active
   tracks_lifecycle
 
   belongs_to :account, default: -> { Current.account }

@@ -10,6 +10,14 @@ module Authentication
     def allow_unauthenticated_access(**options)
       skip_before_action :require_authentication, **options
     end
+
+    # Things HardPoint support mustn't do while signed in as someone: hand out ways into the shop that outlive
+    # the support session (API keys, webhooks) or take the shop's data away (exports, backups).
+    def refuse_while_impersonated(back_to:, **options)
+      before_action(**options) do
+        redirect_to instance_exec(&back_to), alert: "Not while HardPoint support is signed in as you." if Current.session&.impersonated?
+      end
+    end
   end
 
   private
@@ -28,14 +36,20 @@ module Authentication
     def find_session_by_cookie
       if Current.account && cookies.signed[:session_id]
         Current.account.sessions.find_by(id: cookies.signed[:session_id]).then do |session|
-          session&.expired? || closed_to?(session) || left_the_shop?(session) ? session&.destroy && nil : session
+          if session&.expired? || closed_to?(session) || left_the_shop?(session)
+            session&.destroy && nil
+          else
+            session&.seen
+            session
+          end
         end
       end
     end
 
-    # A session outlives nobody's membership: staff who were removed can't keep using a till left signed in.
+    # A session outlives nobody's membership: staff who were removed can't keep using a till left signed in, and
+    # HardPoint support can't carry on as someone the shop has removed.
     def left_the_shop?(session)
-      session && !session.impersonated? && session.membership.nil?
+      session && session.membership.nil?
     end
 
     # While a shop is closing, only its owners can use it.

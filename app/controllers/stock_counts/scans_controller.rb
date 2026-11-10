@@ -17,7 +17,7 @@ class StockCounts::ScansController < ApplicationController
       else
         redirect_to @count, notice: "#{product.name}, #{row.label.downcase_first}: #{helpers.quantity(row.counted_quantity, product.unit)} counted.", status: :see_other
       end
-    elsif line.update(counted_quantity: params[:counted_quantity])
+    elsif line.record(params[:counted_quantity])
       redirect_to @count, notice: "#{product.name}: #{helpers.quantity(line.counted_quantity, product.unit)} counted.", status: :see_other
     else
       redirect_to @count, alert: line.errors.full_messages.to_sentence, status: :see_other

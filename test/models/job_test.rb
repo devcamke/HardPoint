@@ -72,6 +72,31 @@ class JobTest < ActiveSupport::TestCase
     assert_equal @job, sale.reload.job
   end
 
+  test "a job with orders still to collect can't be closed" do
+    order = Current.account.customer_orders.create!(branch: branches(:acme_main), customer: customers(:acme_contractor), job: @job,
+      lines_attributes: [ { account: Current.account, product_code: "NAIL-3", quantity: 2 } ])
+    order.confirm
+
+    assert_not @job.close
+    assert_match "#{order.reference} is still to be collected", @job.errors.full_messages.to_sentence
+    assert @job.reload.open?
+
+    assert order.cancel
+    assert @job.close
+  end
+
+  test "cost and margin come from what the goods cost when they were sold, net of returns" do
+    sale = sell(items: { products(:acme_nails) => 4 }) # 250.00 a kg, costing 180.00
+    assert_equal 4 * 180_00, @job.cost_cents
+    assert_equal sale.total_cents - sale.tax_cents - 4 * 180_00, @job.margin_cents
+    assert_in_delta (@job.margin_cents * 100.0 / (sale.total_cents - sale.tax_cents)), @job.margin_percent, 0.01
+
+    Current.account.sale_returns.create!(sale: sale, shift: @shift, refund_method: "card", approver: users(:amina),
+      lines_attributes: [ { sale_line: sale.lines.first, quantity: 1, restock: true } ])
+    assert_equal 3 * 180_00, @job.cost_cents, "the bag that came back isn't a cost of the job"
+    assert_equal({ @job.id => 3 * 180_00 }, Job.cost_cents_by_id([ @job.id ]))
+  end
+
   test "names are unique per customer and budgets optional" do
     assert_not Current.account.jobs.new(customer: customers(:acme_contractor), name: " Kamau  residence ").valid?
     assert Current.account.jobs.new(customer: customers(:acme_contractor), name: "Borehole").valid?

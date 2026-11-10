@@ -54,6 +54,52 @@ class StockTest < ActiveSupport::TestCase
     assert_not transfer.receive, "can only be received once"
   end
 
+  test "a transfer received short: what was lost is written off where it arrived" do
+    transfer = accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard),
+      lines_attributes: [ { product_code: "CEM-50", quantity: 20 }, { product_code: "6001234500012", quantity: 100 } ])
+    cement_line = transfer.lines.find { _1.product == products(:acme_cement) }
+
+    assert_not transfer.receive(received: { cement_line.id.to_s => "18" }), "must say what happened to the two"
+    assert_match "lost on the way, or still at Main branch", transfer.errors.full_messages.to_sentence
+    assert transfer.reload.in_transit?
+    assert_equal 10, products(:acme_cement).stock_at(branches(:acme_yard)), "nothing moved"
+
+    assert_not transfer.receive(received: { cement_line.id.to_s => "21" }, shortfall: "lost")
+    assert_match "Only 20", transfer.errors.full_messages.to_sentence
+
+    assert transfer.receive(received: { cement_line.id.to_s => "18" }, shortfall: "lost")
+    assert transfer.received?
+    assert_equal [ 18, 2 ], [ cement_line.reload.received_quantity, cement_line.short_quantity ]
+    assert_equal 28, products(:acme_cement).stock_at(branches(:acme_yard))
+    assert_equal 30, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_equal 100, products(:acme_screws).stock_at(branches(:acme_yard)), "lines not mentioned arrived in full"
+    lost = StockMovement.where(product: products(:acme_cement), reason: "lost_in_transit").sole
+    assert_equal [ -2, branches(:acme_yard), transfer ], [ lost.quantity, lost.branch, lost.source ]
+  end
+
+  test "a transfer received short: what stayed behind goes back into the sender's stock" do
+    transfer = accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard),
+      lines_attributes: [ { product_code: "CEM-50", quantity: 5 } ])
+
+    assert transfer.receive(received: { transfer.lines.sole.id => 3 }, shortfall: "returned")
+    assert_equal 13, products(:acme_cement).stock_at(branches(:acme_yard))
+    assert_equal 47, products(:acme_cement).stock_at(branches(:acme_main)), "45 after sending, plus the 2 that never left"
+    assert_equal "transfer_returned", StockMovement.where(product: products(:acme_cement), branch: branches(:acme_main)).chronologically.first.reason
+    assert_equal "returned", transfer.shortfall
+  end
+
+  test "stock in transit is valued on its own: in no branch, but not forgotten" do
+    before = StockValuation.new(accounts(:acme))
+    total = before.total_value_cents
+    accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard), lines_attributes: [ { product_code: "CEM-50", quantity: 20 } ])
+
+    valuation = StockValuation.new(accounts(:acme))
+    assert_equal 20 * 70000, valuation.in_transit.value_cents
+    assert_equal 1, valuation.in_transit.lines
+    assert_equal before.rows.find { _1.branch == branches(:acme_main) }.value_cents - 20 * 70000, valuation.rows.find { _1.branch == branches(:acme_main) }.value_cents
+    assert_equal total, valuation.total_value_cents, "the total still counts what's on the road"
+  end
+
   test "cancelling a transfer returns the stock" do
     transfer = accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard),
       lines_attributes: [ { product_code: "CEM-50", quantity: 20 } ])
@@ -85,17 +131,48 @@ class StockTest < ActiveSupport::TestCase
     assert_equal 50, line.expected_quantity
     assert_equal 1, count.lines.count, "only the category's stocked products"
 
-    # A sale during the count doesn't distort the variance.
+    # Five sold before the counter reaches the shelf: the shelf shows 45 and so does the system.
     products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -5, reason: "sold")
-    line.update!(counted_quantity: 48)
+    assert line.record(48)
+    assert_equal 45, line.expected_quantity, "measured against the level at the moment of counting"
+    assert_equal 3, line.variance, "three more on the shelf than the system knew"
+
+    # One sold after the shelf was counted: the difference is posted as a delta, so it isn't put back.
+    products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -1, reason: "sold")
 
     assert_not count.approve, "must be submitted first"
     assert count.submit
     assert count.approve
 
-    # Expected 50, counted 48: two bags missing, taken off the current 45.
-    assert_equal 43, products(:acme_cement).stock_at(branches(:acme_main))
-    assert_equal "count", StockMovement.where(source: count).sole.reason
+    assert_equal 44 + 3, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_equal [ "count", 3 ], StockMovement.where(source: count).sole.values_at(:reason, :quantity)
     assert count.approved?
+  end
+
+  test "a count that agrees with the shelf posts nothing, however many sales happened during the take" do
+    count = accounts(:acme).stock_counts.create!(branch: branches(:acme_main), category: categories(:acme_building))
+    line = count.lines.find_by!(product: products(:acme_cement))
+    products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -2, reason: "sold")
+
+    line.record(48)
+    count.submit
+    count.approve
+
+    assert_equal 0, line.reload.variance
+    assert_equal 48, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_not StockMovement.where(source: count).exists?
+  end
+
+  test "counting in several places adds up, against the live level" do
+    count = accounts(:acme).stock_counts.create!(branch: branches(:acme_main), category: categories(:acme_building))
+    line = count.lines.find_by!(product: products(:acme_cement))
+
+    line.record(30, mode: "add")
+    line.record(18, mode: "add")
+    assert_equal 48, line.counted_quantity
+    line.record(47)
+    assert_equal 47, line.counted_quantity, "set corrects the total"
+    assert line.record(nil), "and a count can be cleared"
+    assert_nil line.counted_quantity
   end
 end

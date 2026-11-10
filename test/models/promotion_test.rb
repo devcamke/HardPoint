@@ -124,4 +124,52 @@ class PromotionTest < ActiveSupport::TestCase
     sale.recalculate
     assert_equal [ nil, nil ], [ pipes.reload.promotion, kit.reload.promotion ], "with a hand discount the kit is out, and two pipes aren't a bundle"
   end
+
+  def return_from(sale, line, quantity)
+    accounts(:acme).sale_returns.create!(sale: sale, shift: @shift, refund_method: "cash", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: line.id, quantity: quantity, restock: true } ])
+  end
+
+  test "returning part of a bundle refunds only what the kept goods no longer earn" do
+    @pipe = products(:acme_pipe) # 1,200.00
+    promote(kind: "bundle", bundle_quantity: 3, bundle_price: "3000", product_ids: [ @pipe.id ])
+    sale = @shift.current_sale
+    pipes = sale.add(@pipe, quantity: 3)
+    sale.pay(tender: "cash", tendered_cents: 3000_00)
+    assert_equal 3000_00, sale.reload.total_cents
+
+    first = return_from(sale, pipes, 1)
+    assert_equal 600_00, first.total_cents, "two pipes at full price are 2,400.00 of the 3,000.00 paid"
+    assert_equal (600_00 * 16 / 116.0).round, first.tax_cents
+
+    second = return_from(sale, pipes, 1)
+    assert_equal 1200_00, second.total_cents, "with the bundle gone, a pipe is a pipe"
+    third = return_from(sale, pipes, 1)
+    assert_equal 1200_00, third.total_cents
+    assert_equal 3000_00, sale.sale_returns.sum(:total_cents), "returning everything refunds everything"
+  end
+
+  test "returning one line of a mixed bundle charges the kept lines their full price" do
+    @pipe, @kit = products(:acme_pipe), products(:acme_plumbing_kit) # 1,200.00 and 2,500.00
+    promote(kind: "bundle", bundle_quantity: 3, bundle_price: "4000", category_ids: [ @pipe.category_id ])
+    sale = @shift.current_sale
+    sale.add(@pipe, quantity: 2)
+    kit = sale.add(@kit)
+    sale.pay(tender: "cash", tendered_cents: 4000_00)
+
+    refund = return_from(sale, kit, 1)
+    assert_equal 4000_00 - 2 * 1200_00, refund.total_cents, "not the kit's 2,040.81 share: the pipes kept are now 2,400.00"
+  end
+
+  test "returning the free item of buy ten get one refunds nothing; returning more refunds the price" do
+    cement = products(:acme_cement) # 800.00
+    promote(kind: "buy_get", buy_quantity: 10, free_quantity: 1, product_ids: [ cement.id ])
+    sale = @shift.current_sale
+    bags = sale.add(cement, quantity: 11)
+    sale.pay(tender: "cash", tendered_cents: 8000_00)
+    assert_equal 8000_00, sale.reload.total_cents
+
+    assert_equal 0, return_from(sale, bags, 1).total_cents, "the eleventh bag was free"
+    assert_equal 2 * 800_00, return_from(sale, bags, 2).total_cents
+  end
 end

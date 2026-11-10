@@ -4,11 +4,11 @@ class StockTransfersController < ApplicationController
   before_action :ensure_can_manage_stock, only: %i[ new create ]
 
   def index
-    @transfers = paginate(Current.account.stock_transfers.chronologically.includes(:from_branch, :to_branch, :sender, :lines))
+    @transfers = paginate(visible_transfers.chronologically.includes(:from_branch, :to_branch, :sender, :lines))
   end
 
   def show
-    @transfer = Current.account.stock_transfers.find(params[:id])
+    @transfer = visible_transfers.find(params[:id])
   end
 
   def new
@@ -30,7 +30,7 @@ class StockTransfersController < ApplicationController
   private
     def transfer_params
       permitted = params.expect(stock_transfer: [ :from_branch_id, :to_branch_id, :note, lines_attributes: [ [ :product_code, :quantity ] ] ])
-      permitted.merge(from_branch: Current.account.branches.find(permitted.delete(:from_branch_id)),
+      permitted.merge(from_branch: visible_branches.find(permitted.delete(:from_branch_id)),
         to_branch: Current.account.branches.find(permitted.delete(:to_branch_id)))
     end
 end

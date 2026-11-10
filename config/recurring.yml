@@ -24,10 +24,21 @@ production:
     class: DailySummaryJob
     schedule: every day at 4:15am
 
+  # The platform's own checks (database, workers, stuck or failed jobs, eTIMS queues, backups, disk), alerting
+  # the operators when one fails (docs/RUNBOOK.md, "Alerts").
+  platform_health:
+    class: PlatformHealthJob
+    schedule: every 10 minutes
+
   # Sales still waiting to reach KRA eTIMS.
   etims_retry:
     class: Etims::RetryJob
     schedule: every 5 minutes
+
+  # Sales, voids and returns that were never queued for KRA eTIMS (the app stopped part-way).
+  etims_reconcile:
+    class: Etims::ReconcileJob
+    schedule: every hour at minute 25
 
   # The day's market exchange rates; 06:30 in Nairobi, after the feed's daily update.
   exchange_rates:

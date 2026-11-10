@@ -21,6 +21,19 @@ class Mpesa::Transaction < ApplicationRecord
   scope :unmatched, -> { where(matched_id: nil) }
   scope :recent, -> { where(transacted_at: RECENT.ago..).order(transacted_at: :desc) }
 
+  # The payments a member may use at a till. Staff who see every branch may use any. Staff bound to a branch use
+  # payments to their branch's own Till or a shop-wide one, and a prompt's payment only at the till that sent it.
+  def self.usable_by(membership, at:)
+    return all unless membership&.bound_to_branch?
+
+    prompts = Mpesa::StkRequest.joins(:sale).where(sales: { register_id: at.id })
+    prompted_here = where("mpesa_transactions.payload #>> '{Body,stkCallback,CheckoutRequestID}' IN (#{prompts.select(:checkout_request_id).to_sql})")
+      .or(where(trans_id: prompts.where.not(receipt_number: nil).select(:receipt_number)))
+
+    where(shortcode_id: Mpesa::Shortcode.where(branch_id: [ membership.branch_id, nil ]).select(:id))
+      .and(where.not(source: "stk").or(where(source: "stk").and(prompted_here)))
+  end
+
   def self.record(shortcode, **attributes)
     shortcode.transactions.create_or_find_by!(account: shortcode.account, trans_id: attributes[:trans_id].to_s.strip.upcase) do |transaction|
       transaction.assign_attributes(attributes.except(:trans_id))
@@ -53,7 +66,7 @@ class Mpesa::Transaction < ApplicationRecord
     with_lock do
       raise ArgumentError, "This M-Pesa payment has already been used" if matched
 
-      payment = sale.pay(tender: "mobile_money", amount_cents: [ amount_cents, sale.balance_due_cents ].min, reference: trans_id)
+      payment = sale.pay(tender: "mobile_money", amount_cents: [ amount_cents, sale.balance_due_cents ].min, tendered_cents: amount_cents, reference: trans_id)
       match(payment) if payment.persisted?
       payment
     end

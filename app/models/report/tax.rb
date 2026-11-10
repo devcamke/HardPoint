@@ -27,8 +27,13 @@ class Report::Tax < Report
         Column.new("Net ex tax", :money), Column.new("Tax", :money) ]
     end
 
+    # One row per tax rate of the shop's, so exempt and zero-rated sales, both 0%, are returned apart.
     def output_rows
-      by_rate.sort.map { |rate, figures| output_row("#{rate.to_s("F").delete_suffix(".0")}%", figures) }
+      names = account.tax_rates.index_by(&:id)
+      by_rate.sort_by { |(rate, id), _| [ rate, names[id]&.name.to_s ] }.map do |(rate, id), figures|
+        percent = "#{rate.to_s("F").delete_suffix(".0")}%"
+        output_row(names[id] ? "#{names[id].name} (#{percent})" : percent, figures)
+      end
     end
 
     def output_totals
@@ -39,16 +44,18 @@ class Report::Tax < Report
       [ label, figures[:gross], -figures[:returns], figures[:gross] - figures[:returns] - figures[:tax], figures[:tax] ]
     end
 
+    # Keyed by [percentage, tax rate id]: the id tells two 0% rates apart; the percentage keeps lines sold
+    # under a rate since edited, or with no rate at all, in the right row.
     def by_rate
       @by_rate ||= begin
-        sold = sold_lines.group(:tax_rate)
-          .pluck(:tax_rate, Arel.sql("ROUND(SUM(sale_lines.total_cents * #{PAID_SHARE}))"), Arel.sql("ROUND(SUM(sale_lines.tax_cents * #{PAID_SHARE}))"))
-        returned = returned_lines.group("sale_lines.tax_rate")
-          .pluck(Arel.sql("sale_lines.tax_rate"), Arel.sql("SUM(sale_return_lines.total_cents)"), Arel.sql("SUM(sale_return_lines.tax_cents)"))
+        sold = sold_lines.group(:tax_rate, :tax_rate_id)
+          .pluck(:tax_rate, :tax_rate_id, Arel.sql("ROUND(SUM(sale_lines.total_cents * #{PAID_SHARE}))"), Arel.sql("ROUND(SUM(sale_lines.tax_cents * #{PAID_SHARE}))"))
+        returned = returned_lines.group("sale_lines.tax_rate", "sale_lines.tax_rate_id")
+          .pluck(Arel.sql("sale_lines.tax_rate"), Arel.sql("sale_lines.tax_rate_id"), Arel.sql("SUM(sale_return_lines.total_cents)"), Arel.sql("SUM(sale_return_lines.tax_cents)"))
 
-        (sold.map(&:first) | returned.map(&:first)).index_with do |rate|
-          _, gross, tax = sold.find { _1.first == rate } || [ rate, 0, 0 ]
-          _, refunded, refunded_tax = returned.find { _1.first == rate } || [ rate, 0, 0 ]
+        (sold.map { _1.first(2) } | returned.map { _1.first(2) }).index_with do |key|
+          *_, gross, tax = sold.find { _1.first(2) == key } || [ *key, 0, 0 ]
+          *_, refunded, refunded_tax = returned.find { _1.first(2) == key } || [ *key, 0, 0 ]
           { gross: gross.to_i, returns: refunded.to_i, tax: tax.to_i - refunded_tax.to_i }
         end
       end

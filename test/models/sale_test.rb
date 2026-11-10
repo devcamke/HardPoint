@@ -18,6 +18,30 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal 160000 + 37500, @sale.total_cents
   end
 
+  test "a line remembers which tax rate it was sold under, and its percentage even if that rate is later edited" do
+    @sale.add(products(:acme_cement))
+    line = @sale.lines.sole
+    assert_equal tax_rates(:acme_vat), line.tax_rate_record
+    assert_equal 16, line.tax_rate
+
+    assert_not tax_rates(:acme_vat).destroy, "a rate that lines were sold under can't be deleted"
+  end
+
+  test "a sale whose discount is over the cashier's limit can't be completed without approval" do
+    @sale.add(products(:acme_cement))
+    @sale.update!(discount_cents: 40000) # half of 80,000, far past the 5% a cashier may give
+    @sale.recalculate
+
+    payment = @sale.pay(tender: "cash", tendered_cents: 40000)
+    assert_match "needs a manager's approval PIN", payment.errors.full_messages.to_sentence
+    assert @sale.reload.open?
+
+    @sale.update!(discount_approver: users(:amina), approved_discount_percent: 50)
+    payment = @sale.pay(tender: "cash", tendered_cents: 40000)
+    assert payment.errors.empty?, payment.errors.full_messages.to_sentence
+    assert @sale.reload.completed?
+  end
+
   test "prices include tax; the tax share is worked out per line" do
     @sale.add(products(:acme_cement)) # 800.00 at 16% VAT
     @sale.add(products(:acme_screws), quantity: 10) # 50.00, no tax rate set → shop default 16%
@@ -130,14 +154,76 @@ class SaleTest < ActiveSupport::TestCase
     assert @sale.reload.completed?
   end
 
-  test "voiding during the shift puts stock back and drops the takings" do
+  test "voiding during the shift puts stock back and drops the takings, and cash given back comes out of the drawer" do
     @sale.add(products(:acme_cement), quantity: 2)
     @sale.pay(tender: "cash", tendered_cents: 160000)
 
     assert @sale.void(reason: "Rang up twice", approver: users(:amina))
     assert @sale.voided?
+    assert_equal "cash", @sale.void_refund_method, "money goes back the way it came unless told otherwise"
     assert_equal 50, products(:acme_cement).stock_at(branches(:acme_main))
     assert_equal 500000, @shift.expected_cash_cents_now
+    assert_equal "refunded in cash", @sale.void_refund_words
+    assert_equal [ "cash", nil ], @sale.events.last.particulars.values_at("refund_method", "refund_reference")
+  end
+
+  test "a void says how non-cash money went back: an M-Pesa reversal keeps its code and frees the money for reconciliation" do
+    shortcode = accounts(:acme).mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator")
+    received = Mpesa::Transaction.record(shortcode, source: "c2b", trans_id: "SJK4H7T2QP", amount_cents: 160000, transacted_at: Time.current)
+    @sale.add(products(:acme_cement), quantity: 2)
+    @sale.pay(tender: "mobile_money", reference: "SJK4H7T2QP")
+    assert_equal @sale.payments.sole, received.reload.matched
+
+    assert_not @sale.void(reason: "Rang up twice", approver: users(:amina)), "the reversal's code is needed"
+    assert_match "M-Pesa reversal code", @sale.errors.full_messages.to_sentence
+    assert @sale.reload.completed?
+
+    assert @sale.void(reason: "Rang up twice", approver: users(:amina), refund_method: "mobile_money", refund_reference: "sjk4h7t2qr")
+    assert_equal [ "mobile_money", "SJK4H7T2QR" ], [ @sale.void_refund_method, @sale.void_refund_reference ]
+    assert_equal "refunded by M-Pesa (SJK4H7T2QR)", @sale.void_refund_words
+    assert received.reload.refunded_at, "the money Safaricom sent is no longer money used on a sale"
+    assert_equal @sale.payments.sole, received.matched, "but it isn't offered at the till as money to use either"
+    assert_equal 500000, @shift.expected_cash_cents_now, "no cash moved"
+
+    summary = Report::MobileMoney.new(account: accounts(:acme), period: Report::Period.for_preset("today")).sections.first
+    assert_equal [ [ "Used on sales", 0, 0 ], [ "Reversed after a void", 1, 160000 ] ], [ summary.rows[1], summary.rows[5] ]
+  end
+
+  test "an M-Pesa sale handed back in cash takes the cash out of the drawer, and a split sale has to say which" do
+    @sale.add(products(:acme_cement), quantity: 2)
+    @sale.pay(tender: "mobile_money", reference: "SJK4H7T2QP")
+    assert @sale.void(reason: "Customer changed their mind", approver: users(:amina), refund_method: "cash")
+    assert_equal 500000 - 160000, @shift.expected_cash_cents_now
+
+    split = @shift.current_sale
+    split.add(products(:acme_cement), quantity: 2)
+    split.pay(tender: "card", amount_cents: 100000)
+    split.pay(tender: "cash", tendered_cents: 60000)
+    assert_nil split.default_void_refund_method
+    assert_not split.void(reason: "Rang up twice", approver: users(:amina))
+    assert_match "Say how the KES 1,600.00 paid went back", split.errors.full_messages.to_sentence
+    assert split.void(reason: "Rang up twice", approver: users(:amina), refund_method: "cash")
+    assert_equal 500000 - 160000 + 60000 - 160000, @shift.expected_cash_cents_now, "the cash part came in, and the whole lot went back in cash"
+  end
+
+  test "a sale that comes to nothing is completed without a payment, by a manager" do
+    @sale.add(products(:acme_cement))
+    @sale.update!(discount_cents: 80000, discount_approver: users(:amina), approved_discount_percent: 100)
+    @sale.recalculate
+    assert_equal 0, @sale.total_cents
+    assert @sale.pay(tender: "cash", tendered_cents: 0).errors.any?, "there's no payment to complete it through"
+
+    assert @sale.complete_without_payment(approver: users(:amina))
+    assert @sale.reload.completed?
+    assert_equal "MAIN-000001", @sale.receipt_number
+    assert_equal 49, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_equal [ "completed_without_payment", "Amina Owner" ], [ @sale.events.last.action, @sale.events.last.particulars["approver"] ]
+
+    owed = @shift.current_sale
+    owed.add(products(:acme_nails))
+    assert_not owed.complete_without_payment(approver: users(:amina))
+    assert_match "KES 250.00 is still due", owed.errors.full_messages.to_sentence
+    assert owed.reload.open?
   end
 
   test "park and recall" do
@@ -151,9 +237,77 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal @sale, @shift.current_sale
   end
 
+  test "a sale can't complete with expired stock; written off, it can" do
+    cement = products(:acme_cement)
+    cement.move_stock(branch: branches(:acme_main), quantity: -cement.stock_at(branches(:acme_main)), reason: "correction")
+    cement.update!(tracks_batches: true)
+    cement.move_stock(branch: branches(:acme_main), quantity: 1, reason: "received", batch: { number: "FRESH", expires_on: 60.days.from_now.to_date })
+    cement.move_stock(branch: branches(:acme_main), quantity: 3, reason: "received", batch: { number: "OLD", expires_on: 2.days.ago.to_date })
+
+    @sale.add(cement, quantity: 2)
+    payment = @sale.pay(tender: "cash", tendered_cents: 160000)
+    assert_match "Only 1 Bamburi cement 50kg here are in date", payment.errors.full_messages.to_sentence
+    assert @sale.reload.open?
+
+    cement.stock_batches.find_by!(number: "OLD").write_off(3, reason: "expired")
+    @sale.lines.first.update!(quantity: 1)
+    @sale.recalculate
+    payment = @sale.pay(tender: "cash", tendered_cents: 80000)
+    assert payment.errors.empty?, payment.errors.full_messages.to_sentence
+    assert @sale.reload.completed?
+    assert_equal 0, cement.stock_at(branches(:acme_main))
+  end
+
+  test "money is refunded only up to the money paid; what was put on account goes back to the account" do
+    @sale.add(products(:acme_cement), quantity: 2) # 160,000: 600.00 in cash, the rest on account
+    @sale.change_customer(customers(:acme_contractor))
+    @sale.pay(tender: "cash", tendered_cents: 60000)
+    @sale.pay(tender: "on_account", amount_cents: @sale.balance_due_cents, credit_approver: users(:amina))
+    assert @sale.reload.completed?
+    line = @sale.lines.first
+    assert_equal 60000, SaleReturn.money_refundable_cents(@sale)
+
+    one_bag_in_cash = accounts(:acme).sale_returns.new(sale: @sale, shift: @shift, refund_method: "cash", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: line.id, quantity: 1 } ])
+    assert_not one_bag_in_cash.valid?, "a bag is 760.00; only 600.00 was paid in money"
+    assert_match "at most KES 600.00 in money", one_bag_in_cash.errors.full_messages.to_sentence
+
+    on_account = accounts(:acme).sale_returns.create!(sale: @sale, shift: @shift, refund_method: "on_account", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: line.id, quantity: 1 } ])
+    assert_equal 76000, on_account.total_cents
+    assert_equal 60000, SaleReturn.money_refundable_cents(@sale), "crediting the account leaves the cash refundable"
+
+    # A sale wholly on account can't be refunded in money at all.
+    unpaid = @shift.current_sale
+    unpaid.add(products(:acme_nails))
+    unpaid.change_customer(customers(:acme_contractor))
+    unpaid.pay(tender: "on_account", credit_approver: users(:amina))
+    cash_back = accounts(:acme).sale_returns.new(sale: unpaid.reload, shift: @shift, refund_method: "cash", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: unpaid.lines.first.id, quantity: 1 } ])
+    assert_not cash_back.valid?
+    assert_match "credit the customer's account instead", cash_back.errors.full_messages.to_sentence
+  end
+
+  test "goods returned at another branch go into that branch's stock, numbered there, from that till's drawer" do
+    @sale.add(products(:acme_cement), quantity: 2)
+    @sale.pay(tender: "cash", tendered_cents: 160000)
+    yard = accounts(:acme).shifts.create!(branch: branches(:acme_yard), register: registers(:acme_yard), opened_by: users(:carl), opening_float_cents: 100000, opened_at: Time.current)
+    main_before, yard_before = products(:acme_cement).stock_at(branches(:acme_main)), products(:acme_cement).stock_at(branches(:acme_yard))
+
+    sale_return = accounts(:acme).sale_returns.create!(sale: @sale, shift: yard, refund_method: "cash", approver: users(:amina),
+      lines_attributes: [ { sale_line_id: @sale.lines.first.id, quantity: 1, restock: true } ])
+
+    assert_equal branches(:acme_yard), sale_return.branch
+    assert_equal "YRD-R00001", sale_return.return_number
+    assert_equal main_before, products(:acme_cement).stock_at(branches(:acme_main))
+    assert_equal yard_before + 1, products(:acme_cement).stock_at(branches(:acme_yard))
+    assert_equal 100000 - 80000, yard.expected_cash_cents_now
+    assert_equal 500000 + 160000, @shift.expected_cash_cents_now, "the selling till's drawer keeps the sale and gives nothing back"
+  end
+
   test "returns refund what was paid and restock by choice" do
     @sale.add(products(:acme_cement), quantity: 4)
-    @sale.update!(discount_cents: 20000) # 320,000 → 300,000
+    @sale.update!(discount_cents: 20000, discount_approver: users(:amina), approved_discount_percent: 6.25) # 320,000 → 300,000, a manager's discount
     @sale.recalculate
     @sale.pay(tender: "cash", tendered_cents: 300000)
     line = @sale.lines.first

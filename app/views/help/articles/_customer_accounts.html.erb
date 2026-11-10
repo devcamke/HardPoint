@@ -14,19 +14,25 @@
 <ol>
   <li>In <strong>Sell › Orders &amp; quotes</strong>, press <strong>New</strong>, choose the customer and add the goods. Save it as a quote,
     and send it as a PDF or by email. Quotes are valid for 14 days unless you change it.</li>
-  <li>When the customer agrees, press <strong>Confirm order</strong>. <strong>Take deposit</strong> records money paid up front (cash,
-    M-Pesa, card or bank).</li>
+  <li>When the customer agrees, press <strong>Confirm order</strong>. For a customer who buys on account, an order worth more than the
+    credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. <strong>Take deposit</strong>
+    records money paid up front (cash, M-Pesa, card or bank).</li>
   <li>When the goods are in, press <strong>Mark ready to collect</strong> (with SMS on, the customer can be texted).</li>
   <li>When they come, press <strong>Collect at …</strong> on the order at the till: it's rung up at the quoted prices, with the deposit
-    already counted.</li>
+    already counted. The sale, VAT and all, goes to KRA then, not when the deposit was taken (see
+    <%= link_to "KRA eTIMS", help_article_path("etims"), class: "link" %>).</li>
 </ol>
 
 <%= render "help/walkthrough", tour: HelpTour.find("quote") %>
 
 <h2>Payments and statements</h2>
-<p>Press <strong>Record payment</strong> on the customer to take money against their account; it settles their oldest sales first.
-  <strong>Statement</strong> prints or emails what's owed and how old it is, and balance reminders can go by SMS. <strong>Customers › Who owes
-  us</strong> lists every customer's balance by how late it is.</p>
+<p>Press <strong>Record payment</strong> on the customer to take money against their account; it settles their oldest sales first unless you
+  fill in amounts under <strong>Put against particular sales</strong>, which pays those sales and leaves the others (a disputed invoice, say) open.
+  If they've paid more than they owe, <strong>Refund credit</strong> hands the credit back; cash goes out of this device's till. A debt the shop has
+  given up on is removed with <strong>Write off</strong>: an owner or manager approves it (an accountant types a manager's approval PIN) with a reason,
+  and it stays on the statement and in Activity.
+  <strong>Statement</strong> prints or emails what's owed and how old it is at the end of the period, and balance reminders can go by SMS.
+  <strong>Customers › Who owes us</strong> lists every customer's balance by how late it is.</p>
 
 <h2>Deliveries</h2>
 <p>For goods going out on the lorry, press <strong>Deliver</strong> on the sale and print the delivery note with a signature line. Mark it dispatched with the driver

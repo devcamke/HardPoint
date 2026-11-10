@@ -7,7 +7,7 @@ class Product::Batching
     @branch = branch
   end
 
-  def portions(quantity, batch: nil, reverses: nil)
+  def portions(quantity, batch: nil, reverses: nil, allow_expired: true)
     return [ [ nil, quantity ] ] if quantity.zero?
 
     if batch
@@ -15,14 +15,15 @@ class Product::Batching
     elsif quantity.positive?
       reverses ? putting_back(quantity, **reverses) : [ [ nil, quantity ] ]
     else
-      taking_out(-quantity)
+      taking_out(-quantity, allow_expired: allow_expired)
     end
   end
 
   private
-    # Stock not in a batch goes first (it's what was on the shelf before batches were tracked),
-    # then batches by expiry date, skipping expired ones unless nothing else is left.
-    def taking_out(amount)
+    # Stock not in a batch goes first (it's what was on the shelf before batches were tracked), then batches
+    # by expiry date. Expired batches come last, and only for movements allowed to take them (a write-off, a
+    # count); a sale or transfer that would need them stops instead, so nothing out of date reaches a customer.
+    def taking_out(amount, allow_expired: true)
       batches = @product.stock_batches.where(branch: @branch).in_stock.by_expiry.lock.to_a
       expired, good = batches.partition(&:expired?)
       unbatched = @product.stock_at(@branch) - batches.sum(&:quantity)
@@ -32,11 +33,15 @@ class Product::Batching
         portions << [ nil, -[ unbatched, amount ].min ]
         amount -= unbatched
       end
-      (good + expired).each do |batch|
+      (allow_expired ? good + expired : good).each do |batch|
         break unless amount.positive?
         take = [ batch.quantity, amount ].min
         portions << [ batch, -take ]
         amount -= take
+      end
+      if amount.positive? && !allow_expired && expired.any?
+        raise Product::ExpiredStock, "Only #{(@product.stock_at(@branch) - expired.sum(&:quantity)).to_s("F").delete_suffix(".0")} #{@product.name} at #{@branch.name} " \
+          "are in date; #{expired.sum(&:quantity).to_s("F").delete_suffix(".0")} have expired. Write the expired ones off, or take fewer"
       end
       portions << [ nil, -amount ] if amount.positive?
       portions

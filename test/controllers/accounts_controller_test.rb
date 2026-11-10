@@ -4,10 +4,11 @@ class AccountsControllerTest < ActionDispatch::IntegrationTest
   test "owners can change shop settings" do
     sign_in_as users(:amina), account: accounts(:acme)
 
-    patch account_path, params: { account: { name: "Acme Hardware & Paints", time_zone: "Pretoria", currency: "ZAR" } }
+    patch account_path, params: { account: { name: "Acme Hardware & Paints", time_zone: "Pretoria", currency: "ZAR", payout_approval_above: "10,000", require_second_approver: "1" } }
+    assert Account.without_isolation { accounts(:acme).reload.require_second_approver? }
 
     assert_redirected_to edit_account_path
-    assert_equal [ "Acme Hardware & Paints", "Pretoria", "ZAR" ], accounts(:acme).reload.values_at(:name, :time_zone, :currency)
+    assert_equal [ "Acme Hardware & Paints", "Pretoria", "ZAR", 1000000 ], accounts(:acme).reload.values_at(:name, :time_zone, :currency, :payout_approval_above_cents)
   end
 
   test "the subdomain can't be changed from settings" do

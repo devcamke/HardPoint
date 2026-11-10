@@ -13,7 +13,7 @@ class SignupsControllerTest < ActionDispatch::IntegrationTest
   test "create opens the shop on a trial of the chosen plan and sends the owner to its subdomain" do
     assert_difference -> { Account.count } do
       post signup_path, params: { signup: { shop_name: "Mjengo Hardware", subdomain: "mjengo", owner_name: "Wanjiru",
-        email_address: "wanjiru@mjengo.test", password: "a long password", plan: "starter" } }
+        email_address: "wanjiru@mjengo.test", password: "a long password", plan: "starter", terms_accepted: "1" } }
     end
 
     account = Account.find_by!(subdomain: "mjengo")
@@ -26,11 +26,20 @@ class SignupsControllerTest < ActionDispatch::IntegrationTest
   test "create with invalid details" do
     assert_no_difference -> { Account.count } do
       post signup_path, params: { signup: { shop_name: "Clash", subdomain: "acme", owner_name: "Eve",
-        email_address: "eve@clash.test", password: "a long password" } }
+        email_address: "eve@clash.test", password: "a long password", terms_accepted: "1" } }
     end
 
     assert_response :unprocessable_entity
     assert_select "#error_explanation", /Subdomain has already been taken/
+  end
+
+  test "a shop can't be opened without agreeing to the terms" do
+    assert_no_difference -> { Account.count } do
+      post signup_path, params: { signup: { shop_name: "Hasty", subdomain: "hasty", owner_name: "Eve",
+        email_address: "eve@hasty.test", password: "a long password" } }
+    end
+    assert_response :unprocessable_entity
+    assert_select "#error_explanation", /must be agreed/
   end
 
   test "signup isn't served on shop subdomains" do

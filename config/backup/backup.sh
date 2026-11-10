@@ -4,6 +4,9 @@
 #   backup.sh db      hourly: the app and job databases, plus roles  → s3://$S3_BUCKET/hourly/…
 #                     (the run after midnight UTC is also copied to daily/)
 #   backup.sh files   daily: uploaded files (Active Storage)          → s3://$S3_BUCKET/files/…
+#   backup.sh base    weekly: a physical copy of the whole cluster    → s3://$S3_BUCKET/base/…
+#                     (pg_basebackup), the starting point for a restore to any minute together with the
+#                     WAL segments wal_ship.sh uploads to wal/ (restore_pitr.sh)
 #
 # Each backup is a pg_dump custom-format archive (or a tar of the storage volume) encrypted with
 # AES-256 (openssl, PBKDF2) under BACKUP_PASSPHRASE, with a SHA-256 checksum. Uploads use curl's AWS
@@ -64,6 +67,14 @@ backup_db() {
   if [ "$(date -u +%H)" = "00" ]; then ship "$file" daily; fi
 }
 
+backup_base() {
+  local file="$BACKUP_DIR/hardpoint-base-$stamp.tar.enc"
+  # A tar of the data directory streamed out of the container, without WAL (-X none): the archive has it.
+  $PG_EXEC pg_basebackup -U "$PG_USER" --pgdata=- --format=tar --wal-method=none --checkpoint=fast | encrypt > "$file"
+  log "base backup $(basename "$file") ($(du -h "$file" | cut -f1))"
+  ship "$file" base
+}
+
 backup_files() {
   local file="$BACKUP_DIR/hardpoint-files-$stamp.tar.enc"
   tar -C "$STORAGE_DIR" -czf - . | encrypt > "$file"   # images are already compressed; gzip is enough
@@ -74,7 +85,8 @@ backup_files() {
 case "${1:-}" in
   db) backup_db ;;
   files) backup_files ;;
-  *) echo "usage: $0 db|files" >&2; exit 64 ;;
+  base) backup_base ;;
+  *) echo "usage: $0 db|files|base" >&2; exit 64 ;;
 esac
 
 find "$BACKUP_DIR" -name 'hardpoint-*' -mmin +$((KEEP_LOCAL_HOURS * 60)) -delete

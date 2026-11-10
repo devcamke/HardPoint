@@ -8,7 +8,7 @@ class Mobile::StockCountsController < Mobile::BaseController
   end
 
   def show
-    @count = Current.account.stock_counts.find(params[:id])
+    @count = within_visible_branches(Current.account.stock_counts).find(params[:id])
     @recent = @count.lines.counted.includes(product: :unit).order(updated_at: :desc).limit(8)
   end
 end

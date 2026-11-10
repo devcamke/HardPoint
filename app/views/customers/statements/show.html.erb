@@ -14,6 +14,8 @@
   </div>
 </div>
 
+<%= shared_links @customer %>
+
 <%= form_with url: customer_statement_path(@customer), method: :get, class: "card mb-4 flex flex-wrap items-end gap-3 p-4" do |form| %>
   <div><%= form.label :from, class: "label" %><%= form.date_field :from, value: @statement.from, class: "input" %></div>
   <div><%= form.label :to, class: "label" %><%= form.date_field :to, value: @statement.to, class: "input" %></div>

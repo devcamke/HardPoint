@@ -76,11 +76,51 @@ class WebhookTest < ActiveSupport::TestCase
     end
     assert_not @endpoint.reload.enabled?
 
+    # Events while it's off are kept as skipped, not sent and not lost.
+    assert_no_enqueued_jobs(only: WebhookDeliveryJob) do
+      products(:acme_nails).update!(price_cents: 27000)
+    end
+    skipped = @endpoint.deliveries.where(event: "product.updated").sole
+    assert skipped.skipped?
+
+    # Switching it back on sends what was missed.
+    assert_enqueued_with(job: WebhookDeliveryJob, args: [ skipped ]) { @endpoint.enable }
+    assert @endpoint.enabled?
+    assert skipped.reload.pending?
+  end
+
+  test "a retry due after its endpoint was switched off waits, skipped, for it to come back" do
+    fake_transport(WebhookDelivery, "/hardpoint" => [ 500, {} ])
+    delivery = @endpoint.send_test
+    delivery.deliver
+    @endpoint.update!(disabled_at: Time.current, disabled_reason: "test")
+
+    travel 2.minutes do
+      WebhookDelivery.retry_due
+      assert delivery.reload.skipped?
+      assert_equal 1, delivery.attempts
+    end
+  end
+
+  test "an endpoint switched off by its owner records nothing" do
+    @endpoint.update!(active: false)
     assert_no_difference -> { WebhookDelivery.count } do
       products(:acme_nails).update!(price_cents: 27000)
     end
-    @endpoint.enable
-    assert @endpoint.enabled?
+  end
+
+  test "a first delivery whose job was lost is picked up by the retry run" do
+    fake_transport(WebhookDelivery, "/hardpoint" => {})
+    delivery = @endpoint.send_test
+    assert_equal 0, delivery.attempts
+
+    WebhookDelivery.retry_due
+    assert delivery.reload.pending?, "a fresh delivery is left to its own job"
+
+    travel WebhookDelivery::FIRST_ATTEMPT_GRACE + 1.minute do
+      WebhookDelivery.retry_due
+      assert delivery.reload.delivered?
+    end
   end
 
   test "webhooks only go to public HTTPS addresses" do

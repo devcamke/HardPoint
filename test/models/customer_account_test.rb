@@ -69,6 +69,90 @@ class CustomerAccountTest < ActiveSupport::TestCase
     assert StatementPdf.new(statement, branch: branches(:acme_main)).render.start_with?("%PDF")
   end
 
+  test "a payment can be put against particular sales; the rest settles the oldest first" do
+    old = account_sale(quantity: 40, days_ago: 45) # 10,000.00
+    recent = account_sale(quantity: 20, days_ago: 5) # 5,000.00
+
+    too_much = @customer.customer_payments.create(account: Current.account, amount_cents: 2_000_00, payment_method: "bank_transfer",
+      allocations_attributes: [ { sale: recent, amount_cents: 3_000_00 } ])
+    assert_match "more than the KES 2,000.00 paid", too_much.errors.full_messages.to_sentence
+
+    over_the_sale = @customer.customer_payments.create(account: Current.account, amount_cents: 8_000_00, payment_method: "bank_transfer",
+      allocations_attributes: [ { sale: recent, amount_cents: 6_000_00 } ])
+    assert_match "only KES 5,000.00 is owed on #{recent.receipt_number}", over_the_sale.errors.full_messages.to_sentence
+
+    @customer.customer_payments.create!(account: Current.account, amount_cents: 5_000_00, payment_method: "bank_transfer",
+      allocations_attributes: [ { sale: recent, amount_cents: 5_000_00 } ])
+
+    assert_equal 10_000_00, @customer.balance_cents
+    assert_equal [ [ old, 10_000_00 ] ], @customer.open_invoices.map { [ _1.sale, _1.outstanding_cents ] }, "the disputed old sale stays open"
+    assert_equal({ "current" => 0, "1_30" => 10_000_00, "31_60" => 0, "61_90" => 0, "over_90" => 0 }, @customer.ageing)
+    assert_equal @customer.ageing, Customer.ageing_by_id([ @customer ])[@customer.id]
+
+    @customer.customer_payments.create!(account: Current.account, amount_cents: 4_000_00, payment_method: "bank_transfer")
+    assert_equal [ [ old, 6_000_00 ] ], @customer.open_invoices.map { [ _1.sale, _1.outstanding_cents ] }, "an unallocated payment goes to the oldest"
+    assert_equal @customer.ageing, Customer.ageing_by_id([ @customer ])[@customer.id]
+  end
+
+  test "credit left on the account can be handed back, cash through the till" do
+    account_sale(quantity: 40) # 10,000.00
+    @customer.customer_payments.create!(account: Current.account, amount_cents: 12_000_00, payment_method: "bank_transfer")
+    assert_equal(-2_000_00, @customer.balance_cents)
+
+    too_much = @customer.customer_payments.create(account: Current.account, kind: "refund", amount_cents: 3_000_00, payment_method: "cash", shift: @shift)
+    assert_match "more than the KES 2,000.00 credit", too_much.errors.full_messages.to_sentence
+    no_till = @customer.customer_payments.create(account: Current.account, kind: "refund", amount_cents: 2_000_00, payment_method: "cash")
+    assert_match "open shift", no_till.errors.full_messages.to_sentence
+
+    refund = @customer.customer_payments.create!(account: Current.account, kind: "refund", amount_cents: 2_000_00, payment_method: "cash", shift: @shift)
+    assert_equal(-2_000_00, refund.amount_cents, "a refund is kept as a negative credit, so sums stay right")
+    assert_equal 0, @customer.balance_cents
+    assert_equal 5_000_00 - 2_000_00, @shift.expected_cash_cents_now
+    assert_equal "credit_refunded", @customer.events.last.action
+    assert_equal [ [ 0, 2_000_00 ] ], @customer.reload.statement.entries.select { _1.description.start_with?("Credit") }.map { [ _1.credit_cents, _1.charge_cents ] }
+
+    nothing_owed = @customer.customer_payments.create(account: Current.account, kind: "refund", amount_cents: 1_00, payment_method: "bank_transfer")
+    assert_not nothing_owed.persisted?
+  end
+
+  test "bad debt is written off with a manager's approval and a reason, on the statement and in the activity" do
+    old = account_sale(quantity: 40, days_ago: 45) # 10,000.00
+    recent = account_sale(quantity: 20, days_ago: 5) # 5,000.00
+
+    unapproved = @customer.customer_payments.create(account: Current.account, kind: "write_off", amount_cents: 10_000_00, reason: "Gone out of business")
+    assert_match "approval PIN", unapproved.errors.full_messages.to_sentence
+    no_reason = @customer.customer_payments.create(account: Current.account, kind: "write_off", amount_cents: 10_000_00, approver: users(:amina))
+    assert_match "Reason", no_reason.errors.full_messages.to_sentence
+
+    write_off = @customer.customer_payments.create!(account: Current.account, kind: "write_off", amount_cents: 10_000_00, approver: users(:amina),
+      reason: "Gone out of business", allocations_attributes: [ { sale: old, amount_cents: 10_000_00 } ])
+    assert_nil write_off.payment_method
+
+    assert_equal 5_000_00, @customer.balance_cents
+    assert_equal [ [ recent, 5_000_00 ] ], @customer.open_invoices.map { [ _1.sale, _1.outstanding_cents ] }
+    event = @customer.events.last
+    assert_equal "written_off", event.action
+    assert_equal({ "amount" => 10_000_00, "approver" => "Amina Owner", "reason" => "Gone out of business" }, event.particulars.slice("amount", "approver", "reason"))
+    assert_equal [ "Written off: Gone out of business" ], @customer.reload.statement(from: 60.days.ago.to_date).entries.map(&:description).grep(/Written/)
+    assert_equal({}, @shift.report.account_payments_by_method, "a write-off isn't money through the till")
+    @customer.customer_payments.create!(account: Current.account, amount_cents: 1_00, payment_method: "bank_transfer")
+    report = Report::Payments.new(account: Current.account, period: Report::Period.for_preset("today"))
+    assert_equal [ [ "Payments on account", "Bank transfer", 1_00 ] ], report.sections.last.rows, "nor is it money in the payments report"
+  end
+
+  test "a backdated statement ages what was owed at its end, not what's owed today" do
+    account_sale(quantity: 40, days_ago: 45) # 10,000.00, due 15 days ago
+    account_sale(quantity: 20, days_ago: 5) # 5,000.00
+    @customer.customer_payments.create!(account: Current.account, amount_cents: 4_000_00, payment_method: "mobile_money", reference: "SJK4H7T2QP", paid_on: 3.days.ago.to_date)
+
+    statement = @customer.statement(from: 40.days.ago.to_date, to: 10.days.ago.to_date)
+
+    assert_equal 10_000_00, statement.closing_balance_cents
+    assert_equal({ "current" => 0, "1_30" => 10_000_00, "31_60" => 0, "61_90" => 0, "over_90" => 0 }, statement.ageing)
+    assert_equal statement.closing_balance_cents, statement.ageing.values.sum, "the buckets add up to the balance due"
+    assert_equal 11_000_00, @customer.ageing.values.sum, "today's ageing still counts the payment"
+  end
+
   test "who owes us lists only customers with a balance" do
     account_sale(quantity: 4)
 
@@ -102,6 +186,48 @@ class CustomerAccountTest < ActiveSupport::TestCase
     assert note.proof_photo.attached?
     assert_equal %w[ created dispatched delivered ], note.events.order(:id).pluck(:action)
     assert DeliveryNotePdf.new(note).render.start_with?("%PDF")
+  end
+
+  test "a delivery note can cover part of a sale, and a later note takes the rest" do
+    sale = account_sale(quantity: 10)
+    line = sale.lines.sole
+
+    first = Current.account.delivery_notes.create!(sale: sale, address: "Plot 12", lines_attributes: [ { sale_line_id: line.id, quantity: 6 } ])
+    assert_equal [ [ line, 6 ] ], first.lines.map { [ _1.sale_line, _1.quantity ] }
+    assert_equal({ line.id => 4 }, DeliveryNote.undelivered_by_line(sale))
+    assert DeliveryNotePdf.new(first).render.start_with?("%PDF")
+
+    too_many = Current.account.delivery_notes.new(sale: sale, address: "Plot 12", lines_attributes: [ { sale_line_id: line.id, quantity: 5 } ])
+    assert_not too_many.valid?
+    assert_match "Only 4", too_many.errors.full_messages.to_sentence
+
+    rest = Current.account.delivery_notes.create!(sale: sale, address: "Plot 12")
+    assert_equal [ 4 ], rest.lines.map(&:quantity), "a note made without lines covers whatever is left"
+    assert_equal({}, DeliveryNote.undelivered_by_line(sale))
+
+    nothing_left = Current.account.delivery_notes.new(sale: sale, address: "Plot 12")
+    assert_not nothing_left.valid?
+    assert_match "already", nothing_left.errors.full_messages.to_sentence
+
+    assert first.cancel
+    assert_equal({ line.id => 6 }, DeliveryNote.undelivered_by_line(sale), "a cancelled note's goods are waiting again")
+  end
+
+  test "cancelling a delivery note cancels the transport it charged, unless a deposit is held on it" do
+    @customer.update!(address: "Plot 12, Mombasa Road")
+    note = Current.account.delivery_notes.create!(sale: account_sale(quantity: 4), transport_charge_cents: 2_000_00)
+    order = note.transport_order
+    assert order.ordered?
+
+    assert note.cancel
+    assert order.reload.cancelled?
+    assert_equal order.reference, note.events.last.particulars["transport_order"]
+
+    paid_up_front = Current.account.delivery_notes.create!(sale: account_sale(quantity: 4), transport_charge_cents: 2_000_00)
+    paid_up_front.transport_order.take_deposit(amount_cents: 500_00, tender: "mobile_money", reference: "SJK4H7T2QQ")
+    assert_not paid_up_front.cancel
+    assert_match "deposit", paid_up_front.errors.full_messages.to_sentence
+    assert paid_up_front.reload.pending?
   end
 
   test "only completed sales go out for delivery" do

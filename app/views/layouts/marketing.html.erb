@@ -35,15 +35,21 @@
   </head>
 
   <body class="flex min-h-screen flex-col bg-gray-50 text-gray-900">
-    <header class="border-b border-gray-200 bg-white">
-      <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4 text-sm font-medium">
-        <%= link_to marketing_root_path, aria: { label: "HardPoint home" } do %><%= render "shared/logo" %><% end %>
-        <div class="ml-auto flex flex-wrap items-center gap-x-5 gap-y-2">
-          <%= link_to "Features", marketing_root_path(anchor: "features"), class: "hover:text-primary-600" %>
-          <%= link_to "Pricing", pricing_path, class: "hover:text-primary-600" %>
-          <%= link_to "Help", help_path, class: "hover:text-primary-600" %>
-          <%= link_to "Sign in", new_shop_lookup_path, class: "hover:text-primary-600" %>
-          <%= link_to "Start free trial", new_signup_path, class: "btn-primary" %>
+    <%= render "shared/staging_banner" %>
+    <%# The main nav is the brand teal, with the logo and links in white and the trial button inverted so it still stands out.
+        Logo on the left, the page links centred, sign in and the trial on the right; on a phone the three groups wrap and centre. %>
+    <header class="sticky top-0 z-40 border-b border-primary-600 bg-primary-500 text-white">
+      <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 text-sm font-medium md:grid md:grid-cols-[1fr_auto_1fr]">
+        <% nav_link = "text-white/85 transition-colors hover:text-white" %>
+        <%= link_to marketing_root_path, aria: { label: "HardPoint home" }, class: "md:justify-self-start" do %><%= render "shared/logo", dark: true %><% end %>
+        <div class="flex items-center gap-x-6">
+          <%= link_to "Features", marketing_root_path(anchor: "features"), class: nav_link %>
+          <%= link_to "Pricing", pricing_path, class: nav_link %>
+          <%= link_to "Help", help_path, class: nav_link %>
+        </div>
+        <div class="flex items-center gap-x-5 md:justify-self-end">
+          <%= link_to "Sign in", new_shop_lookup_path, class: nav_link %>
+          <%= link_to "Start now, it's free", new_signup_path, class: "btn rounded-full border-white bg-white px-4 font-semibold text-primary-600 hover:bg-primary-50 focus-visible:outline-white" %>
         </div>
       </nav>
     </header>
@@ -54,7 +60,7 @@
     </main>
 
     <footer class="border-t border-gray-200 bg-gray-100 text-gray-700">
-      <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-3">
+      <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <%= render "shared/logo" %>
           <p class="mt-3 text-gray-500">Point of sale and stock control for hardware stores in Kenya.</p>
@@ -62,8 +68,13 @@
         <ul class="space-y-2">
           <li><%= link_to "Pricing", pricing_path, class: "hover:text-primary-600" %></li>
           <li><%= link_to "Help centre", help_path, class: "hover:text-primary-600" %></li>
-          <li><%= link_to "Privacy and your data", privacy_path, class: "hover:text-primary-600" %></li>
           <li><%= link_to "API for developers", developer_docs_path, class: "hover:text-primary-600" %></li>
+          <li><%= link_to "Service level agreement", sla_path, class: "hover:text-primary-600" %></li>
+        </ul>
+        <ul class="space-y-2">
+          <li><%= link_to "Privacy and your data", privacy_path, class: "hover:text-primary-600" %></li>
+          <li><%= link_to "Terms of service", terms_path, class: "hover:text-primary-600" %></li>
+          <li><%= link_to "Data processing terms", data_processing_path, class: "hover:text-primary-600" %></li>
         </ul>
         <ul class="space-y-2">
           <li><%= link_to "WhatsApp us", whatsapp_support_url, class: "hover:text-primary-600", target: "_blank", rel: "noopener" %></li>

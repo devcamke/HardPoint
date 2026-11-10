@@ -22,4 +22,18 @@ class QuickbooksExportsControllerTest < ActionDispatch::IntegrationTest
     get quickbooks_export_path
     assert_response :forbidden
   end
+
+  test "a manager bound to a branch can't download the whole shop's books" do
+    Account.without_isolation { memberships(:sara_acme).update!(role: "manager", branch: branches(:acme_yard)) }
+    sign_in_as users(:sara)
+
+    get reports_path
+    assert_select "a[href='#{quickbooks_export_path}']", count: 0
+    get quickbooks_export_path(format: :zip, month: Date.current.strftime("%Y-%m"))
+    assert_redirected_to reports_path
+    assert_match "only staff who see every branch", flash[:alert]
+    patch quickbooks_export_path, params: { accounts: { cash: "Till cash" } }
+    assert_redirected_to reports_path
+    assert_equal({}, Account.without_isolation { accounts(:acme).reload.quickbooks_accounts })
+  end
 end

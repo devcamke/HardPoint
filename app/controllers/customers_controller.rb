@@ -11,7 +11,7 @@ class CustomersController < ApplicationController
     @sales = @customer.sales.finished.chronologically.limit(20)
     @orders = @customer.customer_orders.where.not(status: %w[ collected cancelled ]).chronologically.includes(:branch)
     @open_invoices = @customer.open_invoices
-    @payments = @customer.customer_payments.chronologically.limit(10).includes(:creator)
+    @payments = @customer.customer_payments.chronologically.limit(10).includes(:creator, :approver)
     @jobs = @customer.jobs.open.alphabetically
     @job_spend = Job.spent_cents_by_id(@jobs.map(&:id))
   end
@@ -52,7 +52,7 @@ class CustomersController < ApplicationController
 
     # Only owners and managers decide who buys on credit and at what prices.
     def customer_params
-      permitted = %i[ name phone email tax_pin address notes ]
+      permitted = %i[ name phone email tax_pin address notes sms_opt_out ]
       permitted += %i[ price_list_id credit_limit payment_terms_days ] if current_membership.approver?
       params.expect(customer: permitted)
     end

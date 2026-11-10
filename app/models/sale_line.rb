@@ -5,15 +5,21 @@ class SaleLine < ApplicationRecord
   belongs_to :product
   belongs_to :product_unit, optional: true
   belongs_to :promotion, optional: true
+  # The shop's tax rate the line was sold under. The percentage is kept on the line too (tax_rate), so the sums
+  # never change if the rate is edited; the record says which 0% it was, exempt or zero-rated, for KRA and the return.
+  belongs_to :tax_rate_record, class_name: "TaxRate", foreign_key: :tax_rate_id, optional: true
 
   money_attribute :unit_price, :discount, :total, :tax, :promotion_discount
 
   validates :quantity, numericality: { greater_than: 0 }
   validates :discount_cents, numericality: { greater_than_or_equal_to: 0 }
-  validates_same_account :sale, :product, :product_unit
+  validates_same_account :sale, :product, :product_unit, :tax_rate_record
   validate :whole_units, :one_per_serial_number, :discount_within_price
 
-  before_validation(on: :create) { self.tax_rate = product.effective_tax_rate&.rate || 0 }
+  before_validation(on: :create) do
+    self.tax_rate_record = product.effective_tax_rate
+    self.tax_rate = tax_rate_record&.rate || 0
+  end
   before_save :calculate_totals
 
   def unit
@@ -63,24 +69,36 @@ class SaleLine < ApplicationRecord
   end
 
   # Recorded when the sale completes, so margins stay true after costs change.
+  # An offline till couldn't know a batch had expired, and the goods have gone, so its sales may take them.
   def deduct_stock
     update_columns cost_cents: current_cost_cents
     stock_items.each do |item, amount|
-      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier)
+      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier, allow_expired: sale.offline_uuid.present?)
     end
   end
 
+  # Stock on the shelf that may be sold: in date, in this line's unit.
+  def stock_in_date
+    product.in_date_stock_at(sale.branch) / (product_unit&.quantity || 1)
+  end
+
   # Batch-tracked stock goes back into the batches the sale took it from.
-  def restore_stock(quantity = self.quantity, reason: "returned", source: sale)
+  # Back on the shelf: at the branch that sold it (a void), or wherever it was brought back to (a return).
+  def restore_stock(quantity = self.quantity, reason: "returned", source: sale, branch: sale.branch)
     share = quantity / self.quantity
     stock_items.each do |item, amount|
-      item.move_stock(branch: sale.branch, quantity: amount * share, reason: reason, source: source,
+      item.move_stock(branch: branch, quantity: amount * share, reason: reason, source: source,
         reverses: { taken_by: [ sale ], returned_by: [ sale, *sale.sale_returns ] })
     end
   end
 
   def stock_on_hand
     product.stock_at(sale.branch) / (product_unit&.quantity || 1)
+  end
+
+  # On hand less what's promised to other customers' orders, in this line's unit.
+  def stock_available
+    product.available_at(sale.branch, except: sale.customer_order) / (product_unit&.quantity || 1)
   end
 
   # What the line costs the shop at today's weighted-average cost, ex tax. Kits cost their parts.

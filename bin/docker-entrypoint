@@ -1,8 +1,15 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
+# Migrations run once per deploy, from the deploying machine (.kamal/hooks/pre-deploy), not here: with
+# more than one web server every container would otherwise race to migrate while booting. The exceptions
+# are the very first boot, when there is no database yet (bin/kamal setup), and running the image by hand
+# with MIGRATE_ON_BOOT=true (docker run ... -e MIGRATE_ON_BOOT=true).
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
+  if [ "${MIGRATE_ON_BOOT:-false}" == "true" ]; then
+    ./bin/rails db:prepare
+  else
+    ./bin/rails db:prepare:if_empty
+  fi
 fi
 
 exec "${@}"

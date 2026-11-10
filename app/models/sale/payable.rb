@@ -64,8 +64,13 @@ module Sale::Payable
     elsif tender.to_s == "deposit"
       payment.amount_cents = [ amount_cents || due, due, deposit_available_cents ].min
       payment.errors.add :base, "There's no deposit to use on this sale" unless payment.amount_cents.positive?
+    elsif tender.to_s.in?(%w[ mobile_money airtel_money ]) && tendered_cents.to_i > (amount_cents || due)
+      # The phone sent more than was asked: the sale takes what's due and the rest is change, in cash.
+      payment.tendered_cents = tendered_cents
+      payment.amount_cents = [ amount_cents || due, due ].min
     else
       payment.amount_cents = amount_cents || due
+      payment.tendered_cents = payment.amount_cents if tender.to_s.in?(%w[ mobile_money airtel_money ])
       payment.errors.add :amount, "is more than the #{Money.format(due)} due" if payment.amount_cents > due
     end
 
@@ -89,6 +94,32 @@ module Sale::Payable
   def remove_payment(payment)
     raise ArgumentError, "This sale can't be changed" unless open?
     payment.destroy
+  end
+
+  # A sale that comes to nothing (a replacement under warranty discounted to zero, a bundle's free item on its own)
+  # has no payment to complete it through, so an owner or manager completes it by hand, and Activity says who. The
+  # same checks as a final payment apply: something on the sale, serial numbers, in-date stock, an approved discount.
+  def complete_without_payment(approver:)
+    raise ArgumentError, "This sale can't be completed" unless open?
+
+    transaction do
+      lock!
+      raise ArgumentError, "This sale can't be completed" unless open?
+
+      reload_lines
+      payments.reset
+      errors.clear
+      if balance_due_cents.positive?
+        errors.add :base, "#{Money.format(balance_due_cents)} is still due on this sale; take a payment instead"
+      else
+        check_ready_to_complete(self)
+      end
+      return false if errors.any?
+
+      complete
+      track_event "completed_without_payment", approver: approver, total: total_cents
+      true
+    end
   end
 
   def over_credit_limit?(payment)
@@ -122,17 +153,27 @@ module Sale::Payable
 
     def approve_credit(payment, approver)
       update!(credit_approver: approver)
-      track_event "credit_approved", approver: approver.name, customer: customer.name, amount: payment.amount_cents,
+      track_event "credit_approved", approver: approver, customer: customer.name, amount: payment.amount_cents,
         available: customer.available_credit_cents
     end
 
     def check_ready_to_complete(payment)
       missing_serials = lines.select { |line| line.product.serialized? && line.serial_number.blank? }
+      # Batch-tracked stock is sold in date only; the offline till couldn't have known, so its sales are let through.
+      out_of_date = offline_uuid ? [] : lines.select { |line| line.product.tracks_batches? && line.stock_in_date < line.quantity && line.stock_on_hand >= line.quantity }
 
       if lines.empty?
         payment.errors.add :base, "Add something to sell first"
       elsif missing_serials.any?
         payment.errors.add :base, "Enter the serial number for #{missing_serials.map { _1.product.name }.to_sentence}"
+      elsif out_of_date.any?
+        line = out_of_date.first
+        payment.errors.add :base, "Only #{line.stock_in_date.to_s("F").delete_suffix(".0")} #{line.product.name} here are in date; the rest have expired. " \
+          "Write the expired ones off, or sell fewer"
+      elsif discount_needs_approval?
+        # The till checks this on every change; this catches whatever reached the payment another way.
+        payment.errors.add :base, "The discount on this sale is #{highest_discount_percent.round(1).to_s.delete_suffix(".0")}%, " \
+          "over the #{account.max_cashier_discount_percent.to_s("F").delete_suffix(".0")}% a cashier can give. It needs a manager's approval PIN"
       end
     end
 
