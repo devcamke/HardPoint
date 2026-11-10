@@ -16,7 +16,9 @@ class OfflineSaleTest < ActiveSupport::TestCase
   def record(data) = accounts(:acme).sales.record_offline(data)
 
   test "an offline sale is recorded as it happened, and sending it again records nothing new" do
-    data = payload
+    # The time the till sends, whole seconds as it sends them, so the check doesn't depend on how long the test takes.
+    happened_at = 20.minutes.ago.change(usec: 0)
+    data = payload(happened_at: happened_at)
     result = record(data)
 
     assert_equal "recorded", result.status
@@ -25,7 +27,7 @@ class OfflineSaleTest < ActiveSupport::TestCase
     assert_equal "MAIN-000001", sale.receipt_number
     assert_equal "MAIN-OFF1-0001", sale.offline_receipt_number
     assert_equal users(:carl), sale.cashier
-    assert_in_delta 20.minutes.ago, sale.completed_at, 2
+    assert_equal happened_at, sale.completed_at
     assert_equal 25.5 - 4, products(:acme_nails).stock_at(branches(:acme_main))
     assert_equal "recorded_offline", sale.events.last.action
 
