@@ -32,6 +32,24 @@ class Api::V1Test < ApiTestCase
     assert_response :unauthorized
   end
 
+  test "an order naming a branch or customer that isn't this shop's says which" do
+    body = { order: { lines: [ { sku: products(:acme_cement).sku, quantity: 1 } ] } }
+
+    api_post api_v1_orders_path, body.deep_merge(order: { branch_id: branches(:bolt_main).id, customer: { name: "X", phone: "0700000001" } })
+    assert_response :not_found
+    assert_equal "not_found", error_code
+    assert_equal "No such branch in this shop.", json.dig("error", "message")
+    assert_equal({ "field" => "branch_id" }, json.dig("error", "details"))
+
+    api_post api_v1_orders_path, body.deep_merge(order: { customer_id: 0 })
+    assert_response :not_found
+    assert_equal "No such customer in this shop.", json.dig("error", "message")
+    assert_equal({ "field" => "customer_id" }, json.dig("error", "details"))
+
+    api_get api_v1_order_path(0)
+    assert_equal "No such order in this shop.", json.dig("error", "message"), "the order itself still says order"
+  end
+
   test "a key only ever sees its own shop" do
     bolt_product = products(:bolt_hammer)
     api_get api_v1_product_path(bolt_product)

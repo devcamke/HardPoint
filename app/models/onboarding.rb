@@ -14,10 +14,10 @@ class Onboarding
 
   def steps
     @steps ||= [
-      Step.new(:branches, "Name your branches and tills", account.branches.where.not(address: [ nil, "" ]).exists?, false),
+      Step.new(:branches, "Name your branches and tills", account.branches.where.not(address: [ nil, "" ]).exists? && account.registers.exists?, false),
       Step.new(:taxes, "Check your tax rates", account.taxes_confirmed_at.present?, false),
       Step.new(:products, "Bring in your products", account.products.exists?, false),
-      Step.new(:staff, "Invite your staff", account.memberships.count > 1, false),
+      Step.new(:staff, "Invite your staff", account.memberships.count > 1, true),
       Step.new(:features, "Choose the features you use", account.features_reviewed_at.present?, true),
       Step.new(:receipt, "Print a test receipt", account.test_receipt_printed_at.present?, false),
       Step.new(:mpesa, "Connect M-Pesa", account.mpesa_shortcodes.exists?, true),
@@ -28,9 +28,14 @@ class Onboarding
   def required_steps = steps.reject(&:optional?)
   def done_count = required_steps.count(&:done?)
   def ready? = required_steps.all?(&:done?)
+  def steps_left = required_steps.reject(&:done?)
   def finished? = account.onboarding_completed_at.present?
 
+  # Only once every required step is done; returns whether setup is finished.
   def finish
-    account.update!(onboarding_completed_at: Time.current) unless finished?
+    return true if finished?
+    return false unless ready?
+
+    account.update!(onboarding_completed_at: Time.current)
   end
 end
