@@ -21,7 +21,11 @@
       <h1 class="text-xl font-medium"><%= link_to "#{@return.sale.receipt_number}", @return.sale, class: "link" %> <span class="text-gray-400">/</span> Return <%= @return.return_number %></h1>
       <p class="hint mt-1"><%= l(@return.created_at, format: :long) %> · <%= @return.creator.name %><%= " · approved by #{@return.approver.name}" if @return.approver %><%= " · #{@return.reason}" if @return.reason.present? %></p>
     </div>
-    <%= link_to "Print", return_path(@return, print: 1), target: "_blank", class: "btn-secondary" %>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "Print", return_path(@return, print: 1), target: "_blank", class: "btn-secondary" %>
+      <%= render "shared/share_document", pdf_url: return_path(@return, format: :pdf), name: "credit-note-#{@return.return_number}", label: "Share credit note",
+            title: "Credit note #{@return.return_number} from #{Current.account.name}", text: "Credit note #{@return.return_number}: #{money(@return.total_cents)}" %>
+    </div>
   </div>
   <div class="card max-w-2xl">
     <table class="table">

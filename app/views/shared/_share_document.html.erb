@@ -1,0 +1,29 @@
+<%# locals: (pdf_url:, name:, title:, text: nil, label: "Share") %>
+<%# Share or save a document as a sharp picture (JPEG) or its PDF, through the device's own share sheet: WhatsApp, Telegram,
+    email, Bluetooth and the rest. The picture is made on this device from the document's PDF. %>
+<div class="relative inline-block" data-controller="dropdown document-share"
+     data-action="click@window->dropdown#closeOnOutsideClick keydown.esc@window->dropdown#close"
+     data-document-share-pdf-value="<%= pdf_url %>" data-document-share-name-value="<%= name %>"
+     data-document-share-title-value="<%= title %>" data-document-share-text-value="<%= text %>"
+     data-document-share-worker-value="<%= asset_path("pdfjs.worker.min.js") %>">
+  <button type="button" class="btn-secondary" aria-expanded="false" aria-haspopup="menu" data-dropdown-target="toggle" data-action="dropdown#toggle document-share#place">
+    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>
+    <%= label %>
+  </button>
+  <div hidden data-dropdown-target="menu" data-document-share-target="menu" class="absolute left-0 z-30 mt-1 w-64 max-w-[calc(100vw-1rem)] rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg">
+    <button type="button" class="block w-full cursor-pointer px-4 py-2 text-left hover:bg-gray-50" data-action="document-share#sharePicture dropdown#close">
+      <span class="font-medium">Share as a picture</span><span class="hint block">JPEG, to WhatsApp, email or any app</span>
+    </button>
+    <button type="button" class="block w-full cursor-pointer px-4 py-2 text-left hover:bg-gray-50" data-action="document-share#savePicture dropdown#close">
+      <span class="font-medium">Save the picture</span><span class="hint block">High-quality JPEG to this device</span>
+    </button>
+    <button type="button" class="block w-full cursor-pointer px-4 py-2 text-left hover:bg-gray-50" data-action="document-share#sharePdf dropdown#close">
+      <span class="font-medium">Share the PDF</span><span class="hint block">For printing or accounts</span>
+    </button>
+    <%= link_to pdf_url, target: "_blank", rel: "noopener", class: "block px-4 py-2 hover:bg-gray-50", data: { action: "dropdown#close", turbo: false } do %>
+      <span class="font-medium">Open the PDF</span><span class="hint block">To print or download</span>
+    <% end %>
+    <p class="border-t border-gray-100 px-4 pt-2 pb-1 text-xs text-gray-500">Made on this device. Only what you choose to send is shared.</p>
+  </div>
+  <p class="mt-1 text-xs text-gray-600" role="status" aria-live="polite" data-document-share-target="status"></p>
+</div>
