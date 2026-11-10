@@ -1,10 +1,11 @@
 # Audit: the app, its screens and its processes (November 2026)
 
 A review of HardPoint as it stands after Phase 41: what breaks, where people get stuck, where money or stock can
-go wrong, and where the screens fall short of [BRAND.md](BRAND.md). Nothing here has been fixed yet. Each finding
-has a place in the code and a suggested fix, so it can go straight into the backlog in [PLAN.md](PLAN.md).
+go wrong, and where the screens fall short of [BRAND.md](BRAND.md). Each finding has a place in the code and a suggested
+fix, so it can go straight into the backlog in [PLAN.md](PLAN.md). The ten in [Fix first](#fix-first) and the broken pages
+have since been fixed: see [What's been fixed](#whats-been-fixed). Everything else is still open.
 
-**Contents:** [How this was done](#how-this-was-done) · [Summary](#summary) · [Fix first](#fix-first) ·
+**Contents:** [How this was done](#how-this-was-done) · [Summary](#summary) · [Fix first](#fix-first) · [What's been fixed](#whats-been-fixed) ·
 [Broken pages](#broken-pages-found-by-the-crawl) · [At the till](#at-the-till) · [Stock and purchasing](#stock-and-purchasing) ·
 [Customers, orders and money](#customers-orders-and-money) · [Signing up, billing, staff and settings](#signing-up-billing-staff-and-settings) ·
 [Screens, accessibility and consistency](#screens-accessibility-and-consistency) · [Help text that disagrees with the app](#help-text-that-disagrees-with-the-app) ·
@@ -87,6 +88,29 @@ The ten changes that matter most, roughly in order:
 | 8 | Changing the customer after an on-account payment moves or orphans the debt | `pos/customers_controller.rb`, `sale/cart.rb` | Refuse a customer change once payments exist (at least on-account ones) |
 | 9 | Importing a spreadsheet resets live stock to the file's numbers by default. Blank cells on existing products clear VAT, zero the cost and reactivate hidden products | `product_imports_controller.rb:9`, `product_import/row.rb:38` | Default to "ignore stock"; treat blank cells as "keep"; show stock changes in the check step |
 | 10 | Draft orders aren't counted as on order, so pressing **Draft purchase orders** twice makes duplicates | `reorder_suggestion.rb:99-101` | Count draft lines, or link to the existing draft |
+
+## What's been fixed
+
+Each fix has tests, and the guides that describe it were updated (and `docs/USER_GUIDE.md` regenerated). After them,
+`bin/rails test` passes: 953 runs, 0 failures, 0 errors. `bin/rubocop`, `bin/brakeman` and the JavaScript tests are clean too.
+
+| Finding | Fix |
+|---|---|
+| Online store page 2 crashes | It reads "Everything" |
+| Activity crashes on a shift entry kept as text | `Shift#close` records the stored integer; `money()` reads text |
+| **Close shift** gives a 404 away from the till | The report says where to close it; the closing page sends them to Shifts with that message |
+| Enter after a name says "Nothing found" | One match is added; several say "tap the one you want". An all-digit code never adds a partial match |
+| Search label contrast | Full white |
+| Fix first 2: typed M-Pesa codes | `MobileMoneyCode` on sale payments, deposits and account payments: a code pays once, must cover the amount if Safaricom knows it, and claims the money. Also: the duplicate prompt transaction is renamed rather than recorded twice, and a late payment marks an expired prompt paid |
+| Fix first 3: voids refund the whole total | `Sale#void_refund_cents` is the money paid; expected cash and the screens use it; M-Pesa is marked refunded only for an M-Pesa reversal. **Found while fixing:** "Credit to the customer's account" on a void credited nothing. It now counts in the balance and ageing, and shows on statements as "Voided sale credited" |
+| Fix first 4: one approval lifts the ceiling | An approval records the money over the limit it covered (`sales.approved_discount_cents`); more asks again |
+| Fix first 5: **Save as confirmed order** skips credit | It confirms through `CustomerOrder#confirm`, or stays a quote saying why; raising a confirmed order past the credit needs a PIN |
+| Fix first 6: branch-bound managers edit every branch | Branches and Tills use the member's branches; adding and removing branches needs someone who sees them all |
+| Fix first 7: two devices share a cart unknowingly | The till picker says whose shift is open and asks before joining someone else's. (Separate carts per device would change shared tills and PIN switching; left as a decision for the team) |
+| Fix first 8: changing the customer after payment | Refused until the payments are removed |
+| Fix first 9: imports reset stock and wipe blank cells | Stock is ignored unless a branch is chosen (the form warns); blank cells keep the product's value; the branch is one the member sees |
+| Fix first 10: duplicate draft orders | Drafts count as on order, and Reorder lists the drafts still to send |
+| Guides | The import guide's required columns, units and "plan limits" were wrong; corrected along with the guides for each fix above |
 
 ## Broken pages found by the crawl
 
