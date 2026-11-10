@@ -41,6 +41,9 @@ class OwnerEmailsTest < ActionMailer::TestCase
   end
 
   test "a quiet day says there's nothing to chase" do
+    # Nothing at either branch is short, so there's nothing to move between them.
+    accounts(:acme).products.update_all(reorder_level: 0)
+    accounts(:acme).stock_levels.update_all(reorder_level: nil)
     sell products(:acme_nails), quantity: 4
     assert_match "Nothing to chase", daily_html
   end

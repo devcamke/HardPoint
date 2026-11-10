@@ -14,6 +14,7 @@ How it was paid:
 STOCK
 <% s.out_of_stock.each do |out| %>- <%= pluralize(out.count, "product") %> at zero at <%= out.branch.name %>: <%= out.products.map(&:name).to_sentence %>
 <% end %><% s.refusals.first(OwnerSummary::Daily::LIST_LIMIT).each do |refusal| %>- Turned away: <%= refusal.product.name %>, <%= pluralize(refusal.times, "time") %> (<%= quantity(refusal.quantity, refusal.product.unit) %> wanted)
+<% end %><% s.moves.first(OwnerSummary::Daily::LIST_LIMIT).each do |move| %>- Move <%= quantity(move.quantity, move.product.unit) %> <%= move.product.name %> from <%= move.from_branch.name %> to <%= move.to_branch.name %>
 <% end %><% s.write_offs.each do |off| %>- Written off (<%= off.reason.humanize.downcase %>): <%= money(off.value_cents, currency: currency) %>
 <% end %><% if s.below_zero_count.positive? %>- <%= pluralize(s.below_zero_count, "stock level") %> below zero
 <% end %><% end %><% if s.money_worth_a_look? %>

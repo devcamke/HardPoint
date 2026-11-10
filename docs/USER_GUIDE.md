@@ -1056,6 +1056,8 @@ Selling carries on during a stock take; HardPoint allows for what was sold while
 
 Give products a **reorder level**. **Stock › Reorder** shows everything at or below it at a branch, and owners, managers and stock clerks get a low-stock email each morning. It also lists anything at zero that has no reorder level, since the till can't sell it and it would otherwise go unnoticed. To turn the list into orders, see [Buying from suppliers](#buying-from-suppliers).
 
+With more than one branch, **Move from another branch first** at the top of Stock › Reorder lists what's short here (at or below its reorder level, or turned away at the till in the last two weeks) that another branch has more of than it needs. It only suggests what that branch can spare and still have its own two weeks' cover. Press **Prepare the transfer**: the transfer opens filled in, and is sent when you've checked it and pressed **Send transfer**. Each line to order also says how much could be moved first. The morning email lists the same moves.
+
 A branch that sells a product faster or slower than the others can have its own level: on the product's page, type it under **Reorder at** next to the branch and press **Set**. Leave it blank to use the product's level. Stock already on order, or on its way from another branch, counts as coming, so it isn't suggested twice.
 
 #### Stock history

@@ -111,6 +111,11 @@ class OwnerSummary::Daily
     end
   end
 
+  # Stock one branch could send another that's short, before anyone orders more.
+  def moves
+    @moves ||= account.branches.many? ? BranchRebalancing.new(account).moves : []
+  end
+
   def below_zero_count
     @below_zero_count ||= account.stock_levels.where("quantity < 0").count
   end
@@ -123,7 +128,7 @@ class OwnerSummary::Daily
       .sort_by { -_1.value_cents }
   end
 
-  def stock_worth_a_look? = out_of_stock.any? || refusals.any? || below_zero_count.positive? || write_offs.any?
+  def stock_worth_a_look? = out_of_stock.any? || refusals.any? || below_zero_count.positive? || write_offs.any? || moves.any?
 
   def money_worth_a_look?
     shifts.any? { _1.variance_cents.nonzero? } || cashiers.any? || below_cost.any? || offline_flags.any? || shifts_left_open.any? ||

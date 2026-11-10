@@ -860,10 +860,14 @@ in the counter's head is slow and loses sales to the shop that answers first.
   form carrying the parts between presses, so nothing is stored until the quote is made. Later: a whole-house template
   (rooms and storeys into walls, slab and roof), and saving an estimate to come back to.
 
-#### Phase 37 — Branch rebalancing from what was turned away
+#### Phase 37 — Branch rebalancing from what was turned away *(done)*
 **Why:** one branch at zero while another has plenty (the demo shop's Y12 bar) loses the sale and then over-orders.
 - Suggested transfers when a branch is at or below its reorder level, or turned customers away, and another branch
   has more than it needs; one tap drafts the stock transfer. Shown on Stock › Reorder and in the daily summary.
+- Built as `BranchRebalancing` on `ReorderSuggestion`: a branch's need is the reorder list's shortfall (or the most a
+  customer asked for, when the till turned them away in the last two weeks); a donor's spare is what it holds beyond the
+  cover the reorder list would aim for there, so a move never leaves it short. The transfer form arrives filled in and
+  is sent only once checked.
 
 #### Phase 38 — Reorder suggestions that learn
 **Why:** fixed reorder levels don't follow the rains, the building season or a supplier's lead time.
