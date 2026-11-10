@@ -2,7 +2,8 @@
   <h2 class="mb-3 text-lg font-semibold">Pack sizes</h2>
   <% units = product.product_units.includes(:unit) %>
   <% if units.any? %>
-    <table class="table mb-4">
+    <div class="mb-4 overflow-x-auto">
+    <table class="table">
       <tbody>
         <% units.each do |product_unit| %>
           <tr>
@@ -13,6 +14,7 @@
         <% end %>
       </tbody>
     </table>
+    </div>
   <% else %>
     <p class="hint mb-4">Sold only by the <%= product.unit.name.downcase %>. Add a pack if it's also sold by the box, bag or roll.</p>
   <% end %>

@@ -29,8 +29,8 @@
       <span class="relative inline-block whitespace-nowrap">affordable<svg class="absolute -bottom-1.5 left-0 h-3 w-full text-sky-500" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 8C50 3 120 2 197 6" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/></svg></span>!</p>
 
     <div class="mt-12 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
-      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-7 py-3 text-lg" %>
-      <button type="button" class="btn rounded-full border-gray-100 bg-gray-100 px-7 py-3 text-lg text-gray-800 hover:bg-gray-200" data-action="dialog#open">
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary px-7 py-3 text-lg" %>
+      <button type="button" class="btn border-gray-100 bg-gray-100 px-7 py-3 text-lg text-gray-800 hover:bg-gray-200" data-action="dialog#open">
         <svg viewBox="0 0 24 24" fill="currentColor" class="size-5 text-primary-600" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Watch a sale
       </button>
     </div>
@@ -346,13 +346,13 @@
                 <% points.each do |point| %><li class="flex gap-2.5"><%= render "pages/check" %><%= point %></li><% end %>
               </ul>
               <% if i == steps.size - 1 %>
-                <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary mt-6 rounded-full px-6 py-2.5" %>
+                <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary mt-6 px-6 py-2.5" %>
               <% end %>
             </div>
           <% end %>
           <div class="mt-8 flex items-center gap-3">
-            <button type="button" class="btn-secondary rounded-full px-5" data-action="setup-steps#previous" data-setup-steps-target="previous" disabled>Back</button>
-            <button type="button" class="btn-primary rounded-full px-5" data-action="setup-steps#next" data-setup-steps-target="next">Next</button>
+            <button type="button" class="btn-secondary px-5" data-action="setup-steps#previous" data-setup-steps-target="previous" disabled>Back</button>
+            <button type="button" class="btn-primary px-5" data-action="setup-steps#next" data-setup-steps-target="next">Next</button>
             <p class="ml-auto text-xs text-gray-500 max-sm:hidden">Or use the arrow keys</p>
           </div>
         </div>
@@ -403,7 +403,7 @@
     <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>
     <div class="relative mt-9 inline-flex flex-col items-center">
       <%= doodle_arrow.("absolute -left-16 -top-8 size-14 -rotate-6 text-primary-500 max-sm:hidden") %>
-      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-8 py-3 text-lg" %>
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary px-8 py-3 text-lg" %>
     </div>
     <ul class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-gray-600">
       <li class="flex items-center gap-1.5"><%= render "pages/check" %>No card needed</li>
