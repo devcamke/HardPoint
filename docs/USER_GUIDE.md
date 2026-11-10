@@ -585,6 +585,12 @@ On a receipt, a quote or order, a tax invoice and a credit note (a return), pres
 
 The picture is made on your own device from the document, and only goes where you send it. On a computer whose browser can't share files (Firefox, for one), it's saved instead: attach it in WhatsApp Web or your email.
 
+#### Sending from HardPoint's WhatsApp number
+
+With **WhatsApp from HardPoint** switched on in **Settings › Features**, the Share menu on a receipt, quote or order and credit note has **Send on WhatsApp**: HardPoint sends it to the customer from its own WhatsApp number, with your shop's name in the message and the document attached as a PDF. A customer's page has **Remind on WhatsApp** for what they owe, with their statement. Nothing goes through your phone.
+
+The document's page then shows **Sent on WhatsApp** and what became of it: _Sent_, _Delivered_, _Read_, or _Not delivered_ with the reason (a number not on WhatsApp, say). **Settings › WhatsApp messages** lists everything sent. While HardPoint's number is being connected, messages are marked _Test mode_ and not sent.
+
 #### Where the WhatsApp button is
 
 - **Receipts:** **WhatsApp receipt** on the till after a sale, and **WhatsApp** on any sale under **Sell › Sales**.

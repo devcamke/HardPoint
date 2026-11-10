@@ -6,7 +6,7 @@ class DocumentShare < ApplicationRecord
   include AccountOwned, Eventable
 
   KINDS = { "receipt" => "Sale", "order" => "CustomerOrder", "statement" => "Customer",
-            "purchase_order" => "PurchaseOrder", "delivery_note" => "DeliveryNote" }.freeze
+            "purchase_order" => "PurchaseOrder", "delivery_note" => "DeliveryNote", "credit_note" => "SaleReturn" }.freeze
   EXPIRES_IN = 30.days
 
   belongs_to :document, polymorphic: true
@@ -50,8 +50,41 @@ class DocumentShare < ApplicationRecord
     track_event "share_revoked", kind: kind
   end
 
-  def url
-    Rails.application.routes.url_helpers.share_url(token, subdomain: account.subdomain, **Rails.configuration.x.webhook_url_options)
+  # format: :pdf gives the PDF even for a receipt (which otherwise opens as the till's receipt page): what WhatsApp fetches.
+  def url(format: nil)
+    Rails.application.routes.url_helpers.share_url(token, subdomain: account.subdomain, format: format, **Rails.configuration.x.webhook_url_options)
+  end
+
+  def pdf_filename = pdf.filename
+
+  # What a WhatsApp template says about the document: "your receipt", "MAI-000123", "KES 1,250.00".
+  def document_label
+    case kind
+    when "receipt" then "your receipt"
+    when "order" then document.quote? ? "a quote" : "your order"
+    when "statement" then "your statement"
+    when "credit_note" then "a credit note"
+    when "purchase_order" then "a purchase order"
+    when "delivery_note" then "a delivery note"
+    end
+  end
+
+  def document_reference
+    case kind
+    when "receipt" then document.receipt_number
+    when "statement" then "#{I18n.l(from, format: :long)} to #{I18n.l(to, format: :long)}"
+    when "credit_note" then document.return_number
+    else document.reference
+    end
+  end
+
+  def document_amount
+    case kind
+    when "statement" then money(document.statement(from: from, to: to).closing_balance_cents)
+    when "purchase_order" then money(document.total_cents, currency: document.currency)
+    when "delivery_note" then document.sale.receipt_number
+    else money(document.total_cents)
+    end
   end
 
   # What's written in the WhatsApp message for the person it's sent to.
@@ -79,12 +112,16 @@ class DocumentShare < ApplicationRecord
         "#{", please deliver to #{document.branch.name} by #{I18n.l(document.expected_on, format: :long)}" if document.expected_on}. #{link}"
     when "delivery_note"
       "#{shop}: delivery note #{document.reference} for your goods to #{document.address}. #{link}"
+    when "credit_note"
+      "#{shop}: credit note #{document.return_number} for #{money(document.total_cents)} against receipt #{document.sale.receipt_number}. #{link}"
     end
   end
 
   # The PDF for every kind except a receipt, which opens as the till's receipt page.
   def pdf
     case kind
+    when "receipt" then ReceiptPdf.new(document)
+    when "credit_note" then CreditNotePdf.new(document)
     when "order" then CustomerOrderPdf.new(document)
     when "purchase_order" then PurchaseOrderPdf.new(document)
     when "delivery_note" then DeliveryNotePdf.new(document)

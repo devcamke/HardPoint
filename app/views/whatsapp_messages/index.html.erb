@@ -1,0 +1,38 @@
+<% content_for :title, "WhatsApp messages" %>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> WhatsApp messages</h1>
+<p class="hint mb-4 max-w-3xl">Receipts, quotes, credit notes, statements and balance reminders sent from HardPoint's WhatsApp number, each with your
+  shop's name and the document attached, and what WhatsApp says became of it. Send one from a document's <strong>Share</strong> menu, or a reminder
+  from a customer's page.</p>
+
+<% case Whatsapp.mode %>
+<% when :simulator %>
+  <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><strong>Test mode.</strong> HardPoint's WhatsApp number isn't
+    connected on this server, so messages are recorded here but not sent.</div>
+<% when :off %>
+  <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900"><strong>Not connected yet.</strong> HardPoint's WhatsApp number is being
+    set up; until then, use <strong>Share as a picture</strong> or the WhatsApp button, which send from your own phone.</div>
+<% end %>
+
+<div class="card overflow-x-auto">
+  <% if @messages.any? %>
+    <table class="table">
+      <thead><tr><th>When</th><th>To</th><th>What</th><th>By</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @messages.each do |message| %>
+          <tr>
+            <td class="whitespace-nowrap text-sm"><%= l(message.created_at, format: :short) %></td>
+            <td><%= message.recipient_name %> <span class="hint block"><%= PhoneNumber.display(message.to_phone) %></span></td>
+            <td class="text-sm"><%= message.template == "hardpoint_balance_reminder" ? "Balance reminder" : message.document_share&.document_label&.upcase_first %>
+              <%= message.document_share&.document_reference %></td>
+            <td class="text-sm"><%= message.sent_by&.name %></td>
+            <td><span title="<%= message.error %>"><%= status_dot message.label, message.tone %></span>
+              <% if message.error.present? %><span class="block text-xs text-red-700"><%= message.error %></span><% end %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-gray-500">Nothing sent yet.</p>
+  <% end %>
+</div>
+<%= render "shared/pagination" %>

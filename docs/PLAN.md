@@ -879,11 +879,16 @@ in the counter's head is slow and loses sales to the shop that answers first.
   delivery times once there are two. `ReorderSuggestion` and branch rebalancing both use it; each line explains
   itself, and suggested levels are accepted one by one or all at once.
 
-#### Phase 39 — WhatsApp sending
+#### Phase 39 — WhatsApp sending *(built; switched on once Meta approves)*
 **Why:** customers and fundis live on WhatsApp; the share links (Phase 31) still need someone to press send.
 - Quotes, receipts, statements and payment reminders sent from HardPoint through the WhatsApp Business Platform, each
   with an M-Pesa link to pay. **Needs:** a Meta business account and approved message templates per shop or for the
   platform, and a cost per conversation; SMS stays the fallback.
+- Built as `Whatsapp` (live / simulator / off from the environment), `Whatsapp::Client` (Cloud API template messages
+  with a document header), `Whatsapp::Message` (per shop, row-level security, queued → sent → delivered → read or
+  failed) sent by `Whatsapp::DeliveryJob`, and a signed status webhook. Two templates (`hardpoint_document`,
+  `hardpoint_balance_reminder`) and the setup steps are in docs/WHATSAPP.md. An optional feature; still to decide:
+  who pays Meta's per-conversation charge.
 
 ### Phase 40 — Make it yours
 **Goal:** an owner tunes HardPoint to their shop from Settings, without asking us.

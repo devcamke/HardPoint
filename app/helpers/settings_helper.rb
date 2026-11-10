@@ -98,6 +98,9 @@ module SettingsHelper
         (card.("Import products", product_imports_path, "Load or update products from a spreadsheet", :upload, nil, "csv excel spreadsheet") if m.can_manage_catalogue?)
       ],
       "Connections" => [
+        (card.("WhatsApp messages", whatsapp_messages_path, "What HardPoint sent on WhatsApp, and whether it was delivered and read", :message,
+          { live: status_dot("Connected", :success), simulator: status_dot("Test mode", :warning), off: status_dot("Being set up", :muted) }.fetch(Whatsapp.mode),
+          "whatsapp messages sent delivered read reminders") if owner && account.feature?(:whatsapp_messages)),
         (card.("Developers", developers_path, "API keys and webhooks for web shops and other apps", :code,
           pluralize(account.api_keys.active.count, "active key"), "api webhook integration") if owner && account.feature?(:developers))
       ]

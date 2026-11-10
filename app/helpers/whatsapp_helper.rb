@@ -8,9 +8,11 @@ module WhatsappHelper
       form: { target: "_blank", data: { turbo: false } }, **options
   end
 
-  # The links already sent for a document, newest first, each with a button to take it back.
+  # The links already sent for a document, newest first, each with a button to take it back, and what HardPoint sent
+  # on WhatsApp with whether it's been delivered and read.
   def shared_links(record)
     shares = Current.account.document_shares.for_document(record).newest_first.includes(:created_by).to_a
-    render "shares/list", shares: shares if shares.any?
+    messages = feature?(:whatsapp_messages) ? Current.account.whatsapp_messages.for_document(record).newest_first.includes(:sent_by).limit(5).to_a : []
+    safe_join([ (render "whatsapp_messages/sent", messages: messages if messages.any?), (render "shares/list", shares: shares if shares.any?) ].compact)
   end
 end

@@ -1,0 +1,13 @@
+<%# locals: (messages:) %>
+<section class="mb-4 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+  <p class="mb-1 font-medium">Sent on WhatsApp</p>
+  <ul class="divide-y divide-gray-100">
+    <% messages.each do |message| %>
+      <li class="flex flex-wrap items-center justify-between gap-2 py-1.5">
+        <span><%= message.recipient_name || PhoneNumber.display(message.to_phone) %> <span class="hint">· <%= PhoneNumber.display(message.to_phone) %> ·
+          <%= l(message.created_at, format: :short) %><%= " by #{message.sent_by.name}" if message.sent_by %></span></span>
+        <span title="<%= message.error %>"><%= status_dot message.label, message.tone %></span>
+      </li>
+    <% end %>
+  </ul>
+</section>
