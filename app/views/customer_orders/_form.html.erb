@@ -47,7 +47,7 @@
   <% quote = customer_order.new_record? || customer_order.quote? %>
   <%= render "shared/more_options", open: more_fields.any? { customer_order.errors.include?(_1) }, tour: "order-more",
         summary: [ "at #{(customer_order.branch || selected_branch)&.name}",
-                   (("valid until #{customer_order.valid_until ? l(customer_order.valid_until, format: :short) : "#{CustomerOrder::QUOTE_VALIDITY.in_days.to_i} days from today"}") if quote),
+                   (("valid until #{customer_order.valid_until ? l(customer_order.valid_until, format: :short) : "#{Current.account.quote_validity_days} days from today"}") if quote),
                    (customer_order.needed_by ? "needed by #{l(customer_order.needed_by, format: :short)}" : "no date needed"),
                    (customer_order.note.present? ? "note: #{customer_order.note.truncate(40)}" : "no note") ].compact.join(" · ") do %>
     <div class="grid gap-4 sm:grid-cols-3">
@@ -55,7 +55,7 @@
         <%= form.collection_select :branch_id, branches_for_selection, :id, :name, {}, class: "input" %></div>
       <% if quote %>
         <div class="field"><%= form.label :valid_until, "Quote valid until", class: "label" %><%= form.date_field :valid_until, class: "input" %>
-          <p class="hint mt-1">Blank: <%= CustomerOrder::QUOTE_VALIDITY.in_days.to_i %> days</p></div>
+          <p class="hint mt-1">Blank: <%= Current.account.quote_validity_days %> days</p></div>
       <% end %>
       <div class="field"><%= form.label :needed_by, "Needed by", class: "label" %><%= form.date_field :needed_by, class: "input" %></div>
     </div>

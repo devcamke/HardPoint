@@ -73,7 +73,7 @@
 
 <% dead = s.dead_stock %>
 <% if dead[:count].positive? %>
-  <%= mail_section "Not selling", "#{money(dead[:value_cents], currency: currency)} at cost in #{pluralize(dead[:count], "product")} that haven't sold in #{OwnerSummary::Weekly::DEAD_STOCK_DAYS} days." %>
+  <%= mail_section "Not selling", "#{money(dead[:value_cents], currency: currency)} at cost in #{pluralize(dead[:count], "product")} that haven't sold in #{s.dead_stock_days} days." %>
   <%= mail_bar_rows dead[:products].map { |name, on_hand, unit, value| [ name, value, money(value, currency: currency), "#{quantity(on_hand)} #{unit} on hand" ] } %>
 <% end %>
 

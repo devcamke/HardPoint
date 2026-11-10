@@ -8,13 +8,17 @@
     <%= csp_meta_tag %>
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= render "shared/theme" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body class="flex min-h-screen flex-col bg-gray-50 text-gray-900">
     <header class="sticky top-0 z-10 border-b border-gray-200 bg-white">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
-        <%= link_to Current.account.name, store_root_path, class: "text-lg font-extrabold tracking-tight" %>
+        <%= link_to store_root_path, class: "flex items-center gap-2 text-lg font-extrabold tracking-tight" do %>
+          <% if Current.account.logo.attached? %><%= image_tag Current.account.logo.variant(resize_to_limit: [ 240, 80 ]), alt: "", class: "h-9 w-auto" %><% end %>
+          <%= Current.account.name %>
+        <% end %>
         <%= form_with url: store_products_path, method: :get, class: "order-last flex w-full gap-2 sm:order-none sm:ml-4 sm:w-auto sm:flex-1" do |form| %>
           <%= form.search_field :q, value: params[:q], placeholder: "Search cement, pipes, paint…", class: "input flex-1", aria: { label: "Search the store" } %>
         <% end %>

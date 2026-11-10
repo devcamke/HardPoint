@@ -26,7 +26,7 @@ module NavigationHelper
   def navigation_apps
     @navigation_apps ||= begin
       m = current_membership
-      apps = [ App.new(:dashboard, "Home", root_path, "#0f5e6e", :dashboard, [], []) ]
+      apps = [ App.new(:dashboard, "Home", root_path, Current.account&.theme_color || "#0f5e6e", :dashboard, [], []) ]
 
       if m&.can_sell?
         menu = [ [ "Sales", sales_path ], [ "Orders & quotes", customer_orders_path ] ]

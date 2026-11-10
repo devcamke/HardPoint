@@ -4,3 +4,14 @@ en:
       register:
         one: Till
         other: Tills
+    attributes:
+      account:
+        theme_color: Theme colour
+        quote_validity_days: How long a quote is valid
+        customer_payment_terms_days: Payment terms for new customers
+        expiry_warning_days: Warning before batches expire
+        dead_stock_days: Stock counts as not selling after
+        reorder_lookback_days: Sales the reorder list looks back over
+        supplier_lead_time_days: Supplier lead time
+        document_terms: Terms on quotes and invoices
+        payment_details: How to pay

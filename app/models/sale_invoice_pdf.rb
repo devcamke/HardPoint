@@ -27,6 +27,8 @@ class SaleInvoicePdf < DocumentPdf
         ("Job: #{@sale.job.label}" if @sale.job) ]
     end
 
+    def customer_facing? = true
+
     def content
       customer = @sale.customer
       two_blocks "Bill to", [ customer.name, customer.phone, customer.email, customer.address, ("PIN #{customer.tax_pin}" if customer.tax_pin.present?) ],

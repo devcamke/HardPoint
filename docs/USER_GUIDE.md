@@ -9,7 +9,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 
 - [Setting up your shop](#getting-started): The first afternoon: branches, taxes, products, staff and a test receipt.
 - [Finding your way around](#getting-around): The six areas, Home, search, filtering lists, Group By, Settings and where Help is.
-- [Shop settings, branches and text messages](#shop-settings): Your shop's name, time zone and receipt footer, branches and their receipt codes, tills, features, and texting customers.
+- [Shop settings, branches and text messages](#shop-settings): Your shop's name, colours and logo, its preferences, branches and their receipt codes, tills, features, and texting customers.
 - [Importing products from a spreadsheet](#importing-products): Bring in your whole price list at once, and update prices later the same way.
 - [Staff, roles and PINs](#staff-and-roles): Who can do what, quick switching with a PIN, and approving discounts.
 - [Tills, receipt printers and cash drawers](#tills-and-printers): Printing from the browser, or silently through QZ Tray, and opening the drawer.
@@ -170,7 +170,7 @@ Owners choose what their shop uses in **Settings › Features**: deliveries, pro
 
 ### Shop settings, branches and text messages
 
-_Your shop's name, time zone and receipt footer, branches and their receipt codes, tills, features, and texting customers._
+_Your shop's name, colours and logo, its preferences, branches and their receipt codes, tills, features, and texting customers._
 
 Most of what you set up once lives in **Settings** (the gear in the top bar): your shop's name and time zone, your branches and tills, the features you use, and text messages to customers. Shop details, Features and SMS are for the shop's owner; owners and managers look after branches and tills.
 
@@ -196,6 +196,18 @@ Open **Settings › Shop details**. The page is called **Shop settings** and hol
 - **Require two-factor sign-in for owners and managers**: once ticked, owners and managers without it are asked to set it up the next time they use HardPoint.
 
 The page also shows your shop's web address. To change it, contact support. Press **Save settings** when you're done.
+
+#### Appearance: your colours and logo
+
+**Settings › Appearance** (owners) chooses the colour of the top bar, buttons and links for everyone at the shop, on every screen, the till, the phone and your online store: one of eight themes, or your own brand colour. A colour too light for white writing on it is refused, so screens stay readable. Upload your **logo** (PNG or JPEG, under 1 MB) for receipts, quotes, invoices, statements and the online store, and choose whether receipts print the round **stamp**.
+
+#### Shop preferences
+
+**Settings › Shop preferences** tunes how HardPoint works for you. Anything left alone keeps the usual setting.
+
+- **Selling**: how many days a quote is valid (14 to begin with), the payment terms new customers on account get (30 days), and which payment buttons the till shows. Cash is always there; hide Card, say, if you don't take cards.
+- **Stock**: how far ahead batches count as expiring (30 days), when stock counts as not selling (90 days, for the dead stock report and the Monday email), how many days of sales the reorder list looks at (30), and how long suppliers usually take to deliver (7) for those without a lead time of their own.
+- **Quotes, invoices and statements**: _How to pay_ (your Paybill or bank account) and your _Terms_, printed at the end of each.
 
 #### Branches
 

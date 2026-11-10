@@ -9,6 +9,8 @@ class Customer < ApplicationRecord
   has_many :jobs, dependent: :restrict_with_error
 
   money_attribute :credit_limit
+  # New customers get the shop's usual terms (Settings › Shop preferences).
+  attribute :payment_terms_days, :integer, default: -> { Current.account&.customer_payment_terms_days || 30 }
 
   normalizes :email, with: ->(email) { email.strip.downcase }
   normalizes :phone, with: ->(phone) { phone.gsub(/[^\d+]/, "") }

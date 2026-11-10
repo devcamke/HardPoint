@@ -1,6 +1,6 @@
 # What to order for a branch, and from whom. For each stocked product it looks at stock on hand,
-# what's already on order (or on its way from another branch), sales over the last 30 days and the
-# supplier's lead time:
+# what's already on order (or on its way from another branch), sales over the shop's look-back period (30 days
+# unless Settings › Shop preferences says otherwise) and the supplier's lead time (or the shop's usual one):
 #
 #   cover wanted = the larger of twice the reorder level, or enough to sell for (lead time + 14 days)
 #   suggestion   = cover wanted − on hand − on order, rounded up to the supplier's minimum order
@@ -8,9 +8,7 @@
 # A product is suggested when it's at or below its reorder level (the branch's own, if it has set one,
 # else the product's), or won't last the lead time.
 class ReorderSuggestion
-  SALES_WINDOW = 30.days
   EXTRA_COVER_DAYS = 14
-  DEFAULT_LEAD_TIME = 7
 
   Row = Data.define(:product, :supplier_product, :on_hand, :on_order, :sold, :daily_sales, :lead_time, :reorder_level, :quantity) do
     def cost_cents = ((supplier_product&.cost_cents || product.cost_cents) * quantity).round
@@ -40,9 +38,9 @@ class ReorderSuggestion
       on_hand = levels.fetch(product.id, 0)
       on_order = ordered.fetch(product.id, 0)
       sold_quantity = sold.fetch(product.id, 0)
-      daily = sold_quantity / SALES_WINDOW.in_days
+      daily = sold_quantity / @account.reorder_lookback_days
       supplier_product = product.preferred_supplier_product
-      lead_time = supplier_product&.lead_time_days || DEFAULT_LEAD_TIME
+      lead_time = supplier_product&.lead_time_days || @account.supplier_lead_time_days
       reorder_level = reorder_levels.fetch(product.id, product.reorder_level)
 
       available = on_hand + on_order
@@ -80,7 +78,7 @@ class ReorderSuggestion
     end
 
     def sold
-      @sold ||= StockMovement.where(branch: @branch, reason: %w[ sold returned ], created_at: SALES_WINDOW.ago..)
+      @sold ||= StockMovement.where(branch: @branch, reason: %w[ sold returned ], created_at: @account.reorder_lookback_days.days.ago..)
         .group(:product_id).sum(:quantity).transform_values { -_1 }.select { |_, quantity| quantity.positive? }
     end
 end

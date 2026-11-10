@@ -1,0 +1,4 @@
+<%# The shop's colour theme (Settings › Appearance): its shades replace the app's primary colours. %>
+<% theme = Current.account&.theme || Theme.new(nil) %>
+<meta name="theme-color" content="<%= theme.color %>">
+<% unless theme.default? %><style><%= theme.css %></style><% end %>

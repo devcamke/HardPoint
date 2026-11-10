@@ -33,7 +33,7 @@
       </div>
       <div class="overflow-x-auto">
         <table class="table">
-          <thead><tr><th>Product</th><th class="text-right">On hand</th><th class="text-right">On order</th><th class="text-right">Sold (30 days)</th><th class="text-right">Reorder at</th><th class="text-right">Lead time</th><th class="text-right">Order</th><th class="text-right">Cost</th></tr></thead>
+          <thead><tr><th>Product</th><th class="text-right">On hand</th><th class="text-right">On order</th><th class="text-right">Sold (<%= Current.account.reorder_lookback_days %> days)</th><th class="text-right">Reorder at</th><th class="text-right">Lead time</th><th class="text-right">Order</th><th class="text-right">Cost</th></tr></thead>
           <tbody>
             <% rows.each do |row| %>
               <tr>

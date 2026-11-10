@@ -11,7 +11,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
         %w[ importing-products staff-and-roles tills-and-printers ]),
       new("getting-around", "Finding your way around", "The six areas, Home, search, filtering lists, Group By, Settings and where Help is.", "Getting started",
         %w[ getting-started staff-and-roles ]),
-      new("shop-settings", "Shop settings, branches and text messages", "Your shop's name, time zone and receipt footer, branches and their receipt codes, tills, features, and texting customers.", "Getting started",
+      new("shop-settings", "Shop settings, branches and text messages", "Your shop's name, colours and logo, its preferences, branches and their receipt codes, tills, features, and texting customers.", "Getting started",
         %w[ tills-and-printers staff-and-roles getting-around ]),
       new("importing-products", "Importing products from a spreadsheet", "Bring in your whole price list at once, and update prices later the same way.", "Getting started",
         %w[ getting-started stock-and-stock-takes ]),

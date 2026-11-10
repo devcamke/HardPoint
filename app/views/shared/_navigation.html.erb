@@ -4,7 +4,7 @@
   <div class="bg-primary-500 text-white shadow-sm">
     <div class="flex h-11 items-center gap-1 px-2 text-sm">
       <%= link_to root_path, class: "mr-2 flex items-center gap-2 rounded px-2 py-1 hover:bg-white/15", title: "Home" do %>
-        <svg viewBox="0 0 64 64" class="size-6 shrink-0" aria-hidden="true"><path d="M32 5 55 18.5v27L32 59 9 45.5v-27Z" fill="#FFFFFF"/><circle cx="32" cy="32" r="11" fill="#0F5E6E"/></svg>
+        <svg viewBox="0 0 64 64" class="size-6 shrink-0" aria-hidden="true"><path d="M32 5 55 18.5v27L32 59 9 45.5v-27Z" fill="#FFFFFF"/><circle cx="32" cy="32" r="11" fill="<%= Current.account&.theme_color || "#0F5E6E" %>"/></svg>
         <span class="hidden text-[15px] font-semibold sm:inline">HardPoint</span>
       <% end %>
       <div class="hidden min-w-0 items-center gap-0.5 overflow-x-auto md:flex" data-tour="areas">

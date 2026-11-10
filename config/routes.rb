@@ -282,6 +282,9 @@ Rails.application.routes.draw do
       resource :market_rate, only: :create, module: :currencies
     end
     resources :promotions
+    # Making HardPoint the shop's own: its colours and logo, and the choices that tune how it works.
+    resource :appearance, only: %i[ edit update ]
+    resource :preferences, only: %i[ edit update ]
     # Fundis who bring customers, their commission rates, and paying them.
     resource :fundi_rates, only: %i[ edit update ]
     resources :fundis, except: :destroy do

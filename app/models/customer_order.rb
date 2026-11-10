@@ -5,7 +5,6 @@ class CustomerOrder < ApplicationRecord
   include AccountOwned, Eventable, Monetary, Fulfilment, PublishesWebhooks
   publishes_webhooks "order", updated: -> { saved_change_to_status? }
 
-  QUOTE_VALIDITY = 14.days
   # "hire" orders came from the tool hire HardPoint used to have; they're kept, with their payments and receipts.
   SOURCES = %w[ shop online api hire ].freeze
 
@@ -33,7 +32,7 @@ class CustomerOrder < ApplicationRecord
   validate { errors.add :base, "Add at least one product" if lines.reject(&:marked_for_destruction?).empty? }
   validate(on: :update) { errors.add :base, "A #{status_was} order can't be changed" if lines.any?(&:changed_for_autosave?) && !status_was.in?(%w[ quote ordered ]) }
 
-  before_validation(on: :create) { self.valid_until ||= Date.current + QUOTE_VALIDITY if quote? }
+  before_validation(on: :create) { self.valid_until ||= Date.current + account.quote_validity if quote? }
   before_create { self.number = DocumentSequence.next_number(branch, "customer_order") }
   before_save :total_up
   after_create { track_event "created", customer: customer.name, total: total_cents, status: status }

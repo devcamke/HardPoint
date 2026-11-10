@@ -8,8 +8,12 @@ class Report::DeadStock < Report
 
   LIMIT = 500
 
+  # Starts at the shop's own "not selling" period (Settings › Shop preferences), offered beside the usual ones.
   def self.options
-    [ [ :days, "Not sold for", [ [ "30 days", "30" ], [ "60 days", "60" ], [ "90 days", "90" ], [ "180 days", "180" ], [ "a year", "365" ] ], "90" ] ]
+    usual = [ 30, 60, 90, 180, 365 ]
+    own = Current.account&.dead_stock_days || 90
+    choices = (usual | [ own ]).sort.map { [ _1 == 365 ? "a year" : "#{_1} days", _1.to_s ] }
+    [ [ :days, "Not sold for", choices, own.to_s ] ]
   end
 
   def subtitle

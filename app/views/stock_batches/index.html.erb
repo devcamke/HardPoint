@@ -3,7 +3,7 @@
 <%= render "shared/control_panel",
       title: "Expiry",
       filters: [ search_filter(:filter, label: "Show", value: @filter, clear: "all",
-                   options: [ [ "expiring", "Expired or expiring in #{StockBatch::EXPIRING_WITHIN.in_days.to_i} days" ], [ "expired", "Expired" ] ]),
+                   options: [ [ "expiring", "Expired or expiring in #{StockBatch.expiring_within.in_days.to_i} days" ], [ "expired", "Expired" ] ]),
                  search_filter(:branch_id, label: "Branch", value: selected_branch&.id, facet: false,
                    options: branches_for_selection.map { [ _1.id, _1.name ] }) ],
       records: @batches %>
