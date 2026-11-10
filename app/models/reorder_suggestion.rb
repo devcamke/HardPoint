@@ -57,9 +57,14 @@ class ReorderSuggestion
   end
 
   private
+    # Products with demand here, and the rest only when the shelf is at or below their reorder level: with nothing
+    # selling, nothing else can need ordering. Filtered in the database, so a big catalogue with few products short
+    # isn't loaded to find them.
     def candidates
+      level = "COALESCE(shelf.reorder_level, products.reorder_level)"
       @account.products.active.where(track_stock: true)
-        .where("products.reorder_level > 0 OR products.id IN (?)", (forecast.product_ids + reorder_levels.keys).presence || [ 0 ])
+        .joins(ActiveRecord::Base.sanitize_sql_array([ "LEFT JOIN stock_levels shelf ON shelf.product_id = products.id AND shelf.branch_id = ?", @branch.id ]))
+        .where("products.id IN (?) OR (#{level} > 0 AND COALESCE(shelf.quantity, 0) <= #{level})", forecast.product_ids.presence || [ 0 ])
         .includes(:unit, supplier_products: :supplier)
     end
 

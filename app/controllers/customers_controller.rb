@@ -10,6 +10,7 @@ class CustomersController < ApplicationController
   def show
     @sales = @customer.sales.finished.chronologically.limit(20)
     @orders = @customer.customer_orders.where.not(status: %w[ collected cancelled ]).chronologically.includes(:branch)
+    @customer.remember_balance
     @open_invoices = @customer.open_invoices
     @payments = @customer.customer_payments.chronologically.limit(10).includes(:creator, :approver)
     @jobs = @customer.jobs.open.alphabetically

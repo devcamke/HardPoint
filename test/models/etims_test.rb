@@ -258,6 +258,26 @@ class EtimsTest < ActiveSupport::TestCase
     end
   end
 
+  test "the retry run sends each waiting shop's sales in a job of its own, and only for shops with some waiting" do
+    fake_transport(Etims::Client, "/etims-api/saveItem" => JsonHttp::Unreachable.new("timed out"))
+    submission = sell(products(:acme_nails)).etims_submission
+    assert submission.pending?
+
+    Current.reset
+    assert_enqueued_with(job: Etims::ShopRetryJob, args: [ accounts(:acme) ]) { Etims::RetryJob.perform_now }
+    assert_equal 1, enqueued_jobs.count { _1["job_class"] == "Etims::ShopRetryJob" }, "no job for shops with nothing waiting"
+    assert_equal accounts(:acme).id, Etims::ShopRetryJob.new(accounts(:acme)).concurrency_key.split("/").last.to_i
+
+    @kra = fake_transport(Etims::Client,
+      "/etims-api/saveItem" => { resultCd: "000" },
+      "/etims-api/saveTrnsSalesOsdc" => { resultCd: "000", data: { curRcptNo: 1, totRcptNo: 1, intrlData: "I", rcptSign: "S", sdcDateTime: "20260924101500" } })
+    travel 3.minutes do
+      perform_enqueued_jobs(only: Etims::ShopRetryJob)
+    end
+    Current.account = accounts(:acme)
+    assert submission.reload.sent?
+  end
+
   test "a refusal waits for someone to fix it and retry" do
     fake_transport(Etims::Client, "/etims-api/saveItem" => { resultCd: "891", resultMsg: "Item class code does not exist" })
     submission = sell(products(:acme_nails)).etims_submission
