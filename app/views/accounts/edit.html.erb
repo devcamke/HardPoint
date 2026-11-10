@@ -31,7 +31,7 @@
       <%= form.number_field :payout_approval_above, value: plain_number(@account.payout_approval_above), step: "0.01", min: 0, class: "input w-40" %>
     </div>
 
-    <fieldset class="field">
+    <fieldset id="alerts" class="field scroll-mt-16">
       <legend class="label">Email owners and managers straight away when</legend>
       <p class="hint mb-2">Everything smaller still shows in the next morning's summary. Each person can turn these emails off under My profile.</p>
       <div class="grid gap-3 sm:grid-cols-3">

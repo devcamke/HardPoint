@@ -132,13 +132,13 @@
     }
   },
   "settings": {
-    "size": [ 1280, 1020 ],
+    "size": [ 1280, 1700 ],
     "steps": {
-      "settings-index": [ 1.6, 12.5, 13.1, 11 ],
-      "settings-shop": [ 16.4, 12.5, 82, 27.1 ],
-      "settings-people": [ 16.4, 41, 82, 9.3 ],
-      "settings-payments-and-tax": [ 16.4, 51.7, 82, 21.2 ],
-      "settings-catalogue": [ 16.4, 74.3, 82, 21.2 ]
+      "settings-index": [ 1.6, 9, 13.1, 8.2 ],
+      "settings-shop": [ 17, 9, 81.4, 22.7 ],
+      "settings-people": [ 17, 33.3, 81.4, 16.5 ],
+      "settings-payments-and-tax": [ 17, 67.6, 81.4, 15.5 ],
+      "settings-catalogue": [ 17, 84.7, 81.4, 13 ]
     }
   },
   "staff": {

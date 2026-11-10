@@ -20,7 +20,7 @@ const tours = JSON.parse(readFileSync(toursPath, "utf8"))
 const shopUrl = process.env.HELP_SHOP_URL || "http://demo.localhost:3000"
 const standard = { width: 1280, height: 800 }
 // Screens whose last step would sit below a standard screenshot are taken taller.
-const sizes = { settings: { width: 1280, height: 1020 } }
+const sizes = { settings: { width: 1280, height: 1700 } }
 
 // Gets a screen into a state worth showing before its screenshot. Each tour starts on its start page.
 const prepare = {

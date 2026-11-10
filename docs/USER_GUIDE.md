@@ -179,11 +179,11 @@ Most of what you set up once lives in **Settings** (the gear in the top bar): yo
 
 ![Screenshot: Find your way around Settings](../app/assets/images/help/tours/settings.png)
 
-1. **Jump to a section.** Settings comes in sections. Press one to go straight to it. You only see the ones your role uses.
-2. **Your shop.** Branches and tills. Owners also get Shop details (name, time zone, receipt footer and the discount limit), Billing, Features and Your data.
-3. **People.** Staff, with their roles and till PINs, and Activity, which shows who did what, and when.
-4. **Payments and tax.** M-Pesa, Airtel Money, KRA eTIMS and text messages, and currencies if your shop takes them.
-5. **The catalogue's lists.** Categories, brands, units, tax rates and price lists, set up once and used on every product.
+1. **Jump to a section.** Settings comes in sections, and the box at the top finds a setting by name. Press a section to go straight to it. You only see what your role uses.
+2. **Your shop.** Branches and tills. Owners also get Shop details, Appearance (your colours and logo), Shop preferences, Features, Billing and Your data. Each card shows how it's set now.
+3. **People.** Staff, with their roles and till PINs, Activity (who did what, and when), the alert amounts, and the emails you get.
+4. **Payments and tax.** M-Pesa, Airtel Money, KRA eTIMS, text messages and tax rates, each showing whether it's connected, and currencies if your shop takes them.
+5. **The catalogue's lists.** Categories, brands and units, set up once and used on every product, and importing products from a spreadsheet.
 
 #### Shop details
 
