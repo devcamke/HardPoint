@@ -2,6 +2,9 @@ require "test_helper"
 
 class FundisControllerTest < ActionDispatch::IntegrationTest
   def acme(&) = Account.without_isolation(&)
+  # Fixtures are read under row-level security, so outside a shop they're read without it.
+  def mason = @mason ||= acme { fundis(:acme_mason) }
+  def category(name) = acme { categories(name) }
 
   setup do
     acme { accounts(:acme).update!(fundi_commission_percent: 2) }
@@ -15,15 +18,15 @@ class FundisControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", /Otieno Ouma/
     assert_select "button", text: /Kariuki/, count: 0 # inactive
 
-    patch pos_fundi_path, params: { fundi_id: fundis(:acme_mason).id }, as: :turbo_stream
+    patch pos_fundi_path, params: { fundi_id: mason.id }, as: :turbo_stream
     assert_match "Brought by Otieno Ouma", response.body
     post pos_lines_path, params: { code: "SCR-815", quantity: 10 }, as: :turbo_stream
     post pos_payments_path, params: { tender: "cash", tendered: "100" }, as: :turbo_stream
 
     acme do
       sale = accounts(:acme).sales.completed.order(:completed_at).last
-      assert_equal fundis(:acme_mason), sale.fundi
-      assert_equal ((sale.total_cents - sale.tax_cents) * 0.02).round, fundis(:acme_mason).balance_cents
+      assert_equal mason, sale.fundi
+      assert_equal ((sale.total_cents - sale.tax_cents) * 0.02).round, mason.balance_cents
     end
   end
 
@@ -33,7 +36,7 @@ class FundisControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", "Otieno Ouma"
     assert_select "a", text: "Commission rates", count: 0, message: "rates are for owners and managers"
 
-    get fundi_path(fundis(:acme_mason))
+    get fundi_path(mason)
     assert_select "h2", "Statement"
 
     post fundis_path, params: { for_till: 1, fundi: { name: "Achieng Tiler", phone: "0722 111 000", trade: "tiler", commission_percent: "9" } }
@@ -45,11 +48,11 @@ class FundisControllerTest < ActionDispatch::IntegrationTest
     sign_in_as users(:carl)
     get edit_fundi_rates_path
     assert_response :forbidden
-    get new_fundi_payout_path(fundis(:acme_mason))
+    get new_fundi_payout_path(mason)
     assert_response :forbidden
 
     sign_in_as users(:amina)
-    patch fundi_rates_path, params: { fundi_commission_percent: "2.5", categories: { categories(:acme_fasteners).id => "4", categories(:acme_plumbing).id => "" } }
+    patch fundi_rates_path, params: { fundi_commission_percent: "2.5", categories: { category(:acme_fasteners).id => "4", category(:acme_plumbing).id => "" } }
     assert_redirected_to fundis_path
     acme do
       assert_equal 2.5, accounts(:acme).reload.fundi_commission_percent
@@ -61,14 +64,14 @@ class FundisControllerTest < ActionDispatch::IntegrationTest
   test "paying a fundi by M-Pesa, and the commissions report" do
     acme do
       Current.set(account: accounts(:acme)) do
-        accounts(:acme).fundi_entries.create!(fundi: fundis(:acme_mason), kind: "earned", amount_cents: 500_00, sales_cents: 25_000_00, source: shifts(:acme_front_open), creator: users(:carl))
+        accounts(:acme).fundi_entries.create!(fundi: mason, kind: "earned", amount_cents: 500_00, sales_cents: 25_000_00, source: shifts(:acme_front_open), creator: users(:carl))
       end
     end
     sign_in_as users(:amina)
 
-    post fundi_payouts_path(fundis(:acme_mason)), params: { fundi_payout: { amount: "300", payment_method: "mobile_money", reference: "SGH12ABC34" } }
-    assert_redirected_to fundi_path(fundis(:acme_mason))
-    acme { assert_equal 200_00, fundis(:acme_mason).balance_cents }
+    post fundi_payouts_path(mason), params: { fundi_payout: { amount: "300", payment_method: "mobile_money", reference: "SGH12ABC34" } }
+    assert_redirected_to fundi_path(mason)
+    acme { assert_equal 200_00, mason.balance_cents }
 
     get report_path("fundi_commissions")
     assert_response :success
