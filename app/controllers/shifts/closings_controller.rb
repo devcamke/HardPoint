@@ -17,6 +17,9 @@ class Shifts::ClosingsController < ApplicationController
 
   private
     def set_shift
-      @shift = Current.account.shifts.open.find(params[:shift_id])
+      # A cashier closes the shift at the till they're on; managers and owners any at the branches they see.
+      shifts = within_visible_branches(Current.account.shifts.open)
+      shifts = shifts.where(register: current_till) unless current_membership.approver?
+      @shift = shifts.find(params[:shift_id])
     end
 end

@@ -127,4 +127,24 @@ class WhatsappSharingTest < ActionDispatch::IntegrationTest
     assert_response :not_found
     assert_equal 0, Account.without_isolation { DocumentShare.count }
   end
+
+  test "only staff who could open a document can share it, and only at their own branch" do
+    sign_in_as users(:carl)
+    statement = { kind: "statement", id: customers(:acme_contractor).id }
+    assert_no_difference -> { Account.without_isolation { DocumentShare.count } } do
+      post document_shares_path, params: statement
+    end
+    assert_response :not_found, "a cashier doesn't see customers' statements"
+
+    Account.without_isolation { memberships(:carl_acme).update!(branch: branches(:acme_yard)) }
+    assert_no_difference -> { Account.without_isolation { DocumentShare.count } } do
+      post document_shares_path, params: { kind: "receipt", id: @sale.id }
+    end
+    assert_response :not_found, "the sale is at another branch"
+
+    share = Account.without_isolation { Current.set(account: accounts(:acme), user: users(:amina)) { DocumentShare.create_for!(@sale) } }
+    delete document_share_path(share)
+    assert_response :not_found
+    assert_nil Account.without_isolation { share.reload.revoked_at }
+  end
 end

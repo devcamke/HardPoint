@@ -194,6 +194,39 @@ class OfflineSaleTest < ActiveSupport::TestCase
       { "kind" => "bundle", "bundle_quantity" => 3, "bundle_price_cents" => 4000_00 }
   end
 
+  test "a promotion takes off no more than it would at the till, whatever the till sends" do
+    deal = accounts(:acme).promotions.create!(name: "Nail days", kind: "percent_off", percent_off: 10, product_ids: [ products(:acme_nails).id ],
+      starts_on: Date.yesterday, ends_on: Date.tomorrow)
+    result = record(payload(lines: [ { product_id: products(:acme_nails).id, quantity: "4", unit_price_cents: 25000, promotion_id: deal.id, promotion_discount_cents: 100000 } ],
+      payments: [ { tender: "mobile_money", amount_cents: 90000, reference: "SJK4H7T2QP" } ], total_cents: 0))
+
+    line = result.sale.lines.sole
+    assert_equal 10000, line.promotion_discount_cents, "10% of four at KES 250, not the whole line"
+    assert_equal 90000, result.sale.total_cents
+    assert_match "Nail days, which takes off KES 100.00", result.warnings.join
+  end
+
+  test "a bundle discount beyond what the bundle saves is brought down to it" do
+    bundle = accounts(:acme).promotions.create!(name: "Plumbing three", kind: "bundle", bundle_quantity: 3, bundle_price_cents: 4000_00,
+      category_ids: [ categories(:acme_plumbing).id ], starts_on: Date.yesterday, ends_on: Date.tomorrow)
+    result = record(payload(lines: [
+      { product_id: products(:acme_pipe).id, quantity: "2", unit_price_cents: 1200_00, promotion_id: bundle.id, promotion_discount_cents: 2400_00 },
+      { product_id: products(:acme_plumbing_kit).id, quantity: "1", unit_price_cents: 2500_00, promotion_id: bundle.id, promotion_discount_cents: 2500_00 } ],
+      payments: [ { tender: "cash", tendered_cents: 4000_00 } ], total_cents: 0))
+
+    assert_equal [ 440_81, 459_19 ], result.sale.lines.order(:id).map(&:promotion_discount_cents)
+    assert_equal 4000_00, result.sale.total_cents
+  end
+
+  test "a sale rung up in a colleague's name says who really sent it" do
+    Current.session = accounts(:acme).sessions.create!(user: users(:amina))
+    @shift.update!(opened_by: users(:amina))
+    result = record(payload)
+
+    assert_includes result.warnings, "Rung up as #{users(:carl).name} but sent by #{users(:amina).name}"
+    assert_equal users(:amina).name, result.sale.events.last.particulars["sent_by"]
+  end
+
   test "the catalogue carries customers, their price lists and promotions coming up" do
     accounts(:acme).promotions.create!(name: "Soon", kind: "percent_off", percent_off: 5, category_ids: [ categories(:acme_building).id ],
       starts_on: Date.current + 3, ends_on: Date.current + 10)

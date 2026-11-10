@@ -4,26 +4,31 @@ amina:
   name: Amina Owner
   email_address: amina@acme.test
   password_digest: <%= password_digest %>
+  email_confirmed_at: <%= 1.month.ago.to_fs(:db) %>
 
 carl:
   name: Carl Cashier
   email_address: carl@acme.test
   password_digest: <%= password_digest %>
+  email_confirmed_at: <%= 1.month.ago.to_fs(:db) %>
 
 sara:
   name: Sara Stockclerk
   email_address: sara@acme.test
   password_digest: <%= password_digest %>
+  email_confirmed_at: <%= 1.month.ago.to_fs(:db) %>
 
 bob:
   name: Bob Owner
   email_address: bob@bolt.test
   password_digest: <%= password_digest %>
+  email_confirmed_at: <%= 1.month.ago.to_fs(:db) %>
 
 ada:
   name: Ada Admin
   email_address: ada@hardpoint.test
   password_digest: <%= password_digest %>
+  email_confirmed_at: <%= 1.month.ago.to_fs(:db) %>
   admin: true
   two_factor_secret: JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP
   two_factor_enabled_at: <%= 1.month.ago.to_fs(:db) %>

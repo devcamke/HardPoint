@@ -82,6 +82,12 @@ module Sale::Offline
           job: (job if job&.open?), offline_uuid: data["uuid"], offline_receipt_number: data["receipt_number"].to_s.first(30).presence, created_at: happened_at)
         sale.happened_at = happened_at
         sale.offline_warnings << "#{job.label} had been closed, so the sale isn't tagged to it" if job&.closed?
+        # The till says who rang the sale up. Anyone other than the person sending it, or who opened the shift, is
+        # worth a look: a sale can't be pinned on a colleague without it showing who really sent it.
+        sale.sent_by = Current.user
+        if Current.user && cashier != Current.user && cashier != shift.opened_by
+          sale.offline_warnings << "Rung up as #{cashier.name} but sent by #{Current.user.name}"
+        end
         sale.offline_payments = Array(data["payments"])
 
         # Hand discounts need the till online (the offline till never sends one), so one arriving here is ignored.
@@ -97,13 +103,34 @@ module Sale::Offline
             promotion_discount_cents: line["promotion_id"].present? ? line["promotion_discount_cents"].to_i : 0,
             serial_number: line["serial_number"].presence)
         end
+        sale.cap_offline_promotion_discounts
         sale.recalculate
         sale.offline_expected_total_cents = data["total_cents"].presence&.to_i
         sale
       end
   end
 
-  attr_accessor :offline_payments, :offline_expected_total_cents
+  attr_accessor :offline_payments, :offline_expected_total_cents, :sent_by
+
+  # A promotion takes off no more than it would at the till: the till's figure is kept when it's within that,
+  # and brought down to it when it isn't, so a discount can't be made up in what's sent.
+  def cap_offline_promotion_discounts
+    lines.reload.select(&:promotion).group_by(&:promotion).each do |promotion, promoted|
+      allowed = if promotion.bundle?
+        promotion.bundle_savings(promoted)
+      else
+        promoted.to_h { |line| [ line, promotion.saving_cents(product: line.product, quantity: line.quantity, unit_price_cents: line.unit_price_cents, product_unit: line.product_unit) ] }
+      end
+
+      promoted.each do |line|
+        limit = allowed.fetch(line, 0)
+        next if line.promotion_discount_cents <= limit
+
+        offline_warnings << "#{line.description}: the till took #{Money.format(line.promotion_discount_cents)} off for #{promotion.name}, which takes off #{Money.format(limit)}; #{Money.format(limit)} was used"
+        line.update!(promotion_discount_cents: limit)
+      end
+    end
+  end
 
   def offline_warnings
     @offline_warnings ||= []
@@ -129,7 +156,7 @@ module Sale::Offline
 
     note_offline_differences
     track_event "recorded_offline", creator: cashier, offline_receipt_number: offline_receipt_number, happened_at: happened_at&.iso8601,
-      warnings: offline_warnings.presence
+      sent_by: sent_by&.name, warnings: offline_warnings.presence
   end
 
   private

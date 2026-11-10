@@ -21,6 +21,8 @@ class PasswordsController < ApplicationController
 
   def update
     if @user.update(params.permit(:password, :password_confirmation))
+      # The link came to their inbox, so the address is theirs.
+      @user.confirm_email
       # Users are shared across shops, so sign them out of every shop, not only this one.
       Account.without_isolation { @user.sessions.destroy_all }
       redirect_to new_session_path, notice: "Password has been reset."
