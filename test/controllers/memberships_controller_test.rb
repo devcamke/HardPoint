@@ -112,4 +112,32 @@ class MembershipsControllerTest < ActionDispatch::IntegrationTest
     assert_not Account.without_isolation { Session.exists?(session.id) }
     assert_not Account.without_isolation { Session.exists?(support.id) }
   end
+
+  test "a manager can't change their own role or branch" do
+    Account.without_isolation { memberships(:carl_acme).update!(role: "manager", branch: branches(:acme_main)) }
+    sign_in_as users(:carl), account: accounts(:acme)
+
+    patch membership_path(memberships(:carl_acme)), params: { membership: { role: "manager", branch_id: "" } }
+
+    assert_redirected_to memberships_path
+    assert_equal branches(:acme_main), Account.without_isolation { memberships(:carl_acme).reload.branch }
+  end
+
+  test "a manager bound to a branch manages only that branch's staff, and adds people to it" do
+    Account.without_isolation do
+      memberships(:carl_acme).update!(role: "manager", branch: branches(:acme_main))
+      memberships(:sara_acme).update!(branch: branches(:acme_yard))
+    end
+    sign_in_as users(:carl), account: accounts(:acme)
+
+    get memberships_path
+    assert_select "td", text: users(:sara).name, count: 0
+
+    patch membership_path(memberships(:sara_acme)), params: { membership: { role: "cashier", branch_id: branches(:acme_main).id } }
+    assert_response :not_found
+    assert Account.without_isolation { memberships(:sara_acme).reload.stock_clerk? }
+
+    post memberships_path, params: { membership: { role: "cashier", branch_id: "", user_attributes: { name: "Njeri", email_address: "njeri@acme.test" } } }
+    assert_equal branches(:acme_main), Account.without_isolation { User.find_by!(email_address: "njeri@acme.test").memberships.sole.branch }
+  end
 end

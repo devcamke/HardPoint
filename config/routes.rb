@@ -99,6 +99,7 @@ Rails.application.routes.draw do
       resource :daily_summary, only: :update
     end
     resources :passwords, param: :token
+    get "email_confirmations/:token", to: "email_confirmations#show", as: :email_confirmation
     resource :account, only: %i[ edit update ]
     resources :branches, except: :show
     resources :registers, except: :show

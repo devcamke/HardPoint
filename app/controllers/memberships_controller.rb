@@ -3,9 +3,11 @@ class MembershipsController < ApplicationController
   before_action :set_membership, only: %i[ edit update destroy ]
   # Only owners hand out, change or take away the owner role: a manager can't promote themselves or remove an owner.
   before_action :ensure_owner_for_owner_roles, only: %i[ create update destroy ]
+  # Nobody but an owner changes their own role or branch: a manager bound to one branch would otherwise unbind themselves.
+  before_action :refuse_own_membership, only: %i[ edit update destroy ]
 
   def index
-    @memberships = Current.account.memberships.alphabetically.includes(:user)
+    @memberships = manageable_memberships.alphabetically.includes(:user)
   end
 
   def new
@@ -14,9 +16,14 @@ class MembershipsController < ApplicationController
 
   def create
     @membership = Current.account.memberships.new(membership_params)
-    new_user = @membership.user&.new_record?
+    # Someone whose address was never confirmed is invited as if new: the login may not be theirs.
+    new_user = @membership.user&.new_record? || !@membership.user&.email_confirmed?
 
-    if @membership.save
+    saved = Membership.transaction do
+      @membership.save.tap { |ok| @membership.user.take_back_unconfirmed_login if ok && new_user }
+    end
+
+    if saved
       # Someone who already uses HardPoint keeps their password; they're only told where to sign in.
       MembershipsMailer.with(membership: @membership).public_send(new_user ? :invitation : :added).deliver_later
       redirect_to memberships_path, notice: "#{@membership.user.name} has been added and emailed a sign-in link."
@@ -29,7 +36,7 @@ class MembershipsController < ApplicationController
   end
 
   def update
-    if @membership.update(params.expect(membership: [ :role, :branch_id ]))
+    if @membership.update(bound_to_own_branch(params.expect(membership: [ :role, :branch_id ])))
       redirect_to memberships_path, notice: "Role updated."
     else
       render :edit, status: :unprocessable_entity
@@ -46,7 +53,23 @@ class MembershipsController < ApplicationController
 
   private
     def set_membership
-      @membership = Current.account.memberships.find(params[:id])
+      @membership = manageable_memberships.find(params[:id])
+    end
+
+    # A manager bound to a branch manages that branch's staff, and puts the people they add or change there.
+    def manageable_memberships
+      branch = current_membership.branch
+      branch ? Current.account.memberships.where(branch: branch) : Current.account.memberships
+    end
+
+    def bound_to_own_branch(attributes)
+      current_membership.bound_to_branch? ? attributes.merge(branch_id: current_membership.branch_id) : attributes
+    end
+
+    def refuse_own_membership
+      return if current_membership.owner? || @membership != current_membership
+
+      redirect_to memberships_path, alert: "Your own role and branch are changed by an owner.", status: :see_other
     end
 
     def ensure_owner_for_owner_roles
@@ -58,6 +81,6 @@ class MembershipsController < ApplicationController
     end
 
     def membership_params
-      params.expect(membership: [ :role, :branch_id, user_attributes: %i[ name email_address ] ])
+      bound_to_own_branch(params.expect(membership: [ :role, :branch_id, user_attributes: %i[ name email_address ] ]))
     end
 end

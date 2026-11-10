@@ -156,6 +156,16 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_select "div", /Short\s*-KES 10.00/
   end
 
+  test "a cashier closes only the shift on their own till" do
+    other = Account.without_isolation do
+      Current.set(account: accounts(:acme), user: users(:amina)) { accounts(:acme).shifts.create!(register: registers(:acme_yard), opening_float_cents: 0) }
+    end
+
+    post shift_closing_path(other), params: { counted_cash: "0" }
+    assert_response :not_found
+    assert Account.without_isolation { other.reload.open? }
+  end
+
   test "cash drops show in the X report" do
     post shift_cash_movements_path(shifts(:acme_front_open)), params: { cash_movement: { kind: "drop", amount: "1000", reason: "To safe" } }
     get shift_path(shifts(:acme_front_open))

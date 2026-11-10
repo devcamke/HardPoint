@@ -3368,7 +3368,8 @@ CREATE TABLE public.users (
     two_factor_recovery_codes text,
     two_factor_enabled_at timestamp(6) without time zone,
     two_factor_last_used_at bigint,
-    admin boolean DEFAULT false NOT NULL
+    admin boolean DEFAULT false NOT NULL,
+    email_confirmed_at timestamp(6) without time zone
 );
 
 
@@ -9663,6 +9664,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261110210000'),
 ('20261110200000'),
 ('20261110120000'),
 ('20261110110000'),

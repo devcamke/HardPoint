@@ -13,6 +13,12 @@ class Signup
 
   attr_reader :account
 
+  def owner_needs_confirming?
+    !owner.email_confirmed?
+  end
+
+  def owner_user = owner
+
   validates :shop_name, :subdomain, :owner_name, :email_address, :password, presence: true
   validates :plan, inclusion: { in: Plan.all.map(&:key) }
   validates :terms_accepted, acceptance: { message: "must be agreed to open a shop" }
