@@ -89,6 +89,20 @@ class ReportTest < ActiveSupport::TestCase
     assert_equal pnl.gross_profit_cents - 140000 - 5000, pnl.trading_profit_cents
   end
 
+  test "a payout that paid a supplier is a payment to them, not an expense counted again on top of the goods" do
+    supplier = suppliers(:acme_cement_distributor)
+    owed = supplier.balance_cents
+    @shift.cash_movements.create!(account: Current.account, kind: "payout", amount_cents: 5000, reason: "Tea")
+    payout = @shift.cash_movements.create!(account: Current.account, kind: "payout", amount_cents: 30000, reason: "Cement delivery", supplier_id: supplier.id)
+
+    assert_equal [ supplier, 30000, "cash" ], payout.supplier_payment.values_at(:supplier, :amount_cents, :payment_method)
+    assert_equal owed - 30000, supplier.reload.balance_cents
+    assert_equal 5000, report("profit_and_loss").payouts_cents
+
+    drop = @shift.cash_movements.create(account: Current.account, kind: "drop", amount_cents: 1000, reason: "Safe", supplier_id: supplier.id)
+    assert_match "only by a payout", drop.errors.full_messages.to_sentence
+  end
+
   test "VAT payable is output tax less input tax" do
     sell(products(:acme_nails), quantity: 4)
     Current.account.supplier_invoices.create!(supplier: suppliers(:acme_cement_distributor), number: "INV-1", invoice_date: Date.current,

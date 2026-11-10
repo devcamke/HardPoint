@@ -772,7 +772,8 @@ CREATE TABLE public.cash_movements (
     kind character varying NOT NULL,
     amount_cents bigint NOT NULL,
     reason character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    supplier_payment_id bigint
 );
 
 ALTER TABLE ONLY public.cash_movements FORCE ROW LEVEL SECURITY;
@@ -5082,6 +5083,13 @@ CREATE INDEX index_cash_movements_on_shift_id ON public.cash_movements USING btr
 
 
 --
+-- Name: index_cash_movements_on_supplier_payment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cash_movements_on_supplier_payment_id ON public.cash_movements USING btree (supplier_payment_id);
+
+
+--
 -- Name: index_categories_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6847,6 +6855,14 @@ ALTER TABLE ONLY public.customer_order_lines
 
 ALTER TABLE ONLY public.mpesa_shortcodes
     ADD CONSTRAINT fk_rails_0afac4c3ad FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: cash_movements fk_rails_0ebf3bdcdc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cash_movements
+    ADD CONSTRAINT fk_rails_0ebf3bdcdc FOREIGN KEY (supplier_payment_id) REFERENCES public.supplier_payments(id) DEFERRABLE NOT VALID;
 
 
 --
@@ -9647,6 +9663,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261110200000'),
 ('20261110120000'),
 ('20261110110000'),
 ('20261110100100'),

@@ -1,6 +1,7 @@
 # A simple profit and loss: sales less returns (ex tax), less the cost of what was sold, less
 # stock written off and cash paid out of the tills. Rent, wages and other overheads aren't in
-# HardPoint, so this is the trading result, not the business's net profit.
+# HardPoint, so this is the trading result, not the business's net profit. Payouts that paid a
+# supplier are left out: the goods they paid for are already in the cost of what was sold.
 class Report::ProfitAndLoss < Report
   self.title = "Profit and loss"
   self.description = "Sales, cost of sales, gross profit, stock losses and till payouts"
@@ -23,7 +24,7 @@ class Report::ProfitAndLoss < Report
     rows[5][1] = percent(gross_profit_cents, net_sales_cents)&.round(1)&.then { "#{_1}%" }
 
     [ Section.new(columns: [ Column.new("", :text), Column.new("Amount", :money) ], rows: rows, emphasis: [ 2, 4, 8 ],
-        note: "Purchases go into stock and only count here as they're sold. Rent, wages and other overheads aren't included."),
+        note: "Purchases go into stock and only count here as they're sold, so till payouts to suppliers aren't counted again. Rent, wages and other overheads aren't included."),
       Section.new(title: "Stock gains and losses by reason", columns: [ Column.new("Reason", :text), Column.new("Value at cost", :money) ],
         rows: adjustments_by_reason.map { |reason, cents| [ reason.humanize, cents ] }) ]
   end
@@ -44,7 +45,7 @@ class Report::ProfitAndLoss < Report
 
   def payouts_cents
     @payouts_cents ||= begin
-      scope = account.cash_movements.where(kind: "payout", created_at: period.range)
+      scope = account.cash_movements.where(kind: "payout", supplier_payment_id: nil, created_at: period.range)
       scope = scope.joins(:shift).where(shifts: { branch_id: branch.id }) if branch
       scope.sum(:amount_cents)
     end

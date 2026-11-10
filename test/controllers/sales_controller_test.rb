@@ -184,6 +184,16 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 500000 + 160000 - 600000 - 400000, Account.without_isolation { shifts(:acme_front_open).expected_cash_cents_now }
   end
 
+  test "a payout to a supplier is recorded against what the shop owes them" do
+    get new_shift_cash_movement_path(shifts(:acme_front_open), kind: "payout")
+    assert_select "select[name='cash_movement[supplier_id]'] option", /Cement/
+
+    post shift_cash_movements_path(shifts(:acme_front_open)), params: { cash_movement: { kind: "payout", amount: "300", reason: "Cement delivery", supplier_id: suppliers(:acme_cement_distributor).id } }
+    assert_redirected_to shift_path(shifts(:acme_front_open))
+    payment = Account.without_isolation { suppliers(:acme_cement_distributor).supplier_payments.last }
+    assert_equal [ 30000, "cash", "Cement delivery" ], [ payment.amount_cents, payment.payment_method, payment.note ]
+  end
+
   test "another shop's sales are out of reach" do
     sign_in_as users(:bob)
     get sale_path(@sale)
