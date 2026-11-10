@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-KE">
   <head>
     <% title = content_for?(:title) ? "#{content_for(:title)} · HardPoint" : "HardPoint · Point of sale and stock control for hardware stores in Kenya" %>
     <% description = content_for(:description) || "Point of sale, stock control, M-Pesa, Airtel Money and KRA eTIMS for hardware stores in Kenya. The till works offline. #{Plan::TRIAL.inspect.capitalize} free, no card needed." %>
@@ -9,6 +9,11 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description" content="<%= description %>">
     <link rel="canonical" href="<%= canonical %>">
+    <%# Written for Kenya, and the only version for everyone else too. %>
+    <link rel="alternate" hreflang="en-KE" href="<%= canonical %>">
+    <link rel="alternate" hreflang="x-default" href="<%= canonical %>">
+    <meta name="geo.region" content="KE">
+    <meta name="geo.placename" content="Kenya">
     <% if content_for?(:noindex) %><meta name="robots" content="noindex"><% end %>
     <meta name="theme-color" content="#0F5E6E">
 
@@ -67,6 +72,9 @@
         </div>
         <ul class="space-y-2">
           <li><%= link_to "Pricing", pricing_path, class: "hover:text-primary-600" %></li>
+          <% SolutionPage.all.each do |page| %>
+            <li><%= link_to page.label, solution_path(page), class: "hover:text-primary-600" %></li>
+          <% end %>
           <li><%= link_to "Help centre", help_path, class: "hover:text-primary-600" %></li>
           <li><%= link_to "API for developers", developer_docs_path, class: "hover:text-primary-600" %></li>
           <li><%= link_to "Service level agreement", sla_path, class: "hover:text-primary-600" %></li>

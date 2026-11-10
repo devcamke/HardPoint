@@ -1,0 +1,68 @@
+<% content_for :title, @page.title %>
+<% content_for :description, @page.description %>
+<% structured_data seo_software(@plans), seo_faq(@page.faqs), seo_breadcrumbs([ @page.title, solution_url(@page) ]) %>
+<% from_price = "KES #{number_with_delimiter(@plans.map(&:price_cents).min / 100)}" %>
+<%# One job or one market, said plainly: the promise, what it does in three groups, the questions people ask about
+    it, the guides with the detail, and the door. Same white page and teal as the home page. %>
+
+<section class="bg-white">
+  <div class="mx-auto max-w-3xl px-4 pt-20 pb-12 text-center sm:pt-28">
+    <p class="text-sm font-semibold uppercase tracking-wide text-primary-600"><%= @page.title %></p>
+    <h1 class="mt-4 text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl"><%= @page.heading %></h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg text-gray-600 text-balance sm:text-xl"><%= @page.intro %></p>
+    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5 text-lg" %>
+      <%= link_to pricing_path, class: "text-lg font-medium text-accent-600 hover:underline" do %>From <%= from_price %> a month <span aria-hidden="true">›</span><% end %>
+    </div>
+  </div>
+</section>
+
+<section class="border-t border-gray-200 bg-white">
+  <div class="mx-auto grid max-w-6xl gap-4 px-4 py-16 sm:py-20 <%= @page.sections.size == 2 ? "md:grid-cols-2" : "md:grid-cols-3" %>">
+    <% @page.sections.each do |section| %>
+      <div class="rounded-3xl bg-gray-100 p-8">
+        <h2 class="text-2xl font-semibold tracking-tight text-gray-950"><%= section.heading %></h2>
+        <ul class="mt-5 space-y-3 text-gray-700">
+          <% section.points.each do |point| %>
+            <li class="flex gap-2.5"><%= render "pages/check" %> <span><%= point %></span></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<section class="border-t border-gray-200 bg-white">
+  <div class="mx-auto max-w-3xl px-4 py-16 sm:py-20">
+    <h2 class="text-center text-4xl font-semibold tracking-tight text-gray-950 text-balance">Questions.</h2>
+    <div class="mt-10"><%= render "pages/faqs", faqs: @page.faqs %></div>
+
+    <% if @page.help_articles.any? %>
+      <h2 class="mt-16 text-xl font-semibold text-gray-950">The detail, in the help centre</h2>
+      <ul class="mt-4 space-y-3">
+        <% @page.help_articles.each do |article| %>
+          <li><%= link_to article.title, help_article_path(article.slug), class: "font-medium text-accent-600 hover:underline" %>
+            <span class="text-gray-500"> · <%= article.summary %></span></li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <h2 class="mt-12 text-xl font-semibold text-gray-950">More of what HardPoint does</h2>
+    <ul class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+      <% SolutionPage.all.excluding(@page).each do |other| %>
+        <li><%= link_to other.title, solution_path(other), class: "font-medium text-accent-600 hover:underline" %></li>
+      <% end %>
+    </ul>
+  </div>
+</section>
+
+<section class="border-t border-gray-200 bg-white">
+  <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
+    <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Try it free for <%= Plan::TRIAL.inspect %>.</h2>
+    <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">No card needed. Your data is yours to export at any time.</p>
+    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary rounded-full px-6 py-2.5 text-lg" %>
+      <%= link_to whatsapp_support_url("Hello HardPoint, I'd like to know more about #{@page.title}."), class: "text-lg font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>Ask us on WhatsApp <span aria-hidden="true">›</span><% end %>
+    </div>
+  </div>
+</section>

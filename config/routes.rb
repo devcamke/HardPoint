@@ -34,6 +34,9 @@ Rails.application.routes.draw do
     get "developers", to: "pages#developers", as: :developer_docs
     get "help", to: "help#index", as: :help
     get "help/:id", to: "help#show", as: :help_article
+    get "llms.txt", to: "seo#llms", as: :llms, format: false
+    # Pages about one job (KRA eTIMS, M-Pesa, offline) or one market, at /kra-etims-pos and the like.
+    get ":id", to: "solutions#show", as: :solution, constraints: { id: Regexp.union(SolutionPage.slugs) }
     root "pages#home", as: :marketing_root
   end
 
