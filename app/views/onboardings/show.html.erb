@@ -15,9 +15,8 @@
     <h1 class="text-xl font-medium">Set up your shop</h1>
     <p class="mt-1 text-gray-500"><%= @onboarding.done_count %> of <%= @onboarding.required_steps.size %> done. <%= link_to "Read the guide", help_article_url("getting-started", subdomain: false), class: "link", target: "_blank", rel: "noopener" %></p>
   </div>
-  <% unless @onboarding.finished? %>
-    <%= button_to (@onboarding.ready? ? "All done: hide this checklist" : "Hide this checklist"), onboarding_completion_path,
-          class: @onboarding.ready? ? "btn-primary" : "btn-secondary" %>
+  <% if @onboarding.ready? && !@onboarding.finished? %>
+    <%= button_to "All done: hide this checklist", onboarding_completion_path, class: "btn-primary" %>
   <% end %>
 </div>
 

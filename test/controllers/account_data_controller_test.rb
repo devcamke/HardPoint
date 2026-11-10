@@ -25,6 +25,23 @@ class AccountDataControllerTest < ActionDispatch::IntegrationTest
     assert response.body.start_with?("PK")
   end
 
+  test "HardPoint support signed in as the owner can't take the shop's data away" do
+    perform_enqueued_jobs(only: AccountExportJob) { post account_exports_path }
+    export = Account.without_isolation { @account.account_exports.last }
+    Account.without_isolation { Session.where(user: users(:amina)).update_all(impersonator_id: users(:ada).id, expires_at: 1.hour.from_now) }
+
+    get account_export_path(export)
+    assert_redirected_to account_data_path
+    assert_equal "Not while HardPoint support is signed in as you.", flash[:alert]
+
+    assert_no_difference -> { Account.without_isolation { AccountExport.count } } do
+      post account_exports_path
+    end
+
+    get account_data_path
+    assert_response :success, "they can still look"
+  end
+
   test "exports work while the shop is read-only" do
     Account.without_isolation { @account.update!(subscription_status: "read_only") }
     assert_difference -> { Account.without_isolation { AccountExport.count } } do

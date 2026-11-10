@@ -4,6 +4,6 @@ class WebhookEndpoints::EnablementsController < ApplicationController
   def create
     endpoint = Current.account.webhook_endpoints.find(params[:webhook_endpoint_id])
     endpoint.enable
-    redirect_to endpoint, notice: "Endpoint switched back on. Resend any failed events below.", status: :see_other
+    redirect_to endpoint, notice: "Endpoint switched back on. Events skipped while it was off are being sent; resend any failed ones below.", status: :see_other
   end
 end

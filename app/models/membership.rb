@@ -34,8 +34,9 @@ class Membership < ApplicationRecord
   validate :account_keeps_an_owner, on: :update, if: -> { role_changed?(from: "owner") }
 
   before_destroy :ensure_not_last_owner
-  # Someone who no longer works here is signed out of every device at once, not on their next click.
-  after_destroy { account.sessions.where(user_id: user_id, impersonator_id: nil).destroy_all }
+  # Someone who no longer works here is signed out of every device at once, not on their next click, and
+  # HardPoint support signed in as them is signed out too.
+  after_destroy { account.sessions.where(user_id: user_id).destroy_all }
 
   scope :alphabetically, -> { joins(:user).order("users.name") }
   scope :with_pin, -> { where.not(pin_digest: nil).where(role: PIN_ROLES) }
@@ -203,7 +204,14 @@ class Membership < ApplicationRecord
   end
 
   private
+    # Two owners removing or demoting each other at once would each see the other still there and both go
+    # ahead, leaving no owner. Locking the shop's row first makes the second wait and then see the first.
+    def lock_account
+      Account.where(id: account_id).lock.pluck(:id)
+    end
+
     def account_keeps_an_owner
+      lock_account
       errors.add :role, "can't be changed: the shop needs at least one owner" if account.memberships.owner.excluding(self).none?
     end
 
@@ -216,6 +224,7 @@ class Membership < ApplicationRecord
     end
 
     def ensure_not_last_owner
+      lock_account if role_in_database == "owner"
       if last_owner?
         errors.add :base, "The last owner can't be removed"
         throw :abort

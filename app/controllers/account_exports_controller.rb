@@ -1,5 +1,6 @@
 class AccountExportsController < ApplicationController
   include OwnerOnly, ActiveStorage::Streaming
+  refuse_while_impersonated back_to: -> { account_data_path }
   rate_limit to: 3, within: 1.hour, only: :create, with: -> { redirect_to account_data_path, alert: "An export was asked for recently; wait for that one." }
 
   def create

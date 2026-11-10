@@ -6,6 +6,14 @@ class MembershipsMailer < ApplicationMailer
     mail subject: "You've been added to #{@account.name} on HardPoint", to: @user.email_address
   end
 
+  # For someone who already has a HardPoint sign-in (from another shop): no password to choose.
+  def added
+    @membership = params[:membership]
+    @account = @membership.account
+    @user = @membership.user
+    mail subject: "You've been added to #{@account.name} on HardPoint", to: @user.email_address
+  end
+
   def two_factor_reset
     @membership = params[:membership]
     @account = @membership.account

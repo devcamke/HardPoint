@@ -26,12 +26,12 @@ class Api::V1::OrdersController < Api::V1::BaseController
     end
 
     def branch
-      order_params[:branch_id].present? ? Current.account.branches.find(order_params[:branch_id]) : Current.account.branches.alphabetically.first
+      order_params[:branch_id].present? ? find_related(Current.account.branches, order_params[:branch_id], field: :branch_id) : Current.account.branches.alphabetically.first
     end
 
     # An existing customer by id, or found by phone or email, or a new one from the details given.
     def customer
-      return Current.account.customers.find(order_params[:customer_id]) if order_params[:customer_id].present?
+      return find_related(Current.account.customers, order_params[:customer_id], field: :customer_id) if order_params[:customer_id].present?
 
       details = order_params[:customer] or raise ActionController::BadRequest, "Give customer_id, or customer with a name and phone"
       phone = details[:phone].to_s.gsub(/[^\d+]/, "").presence

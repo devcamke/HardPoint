@@ -37,13 +37,19 @@ class WebhookEndpoint < ApplicationRecord
   scope :alphabetically, -> { order(:url) }
 
   # Queues the event for every endpoint that wants it. `record` is rendered with the API's own JSON.
+  # An endpoint switched off after repeated failures still gets the event recorded, as skipped, so
+  # nothing is lost: switching it back on sends what it missed.
   def self.publish(account, event, record)
     Current.set(account: account) do
-      endpoints = account.webhook_endpoints.enabled.subscribed_to(event).to_a
+      endpoints = account.webhook_endpoints.where(active: true).subscribed_to(event).to_a
       return if endpoints.empty?
 
       payload = { id: SecureRandom.uuid, type: event, created_at: Time.current.utc.iso8601, shop: account.subdomain, data: WebhookPayload.for(record) }
-      endpoints.each { |endpoint| endpoint.deliveries.create!(account: account, event: event, event_id: payload[:id], payload: payload).deliver_later }
+      endpoints.each do |endpoint|
+        delivery = endpoint.deliveries.create!(account: account, event: event, event_id: payload[:id], payload: payload,
+          status: endpoint.enabled? ? :pending : :skipped)
+        delivery.deliver_later if delivery.pending?
+      end
     end
   end
 
@@ -63,8 +69,10 @@ class WebhookEndpoint < ApplicationRecord
     track_event "secret_rolled"
   end
 
+  # Also sends, oldest first, the events that were skipped while it was off.
   def enable
     update!(active: true, disabled_at: nil, disabled_reason: nil, failure_count: 0)
+    deliveries.skipped.order(:created_at, :id).each(&:redeliver)
   end
 
   def delivery_succeeded
