@@ -26,6 +26,24 @@ class HomeHelperTest < ActionView::TestCase
     end
   end
 
+  test "owners see a switched-off webhook and a failed backup" do
+    in_acme do
+      Current.set(user: users(:amina)) do
+        accounts(:acme).webhook_endpoints.create!(url: "https://hooks.example.com/x", event_types: %w[ sale.completed ],
+          disabled_at: Time.current, disabled_reason: "25 deliveries in a row failed")
+        accounts(:acme).account_backups.create!(kind: "manual", status: "failed", requested_by: users(:amina), failure: "bucket said no")
+      end
+
+      tasks = home_tasks(@dashboard, memberships(:amina_acme))
+      webhooks = tasks.find { _1.key == :webhooks_disabled }
+      assert_equal "1 webhook endpoint switched off", webhooks.title
+      assert_equal developers_path, webhooks.path
+      assert_equal account_data_path, tasks.find { _1.key == :backup_failed }.path
+
+      assert_not_includes home_tasks(@dashboard, memberships(:sara_acme)).map(&:key), :webhooks_disabled, "only owners manage them"
+    end
+  end
+
   test "quick actions follow the role" do
     assert_equal [ "New product", "New quote", "Receive goods", "Count stock" ], home_quick_actions(memberships(:amina_acme)).map(&:first)
     assert_equal [ "New quote" ], home_quick_actions(memberships(:carl_acme)).map(&:first)

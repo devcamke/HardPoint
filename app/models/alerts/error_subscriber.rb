@@ -13,7 +13,7 @@ class Alerts::ErrorSubscriber
   end
 
   private
-    # One email an hour per error class and place it was raised, not per message (ids and amounts vary).
+    # One alert (then a daily reminder) per error class and place it was raised, not per message (ids and amounts vary).
     def key_for(error)
       "error:#{error.class.name}:#{Digest::SHA256.hexdigest(error.backtrace&.first.to_s).first(12)}"
     end

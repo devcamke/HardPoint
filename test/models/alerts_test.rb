@@ -7,10 +7,10 @@ class AlertsTest < ActiveSupport::TestCase
 
   teardown { Rails.cache = @cache }
 
-  test "an alert is emailed to the operators straight away, once an hour per key" do
+  test "an alert is emailed to the operators straight away, then at most once a day while it lasts" do
     assert_difference -> { ActionMailer::Base.deliveries.size }, 2 do
       assert Alerts.notify("health:queue", "Queue check failing", "No worker has sent a heartbeat")
-      assert_not Alerts.notify("health:queue", "Queue check failing", "Still none"), "the same alert within the hour is dropped"
+      assert_not Alerts.notify("health:queue", "Queue check failing", "Still none"), "the same alert again is held back"
       assert Alerts.notify("health:disk", "Disk check failing", "95% used"), "a different alert goes"
     end
 
@@ -18,11 +18,32 @@ class AlertsTest < ActiveSupport::TestCase
     assert_equal [ "support@hardpoint.app" ], mail.to
     assert_equal "[HardPoint test] Queue check failing", mail.subject
     assert_match "No worker has sent a heartbeat", mail.body.to_s
-    assert_match "once an hour", mail.body.to_s
+    assert_match "once a day", mail.body.to_s
 
-    travel 61.minutes do
-      assert Alerts.notify("health:queue", "Queue check failing", "Still none"), "sent again after the hour"
+    travel 2.hours do
+      assert_not Alerts.notify("health:queue", "Queue check failing", "Still none"), "not again within the day"
     end
+
+    travel 1.day + 1.minute do
+      assert Alerts.notify("health:queue", "Queue check failing", "Still none"), "a daily reminder while it lasts"
+      mail = ActionMailer::Base.deliveries.last
+      assert_equal "[HardPoint test] Still happening: Queue check failing", mail.subject
+      assert_match "4 times", mail.body.to_s
+      assert_match "Still none", mail.body.to_s
+    end
+  end
+
+  test "an alert that clears sends an all clear, once" do
+    Alerts.notify("health:queue", "Queue check failing", "No worker has sent a heartbeat")
+
+    assert_difference -> { ActionMailer::Base.deliveries.size }, 1 do
+      assert Alerts.resolve("health:queue", "Queue check")
+      assert_not Alerts.resolve("health:queue", "Queue check")
+      assert_not Alerts.resolve("health:disk", "Disk check"), "nothing to clear for an alert never sent"
+    end
+    assert_equal "[HardPoint test] All clear: Queue check", ActionMailer::Base.deliveries.last.subject
+
+    assert Alerts.notify("health:queue", "Queue check failing", "Again"), "failing again later is news"
   end
 
   test "errors reported to Rails.error become alerts, but not expected ones or warnings" do
@@ -74,5 +95,11 @@ class AlertsTest < ActiveSupport::TestCase
     end
     assert_match "Backups check failing: 1 shop backups failed", ActionMailer::Base.deliveries.last.subject
     assert_match "ok       database", ActionMailer::Base.deliveries.last.body.to_s
+
+    Account.without_isolation { AccountBackup.update_all(status: "succeeded", failure: nil, finished_at: Time.current) }
+    assert_difference -> { ActionMailer::Base.deliveries.size }, 1 do
+      PlatformHealthJob.perform_now
+    end
+    assert_match "All clear: Backups check", ActionMailer::Base.deliveries.last.subject
   end
 end
