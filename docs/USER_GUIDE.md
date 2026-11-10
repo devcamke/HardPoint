@@ -1093,6 +1093,17 @@ Add each supplier in **Buy › Suppliers** with their contacts, payment terms an
 
 **Stock › Reorder** works out what to order per branch from reorder levels, the last 30 days' sales, lead times, what's already on order and minimum order sizes, grouped by supplier. **Draft an order for …** turns a supplier's suggestions into a draft order to check and send, and when several suppliers have suggestions, **Draft … purchase orders** does them all at once. **Order them** on Home takes you there.
 
+#### How the suggestions learn
+
+The reorder list learns from each branch's own history, so its suggestions follow what really happens:
+
+- **What customers wanted, not just what sold.** When the till turned someone away because the shelf was short, that counts too (once a day, however often the cashier tried).
+- **The season.** Once a branch has a year of sales, the weeks ahead are compared with the same weeks last year, so the rains or the building season show up before they arrive (at most twice, or half, the usual).
+- **Busy days.** A product whose sales jump about gets a margin on top, so a big day doesn't empty the shelf.
+- **How long suppliers really take.** Once a supplier has delivered two orders, the time from sending the order to the delivery arriving replaces the lead time typed in; the list says _measured_.
+
+Each line says what changed its answer. Where the branch's sales point to a different reorder level, **suggest … · Use** sets it for that branch, and **Use … suggested levels** at the top sets them all (for whoever looks after the catalogue).
+
 Use **Group By › Supplier** on the orders list to see what's still to come from each supplier.
 
 **Walkthrough: Order from a supplier**

@@ -9,9 +9,15 @@ class Products::ReorderLevelsController < ApplicationController
 
     if level.update(reorder_level: params[:reorder_level].presence)
       notice = level.reorder_level ? "#{branch.name} now reorders #{product.name} at #{helpers.quantity(level.reorder_level, product.unit)}." : "#{branch.name} uses the product's reorder level again."
-      redirect_to product, notice: notice
+      redirect_to back_to(product, branch), notice: notice
     else
-      redirect_to product, alert: "Reorder level #{level.errors[:reorder_level].to_sentence}."
+      redirect_to back_to(product, branch), alert: "Reorder level #{level.errors[:reorder_level].to_sentence}."
     end
   end
+
+  private
+    # From the reorder list's suggestion, back to the list for that branch; otherwise the product.
+    def back_to(product, branch)
+      params[:return_to] == "reorder_list" ? reorder_list_path(branch_id: branch.id) : product
+    end
 end

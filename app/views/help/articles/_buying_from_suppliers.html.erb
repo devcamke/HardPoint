@@ -17,6 +17,19 @@
   times, what's already on order and minimum order sizes, grouped by supplier. <strong>Draft an order for …</strong> turns a supplier's
   suggestions into a draft order to check and send, and when several suppliers have suggestions, <strong>Draft … purchase orders</strong> does them all at once.
   <strong>Order them</strong> on Home takes you there.</p>
+<h2>How the suggestions learn</h2>
+<p>The reorder list learns from each branch's own history, so its suggestions follow what really happens:</p>
+<ul>
+  <li><strong>What customers wanted, not just what sold.</strong> When the till turned someone away because the shelf was short, that
+    counts too (once a day, however often the cashier tried).</li>
+  <li><strong>The season.</strong> Once a branch has a year of sales, the weeks ahead are compared with the same weeks last year, so the
+    rains or the building season show up before they arrive (at most twice, or half, the usual).</li>
+  <li><strong>Busy days.</strong> A product whose sales jump about gets a margin on top, so a big day doesn't empty the shelf.</li>
+  <li><strong>How long suppliers really take.</strong> Once a supplier has delivered two orders, the time from sending the order to the
+    delivery arriving replaces the lead time typed in; the list says <em>measured</em>.</li>
+</ul>
+<p>Each line says what changed its answer. Where the branch's sales point to a different reorder level, <strong>suggest … · Use</strong> sets
+  it for that branch, and <strong>Use … suggested levels</strong> at the top sets them all (for whoever looks after the catalogue).</p>
 <p>Use <strong>Group By › Supplier</strong> on the orders list to see what's still to come from each supplier.</p>
 
 <%= render "help/walkthrough", tour: HelpTour.find("purchase-order") %>

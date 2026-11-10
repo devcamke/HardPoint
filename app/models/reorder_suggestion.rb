@@ -1,8 +1,9 @@
-# What to order for a branch, and from whom. For each stocked product it looks at stock on hand,
-# what's already on order (or on its way from another branch), sales over the shop's look-back period (30 days
-# unless Settings › Shop preferences says otherwise) and the supplier's lead time (or the shop's usual one):
+# What to order for a branch, and from whom. For each stocked product it looks at stock on hand, what's already on
+# order (or on its way from another branch), and what DemandForecast learns from the branch's history: daily demand
+# (sales plus what the till turned away, adjusted for the season), a safety margin for busy days, and how long the
+# supplier really takes:
 #
-#   cover wanted = the larger of twice the reorder level, or enough to sell for (lead time + 14 days)
+#   cover wanted = the larger of twice the reorder level, or demand for (lead time + 14 days) plus the safety margin
 #   suggestion   = cover wanted − on hand − on order, rounded up to the supplier's minimum order
 #
 # A product is suggested when it's at or below its reorder level (the branch's own, if it has set one,
@@ -11,7 +12,17 @@ class ReorderSuggestion
   EXTRA_COVER_DAYS = 14
 
   # needed is what's short before rounding up to the supplier's order size; quantity is what to order.
-  Row = Data.define(:product, :supplier_product, :on_hand, :on_order, :sold, :daily_sales, :lead_time, :reorder_level, :needed, :quantity) do
+  Row = Data.define(:product, :supplier_product, :on_hand, :on_order, :sold, :daily_sales, :lead_time, :reorder_level, :needed, :quantity, :forecast) do
+    # A reorder level the branch's history suggests, when it differs from the one set: higher whenever demand says so,
+    # lower only once the product has sold here on enough days to be sure.
+    def suggested_level
+      level = forecast.suggested_level
+      return unless level.positive? && level != reorder_level
+      return if level < reorder_level && forecast.sales_days < DemandForecast::EVIDENCE_DAYS
+
+      level
+    end
+
     def cost_cents = ((supplier_product&.cost_cents || product.cost_cents) * quantity).round
   end
 
@@ -29,10 +40,9 @@ class ReorderSuggestion
     on_hand = levels.fetch(product.id, 0)
     return 0 unless on_hand.positive?
 
-    daily = sold.fetch(product.id, 0) / @account.reorder_lookback_days
-    lead_time = product.preferred_supplier_product&.lead_time_days || @account.supplier_lead_time_days
+    expected = forecast.for(product, supplier_product: product.preferred_supplier_product)
     reorder_level = reorder_levels.fetch(product.id, product.reorder_level)
-    wanted = [ reorder_level * 2, daily * (lead_time + EXTRA_COVER_DAYS), reorder_level + 1 ].max
+    wanted = [ reorder_level * 2, expected.daily * (expected.lead_time + EXTRA_COVER_DAYS) + expected.safety, reorder_level + 1 ].max
     surplus = on_hand - wanted
     return 0 unless surplus.positive?
 
@@ -49,30 +59,31 @@ class ReorderSuggestion
   private
     def candidates
       @account.products.active.where(track_stock: true)
-        .where("products.reorder_level > 0 OR products.id IN (?)", (sold.keys + reorder_levels.keys).presence || [ 0 ])
+        .where("products.reorder_level > 0 OR products.id IN (?)", (forecast.product_ids + reorder_levels.keys).presence || [ 0 ])
         .includes(:unit, supplier_products: :supplier)
     end
 
     def row_for(product)
       on_hand = levels.fetch(product.id, 0)
       on_order = ordered.fetch(product.id, 0)
-      sold_quantity = sold.fetch(product.id, 0)
-      daily = sold_quantity / @account.reorder_lookback_days
       supplier_product = product.preferred_supplier_product
-      lead_time = supplier_product&.lead_time_days || @account.supplier_lead_time_days
+      expected = forecast.for(product, supplier_product: supplier_product)
+      daily, lead_time = expected.daily, expected.lead_time
       reorder_level = reorder_levels.fetch(product.id, product.reorder_level)
 
       available = on_hand + on_order
-      return unless available <= reorder_level || available < daily * lead_time
+      return unless available <= reorder_level || available < daily * lead_time + expected.safety
 
-      wanted = [ reorder_level * 2, daily * (lead_time + EXTRA_COVER_DAYS) ].max
+      wanted = [ reorder_level * 2, daily * (lead_time + EXTRA_COVER_DAYS) + expected.safety ].max
       needed = wanted - available
       return unless needed.positive?
 
       needed = product.unit.fractional? ? needed.round(1, BigDecimal::ROUND_UP) : needed.ceil
       quantity = supplier_product ? supplier_product.order_quantity_for(needed) : needed
-      Row.new(product:, supplier_product:, on_hand:, on_order:, sold: sold_quantity, daily_sales: daily, lead_time:, reorder_level:, needed:, quantity:)
+      Row.new(product:, supplier_product:, on_hand:, on_order:, sold: expected.sold, daily_sales: daily, lead_time:, reorder_level:, needed:, quantity:, forecast: expected)
     end
+
+    def forecast = @forecast ||= DemandForecast.new(@account, @branch)
 
     def levels
       @levels ||= StockLevel.where(branch: @branch).pluck(:product_id, :quantity).to_h
@@ -94,10 +105,5 @@ class ReorderSuggestion
 
     def in_transit
       StockTransferLine.joins(:stock_transfer).where(stock_transfers: { to_branch_id: @branch.id, status: "in_transit" }).group(:product_id).sum(:quantity)
-    end
-
-    def sold
-      @sold ||= StockMovement.where(branch: @branch, reason: %w[ sold returned ], created_at: @account.reorder_lookback_days.days.ago..)
-        .group(:product_id).sum(:quantity).transform_values { -_1 }.select { |_, quantity| quantity.positive? }
     end
 end
