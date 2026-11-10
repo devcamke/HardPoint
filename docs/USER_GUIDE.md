@@ -707,7 +707,7 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 1. In **Sell › Orders & quotes**, press **New**, choose the customer and add the goods. Save it as a quote, and send it as a PDF or by email. Quotes are valid for 14 days unless you change it.
 2. When the customer agrees, press **Confirm order**. For a customer who buys on account, an order worth more than the credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
 3. When the goods are in, press **Mark ready to collect** (with SMS on, the customer can be texted).
-4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted.
+4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted. The sale, VAT and all, goes to KRA then, not when the deposit was taken (see [KRA eTIMS](#etims)).
 
 **Walkthrough: Write a quote**
 
@@ -1230,11 +1230,14 @@ _Connecting your branch's control unit and what happens when KRA is unreachable.
 
 KRA's eTIMS needs every sale to be sent to a control unit registered to your KRA PIN and branch. Register each branch's OSCU device on KRA's eTIMS portal first. Then in **Settings › KRA eTIMS › Add control unit**, enter the PIN, branch ID and serial number KRA gave you, and press **Set up with KRA**.
 
-- Products are registered with KRA the first time they're sold at that branch.
+- Products are registered with KRA the first time they're sold at that branch, and again if you change a product's name or tax rate.
 - Each sale, void and return is sent to KRA, and KRA's signature and QR code are printed on the receipt.
-- If KRA can't be reached, the sale goes ahead and is queued. HardPoint keeps retrying, and **Settings › KRA eTIMS › Submissions** shows anything still waiting, and anything KRA refused with the reason; fix it and send it again. The owner's dashboard warns about refusals.
+- If KRA can't be reached, the sale goes ahead and is queued. HardPoint keeps retrying, and **Settings › KRA eTIMS › Submissions** shows anything still waiting, and anything KRA refused with the reason; fix it and send it again. The owner's dashboard warns about refusals. Each control unit sends its invoices one at a time, in order, and every hour HardPoint checks for any sale that never made it into the queue and sends it.
+- A customer's tax PIN, if they gave one, is put on their invoices, so check it's their KRA PIN (like P051234567X).
 
 Set each tax rate's eTIMS code, and the item class of your categories, so KRA classifies your goods correctly.
+
+**Deposits and VAT.** A deposit on an order or quote isn't a sale yet, so it isn't sent to KRA when it's taken. The whole sale, with its VAT, goes to KRA when the order is collected at the till, and the deposit counts as part of the payment. If your accountant treats a deposit as the point when VAT is due, account for those deposits separately; HardPoint won't report them to KRA early.
 
 <a id="reports"></a>
 

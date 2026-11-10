@@ -17,7 +17,7 @@ class Etims::Device < ApplicationRecord
 
   normalizes :tin, with: ->(tin) { tin.strip.upcase }
 
-  validates :tin, format: { with: /\A[AP]\d{9}[A-Z]\z/, message: "must be a KRA PIN like P051234567X" }
+  validates :tin, format: { with: Etims::PIN_FORMAT, message: "must be a KRA PIN like P051234567X" }
   validates :bhf_id, format: { with: /\A\d{2}\z/, message: "must be the 2-digit branch ID KRA gave (00 for the head office)" }
   validates :serial_number, presence: true
   validates :environment, inclusion: { in: ENVIRONMENTS }

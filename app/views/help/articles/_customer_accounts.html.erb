@@ -19,7 +19,8 @@
     records money paid up front (cash, M-Pesa, card or bank).</li>
   <li>When the goods are in, press <strong>Mark ready to collect</strong> (with SMS on, the customer can be texted).</li>
   <li>When they come, press <strong>Collect at …</strong> on the order at the till: it's rung up at the quoted prices, with the deposit
-    already counted.</li>
+    already counted. The sale, VAT and all, goes to KRA then, not when the deposit was taken (see
+    <%= link_to "KRA eTIMS", help_article_path("etims"), class: "link" %>).</li>
 </ol>
 
 <%= render "help/walkthrough", tour: HelpTour.find("quote") %>
