@@ -1,4 +1,12 @@
 Rails.application.routes.draw do
+  # In development shops live on *.localhost. An IP address can't carry a subdomain, so a visit to 127.0.0.1 (the address
+  # the server prints when it starts) would lose the shop on every redirect into it: send it to localhost instead.
+  if Rails.env.development?
+    constraints host: /\A(127\.0\.0\.1|\[?::1\]?)\z/ do
+      get "(*path)", format: false, to: redirect(status: 302) { |_params, request| "#{request.protocol}localhost:#{request.port}#{request.fullpath}" }
+    end
+  end
+
   # Files are only uploaded through the app's own forms. Active Storage's direct uploads would let anyone, signed in
   # or not, put files on the server, so that route answers Not Found (it's drawn after these, so this one wins).
   post "rails/active_storage/direct_uploads", to: proc { [ 404, { "content-type" => "text/plain" }, [ "Not found" ] ] }
