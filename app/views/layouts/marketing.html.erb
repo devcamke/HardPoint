@@ -44,7 +44,7 @@
     <%# The main nav is the brand teal, with the logo and links in white and the trial button inverted so it still stands out.
         Logo on the left, the page links centred, sign in and the trial on the right; on a phone the three groups wrap and centre. %>
     <header class="sticky top-0 z-40 border-b border-primary-600 bg-primary-500 text-white">
-      <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 text-sm font-medium md:grid md:grid-cols-[1fr_auto_1fr]">
+      <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 text-base font-medium md:grid md:grid-cols-[1fr_auto_1fr]">
         <% nav_link = "text-white/85 transition-colors hover:text-white" %>
         <%= link_to marketing_root_path, aria: { label: "HardPoint home" }, class: "md:justify-self-start" do %><%= render "shared/logo", dark: true %><% end %>
         <div class="flex items-center gap-x-6">
