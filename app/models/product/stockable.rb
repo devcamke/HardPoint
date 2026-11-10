@@ -7,6 +7,7 @@ module Product::Stockable
     has_many :stock_levels, dependent: :destroy
     has_many :stock_movements, dependent: :restrict_with_error
     has_many :stock_refusals, dependent: :delete_all
+    has_many :material_products, dependent: :delete_all
     has_many :stock_batches, dependent: :restrict_with_error
 
     # Products at or below their reorder level at a branch: the branch's own level where it has set

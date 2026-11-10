@@ -3,6 +3,7 @@
 <%= render "shared/control_panel",
       title: "Orders & quotes",
       new_button: [ "New", new_customer_order_path ],
+      actions: [ [ "Material calculator", new_material_estimate_path ] ],
       search: { placeholder: "Customer name or phone" },
       filters: [ search_filter(:status, label: "Status", value: @status, clear: "all",
                    options: [ [ "open", "Open orders" ], [ "ordered", "Ordered" ], [ "ready", "Ready to collect" ], [ "quote", "Quotes" ],

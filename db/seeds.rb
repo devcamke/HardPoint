@@ -147,6 +147,15 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     ruiru = account.jobs.create!(customer: otieno, name: "Ruiru plumbing", site: "Ruiru, Kamakis", budget: 40_000)
     account.jobs.create!(customer: otieno, name: "Thika Road offices", site: "Roysambu", status: "closed", closed_at: 60.days.ago)
 
+    # The calculator's materials as the demo shop's products, ready to price a job.
+    { "cement" => [ "CEM-BAM-50", 1 ], "sand" => [ "SAND-T", 1000 ], "bar_y10" => [ "STL-Y10", 1 ], "bar_y12" => [ "STL-Y12", 1 ],
+      "brc_a142" => [ "STL-BRC142", 1 ], "binding_wire" => [ "STL-BW25", 0.04 ], "iron_sheet" => [ "ROOF-G30-3M", 1 ],
+      "ridge_cap" => [ "ROOF-RIDGE", 1 ], "roofing_nails" => [ "NAIL-ROOF", 1 ], "tile_adhesive" => [ "ADH-TILE20", 1 ],
+      "paint" => [ "PNT-CRN-W20", 0.05 ] }.each do |material, (sku, factor)|
+      product = account.products.find_by(sku: sku) or next
+      account.material_products.find_or_create_by!(material: material) { _1.assign_attributes(product: product, factor: factor) }
+    end
+
     # Fundis who bring customers, at 2% unless the category says otherwise (less on building materials and steel).
     account.update!(fundi_commission_percent: 2)
     account.categories.where(name: [ "Building materials", "Steel" ]).update_all(fundi_commission_percent: 1)

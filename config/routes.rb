@@ -282,6 +282,9 @@ Rails.application.routes.draw do
       resource :market_rate, only: :create, module: :currencies
     end
     resources :promotions
+    # The material calculator: a job's parts into materials, then a quote; and which product is each material.
+    resource :material_estimate, only: %i[ new create ]
+    resource :material_products, only: %i[ edit update ]
     # Fundis who bring customers, their commission rates, and paying them.
     resource :fundi_rates, only: %i[ edit update ]
     resources :fundis, except: :destroy do

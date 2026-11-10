@@ -1813,6 +1813,43 @@ ALTER SEQUENCE public.kit_components_id_seq OWNED BY public.kit_components.id;
 
 
 --
+-- Name: material_products; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.material_products (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    material character varying NOT NULL,
+    product_id bigint NOT NULL,
+    product_unit_id bigint,
+    factor numeric(12,4) DEFAULT 1.0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.material_products FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: material_products_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.material_products_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: material_products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.material_products_id_seq OWNED BY public.material_products.id;
+
+
+--
 -- Name: memberships; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3988,6 +4025,13 @@ ALTER TABLE ONLY public.kit_components ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: material_products id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.material_products ALTER COLUMN id SET DEFAULT nextval('public.material_products_id_seq'::regclass);
+
+
+--
 -- Name: memberships id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4660,6 +4704,14 @@ ALTER TABLE ONLY public.jobs
 
 ALTER TABLE ONLY public.kit_components
     ADD CONSTRAINT kit_components_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: material_products material_products_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.material_products
+    ADD CONSTRAINT material_products_pkey PRIMARY KEY (id);
 
 
 --
@@ -5990,6 +6042,27 @@ CREATE UNIQUE INDEX index_kit_components_on_kit_id_and_component_id ON public.ki
 
 
 --
+-- Name: index_material_products_on_account_id_and_material; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_material_products_on_account_id_and_material ON public.material_products USING btree (account_id, material);
+
+
+--
+-- Name: index_material_products_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_material_products_on_product_id ON public.material_products USING btree (product_id);
+
+
+--
+-- Name: index_material_products_on_product_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_material_products_on_product_unit_id ON public.material_products USING btree (product_unit_id);
+
+
+--
 -- Name: index_memberships_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7197,6 +7270,14 @@ ALTER TABLE ONLY public.airtel_requests
 
 
 --
+-- Name: material_products fk_rails_03784bce4e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.material_products
+    ADD CONSTRAINT fk_rails_03784bce4e FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
 -- Name: stock_count_lines fk_rails_039c3d997e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7762,6 +7843,14 @@ ALTER TABLE ONLY public.currencies
 
 ALTER TABLE ONLY public.categories
     ADD CONSTRAINT fk_rails_4fd3bba7e8 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: material_products fk_rails_510b71fbc6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.material_products
+    ADD CONSTRAINT fk_rails_510b71fbc6 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -8562,6 +8651,14 @@ ALTER TABLE ONLY public.customer_payments
 
 ALTER TABLE ONLY public.sale_return_lines
     ADD CONSTRAINT fk_rails_b7496a0bb6 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: material_products fk_rails_b7c4ea66ae; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.material_products
+    ADD CONSTRAINT fk_rails_b7c4ea66ae FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) DEFERRABLE;
 
 
 --
@@ -9422,6 +9519,13 @@ CREATE POLICY account_isolation ON public.kit_components USING (((current_settin
 
 
 --
+-- Name: material_products account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.material_products USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: memberships account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -9928,6 +10032,12 @@ ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kit_components ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: material_products; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.material_products ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: memberships; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10198,6 +10308,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111121000'),
 ('20261111120100'),
 ('20261111120000'),
 ('20261111080000'),
