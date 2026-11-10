@@ -47,9 +47,11 @@ class Shift < ApplicationRecord
     sale_returns.where(refund_method: "cash").sum(:total_cents)
   end
 
-  # Voided sales whose money was handed back in cash, out of this drawer, whatever they were paid with.
+  # Voided sales whose money was handed back in cash, out of this drawer, whatever they were paid with. Only money
+  # paid goes back (Sale#void_refund_cents): not a deposit used on the sale, nor what was put on account.
   def void_cash_refunds_cents
-    sales.voided.where(void_refund_method: "cash").sum(:total_cents)
+    Payment.where(sale_id: sales.voided.where(void_refund_method: "cash").select(:id))
+      .where.not(tender: %w[ deposit points on_account ]).sum(:amount_cents)
   end
 
   # Deposits on orders (less deposits refunded) and account payments, taken in cash.

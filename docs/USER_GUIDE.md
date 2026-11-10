@@ -536,10 +536,10 @@ When the branch is connected to eTIMS and the original sale went to KRA, each re
 
 1. On the sale, press **Void sale**.
 2. Type the **Reason** (required) and, for a cashier, the manager approval PIN.
-3. Say how the money goes back. The way the sale was paid is chosen for you: cash from this till's drawer, an M-Pesa or Airtel Money reversal (type its code), a refund to the card, or credit to the customer's account. A sale paid two ways needs you to choose.
+3. Say how the money goes back. The way the sale was paid is chosen for you: cash from this till's drawer, an M-Pesa or Airtel Money reversal (type its code), a refund to the card, or credit to the customer's account. A sale paid two ways needs you to choose. Only the money paid goes back: a deposit used on the sale goes back to its order, and what was put on account simply stops counting towards what the customer owes.
 4. Press **Void sale**, and give the money back that way.
 
-All the stock goes back, and the sale stops counting in the shift's takings. It stays in the sales list, crossed out and marked **Voided**, with who voided it, why and how the money went back; **Settings › Activity** has the same. A cash refund comes off the cash expected in the drawer. An M-Pesa payment that's reversed shows apart in the **M-Pesa reconciliation** report. If it was a collected order, the order is reopened.
+All the stock goes back, and the sale stops counting in the shift's takings. It stays in the sales list, crossed out and marked **Voided**, with who voided it, why and how the money went back; **Settings › Activity** has the same. A cash refund comes off the cash expected in the drawer. Credit to the account shows on the customer's account and statement as **Voided sale credited**. An M-Pesa payment that's reversed shows apart in the **M-Pesa reconciliation** report. If it was a collected order, the order is reopened.
 
 #### The returns list
 

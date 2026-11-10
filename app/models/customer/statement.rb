@@ -38,7 +38,7 @@ class Customer::Statement
 
   private
     def transactions
-      @transactions ||= (sales + returns + payments).select { _1[:date] <= to }.sort_by { [ _1[:date], _1[:order] ] }
+      @transactions ||= (sales + returns + void_credits + payments).select { _1[:date] <= to }.sort_by { [ _1[:date], _1[:order] ] }
     end
 
     def sales
@@ -50,6 +50,12 @@ class Customer::Statement
     def returns
       customer.account_returns.includes(:branch).map do |sale_return|
         { date: local_date(sale_return.created_at), order: 1, description: "Return credited", reference: sale_return.return_number, charge: 0, credit: sale_return.total_cents }
+      end
+    end
+
+    def void_credits
+      customer.account_void_credits.map do |sale, amount|
+        { date: local_date(sale.voided_at), order: 1, description: "Voided sale credited", reference: sale.receipt_number, charge: 0, credit: amount }
       end
     end
 

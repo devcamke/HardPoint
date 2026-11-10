@@ -17,7 +17,7 @@ class Sales::VoidsController < ApplicationController
       render :new, status: :unprocessable_entity
     elsif @sale.void(reason: params[:reason], approver: approver, refund_method: params[:refund_method], refund_reference: params[:refund_reference])
       redirect_to @sale, notice: "Sale voided. Stock is back and it no longer counts in the shift's takings" \
-        "#{"; #{Money.format(@sale.total_cents)} #{@sale.void_refund_words}" if @sale.void_refund_method}."
+        "#{"; #{Money.format(@sale.void_refund_cents)} #{@sale.void_refund_words}" if @sale.void_refund_method}."
     elsif @sale.errors.any?
       flash.now[:alert] = @sale.errors.full_messages.to_sentence
       render :new, status: :unprocessable_entity

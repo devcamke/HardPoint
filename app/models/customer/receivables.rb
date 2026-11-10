@@ -65,10 +65,18 @@ module Customer::Receivables
       def credited_by_id(ids, account)
         returns = SaleReturn.joins(:sale).where(refund_method: "on_account", sales: { account_id: account.id })
         returns = returns.where(sales: { customer_id: ids }) if ids
+        voids = Customer::Receivables.void_credit_payments.where(sales: { account_id: account.id })
+        voids = voids.where(sales: { customer_id: ids }) if ids
         payments = account.customer_payments
         payments = payments.where(customer_id: ids) if ids
-        returns.group("sales.customer_id").sum(:total_cents).merge(payments.group(:customer_id).sum(:amount_cents)) { |_, a, b| a + b }
+        [ returns.group("sales.customer_id").sum(:total_cents), voids.group("sales.customer_id").sum(:amount_cents), payments.group(:customer_id).sum(:amount_cents) ]
+          .reduce { |totals, more| totals.merge(more) { |_, a, b| a + b } }
       end
+  end
+
+  # The money paid on sales voided with the money credited to the customer's account (Sale#void_refund_cents).
+  def self.void_credit_payments
+    Payment.joins(:sale).where(sales: { status: "voided", void_refund_method: "on_account" }).where.not(tender: %w[ deposit points on_account ])
   end
 
   # Set when the balance was worked out for many customers at once (lists, the API), so it isn't asked again.
@@ -87,13 +95,21 @@ module Customer::Receivables
     as_of ? returns.where(created_at: ..end_of(as_of)) : returns
   end
 
+  # Sales voided with what was paid credited to the account, as [sale, amount credited]; up to the end of as_of when given.
+  def account_void_credits(as_of: nil)
+    credits = Customer::Receivables.void_credit_payments.where(sales: { customer_id: id }).group(:sale_id).sum(:amount_cents)
+    voided = sales.where(id: credits.keys)
+    voided = voided.where(voided_at: ..end_of(as_of)) if as_of
+    voided.order(:voided_at, :id).map { [ _1, credits[_1.id] ] }
+  end
+
   def charged_cents
     Payment.on_account.joins(:sale).where(sales: { customer_id: id, status: "completed" }).sum(:amount_cents)
   end
 
   def credited_cents(as_of: nil)
     payments = as_of ? customer_payments.where(paid_on: ..as_of) : customer_payments
-    account_returns(as_of: as_of).sum(:total_cents) + payments.sum(:amount_cents)
+    account_returns(as_of: as_of).sum(:total_cents) + account_void_credits(as_of: as_of).sum(&:last) + payments.sum(:amount_cents)
   end
 
   def balance_cents
