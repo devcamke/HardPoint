@@ -36,8 +36,9 @@ class Mpesa::StkRequest < ApplicationRecord
   def resolve(result_code:, description: nil, receipt_number: nil, amount_cents: nil, phone: nil, transacted_at: nil, payload: {})
     with_lock do
       if result_code == "0"
-        transaction = record_transaction(receipt_number, amount_cents || self.amount_cents, phone, transacted_at, payload)
-        if pending?
+        transaction = rename_placeholder(receipt_number) || record_transaction(receipt_number, amount_cents || self.amount_cents, phone, transacted_at, payload)
+        # A payment that arrives after the till stopped waiting is still the customer's money for this prompt.
+        if pending? || expired?
           update!(status: :paid, result_code: result_code, result_description: description, receipt_number: transaction.trans_id, resolved_at: Time.current)
           pay_sale(transaction)
         end
@@ -69,8 +70,24 @@ class Mpesa::StkRequest < ApplicationRecord
     # A paid prompt is money received even if the till gave up waiting, so it's always recorded.
     # A status check says "paid" without a receipt number; the checkout ID stands in for it.
     def record_transaction(receipt_number, amount_cents, phone, transacted_at, payload)
-      Mpesa::Transaction.record(shortcode, source: "stk", trans_id: receipt_number || "STK#{checkout_request_id.last(10)}",
+      Mpesa::Transaction.record(shortcode, source: "stk", trans_id: receipt_number || placeholder_id,
         amount_cents: amount_cents, phone: phone || self.phone, transacted_at: transacted_at || Time.current, payload: payload)
+    end
+
+    # A status check said "paid" before the callback brought the receipt number, so the money was recorded under
+    # the checkout ID. The callback names it properly, rather than recording the same money a second time.
+    def rename_placeholder(receipt_number)
+      return unless receipt_number
+
+      placeholder = shortcode.transactions.find_by(trans_id: placeholder_id) or return
+      placeholder.update!(trans_id: receipt_number)
+      Payment.where(id: placeholder.matched_id).update_all(reference: placeholder.trans_id) if placeholder.matched_type == "Payment"
+      update!(receipt_number: placeholder.trans_id) if paid?
+      placeholder
+    end
+
+    def placeholder_id
+      "STK#{checkout_request_id.last(10)}"
     end
 
     def pay_sale(transaction)

@@ -4,7 +4,7 @@
 # first unless they're put against particular sales (allocations). Cash goes through a till's drawer,
 # so cash in or out belongs to that till's open shift.
 class CustomerPayment < ApplicationRecord
-  include AccountOwned, Monetary
+  include AccountOwned, Monetary, MobileMoneyCode
 
   METHODS = %w[ cash mobile_money airtel_money bank_transfer cheque card ].freeze
   KINDS = %w[ payment refund write_off ].freeze
@@ -58,6 +58,14 @@ class CustomerPayment < ApplicationRecord
   end
 
   private
+    def mobile_money_code?
+      payment? && payment_method == "mobile_money"
+    end
+
+    def mobile_money_cents
+      amount_cents
+    end
+
     def refund_within_credit
       credit = -customer.balance_cents
       if credit <= 0

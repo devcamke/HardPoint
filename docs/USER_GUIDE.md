@@ -1261,6 +1261,10 @@ At the till, choose M-Pesa and enter the customer's phone number. They get a pro
 
 When a customer pays by Lipa na M-Pesa themselves, the payment appears on the till within seconds. Pick it to pay the sale. Payments whose account number is an order reference or a customer's account number are matched to that order or account automatically.
 
+#### Typing in an M-Pesa code
+
+If the customer shows you the M-Pesa message instead, type its code. Each code pays once: HardPoint turns away a code already used on a sale, a deposit or an account, and one Safaricom says was for less than you're taking. A code that matches money already received takes it off the list, so nobody can pick it again.
+
 #### Reconciliation
 
 **Reports › M-Pesa reconciliation** lists money received but not yet used on a sale, and M-Pesa codes typed at a till that Safaricom never confirmed, so anything that doesn't match stands out.

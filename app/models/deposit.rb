@@ -1,7 +1,7 @@
 # Money paid towards a customer order before collection; negative when it's refunded. Cash goes
 # through a till's drawer, so a cash deposit belongs to that till's open shift.
 class Deposit < ApplicationRecord
-  include AccountOwned, Monetary
+  include AccountOwned, Monetary, MobileMoneyCode
 
   TENDERS = %w[ cash mobile_money airtel_money card bank_transfer ].freeze
 
@@ -22,4 +22,13 @@ class Deposit < ApplicationRecord
   def refund?
     amount_cents.negative?
   end
+
+  private
+    def mobile_money_code?
+      tender == "mobile_money" && amount_cents.to_i.positive?
+    end
+
+    def mobile_money_cents
+      amount_cents
+    end
 end

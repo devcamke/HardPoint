@@ -1,5 +1,5 @@
 class Payment < ApplicationRecord
-  include AccountOwned, Monetary
+  include AccountOwned, Monetary, MobileMoneyCode
 
   # "points": loyalty points, which HardPoint no longer has. Payments made with them are kept, as is their eTIMS code.
   TENDERS = %w[ cash card mobile_money airtel_money on_account deposit foreign_cash points ].freeze
@@ -17,8 +17,6 @@ class Payment < ApplicationRecord
   validates :reference, presence: { message: "is needed (the Airtel Money transaction ID)" }, if: :airtel_money?
   validates_same_account :sale
 
-  # A code typed at the till for money that already arrived on the Paybill claims it.
-  after_create_commit :claim_mpesa_transaction, if: -> { mobile_money? && reference.present? }
   # Money that arrived by phone stays usable when the payment it paid is taken off the sale.
   before_destroy :release_mobile_money
 
@@ -38,8 +36,13 @@ class Payment < ApplicationRecord
   end
 
   private
-    def claim_mpesa_transaction
-      sale.account.mpesa_transactions.unmatched.find_by(trans_id: reference.strip.upcase)&.match(self)
+    # A code typed at the till (MobileMoneyCode): the customer must have sent at least what was tendered.
+    def mobile_money_code?
+      mobile_money?
+    end
+
+    def mobile_money_cents
+      tendered_cents || amount_cents
     end
 
     def release_mobile_money
