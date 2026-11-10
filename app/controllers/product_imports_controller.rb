@@ -6,7 +6,8 @@ class ProductImportsController < ApplicationController
   end
 
   def new
-    @import = Current.account.product_imports.new(branch: selected_branch)
+    # The stock column is ignored unless a branch is chosen: setting stock from a file made last week would undo every sale since.
+    @import = Current.account.product_imports.new
   end
 
   def create
@@ -14,7 +15,7 @@ class ProductImportsController < ApplicationController
     @import = Current.account.product_imports.new(
       filename: file.respond_to?(:original_filename) ? file.original_filename : nil,
       csv: read_csv(file),
-      branch: params.dig(:product_import, :branch_id).presence && Current.account.branches.find(params.dig(:product_import, :branch_id)))
+      branch: params.dig(:product_import, :branch_id).presence && visible_branches.find(params.dig(:product_import, :branch_id)))
 
     if @import.save
       redirect_to @import

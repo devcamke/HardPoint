@@ -149,6 +149,18 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     assert_equal({ suppliers(:acme_cement_distributor) => [ "CEM-50" ], suppliers(:acme_plumbing_supplies) => [ "PVC-2" ] }, orders)
   end
 
+  test "drafting from Reorder twice doesn't order everything twice, and the drafts are listed to send" do
+    post purchase_orders_path, params: { from_suggestions: 1, supplier_id: "all", branch_id: branches(:acme_yard).id }
+
+    get reorder_list_path(branch_id: branches(:acme_yard).id)
+    assert_select "button", text: /Draft \d+ purchase orders/, count: 0
+    assert_select "#draft_orders", /2 draft orders still to send/
+
+    assert_no_difference -> { Account.without_isolation { PurchaseOrder.draft.count } } do
+      post purchase_orders_path, params: { from_suggestions: 1, supplier_id: "all", branch_id: branches(:acme_yard).id }
+    end
+  end
+
   test "supplier products are managed on the supplier page" do
     post supplier_products_path(suppliers(:acme_plumbing_supplies)), params: { supplier_product: { product_code: "NAIL-3", cost: "170", lead_time_days: "2", min_order_quantity: "25" } }
     supplier_product = Account.without_isolation { suppliers(:acme_plumbing_supplies).supplier_products.find_by!(product: products(:acme_nails)) }

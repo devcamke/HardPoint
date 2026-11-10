@@ -1,11 +1,11 @@
-<p>Go to <strong>Stock › Products</strong>, choose <strong>Import</strong> from the <strong>⚙</strong> menu (or <strong>Settings › Import products</strong>) and choose a CSV file. A <a href="/product-import-template.csv" class="link">template with the right columns</a> is there to start from. Most spreadsheet programs save one with <strong>File → Save as → CSV</strong>. The first row names the columns; only <code>sku</code> and <code>name</code> are required.</p>
+<p>Go to <strong>Stock › Products</strong>, choose <strong>Import</strong> from the <strong>⚙</strong> menu (or <strong>Settings › Import products</strong>) and choose a CSV file. A <a href="/product-import-template.csv" class="link">template with the right columns</a> is there to start from. Most spreadsheet programs save one with <strong>File → Save as → CSV</strong>. The first row names the columns; only <code>name</code> and <code>price</code> are required.</p>
 
 <ul>
-  <li><code>sku</code>: your product code. A row whose SKU already exists updates that product.</li>
-  <li><code>name</code>, <code>category</code>, <code>brand</code>, <code>unit</code> (new categories, brands and units are created for you).</li>
+  <li><code>sku</code>: your product code. A row whose SKU already exists updates that product, and a blank cell in that row keeps what the product has.</li>
+  <li><code>name</code>, <code>category</code>, <code>brand</code> (new categories and brands are created for you), and <code>unit</code> (units must already exist in Settings).</li>
   <li><code>price</code> (including VAT) and <code>cost</code>, in shillings.</li>
   <li><code>barcode</code>, <code>tax_rate</code>, <code>reorder_level</code>, <code>active</code>.</li>
-  <li><code>stock</code>: how many are on the shelf now, at the branch you choose on the import screen.</li>
+  <li><code>stock</code>: how many are on the shelf now, at the branch you choose on the import screen. It's ignored unless you choose one. Choosing one sets the stock there to the file's numbers, undoing any sales or deliveries since the file was made, so use a fresh file.</li>
 </ul>
 
 <p>HardPoint checks the whole file before changing anything and shows the first rows as they'll be imported. If there are problems (a missing name, a price that isn't a number, a barcode already used by another product) it lists them by line so you can fix the file and try again.</p>
@@ -13,4 +13,4 @@
 <p>To raise or lower many prices at once, choose <strong>Change prices</strong> from the ⚙ menu on the Products list. Pick every product, a category, a brand or a supplier; a percentage or an amount; and whether to round to the nearest 100, 500, 1,000 or 5,000 shillings. HardPoint shows every old and new price before anything changes, and pack prices and price lists can be included or left alone. See <%= link_to "Changing many prices at once", help_article_path("changing-prices"), class: "link" %>.</p>
 <p>For price changes that don't follow a rule, press <strong>Export CSV</strong> on the Products list, edit the price column and import the file again. Only the columns in the file are changed.</p>
 
-<p>Your plan sets how many active products you can have. An import that would go over it is held back, with a note to upgrade on the Billing page.</p>
+<p>Every plan has unlimited products, so an import of any size goes through.</p>

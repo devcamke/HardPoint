@@ -74,6 +74,23 @@ class ProductImportTest < ActiveSupport::TestCase
     assert_equal 90000, products(:acme_cement).price_cents
   end
 
+  test "blank cells keep what an existing product has; filled ones change it" do
+    products(:acme_cement).update!(active: false)
+    result = import(<<~CSV, branch: nil)
+      sku,name,price,cost,tax_rate,category,brand,unit,reorder_level,active
+      CEM-50,Bamburi cement 50kg,900,,,,,,,
+      NAIL-3,Wire nails 3 inch,260,180,,,,,5,
+    CSV
+    result.update!(status: :importing)
+    result.run
+
+    cement = products(:acme_cement).reload
+    assert_equal [ 90000, 70000, tax_rates(:acme_vat), categories(:acme_building), brands(:acme_bamburi), units(:acme_bag), 20, false ],
+      [ cement.price_cents, cement.cost_cents, cement.tax_rate, cement.category, cement.brand, cement.unit, cement.reorder_level.to_i, cement.active ]
+    nails = products(:acme_nails).reload
+    assert_equal [ 26000, 18000, 5 ], [ nails.price_cents, nails.cost_cents, nails.reorder_level.to_i ]
+  end
+
   test "no plan limits how many products a shop imports" do
     accounts(:acme).update!(plan: "starter")
     csv = +"sku,name,price\n"

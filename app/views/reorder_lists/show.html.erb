@@ -23,6 +23,13 @@
     It covers the lead time plus two weeks, less what's on hand, on order or on its way, rounded up to the supplier's minimum.
     Owners, managers and stock clerks also get the low-stock list by email each morning.</p>
 
+  <% if (drafts = @suggestion.draft_orders.to_a).any? %>
+    <p id="draft_orders" class="mb-4 max-w-3xl rounded-md bg-amber-50 px-4 py-2 text-sm text-amber-900">
+      <%= pluralize(drafts.size, "draft order") %> still to send:
+      <%= safe_join(drafts.map { link_to "#{_1.reference} (#{_1.supplier.name})", _1, class: "link" }, ", ") %>.
+      What's on them counts as on order here, so send them, or cancel them to have it suggested again.</p>
+  <% end %>
+
   <%= render "reorder_lists/moves", rebalancing: @rebalancing, branch: selected_branch if @rebalancing && selected_branch %>
   <% incoming_moves = @rebalancing && selected_branch ? @rebalancing.into(selected_branch).values.flatten.group_by(&:product) : {} %>
 

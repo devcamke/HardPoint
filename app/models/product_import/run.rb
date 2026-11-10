@@ -25,9 +25,11 @@ class ProductImport::Run
   private
     def import_batch(rows)
       now = Time.current
+      existing = @account.products.where(sku: rows.filter_map(&:sku)).index_by(&:sku)
       records = rows.map do |row|
-        row.attributes.merge(account_id: @account.id, sku: row.sku || "P#{SecureRandom.alphanumeric(7).upcase}",
+        record = row.attributes.merge(account_id: @account.id, sku: row.sku || "P#{SecureRandom.alphanumeric(7).upcase}",
           category_id: find_or_create(:categories, row.category_name), brand_id: find_or_create(:brands, row.brand_name))
+        keep_blank_cells(record, row, existing[row.sku])
       end
 
       ids = Product.upsert_all(records, unique_by: %i[ account_id sku ], update_only: updatable_columns, returning: %i[ id sku ], record_timestamps: true)
@@ -41,9 +43,23 @@ class ProductImport::Run
     COLUMNS_BY_HEADER = { "name" => :name, "price" => :price_cents, "cost" => :cost_cents, "unit" => :unit_id, "tax_rate" => :tax_rate_id,
                           "reorder_level" => :reorder_level, "active" => :active, "category" => :category_id, "brand" => :brand_id }.freeze
 
+    KEPT_WHEN_BLANK = COLUMNS_BY_HEADER.except("name", "price").freeze
+
     # Existing products only change in the columns the spreadsheet actually has.
     def updatable_columns
       @updatable_columns ||= COLUMNS_BY_HEADER.slice(*@import.rows.headers.compact).values
+    end
+
+    # The columns are updated for every row of a batch, so a blank cell on an existing product takes the value the
+    # product has: a VAT rate, cost or category left out of one row isn't wiped, and a hidden product isn't shown again.
+    def keep_blank_cells(record, row, product)
+      return record unless product
+
+      (updatable_columns & KEPT_WHEN_BLANK.values).each do |attribute|
+        header = COLUMNS_BY_HEADER.key(attribute)
+        record[attribute] = product.public_send(attribute) if row.blank_cell?(header)
+      end
+      record
     end
 
     def find_or_create(table, name)

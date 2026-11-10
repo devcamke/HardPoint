@@ -16,6 +16,10 @@ class ProductImport::Row
     attributes[:sku]
   end
 
+  def blank_cell?(column)
+    value(column).blank?
+  end
+
   private
     def parse
       name = value(:name)

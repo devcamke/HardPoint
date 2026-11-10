@@ -257,13 +257,13 @@ Staff and activity are in [Staff, roles and PINs](#staff-and-roles). Payments an
 
 _Bring in your whole price list at once, and update prices later the same way._
 
-Go to **Stock › Products**, choose **Import** from the **⚙** menu (or **Settings › Import products**) and choose a CSV file. A [template with the right columns](https://hardpoint.app/product-import-template.csv) is there to start from. Most spreadsheet programs save one with **File → Save as → CSV**. The first row names the columns; only `sku` and `name` are required.
+Go to **Stock › Products**, choose **Import** from the **⚙** menu (or **Settings › Import products**) and choose a CSV file. A [template with the right columns](https://hardpoint.app/product-import-template.csv) is there to start from. Most spreadsheet programs save one with **File → Save as → CSV**. The first row names the columns; only `name` and `price` are required.
 
-- `sku`: your product code. A row whose SKU already exists updates that product.
-- `name`, `category`, `brand`, `unit` (new categories, brands and units are created for you).
+- `sku`: your product code. A row whose SKU already exists updates that product, and a blank cell in that row keeps what the product has.
+- `name`, `category`, `brand` (new categories and brands are created for you), and `unit` (units must already exist in Settings).
 - `price` (including VAT) and `cost`, in shillings.
 - `barcode`, `tax_rate`, `reorder_level`, `active`.
-- `stock`: how many are on the shelf now, at the branch you choose on the import screen.
+- `stock`: how many are on the shelf now, at the branch you choose on the import screen. It's ignored unless you choose one. Choosing one sets the stock there to the file's numbers, undoing any sales or deliveries since the file was made, so use a fresh file.
 
 HardPoint checks the whole file before changing anything and shows the first rows as they'll be imported. If there are problems (a missing name, a price that isn't a number, a barcode already used by another product) it lists them by line so you can fix the file and try again.
 
@@ -271,7 +271,7 @@ To raise or lower many prices at once, choose **Change prices** from the ⚙ men
 
 For price changes that don't follow a rule, press **Export CSV** on the Products list, edit the price column and import the file again. Only the columns in the file are changed.
 
-Your plan sets how many active products you can have. An import that would go over it is held back, with a note to upgrade on the Billing page.
+Every plan has unlimited products, so an import of any size goes through.
 
 <a id="staff-and-roles"></a>
 
@@ -1070,7 +1070,7 @@ Give products a **reorder level**. **Stock › Reorder** shows everything at or 
 
 With more than one branch, **Move from another branch first** at the top of Stock › Reorder lists what's short here (at or below its reorder level, or turned away at the till in the last two weeks) that another branch has more of than it needs. It only suggests what that branch can spare and still have its own two weeks' cover. Press **Prepare the transfer**: the transfer opens filled in, and is sent when you've checked it and pressed **Send transfer**. Each line to order also says how much could be moved first. The morning email lists the same moves.
 
-A branch that sells a product faster or slower than the others can have its own level: on the product's page, type it under **Reorder at** next to the branch and press **Set**. Leave it blank to use the product's level. Stock already on order, or on its way from another branch, counts as coming, so it isn't suggested twice.
+A branch that sells a product faster or slower than the others can have its own level: on the product's page, type it under **Reorder at** next to the branch and press **Set**. Leave it blank to use the product's level. Stock already on order (draft orders included), or on its way from another branch, counts as coming, so it isn't suggested twice. Drafts still to send are listed at the top of the page.
 
 #### Stock history
 

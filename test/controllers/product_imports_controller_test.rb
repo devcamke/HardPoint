@@ -3,6 +3,12 @@ require "test_helper"
 class ProductImportsControllerTest < ActionDispatch::IntegrationTest
   setup { sign_in_as users(:amina) }
 
+  test "the stock column is ignored unless a branch is chosen" do
+    get new_product_import_path
+    assert_select "select[name='product_import[branch_id]'] option[selected]", count: 0
+    assert_select "select[name='product_import[branch_id]'] option:first-child", "Ignore the stock column"
+  end
+
   test "upload, check, confirm, import" do
     file = Rack::Test::UploadedFile.new(StringIO.new("\xEF\xBB\xBFsku,name,price,stock\nNEW-9,Masking tape,95,12\n"), "text/csv", original_filename: "tape.csv")
 

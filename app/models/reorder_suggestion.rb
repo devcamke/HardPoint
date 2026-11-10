@@ -51,6 +51,11 @@ class ReorderSuggestion
 
   def on_hand(product) = levels.fetch(product.id, 0)
 
+  # Orders drafted for this branch and not yet sent, whose lines count as on order.
+  def draft_orders
+    @account.purchase_orders.draft.where(branch: @branch).includes(:supplier).order(:created_at)
+  end
+
   # Suggestions grouped by preferred supplier (nil for products with no supplier yet).
   def by_supplier
     rows.group_by { _1.supplier_product&.supplier }.sort_by { |supplier, _| supplier ? [ 0, supplier.name ] : [ 1, "" ] }
@@ -94,11 +99,12 @@ class ReorderSuggestion
       @reorder_levels ||= StockLevel.where(branch: @branch).where.not(reorder_level: nil).pluck(:product_id, :reorder_level).to_h
     end
 
-    # Ordered but not yet received, on orders already sent to suppliers, plus what another branch
-    # has sent and hasn't arrived yet: both turn up without ordering more.
+    # Ordered but not yet received, plus what another branch has sent and hasn't arrived yet: both turn up without
+    # ordering more. Draft orders count too, so drafting from these suggestions twice doesn't order everything twice;
+    # the Reorder page lists the drafts still to send (draft_orders).
     def ordered
       @ordered ||= PurchaseOrderLine.joins(:purchase_order)
-        .where(purchase_orders: { branch_id: @branch.id, status: %w[ sent partially_received ] })
+        .where(purchase_orders: { branch_id: @branch.id, status: %w[ draft sent partially_received ] })
         .group(:product_id).sum("purchase_order_lines.quantity - purchase_order_lines.received_quantity")
         .merge(in_transit) { |_, on_order, coming| on_order + coming }
     end

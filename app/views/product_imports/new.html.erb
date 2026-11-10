@@ -15,6 +15,8 @@
     <div class="field">
       <%= form.label :branch_id, "Stock column is the quantity on hand at", class: "label" %>
       <%= form.collection_select :branch_id, branches_for_selection, :id, :name, { include_blank: "Ignore the stock column" }, class: "input" %>
+      <p class="hint mt-1">Choosing a branch sets each product's stock there to the file's number, undoing any sales or deliveries since the
+        file was made. To change prices and details only, leave it on <strong>Ignore the stock column</strong>.</p>
     </div>
 
     <%= form.submit "Upload and check", class: "btn-primary" %>
@@ -25,7 +27,7 @@
     <h2 class="mb-2 font-semibold">Columns</h2>
     <p class="mb-2"><strong>name</strong> and <strong>price</strong> are required. Optional: sku, barcode, category, brand, unit, cost, tax_rate, reorder_level, stock, active.</p>
     <ul class="mb-3 list-disc space-y-1 pl-5 text-gray-500">
-      <li>Rows with an existing SKU update that product; others add new products.</li>
+      <li>Rows with an existing SKU update that product; others add new products. A blank cell keeps what the product has.</li>
       <li>New categories and brands are created for you.</li>
       <li>Units and tax rates must already exist.</li>
       <li>Products without a barcode get an in-store one.</li>
