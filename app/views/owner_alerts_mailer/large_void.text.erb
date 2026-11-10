@@ -1,0 +1,7 @@
+<% c = @account.currency %>Sale <%= @sale.receipt_number %> for <%= money(@sale.total_cents, currency: c) %> was voided at <%= @sale.branch.name %>.
+
+Rung up by: <%= @sale.cashier&.name %>
+Voided by: <%= @sale.voided_by&.name %> at <%= @sale.voided_at.strftime("%-l:%M %p on %A %-d %B") %>
+Reason: <%= @sale.void_reason %>
+<%= "#{@sale.void_refund_words.upcase_first}\n" if @sale.void_refund_words %>
+<%= sale_url(@sale, subdomain: @account.subdomain) %>

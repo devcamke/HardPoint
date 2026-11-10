@@ -1,0 +1,22 @@
+<% currency = @account.currency %>
+<% host = { subdomain: @account.subdomain } %>
+<% event = @sale.events.where(action: "voided").order(:created_at).last %>
+<% approver = event&.particulars&.dig("approver") %>
+<% content_for :preheader, "#{@sale.receipt_number} at #{@sale.branch.name}, voided by #{@sale.voided_by&.name}: #{@sale.void_reason}" %>
+<%= render "owner_alerts_mailer/hero", eyebrow: "Sale voided", headline: "A sale of #{money(@sale.total_cents, currency: currency)} was voided at #{@sale.branch.name}.",
+      figure: money(@sale.total_cents, currency: currency), note: [ "voided at #{@sale.voided_at.strftime("%-l:%M %p on %A %-d %B")}", @sale.void_refund_words ].compact.join(", ") %>
+
+<%= render "owner_alerts_mailer/details", rows: [
+      [ "Receipt", link_to(@sale.receipt_number, sale_url(@sale, **host), style: "color:#{mail_color(:bar)};") ],
+      [ "Rung up by", "#{@sale.cashier&.name}, #{(@sale.completed_at || @sale.created_at).strftime("%-l:%M %p %a %-d %b")}" ],
+      [ "Voided by", @sale.voided_by&.name ],
+      ([ "Approved by", approver.is_a?(Hash) ? approver["name"] : approver ] if approver.present?),
+      [ "Reason", @sale.void_reason ],
+      ([ "Customer", @sale.customer.name ] if @sale.customer)
+    ] %>
+
+<%= mail_section "What was on it" %>
+<%= mail_list [ "Item", "Qty", "Total" ], @sale.lines.includes(:product).map { [ _1.description, quantity(_1.quantity), money(_1.total_cents, currency: currency) ] },
+      align: [ :left, :right, :right ] %>
+
+<%= render "owner_alerts_mailer/footer", button: "Open the sale", url: sale_url(@sale, **host), threshold: "#{money(@account.alert_void_above_cents, currency: currency)} limit" %>

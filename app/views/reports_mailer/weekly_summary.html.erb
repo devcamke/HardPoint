@@ -1,0 +1,82 @@
+<% s = @summary %>
+<% currency = s.currency %>
+<% host = { subdomain: @account.subdomain } %>
+<% bucket_labels = { "current" => "Not yet due", "1_30" => "1–30 days late", "31_60" => "31–60 days late", "61_90" => "61–90 days late", "over_90" => "Over 90 days late" } %>
+<% content_for :preheader, "#{money(s.totals[:takings], currency: currency)} from #{pluralize(s.totals[:receipts], "sale")}" \
+     "#{" · #{s.change_on_last_week_percent.abs}% #{s.change_on_last_week_percent.negative? ? "down" : "up"} on the week before" if s.change_on_last_week_percent}" %>
+
+<p style="margin:0; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:<%= mail_color(:bar) %>;">
+  <%= s.starts_on.strftime("%-d %B") %> – <%= s.ends_on.strftime("%-d %B %Y") %>
+</p>
+<h1 style="margin:4px 0 20px; font-size:22px; line-height:1.3; color:<%= mail_color(:ink) %>;">Your week at <%= @account.name %>.</h1>
+
+<p style="margin:0; font-size:13px; color:<%= mail_color(:muted) %>;">Takings</p>
+<p style="margin:0; font-size:34px; line-height:1.15; font-weight:800; color:<%= mail_color(:ink) %>; letter-spacing:-.02em;"><%= money(s.totals[:takings], currency: currency) %></p>
+<% if (change = mail_change(s.change_on_last_week_percent, "the week before")) %>
+  <p style="margin:2px 0 0; font-size:13px; color:<%= mail_color(:secondary) %>;"><%= change %></p>
+<% end %>
+
+<% best_day = s.days.max_by(&:last) %>
+<div style="height:16px;"></div>
+<%= mail_tiles([
+      [ "Sales", s.totals[:receipts].to_s, s.totals[:receipts].positive? ? "#{money(s.totals[:takings] / s.totals[:receipts], currency: currency)} each on average" : nil ],
+      [ "Gross margin", money(s.totals[:margin], currency: currency), s.totals[:margin_percent] ? "#{s.totals[:margin_percent].round(1)}% of sales ex tax" : nil ],
+      [ "Best day", best_day ? best_day.first.strftime("%A") : "—", best_day ? money(best_day.last, currency: currency) : nil ]
+    ]) %>
+
+<%= mail_section "The last eight weeks", "Takings each week; this week in dark." %>
+<%= mail_column_chart s.weeks.map { [ _1.starts_on.strftime("%-d %b"), _1.takings_cents ] }, highlight: s.starts_on.strftime("%-d %b"),
+      format: ->(cents) { mail_short_money(cents) } %>
+
+<%= mail_section "Day by day" %>
+<%= mail_column_chart s.days.map { |day, cents| [ day.strftime("%a"), cents ] }, highlight: best_day&.first&.strftime("%a"),
+      format: ->(cents) { mail_short_money(cents) }, height: 90 %>
+
+<% if s.best_sellers.any? %>
+  <%= mail_section "Best sellers", "By takings, with what each one made over cost." %>
+  <%= mail_bar_rows s.best_sellers.map { |seller|
+        margin = seller.takings_cents.positive? ? " · #{money(seller.margin_cents, currency: currency)} margin" : ""
+        [ seller.name, seller.takings_cents, money(seller.takings_cents, currency: currency), "#{quantity(seller.quantity)} sold#{margin}" ] } %>
+<% end %>
+
+<% receivables = s.receivables %>
+<% if receivables[:total].positive? %>
+  <%= mail_section "Who owes you", "#{money(receivables[:total], currency: currency)} on account" +
+        (receivables[:overdue_customers].positive? ? ", #{pluralize(receivables[:overdue_customers], "customer")} past their terms." : ", all within terms.") %>
+  <% buckets = receivables[:buckets].each_with_index.select { |(bucket, cents), _| cents.positive? || bucket == "current" } %>
+  <%= mail_bar_rows buckets.map { |(bucket, cents), _| [ bucket_labels[bucket], cents, money(cents, currency: currency) ] },
+        colors: buckets.map { |_, index| MailChartsHelper::MAIL_RAMP[index] }, label_width: 34 %>
+  <% if receivables[:debtors].any? %>
+    <div style="height:10px;"></div>
+    <%= mail_list [ "Most overdue", "Overdue", "Owes in all" ], receivables[:debtors].map { |debtor|
+          [ link_to(debtor.customer.name, customer_url(debtor.customer, **host), style: "color:#{mail_color(:bar)};"),
+            money(debtor.overdue_cents, currency: currency), money(debtor.balance_cents, currency: currency) ] }, align: [ :left, :right, :right ] %>
+  <% end %>
+<% end %>
+
+<% payables = s.payables %>
+<% if payables[:due].any? || payables[:overdue_cents].positive? %>
+  <%= mail_section "What you owe this week",
+        payables[:overdue_cents].positive? ? "#{money(payables[:overdue_cents], currency: currency)} to suppliers is already past due." : "Supplier bills falling due in the next seven days." %>
+  <% if payables[:due].any? %>
+    <%= mail_list [ "Supplier", "Due", "Amount" ], payables[:due].first(OwnerSummary::Weekly::LIST_LIMIT).map { |bill|
+          [ bill.supplier.name, bill.due_on.strftime("%a %-d %b"), money(bill.outstanding_cents, currency: currency) ] }, align: [ :left, :left, :right ] %>
+    <p style="margin:6px 0 0; font-size:13px; color:<%= mail_color(:secondary) %>;"><%= money(payables[:due].sum(&:outstanding_cents), currency: currency) %> due in all.</p>
+  <% end %>
+<% end %>
+
+<% dead = s.dead_stock %>
+<% if dead[:count].positive? %>
+  <%= mail_section "Not selling", "#{money(dead[:value_cents], currency: currency)} at cost in #{pluralize(dead[:count], "product")} that haven't sold in #{OwnerSummary::Weekly::DEAD_STOCK_DAYS} days." %>
+  <%= mail_bar_rows dead[:products].map { |name, on_hand, unit, value| [ name, value, money(value, currency: currency), "#{quantity(on_hand)} #{unit} on hand" ] } %>
+<% end %>
+
+<div style="height:32px;"></div>
+<%= mail_button "Open the dashboard", root_url(**host) %>
+<p style="margin:14px 0 0; font-size:13px;">
+  <%= link_to "Sales report", report_url("sales", **host, from: s.starts_on, to: s.ends_on), style: "color:#{mail_color(:bar)}; font-weight:600;" %> ·
+  <%= link_to "Who owes us", receivables_url(**host), style: "color:#{mail_color(:bar)}; font-weight:600;" %> ·
+  <%= link_to "What we owe", payables_url(**host), style: "color:#{mail_color(:bar)}; font-weight:600;" %> ·
+  <%= link_to "Dead stock", report_url("dead_stock", **host), style: "color:#{mail_color(:bar)}; font-weight:600;" %>
+</p>
+<p style="margin:24px 0 0; color:<%= mail_color(:muted) %>; font-size:12px;">You get this because the weekly summary is on under My profile, where you can turn it off.</p>

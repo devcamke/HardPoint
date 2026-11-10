@@ -1,11 +1,28 @@
-<% currency = @account.currency %><% change = @dashboard.change_on_last_week_percent %>
+<% s = @summary %><% currency = s.currency %><% change = s.change_on_last_week_percent %><% host = { subdomain: @account.subdomain } %>
 <%= @account.name %> on <%= @date.strftime("%A %-d %B %Y") %>
 
-Takings: <%= money(@totals[:takings], currency: currency) %><%= " (#{change.positive? ? "+" : ""}#{change}% on the same day last week)" if change %>
-Sales: <%= @totals[:receipts] %>, average <%= money(@dashboard.average_sale_cents, currency: currency) %>
-Gross margin: <%= money(@totals[:margin], currency: currency) %><%= " (#{@totals[:margin_percent].round(1)}%)" if @totals[:margin_percent] %>
+Takings: <%= money(s.totals[:takings], currency: currency) %><%= " (#{change.abs}% #{change.negative? ? "down" : "up"} on last #{@date.strftime("%A")})" if change %>
+Sales: <%= s.totals[:receipts] %>, average <%= money(s.average_sale_cents, currency: currency) %>
+Gross margin: <%= money(s.totals[:margin], currency: currency) %><%= " (#{s.totals[:margin_percent].round(1)}%)" if s.totals[:margin_percent] %>
 
 Best sellers:
-<% @dashboard.top_products.each do |top| %>- <%= top[:product].record.name %>: <%= quantity(top[:quantity]) %>, <%= money(top[:takings], currency: currency) %>
+<% s.top_products.each do |top| %>- <%= top[:product].record.name %>: <%= quantity(top[:quantity]) %>, <%= money(top[:takings], currency: currency) %>
 <% end %>
-Dashboard: <%= root_url(subdomain: @account.subdomain) %>
+How it was paid:
+<% s.payments.each do |label, cents| %>- <%= label %>: <%= money(cents, currency: currency) %>
+<% end %><% if s.stock_worth_a_look? %>
+STOCK
+<% s.out_of_stock.each do |out| %>- <%= pluralize(out.count, "product") %> at zero at <%= out.branch.name %>: <%= out.products.map(&:name).to_sentence %>
+<% end %><% s.refusals.first(OwnerSummary::Daily::LIST_LIMIT).each do |refusal| %>- Turned away: <%= refusal.product.name %>, <%= pluralize(refusal.times, "time") %> (<%= quantity(refusal.quantity, refusal.product.unit) %> wanted)
+<% end %><% s.write_offs.each do |off| %>- Written off (<%= off.reason.humanize.downcase %>): <%= money(off.value_cents, currency: currency) %>
+<% end %><% if s.below_zero_count.positive? %>- <%= pluralize(s.below_zero_count, "stock level") %> below zero
+<% end %><% end %><% if s.money_worth_a_look? %>
+MONEY AND STAFF
+<% s.shifts.reject { _1.variance_cents.zero? }.each do |shift| %>- <%= shift.name %> (<%= shift.cashier %>): <%= shift.variance_cents.negative? ? "short" : "over" %> <%= money(shift.variance_cents.abs, currency: currency) %>
+<% end %><% s.cashiers.each do |cashier| %>- <%= cashier.name %> gave away <%= money(cashier.given_away_cents, currency: currency) %> in discounts, voids and returns
+<% end %><% if s.below_cost.any? %>- <%= pluralize(s.below_cost.size, "line") %> sold below cost, <%= money(s.below_cost.sum(&:loss_cents), currency: currency) %> under
+<% end %><% if s.offline_flags.any? %>- <%= pluralize(s.offline_flags.size, "offline sale") %> to check
+<% end %><% s.shifts_left_open.each do |shift| %>- <%= shift.register.name %> open since <%= shift.opened_at.strftime("%A %-d %B") %>
+<% end %><% if s.unmatched_mobile_money[:count].positive? %>- <%= pluralize(s.unmatched_mobile_money[:count], "M-Pesa payment") %> not on a sale
+<% end %><% end %>
+Dashboard: <%= root_url(**host) %>

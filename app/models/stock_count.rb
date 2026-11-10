@@ -42,6 +42,8 @@ class StockCount < ApplicationRecord
 
       update! status: :approved, approver: user, approved_at: Time.current
       track_event "approved", adjusted_lines: lines.counted.with_variance.count
+      account.alert_owners(:count_loss, self, by: user) if -variance_value_cents > account.alert_count_loss_above_cents
+      true
     end
   end
 

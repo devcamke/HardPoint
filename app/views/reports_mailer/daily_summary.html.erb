@@ -1,57 +1,141 @@
-<% currency = @account.currency %>
-<% change = @dashboard.change_on_last_week_percent %>
-<p style="margin-top:0;">Good morning. Here's how <strong><%= @account.name %></strong> did on <%= @date.strftime("%A %-d %B %Y") %>.</p>
+<% s = @summary %>
+<% currency = s.currency %>
+<% host = { subdomain: @account.subdomain } %>
+<% looks = [ s.stock_worth_a_look?, s.money_worth_a_look? ].count(true) %>
+<% content_for :preheader, "#{money(s.totals[:takings], currency: currency)} from #{pluralize(s.totals[:receipts], "sale")}" \
+     "#{" · #{s.change_on_last_week_percent.abs}% #{s.change_on_last_week_percent.negative? ? "down" : "up"} on last #{@date.strftime("%A")}" if s.change_on_last_week_percent}" %>
 
-<table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="border-collapse:collapse; font-size:14px;">
-  <tr>
-    <td style="background:#F9FAFB;"><div style="color:#6B7280;">Takings</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= money(@totals[:takings], currency: currency) %></div>
-      <% if change %><div style="color:<%= change.negative? ? "#B91C1C" : "#15803D" %>;"><%= change.positive? ? "+" : "" %><%= change %>% on the same day last week</div><% end %></td>
-    <td style="background:#F9FAFB;"><div style="color:#6B7280;">Sales</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= @totals[:receipts] %></div>
-      <div style="color:#6B7280;">average <%= money(@dashboard.average_sale_cents, currency: currency) %></div></td>
-    <td style="background:#F9FAFB;"><div style="color:#6B7280;">Gross margin</div><div style="font-size:20px; font-weight:700; white-space:nowrap;"><%= money(@totals[:margin], currency: currency) %></div>
-      <div style="color:#6B7280;"><%= @totals[:margin_percent] ? "#{@totals[:margin_percent].round(1)}% of sales ex tax" : "" %></div></td>
-  </tr>
-</table>
+<p style="margin:0; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:<%= mail_color(:bar) %>;"><%= @date.strftime("%A %-d %B %Y") %></p>
+<h1 style="margin:4px 0 20px; font-size:22px; line-height:1.3; color:<%= mail_color(:ink) %>;">Good morning. Here's how <%= @account.name %> did.</h1>
 
-<% if (branches = @dashboard.takings_by_branch).size > 1 %>
-  <h3 style="margin:20px 0 8px; font-size:16px;">By branch</h3>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
-    <% branches.each do |name, takings| %>
-      <tr style="border-top:1px solid #E7E5E0;"><td><%= name %></td><td style="text-align:right;"><%= money(takings, currency: currency) %></td></tr>
-    <% end %>
-  </table>
+<p style="margin:0; font-size:13px; color:<%= mail_color(:muted) %>;">Takings</p>
+<p style="margin:0; font-size:34px; line-height:1.15; font-weight:800; color:<%= mail_color(:ink) %>; letter-spacing:-.02em;"><%= money(s.totals[:takings], currency: currency) %></p>
+<% if (change = mail_change(s.change_on_last_week_percent, "last #{@date.strftime("%A")}")) %>
+  <p style="margin:2px 0 0; font-size:13px; color:<%= mail_color(:secondary) %>;"><%= change %></p>
 <% end %>
 
-<h3 style="margin:20px 0 8px; font-size:16px;">Best sellers</h3>
-<table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
-  <% @dashboard.top_products.each do |top| %>
-    <tr style="border-top:1px solid #E7E5E0;"><td><%= top[:product].record.name %></td><td style="text-align:right;"><%= quantity(top[:quantity]) %></td>
-      <td style="text-align:right;"><%= money(top[:takings], currency: currency) %></td></tr>
-  <% end %>
-</table>
+<div style="height:16px;"></div>
+<%= mail_tiles([
+      [ "Sales", s.totals[:receipts].to_s, "#{money(s.average_sale_cents, currency: currency)} each on average" ],
+      [ "Gross margin", money(s.totals[:margin], currency: currency), s.totals[:margin_percent] ? "#{s.totals[:margin_percent].round(1)}% of sales ex tax" : nil ],
+      [ "Busiest hour", (busiest = s.takings_by_hour.max_by(&:last)) ? mail_hour(busiest.first) : "—", busiest ? money(busiest.last, currency: currency) : nil ]
+    ]) %>
 
-<h3 style="margin:20px 0 8px; font-size:16px;">How it was paid</h3>
-<table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
-  <% Report::Payments::TENDER_LABELS.values.each do |label| %>
-    <% next if @payments[label].to_i.zero? %>
-    <tr style="border-top:1px solid #E7E5E0;"><td><%= label %></td><td style="text-align:right;"><%= money(@payments[label], currency: currency) %></td></tr>
-  <% end %>
-  <% if @payments["Refunds"].to_i.nonzero? %><tr style="border-top:1px solid #E7E5E0;"><td>Refunds</td><td style="text-align:right;"><%= money(@payments["Refunds"], currency: currency) %></td></tr><% end %>
-</table>
-
-<% if @shifts.any? || @voids.positive? %>
-  <h3 style="margin:20px 0 8px; font-size:16px;">Tills</h3>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="6" style="border-collapse:collapse; font-size:14px;">
-    <% @shifts.each do |shift, opened_by, *, variance| %>
-      <tr style="border-top:1px solid #E7E5E0;"><td><%= shift.to_s %> (<%= opened_by %>)</td>
-        <td style="text-align:right;<%= " color:#B91C1C;" if variance.to_i.negative? %>"><%= variance.to_i.zero? ? "Balanced" : "#{variance.negative? ? "Short" : "Over"} #{money(variance.abs, currency: currency)}" %></td></tr>
-    <% end %>
-    <% if @voids.positive? %><tr style="border-top:1px solid #E7E5E0;"><td>Voided sales</td><td style="text-align:right;"><%= @voids %></td></tr><% end %>
-  </table>
+<% if (hours = s.takings_by_hour).any? %>
+  <% busiest = hours.max_by(&:last) %>
+  <%= mail_section "Through the day", "Takings each hour; the busiest in dark." %>
+  <%= mail_column_chart hours.map { |hour, cents| [ mail_hour(hour), cents ] }, highlight: mail_hour(busiest.first),
+        format: ->(cents) { mail_short_money(cents) }, label_every: hours.size > 12 ? 2 : 1 %>
 <% end %>
 
-<p style="margin-top:24px;">
-  <%= link_to "Open the dashboard", root_url(subdomain: @account.subdomain), style: "color:#0D505E; font-weight:600;" %> ·
-  <%= link_to "Sales report", report_url("sales", subdomain: @account.subdomain, from: @date, to: @date), style: "color:#0D505E; font-weight:600;" %>
+<% days = s.last_seven_days.map { |day, cents| [ day.to_date.strftime("%a"), cents ] } %>
+<%= mail_section "The last seven days", "#{@date.strftime("%A")} in dark." %>
+<%= mail_column_chart days, highlight: @date.strftime("%a"), format: ->(cents) { mail_short_money(cents) }, height: 90 %>
+
+<% if (branches = s.takings_by_branch).size > 1 %>
+  <%= mail_section "By branch" %>
+  <%= mail_bar_rows branches.sort_by { -_2 }.map { |name, cents| [ name, cents, money(cents, currency: currency) ] } %>
+<% end %>
+
+<% if s.payments.any? %>
+  <% paid = s.payments.values.sum.to_f %>
+  <%= mail_section "How it was paid", (s.refunds_cents.positive? ? "#{money(s.refunds_cents, currency: currency)} went back in refunds." : nil) %>
+  <%= mail_bar_rows s.payments.sort_by { -_2 }.map { |label, cents| [ label, cents, money(cents, currency: currency), "#{(cents / paid * 100).round}%" ] }, label_width: 30 %>
+<% end %>
+
+<% if (sellers = s.top_products).any? %>
+  <%= mail_section "Best sellers" %>
+  <%= mail_bar_rows sellers.map { |top| [ top[:product].record.name, top[:takings], money(top[:takings], currency: currency), quantity(top[:quantity]) + " sold" ] } %>
+<% end %>
+
+<h2 style="margin:40px 0 2px; font-size:20px; color:<%= mail_color(:ink) %>;">Worth a look</h2>
+<% if looks.zero? %>
+  <p style="margin:6px 0 0; font-size:14px;"><%= mail_status :good, "Nothing to chase: every till balanced, nothing given away, nothing out of stock." %></p>
+<% end %>
+
+<% if s.stock_worth_a_look? %>
+  <%= mail_section "Stock" %>
+
+  <% s.out_of_stock.each do |out| %>
+    <%= mail_callout do %>
+      <strong><%= pluralize(out.count, "product") %> at zero at <%= out.branch.name %></strong>, so the till can't sell <%= out.count == 1 ? "it" : "them" %>.
+      <span style="color:<%= mail_color(:secondary) %>;"><%= out.products.map(&:name).to_sentence %><%= " and #{out.count - out.products.size} more" if out.count > out.products.size %>.</span>
+    <% end %>
+    <div style="height:8px;"></div>
+  <% end %>
+
+  <% if s.refusals.any? %>
+    <p style="margin:14px 0 4px; font-size:14px; font-weight:600;">Turned away at the till</p>
+    <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">Customers asked for these and there were none on the shelf.</p>
+    <%= mail_bar_rows s.refusals.first(OwnerSummary::Daily::LIST_LIMIT).map { |refusal|
+          [ refusal.product.name, refusal.times, pluralize(refusal.times, "time"), "#{quantity(refusal.quantity, refusal.product.unit)} wanted" ] } %>
+  <% end %>
+
+  <% if s.write_offs.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Written off, at cost</p>
+    <%= mail_bar_rows s.write_offs.map { |off|
+          [ off.reason.humanize, off.value_cents, money(off.value_cents, currency: currency),
+            "#{pluralize(off.lines.size, "item")} · #{off.lines.filter_map { _1.creator&.name }.uniq.to_sentence.presence || "the system"}" ] } %>
+  <% end %>
+
+  <% if s.below_zero_count.positive? %>
+    <p style="margin:14px 0 0; font-size:13px;"><%= mail_status :warning, "#{pluralize(s.below_zero_count, "stock level")} below zero, from offline sales. Record the delivery or adjust the stock." %>
+      <%= link_to "See them", products_url(**host, below_zero: 1), style: "color:#{mail_color(:bar)}; font-weight:600;" %></p>
+  <% end %>
+<% end %>
+
+<% if s.money_worth_a_look? %>
+  <%= mail_section "Money and staff" %>
+
+  <% if (off = s.shifts.reject { _1.variance_cents.zero? }).any? %>
+    <p style="margin:0 0 6px; font-size:14px; font-weight:600;">Cash counts that didn't balance</p>
+    <%= mail_list [ "Till", "Cashier", "Count" ], off.map { |shift|
+          tone, word = shift.variance_cents.negative? ? [ :critical, "Short" ] : [ :warning, "Over" ]
+          [ shift.name, shift.cashier, mail_status(tone, "#{word} #{money(shift.variance_cents.abs, currency: currency)}") ] },
+          align: [ :left, :left, :right ] %>
+    <% if (balanced = s.shifts.size - off.size).positive? %>
+      <p style="margin:6px 0 0; font-size:13px; color:<%= mail_color(:secondary) %>;"><%= mail_status :good, "#{pluralize(balanced, "other shift")} balanced." %></p>
+    <% end %>
+  <% end %>
+
+  <% if s.cashiers.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Given away, by cashier</p>
+    <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">Discounts, voids and returns together.</p>
+    <%= mail_bar_rows s.cashiers.map { |cashier|
+          parts = [ (money(cashier.discount_cents, currency: currency) + " discounts" if cashier.discount_cents.positive?),
+                    (pluralize(cashier.voids, "void") if cashier.voids.positive?), (pluralize(cashier.returns, "return") if cashier.returns.positive?) ].compact
+          [ cashier.name, cashier.given_away_cents, money(cashier.given_away_cents, currency: currency), "#{parts.join(" · ")} on #{pluralize(cashier.sales, "sale")}" ] } %>
+  <% end %>
+
+  <% if s.below_cost.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Sold for less than it cost</p>
+    <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;"><%= pluralize(s.below_cost.size, "line") %>, <%= money(s.below_cost.sum(&:loss_cents), currency: currency) %> under cost before tax.</p>
+    <%= mail_list [ "Receipt", "Product", "Sold", "Cost" ], s.below_cost.first(5).map { |line|
+          [ link_to(line.sale.receipt_number, sale_url(line.sale, **host), style: "color:#{mail_color(:bar)};"), line.product_name,
+            money(line.sold_cents, currency: currency), money(line.cost_cents, currency: currency) ] }, align: [ :left, :left, :right, :right ] %>
+  <% end %>
+
+  <% if s.offline_flags.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Offline sales to check</p>
+    <%= mail_list [ "Receipt", "What the till noticed" ], s.offline_flags.first(5).map { [ _1.receipt_number, _1.warnings.first(2).join("; ") ] } %>
+  <% end %>
+
+  <% if s.shifts_left_open.any? || s.unmatched_mobile_money[:count].positive? %>
+    <div style="height:14px;"></div>
+    <% s.shifts_left_open.each do |shift| %>
+      <p style="margin:4px 0; font-size:13px;"><%= mail_status :warning, "#{shift.register.name} has been open since #{shift.opened_at.strftime("%A %-d %B")} (#{shift.opened_by.name}): its cash isn't counted yet." %></p>
+    <% end %>
+    <% if (mpesa = s.unmatched_mobile_money)[:count].positive? %>
+      <p style="margin:4px 0; font-size:13px;"><%= mail_status :warning, "#{pluralize(mpesa[:count], "M-Pesa payment")} (#{money(mpesa[:cents], currency: currency)}) came in without a sale or account to go on." %></p>
+    <% end %>
+  <% end %>
+<% end %>
+
+<div style="height:32px;"></div>
+<%= mail_button "Open the dashboard", root_url(**host) %>
+<p style="margin:14px 0 0; font-size:13px;">
+  <%= link_to "Sales report", report_url("sales", **host, from: @date, to: @date), style: "color:#{mail_color(:bar)}; font-weight:600;" %> ·
+  <%= link_to "Discounts and voids", report_url("discounts_and_voids", **host, from: @date, to: @date), style: "color:#{mail_color(:bar)}; font-weight:600;" %> ·
+  <%= link_to "Reorder list", reorder_list_url(**host), style: "color:#{mail_color(:bar)}; font-weight:600;" %>
 </p>
-<p style="color:#6B7280; font-size:12px;">Don't want this email? Turn it off under My profile.</p>
+<p style="margin:24px 0 0; color:<%= mail_color(:muted) %>; font-size:12px;">You get this because the daily summary is on under My profile, where you can turn it off.</p>

@@ -44,6 +44,8 @@ module Sale::Voidable
       customer_order&.reopen(self)
       track_event "voided", creator: by, reason: reason, approver: approver, total: total_cents,
         refund_method: void_refund_method, refund_reference: void_refund_reference
+      account.alert_owners(:large_void, self, by: by) if total_cents > account.alert_void_above_cents
+      true
     end
   end
 

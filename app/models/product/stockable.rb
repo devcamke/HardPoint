@@ -6,6 +6,7 @@ module Product::Stockable
   included do
     has_many :stock_levels, dependent: :destroy
     has_many :stock_movements, dependent: :restrict_with_error
+    has_many :stock_refusals, dependent: :delete_all
     has_many :stock_batches, dependent: :restrict_with_error
 
     # Products at or below their reorder level at a branch: the branch's own level where it has set
@@ -17,6 +18,14 @@ module Product::Stockable
         .where("#{BRANCH_REORDER_LEVEL} > 0")
         .where("stock_levels.id IS NOT NULL OR NOT EXISTS (SELECT 1 FROM stock_levels carried WHERE carried.product_id = products.id)")
         .where("COALESCE(stock_levels.quantity, 0) <= #{BRANCH_REORDER_LEVEL}")
+    end
+
+    # At nothing (or less) where the branch carries it, with no reorder level to put it on the reorder list: it would
+    # otherwise run out unnoticed, and the till can't sell it.
+    scope :out_of_stock_unwatched_at, ->(branch) do
+      where(track_stock: true, kit: false)
+        .joins(sanitize_sql_array([ "JOIN stock_levels ON stock_levels.product_id = products.id AND stock_levels.branch_id = ?", branch&.id ]))
+        .where("stock_levels.quantity <= 0").where("#{BRANCH_REORDER_LEVEL} <= 0")
     end
 
     # For lists of what's low, after below_reorder_level_at: the branch's quantity and reorder level

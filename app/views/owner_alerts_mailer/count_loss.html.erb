@@ -1,0 +1,23 @@
+<% currency = @account.currency %>
+<% host = { subdomain: @account.subdomain } %>
+<% loss = -@count.variance_value_cents %>
+<% lines = @count.lines.counted.with_variance.includes(product: :unit).to_a %>
+<% losses = lines.map { [ _1, ((_1.expected_quantity - _1.counted_quantity) * _1.product.cost_cents).round ] }.select { _2.positive? }.sort_by { -_2 } %>
+<% content_for :preheader, "#{@count.name}: #{pluralize(lines.size, "product")} counted differently, approved by #{@count.approver&.name}" %>
+<%= render "owner_alerts_mailer/hero", eyebrow: "Stock count short", headline: "A stock count at #{@count.branch.name} found less on the shelf than the books say.",
+      figure: money(loss, currency: currency), note: "less at cost, across #{pluralize(lines.size, "product")} counted differently" %>
+
+<%= render "owner_alerts_mailer/details", rows: [
+      [ "Count", link_to(@count.name, stock_count_url(@count, **host), style: "color:#{mail_color(:bar)};") ],
+      [ "Started by", @count.creator&.name ],
+      [ "Approved by", "#{@count.approver&.name}, #{@count.approved_at.strftime("%-l:%M %p %a %-d %b")}" ]
+    ] %>
+
+<% if losses.any? %>
+  <%= mail_section "The biggest gaps", "At cost; the stock has been corrected to what was counted." %>
+  <%= mail_bar_rows losses.first(8).map { |line, cents|
+        [ line.product.name, cents, money(cents, currency: currency),
+          "#{quantity(line.expected_quantity, line.product.unit)} expected, #{quantity(line.counted_quantity, line.product.unit)} counted" ] } %>
+<% end %>
+
+<%= render "owner_alerts_mailer/footer", button: "Open the count", url: stock_count_url(@count, **host), threshold: "#{money(@account.alert_count_loss_above_cents, currency: currency)} limit" %>

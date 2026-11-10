@@ -6,6 +6,7 @@ class Branch < ApplicationRecord
   belongs_to :account, default: -> { Current.account }
   has_many :registers, dependent: :restrict_with_error
   has_many :sales, dependent: :restrict_with_error
+  has_many :stock_refusals, dependent: :delete_all
 
   validates :name, presence: true, uniqueness: { scope: :account_id }
   validates :code, format: { with: /\A[A-Z0-9]{1,6}\z/, message: "must be 1 to 6 letters or numbers" }

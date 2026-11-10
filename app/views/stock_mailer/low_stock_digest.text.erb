@@ -1,10 +1,9 @@
-Good morning. These products at <%= @account.name %> are at or below their reorder level.
-<% @low_stock.each do |branch, products| %>
+Good morning. These products at <%= @account.name %> are running low. Anything at zero can't be sold at the till.
+<% @account.branches.alphabetically.each do |branch| %><% low, out = @low_stock[branch].to_a, @out_of_stock[branch].to_a %><% next if low.empty? && out.empty? %>
 
 <%= branch.name %>
-<% products.each do |product| %>
-- <%= product.name %> (<%= product.sku %>): <%= quantity(product.stock_quantity, product.unit) %> on hand, reorder at <%= quantity(product.branch_reorder_level, product.unit) %>
-<% end %>
-<% end %>
+<% low.each do |product| %>- <%= product.name %> (<%= product.sku %>): <%= quantity(product.stock_quantity, product.unit) %> on hand, reorder at <%= quantity(product.branch_reorder_level, product.unit) %>
+<% end %><% if out.any? %>Out of stock with no reorder level: <%= out.map(&:name).to_sentence %>
+<% end %><% end %>
 
 Reorder list: <%= reorder_list_url(subdomain: @account.subdomain) %>

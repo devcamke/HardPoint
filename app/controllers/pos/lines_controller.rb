@@ -19,7 +19,8 @@ class Pos::LinesController < ApplicationController
     line.assign_attributes(line_params)
     line.reprice if line.quantity_changed? || line.product_unit_id_changed?
     if takes_more_stock?(line) && (shortage = @sale.stock_shortfall(@sale.lines.map { _1.id == line.id ? line : _1 }, only: line))
-      return render_cart alert: shortage, status: :unprocessable_entity
+      shortage.record
+      return render_cart alert: shortage.message, status: :unprocessable_entity
     end
 
     SaleLine.transaction do

@@ -1,21 +1,26 @@
+# The owner's regular emails: yesterday's figures each morning, and the week just gone each Monday.
 class ReportsMailer < ApplicationMailer
-  helper CatalogueHelper
+  helper CatalogueHelper, MailChartsHelper
 
   def daily_summary
     @account = params[:account]
     @date = params[:date]
 
     Time.use_zone(@account.time_zone) do
-      @dashboard = Dashboard.new(@account, date: @date)
-      @totals = @dashboard.totals
-      # The report's own columns, by label: which methods it shows depends on the shop (foreign cash, Airtel Money…).
-      payments = Report::Payments.new(account: @account, period: Report::Period.new(from: @date, to: @date)).sections.first
-      @payments = payments.columns.map(&:label).zip(payments.totals).to_h
-      @shifts = Report::Shifts.new(account: @account, period: Report::Period.new(from: @date, to: @date)).sections.first.rows
-      @voids = @account.sales.voided.where(voided_at: @date.all_day).count
-
+      @summary = OwnerSummary::Daily.new(@account, @date)
       mail to: @account.daily_summary_recipients,
-        subject: "#{@account.name}: #{Money.format(@totals[:takings], currency: @account.currency)} taken on #{@date.strftime("%A %-d %B")}"
+        subject: "#{@account.name}: #{Money.format(@summary.totals[:takings], currency: @account.currency)} taken on #{@date.strftime("%A %-d %B")}"
+    end
+  end
+
+  def weekly_summary
+    @account = params[:account]
+    @ends_on = params[:ends_on]
+
+    Time.use_zone(@account.time_zone) do
+      @summary = OwnerSummary::Weekly.new(@account, @ends_on)
+      mail to: @account.weekly_summary_recipients,
+        subject: "#{@account.name}: your week to #{@ends_on.strftime("%A %-d %B")}, #{Money.format(@summary.totals[:takings], currency: @account.currency)} taken"
     end
   end
 end

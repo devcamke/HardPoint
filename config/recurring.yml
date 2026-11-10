@@ -24,6 +24,11 @@ production:
     class: DailySummaryJob
     schedule: every day at 4:15am
 
+  # The week just gone (Monday to Sunday), on Monday after the daily summary.
+  weekly_summary:
+    class: WeeklySummaryJob
+    schedule: every monday at 4:30am
+
   # The platform's own checks (database, workers, stuck or failed jobs, eTIMS queues, backups, disk), alerting
   # the operators when one fails (docs/RUNBOOK.md, "Alerts").
   platform_health:

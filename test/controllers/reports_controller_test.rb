@@ -54,12 +54,19 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "turning the daily summary off and on" do
+  test "turning each of the owner's emails off and on" do
     sign_in_as users(:amina)
+    get my_profile_path
+    assert_select "form[action='#{my_emails_path}'] input[name=email]", 3
 
-    patch my_daily_summary_path, params: { daily_summary: "false" }
-    assert_not Account.without_isolation { memberships(:amina_acme).reload.daily_summary? }
-    patch my_daily_summary_path, params: { daily_summary: "true" }
-    assert Account.without_isolation { memberships(:amina_acme).reload.daily_summary? }
+    %w[ daily_summary weekly_summary alert_emails ].each do |email|
+      patch my_emails_path, params: { email: email, on: "false" }
+      assert_not Account.without_isolation { memberships(:amina_acme).reload.public_send(email) }
+      patch my_emails_path, params: { email: email, on: "true" }
+      assert Account.without_isolation { memberships(:amina_acme).reload.public_send(email) }
+    end
+
+    patch my_emails_path, params: { email: "role", on: "true" }
+    assert_response :unprocessable_entity
   end
 end
