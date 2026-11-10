@@ -1,62 +1,54 @@
 <% content_for :title, "Settings" %>
+<% sections = settings_sections %>
 
-<h1 class="mb-4 text-xl font-medium">Settings</h1>
+<div data-controller="settings-filter">
+  <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-xl font-medium">Settings</h1>
+      <p class="hint mt-1">Make HardPoint work the way <%= Current.account.name %> does. Each card shows how it's set now.</p>
+    </div>
+    <label class="relative w-full sm:w-80">
+      <span class="sr-only">Find a setting</span>
+      <svg class="pointer-events-none absolute top-1/2 left-1 size-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Find a setting: logo, M-Pesa…" autocomplete="off" class="input" style="padding-left: 1.75rem"
+             data-settings-filter-target="query" data-action="input->settings-filter#filter keydown->settings-filter#keydown">
+    </label>
+  </div>
 
-<% sections = {
-     "Shop" => [
-       ([ "Shop details", edit_account_path, "Name, time zone, currency, two-factor rule" ] if current_membership.can_manage_account?),
-       ([ "Appearance", edit_appearance_path, "Your colours, your logo, and how receipts look" ] if current_membership.can_manage_account?),
-       ([ "Shop preferences", edit_preferences_path, "Quotes, payment buttons at the till, stock warnings, what quotes and invoices say" ] if current_membership.can_manage_account?),
-       ([ "Billing", billing_path, "Your HardPoint plan, invoices and payments" ] if current_membership.can_manage_account?),
-       ([ "Features", features_path, "Switch on only what your shop uses" ] if current_membership.can_manage_account?),
-       ([ "Set up your shop", onboarding_path, "The first-day checklist" ] if current_membership.can_manage_account?),
-       ([ "Your data", account_data_path, "Backups, export everything, or close the account" ] if current_membership.owner?),
-       ([ "Online store", edit_storefront_path, "Sell online for collection at your branches" ] if current_membership.can_manage_account? && Current.account.feature?(:online_store)),
-       ([ "Developers", developers_path, "API keys and webhooks for web shops and other apps" ] if current_membership.can_manage_account? && Current.account.feature?(:developers)),
-       [ "Branches", branches_path, "Your locations" ],
-       [ "Tills", registers_path, "Points of sale in each branch" ]
-     ].compact,
-     "People" => ([
-       [ "Staff", memberships_path, "Who can sign in, their roles and till PINs" ],
-       [ "Activity", events_path, "Who did what, and when" ]
-     ] if current_membership.can_manage_staff?).to_a,
-     "Payments and tax" => ([
-       [ "M-Pesa", mpesa_shortcodes_path, "Paybill or Till: prompts to pay from the till, payments received" ],
-       [ "Airtel Money", airtel_merchants_path, "Prompts to pay with Airtel Money from the till" ],
-       [ "KRA eTIMS", etims_devices_path, "Send sales to KRA and print signed receipts" ],
-       [ "SMS", edit_account_path(anchor: "sms"), "Text receipts, order updates and balance reminders" ]
-     ] if current_membership.can_manage_account?).to_a + ([
-       ([ "Currencies", currencies_path, "Dollars and shillings at the till, suppliers who invoice in them, and today's rates" ] if Current.account.feature?(:currencies))
-     ].compact if current_membership.approver?).to_a,
-     "Catalogue" => [
-       [ "Categories", categories_path, "Group products, e.g. Plumbing › Pipes" ],
-       [ "Brands", brands_path, "Makers and suppliers' brands" ],
-       [ "Units", units_path, "Piece, bag, kilogram, metre…" ],
-       [ "Tax rates", tax_rates_path, "VAT and other rates" ],
-       [ "Price lists", price_lists_path, "Contractor and wholesale prices" ],
-       ([ "Import products", product_imports_path, "Load or update products from a spreadsheet" ] if current_membership.can_manage_catalogue?)
-     ].compact
-   } %>
+  <div class="flex gap-8">
+    <nav class="sticky top-16 hidden w-48 shrink-0 self-start text-sm lg:block" aria-label="Settings sections" data-tour="settings-index">
+      <% sections.each do |heading, cards| %>
+        <a href="#<%= heading.parameterize %>" class="flex items-center justify-between gap-3 rounded px-3 py-1.5 text-gray-700 hover:bg-gray-100">
+          <%= heading %><span class="text-xs text-gray-400 tabular-nums"><%= cards.size %></span>
+        </a>
+      <% end %>
+    </nav>
 
-<div class="flex gap-6">
-  <nav class="sticky top-16 hidden w-48 shrink-0 self-start text-sm lg:block" data-tour="settings-index">
-    <% sections.compact_blank.each_key do |heading| %>
-      <a href="#<%= heading.parameterize %>" class="block rounded px-3 py-1.5 text-gray-700 hover:bg-gray-100"><%= heading %></a>
-    <% end %>
-  </nav>
-  <div class="min-w-0 flex-1 space-y-4">
-    <% sections.compact_blank.each do |heading, links| %>
-      <section id="<%= heading.parameterize %>" class="scroll-mt-16 rounded border border-gray-200 bg-white" data-tour="settings-<%= heading.parameterize %>">
-        <h2 class="border-b border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-800"><%= heading %></h2>
-        <div class="grid sm:grid-cols-2">
-          <% links.each do |name, path, description| %>
-            <%= link_to path, class: "block border-b border-gray-100 px-4 py-3 hover:bg-gray-50" do %>
-              <p class="font-medium text-gray-900"><%= name %></p>
-              <p class="hint"><%= description %></p>
+    <div class="min-w-0 flex-1 space-y-8">
+      <% sections.each do |heading, cards| %>
+        <% key = { "Your shop" => "shop" }.fetch(heading, heading.parameterize) %>
+        <section id="<%= heading.parameterize %>" class="scroll-mt-16" data-settings-filter-target="section" data-tour="settings-<%= key %>">
+          <h2 class="mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase"><%= heading %></h2>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <% cards.each do |card| %>
+              <%= link_to card.path, class: "group flex gap-3 rounded-lg border border-gray-200 bg-white p-4 transition hover:border-primary-300 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-primary-500",
+                    data: { settings_filter_target: "card", search: [ card.name, card.description, card.keywords, heading ].join(" ").downcase } do %>
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 group-hover:bg-primary-100">
+                  <%= settings_icon card.icon, class: "size-5" %>
+                </span>
+                <span class="min-w-0">
+                  <span class="block font-medium text-gray-900"><%= card.name %></span>
+                  <span class="mt-0.5 block text-sm text-gray-600"><%= card.description %></span>
+                  <% if card.status.present? %><span class="mt-2 block text-sm text-gray-500"><%= card.status %></span><% end %>
+                </span>
+              <% end %>
             <% end %>
-          <% end %>
-        </div>
-      </section>
-    <% end %>
+          </div>
+        </section>
+      <% end %>
+      <p hidden class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-gray-500" data-settings-filter-target="empty">
+        No setting matches that. Try another word, or see the <%= link_to "help on settings", help_article_url("shop-settings", subdomain: false), class: "link" %>.
+      </p>
+    </div>
   </div>
 </div>
