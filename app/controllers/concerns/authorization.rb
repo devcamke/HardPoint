@@ -21,6 +21,14 @@ module Authorization
       current_membership&.bound_to_branch? ? relation.where(column => current_membership.branch_id) : relation
     end
 
+    # Stock transfers that touch a branch the member may see, at either end.
+    def visible_transfers
+      transfers = Current.account.stock_transfers
+      return transfers unless current_membership&.bound_to_branch?
+
+      transfers.where(from_branch_id: current_membership.branch_id).or(transfers.where(to_branch_id: current_membership.branch_id))
+    end
+
     def ensure_can_manage_account
       head :forbidden unless current_membership&.can_manage_account?
     end

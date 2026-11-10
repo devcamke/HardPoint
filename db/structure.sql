@@ -307,6 +307,42 @@ ALTER SEQUENCE public.active_storage_variant_records_id_seq OWNED BY public.acti
 
 
 --
+-- Name: admin_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.admin_events (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    action character varying NOT NULL,
+    target_account_id bigint,
+    particulars jsonb DEFAULT '{}'::jsonb NOT NULL,
+    ip_address character varying,
+    token_id character varying,
+    token_used_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: admin_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.admin_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: admin_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.admin_events_id_seq OWNED BY public.admin_events.id;
+
+
+--
 -- Name: admin_sessions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3369,7 +3405,9 @@ CREATE TABLE public.users (
     two_factor_enabled_at timestamp(6) without time zone,
     two_factor_last_used_at bigint,
     admin boolean DEFAULT false NOT NULL,
-    email_confirmed_at timestamp(6) without time zone
+    email_confirmed_at timestamp(6) without time zone,
+    failed_two_factor_attempts integer DEFAULT 0 NOT NULL,
+    two_factor_locked_until timestamp(6) without time zone
 );
 
 
@@ -3525,6 +3563,13 @@ ALTER TABLE ONLY public.active_storage_blobs ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAULT nextval('public.active_storage_variant_records_id_seq'::regclass);
+
+
+--
+-- Name: admin_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_events ALTER COLUMN id SET DEFAULT nextval('public.admin_events_id_seq'::regclass);
 
 
 --
@@ -4120,6 +4165,14 @@ ALTER TABLE ONLY public.active_storage_blobs
 
 ALTER TABLE ONLY public.active_storage_variant_records
     ADD CONSTRAINT active_storage_variant_records_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: admin_events admin_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_events
+    ADD CONSTRAINT admin_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -4871,6 +4924,27 @@ CREATE UNIQUE INDEX index_active_storage_blobs_on_key ON public.active_storage_b
 --
 
 CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.active_storage_variant_records USING btree (blob_id, variation_digest);
+
+
+--
+-- Name: index_admin_events_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_admin_events_on_created_at ON public.admin_events USING btree (created_at);
+
+
+--
+-- Name: index_admin_events_on_token_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_admin_events_on_token_id ON public.admin_events USING btree (token_id);
+
+
+--
+-- Name: index_admin_events_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_admin_events_on_user_id ON public.admin_events USING btree (user_id);
 
 
 --
@@ -7979,6 +8053,14 @@ ALTER TABLE ONLY public.goods_receipt_lines
 
 
 --
+-- Name: admin_events fk_rails_a03078d0bb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_events
+    ADD CONSTRAINT fk_rails_a03078d0bb FOREIGN KEY (user_id) REFERENCES public.users(id) DEFERRABLE;
+
+
+--
 -- Name: units fk_rails_a04853fc0a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9664,6 +9746,8 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261110230100'),
+('20261110230000'),
 ('20261110210000'),
 ('20261110200000'),
 ('20261110120000'),

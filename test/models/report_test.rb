@@ -176,4 +176,21 @@ class ReportTest < ActiveSupport::TestCase
     assert_equal [ "Main branch", "1", "1000.00" ], csv[3].first(3)
     assert_equal "Total", csv.last.first
   end
+
+  test "the M-Pesa report for a branch shows its own Till's payments, not another branch's or unused shop-wide ones" do
+    now = Time.current.in_time_zone("Nairobi").strftime("%Y%m%d%H%M%S")
+    shop_wide = accounts(:acme).mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator")
+    main = accounts(:acme).mpesa_shortcodes.create!(name: "Main till", shortcode: "600200", transaction_type: "buy_goods", till_number: "5223456",
+      environment: "simulator", branch: branches(:acme_main))
+    yard = accounts(:acme).mpesa_shortcodes.create!(name: "Yard till", shortcode: "600100", transaction_type: "buy_goods", till_number: "5123456",
+      environment: "simulator", branch: branches(:acme_yard))
+    main.receive_c2b_confirmation("TransID" => "SJQMAIN001", "TransAmount" => "100.00", "TransTime" => now, "MSISDN" => "254722000111", "FirstName" => "Mainpayer")
+    yard.receive_c2b_confirmation("TransID" => "SJQYARD002", "TransAmount" => "100.00", "TransTime" => now, "MSISDN" => "254722000222", "FirstName" => "Yardpayer")
+    shop_wide.receive_c2b_confirmation("TransID" => "SJQSHOP003", "TransAmount" => "100.00", "TransTime" => now, "MSISDN" => "254722000333", "FirstName" => "Shoppayer")
+
+    unused = ->(branch) { Report::MobileMoney.new(account: Current.account, period: @today, branch: branch).sections.second.rows.map(&:second) }
+    assert_equal %w[ SJQMAIN001 SJQSHOP003 SJQYARD002 ], unused.(nil).sort
+    assert_equal %w[ SJQMAIN001 ], unused.(branches(:acme_main))
+    assert_equal %w[ SJQYARD002 ], unused.(branches(:acme_yard))
+  end
 end

@@ -265,7 +265,7 @@ Your plan sets how many active products you can have. An import that would go ov
 
 _Who can do what, quick switching with a PIN, and approving discounts._
 
-Everyone who uses HardPoint gets their own login, so the activity log shows who did what. Invite people from **Settings › Staff**: they get an email to set their password. Give each person the role that fits their job.
+Everyone who uses HardPoint gets their own login, so the activity log shows who did what. Invite people from **Settings › Staff**: they get an email to set their password (the link in it works for 3 days). Give each person the role that fits their job.
 
 #### Roles
 
@@ -1425,7 +1425,7 @@ You stay signed in where you are, and you're signed out everywhere else, in case
 3. Type the 6-digit code the app shows and press **Turn on**. If it doesn't match, check your phone sets its time automatically.
 4. HardPoint shows 10 **recovery codes**, once only. Write them down or print them, keep them away from your phone, and press **I've saved them**.
 
-If you lose your phone, type a recovery code instead of the 6-digit code. Each works once; My profile shows how many are left. If you've lost your phone _and_ your recovery codes, ask the shop's owner to reset your two-factor (see [Staff, roles and PINs](#staff-and-roles)). An owner who is the only owner, or anyone who works for more than one shop, asks HardPoint support through **Contact support** or WhatsApp; we'll check who you are first. Once it's reset you sign in with just your password and set two-factor up again on your new phone. To turn two-factor off, type your password and press **Turn off two-factor**. If the owner requires two-factor for owners and managers, you'll be taken to set it up before you can do anything else.
+If you lose your phone, type a recovery code instead of the 6-digit code. Each works once; My profile shows how many are left. If you've lost your phone _and_ your recovery codes, ask the shop's owner to reset your two-factor (see [Staff, roles and PINs](#staff-and-roles)). An owner who is the only owner, or anyone who works for more than one shop, asks HardPoint support through **Contact support** or WhatsApp; we'll check who you are first. Once it's reset you sign in with just your password and set two-factor up again on your new phone. To turn two-factor off, type your password and a code from your app (or a recovery code) and press **Turn off two-factor**. If the owner requires two-factor for owners and managers, you'll be taken to set it up before you can do anything else.
 
 #### Switch user
 
@@ -1440,6 +1440,7 @@ Open your name in the top right and choose **Sign out**.
 - **"Try another email address or password."**: check both, or use Forgot password.
 - **"Try again later."**: after too many tries in a few minutes, HardPoint stops you for a short time. Wait a few minutes.
 - **"Please sign in again."**: the two-factor step must be finished within 10 minutes of typing your password.
+- **"Too many wrong codes."**: after 10 wrong two-factor codes in a row, no code is accepted for 15 minutes, and you're emailed. If you weren't the one typing them, someone knows your password: change it with Forgot password.
 - **Till PIN locked**: five wrong PINs lock it. Sign in with your password and set a new PIN on My profile to unlock it.
 - If the shop is being closed, only its owners can sign in.
 

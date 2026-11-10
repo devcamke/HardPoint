@@ -64,8 +64,8 @@
   <%= link_to "Staff, roles and PINs", help_article_path("staff-and-roles"), class: "link" %>). An owner who is the only owner, or anyone
   who works for more than one shop, asks HardPoint support through <strong>Contact support</strong> or WhatsApp; we'll check who you are
   first. Once it's reset you sign in with just your password and set two-factor up again on your new phone. To turn
-  two-factor off, type your password and press <strong>Turn off two-factor</strong>. If the owner requires two-factor for owners and
-  managers, you'll be taken to set it up before you can do anything else.</p>
+  two-factor off, type your password and a code from your app (or a recovery code) and press <strong>Turn off two-factor</strong>.
+  If the owner requires two-factor for owners and managers, you'll be taken to set it up before you can do anything else.</p>
 
 <h2>Switch user</h2>
 <p>On a shared till, the next cashier or stock clerk doesn't need the password. Choose <strong>Switch user</strong> (under your name, or in
@@ -81,6 +81,8 @@
   <li><strong>"Try again later."</strong>: after too many tries in a few minutes, HardPoint stops you for a short time. Wait a few
     minutes.</li>
   <li><strong>"Please sign in again."</strong>: the two-factor step must be finished within 10 minutes of typing your password.</li>
+  <li><strong>"Too many wrong codes."</strong>: after 10 wrong two-factor codes in a row, no code is accepted for 15 minutes, and you're
+    emailed. If you weren't the one typing them, someone knows your password: change it with Forgot password.</li>
   <li><strong>Till PIN locked</strong>: five wrong PINs lock it. Sign in with your password and set a new PIN on My profile to unlock it.</li>
   <li>If the shop is being closed, only its owners can sign in.</li>
 </ul>

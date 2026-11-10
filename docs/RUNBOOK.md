@@ -180,7 +180,7 @@ guess); time it on the real server at the first drill and adjust the RTO if need
   vacuum is behind, and the slowest queries show where to add an index; check the VPS disk (`df -h`)
   and the backup bucket's size.
 - **Every 3 months:** rotate the Paystack, M-Pesa and SMS API keys and the SES SMTP password; review
-  who has platform admin (`User.where(admin: true)`).
+  who has platform admin (`User.where(admin: true)`) and glance down the admin **Audit** page.
 - **Yearly:** renew the Cloudflare Origin CA certificate before it expires (15-year certificates avoid
   this); re-run pgtune if the VPS size changed.
 
@@ -200,6 +200,7 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 | eTIMS queue growing | Settings › KRA eTIMS › Submissions shows the errors; KRA outages retry by themselves |
 | A shop reports seeing another shop's data | Treat as a security incident (docs/SECURITY.md): take screenshots, suspend the affected shops from the admin, check the Activity logs, then fix |
 | Someone lost their phone and recovery codes | A shop's owner can reset staff who work only for that shop (Settings › Staff). Otherwise, after checking who they are (call back on the shop's number on file, and ask something only the shop knows, such as its last invoice amount), open the shop in the admin and press **Reset 2FA** by their name: they're signed out, emailed, and it's in the shop's Activity with your email |
+| A new platform administrator, or one who lost their phone | Make them an admin (`User#update!(admin: true)` in the console); for a lost phone, `user.disable_two_factor` first. Then `bin/kamal app exec 'bin/rails "admin:enrolment_link[their@email]"'` prints a link that works once, for a day: send it privately. They open it, sign in with their password and scan the QR code. Their password alone never lets anyone set two-factor up |
 | Someone's account compromised | Reset their password (sessions end), turn off their access in Staff, check Activity for what they did |
 | Replica behind or unreachable | Admin Database page, "Read replica". Reports and exports read from it, so they fail or show old numbers; tills and everything else don't. `bin/kamal accessory logs db-replica -d scaled`. To take it out of service, remove `DATABASE_REPLICA_HOST` and redeploy: reads go back to the primary |
 

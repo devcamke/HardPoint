@@ -9,7 +9,7 @@
     <%= form.submit "Send prompt", class: "btn-secondary py-2.5" %>
   <% end %>
 
-  <% received = sale.account.airtel_requests.unused.where(created_at: 1.day.ago..).order(created_at: :desc).limit(5) %>
+  <% received = sale.account.airtel_requests.unused.usable_by(current_membership, at: sale.register).where(created_at: 1.day.ago..).order(created_at: :desc).limit(5) %>
   <% if received.any? %>
     <div>
       <p class="label">Received on Airtel Money, not used yet</p>

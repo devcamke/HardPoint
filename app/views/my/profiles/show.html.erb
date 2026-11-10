@@ -28,6 +28,10 @@
           <%= form.label :password, "Confirm your password to turn it off", class: "label" %>
           <%= form.password_field :password, required: true, autocomplete: "current-password", class: "input" %>
         </div>
+        <div class="field">
+          <%= form.label :code, "and a code from your app, or a recovery code", class: "label" %>
+          <%= form.text_field :code, required: true, autocomplete: "one-time-code", class: "input font-mono" %>
+        </div>
         <%= form.submit "Turn off two-factor", class: "btn-danger" %>
       <% end %>
     <% else %>

@@ -15,9 +15,9 @@ class StockBatchesController < ApplicationController
   end
 
   def show
-    @batch = Current.account.stock_batches.find(params[:id])
+    @batch = within_visible_branches(Current.account.stock_batches).find(params[:id])
     @movements = @batch.stock_movements.includes(:branch, :product, :creator, :stock_batch).chronologically
-    @sales = @batch.sales.completed.includes(:customer, :branch).order(completed_at: :desc)
-    @other_branches = Current.account.stock_batches.where(product: @batch.product, number: @batch.number).where.not(id: @batch.id).includes(:branch)
+    @sales = within_visible_branches(@batch.sales.completed).includes(:customer, :branch).order(completed_at: :desc)
+    @other_branches = within_visible_branches(Current.account.stock_batches).where(product: @batch.product, number: @batch.number).where.not(id: @batch.id).includes(:branch)
   end
 end

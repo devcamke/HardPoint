@@ -3,7 +3,7 @@ class Pos::AirtelMatchesController < ApplicationController
   include PosSale
 
   def create
-    request = Current.account.airtel_requests.unused.find(params[:request_id])
+    request = Current.account.airtel_requests.unused.usable_by(current_membership, at: @sale.register).find(params[:request_id])
     payment = request.use_on(@sale)
     if payment&.persisted?
       redirect_to(@sale.reload.completed? ? pos_path(completed: @sale.id) : pos_path, notice: "Airtel Money #{request.airtel_money_id} used on this sale.")

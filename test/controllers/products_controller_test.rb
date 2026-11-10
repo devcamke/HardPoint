@@ -191,4 +191,14 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     get products_path(format: :csv)
     assert_nil CSV.parse(response.body, headers: true).first["cost"]
   end
+
+  test "staff bound to a branch set only its reorder level" do
+    cement = products(:acme_cement)
+    Account.without_isolation { memberships(:sara_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:sara)
+
+    patch product_reorder_level_path(cement), params: { branch_id: branches(:acme_main).id, reorder_level: "99" }
+    assert_response :not_found
+    assert_nil Account.without_isolation { cement.stock_levels.find_by!(branch: branches(:acme_main)).reorder_level }
+  end
 end

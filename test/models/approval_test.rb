@@ -40,7 +40,8 @@ class ApprovalTest < ActiveSupport::TestCase
     sara = memberships(:sara_acme)
     sara.update!(role: "manager")
     assert_not sara.set_approval_pin("2468")
-    assert_match "already used", sara.errors.full_messages.to_sentence
+    assert_match "choose a different PIN", sara.errors.full_messages.to_sentence
+    assert_no_match(/someone else|already used/, sara.errors.full_messages.to_sentence, "doesn't tell Sara a colleague has that PIN")
     assert sara.set_approval_pin("1357")
 
     assert memberships(:amina_acme).set_approval_pin("2468"), "keeping your own PIN is fine"

@@ -1,5 +1,6 @@
 class AccountClosuresController < ApplicationController
   include OwnerOnly
+  refuse_while_impersonated back_to: -> { account_data_path }
   rate_limit to: 5, within: 10.minutes, only: :create, with: -> { redirect_to account_data_path, alert: "Try again later." }
 
   def create

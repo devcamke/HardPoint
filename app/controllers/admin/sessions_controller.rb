@@ -1,8 +1,13 @@
 class Admin::SessionsController < Admin::BaseController
   allow_unauthenticated_access only: %i[ new create ]
-  rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_admin_session_path, alert: "Try again later." }
+  # Per address, and per login so guessing one administrator's password from many addresses is slow too.
+  rate_limit to: 10, within: 3.minutes, only: :create, name: "address", with: -> { redirect_to new_admin_session_path, alert: "Try again later." }
+  rate_limit to: 10, within: 3.minutes, only: :create, name: "login", by: -> { params[:email_address].to_s.strip.downcase },
+    with: -> { redirect_to new_admin_session_path, alert: "Try again later." }
 
+  # An enrolment link (bin/rails admin:enrolment_link[email]) lands here; it's kept for the two-factor step.
   def new
+    session[:admin_enrolment_token] = params[:enrolment_token] if params[:enrolment_token].present?
   end
 
   # Password first; every administrator then has to pass (or set up) two-factor.

@@ -46,11 +46,12 @@ module SearchHelper
 
   private
     # A receipt, order or purchase order number typed or scanned in full: MAI-000123, MAI-O00012, MAI-PO00007.
+    # Staff bound to a branch find only their branch's sales and orders.
     def search_documents(query)
       m = current_membership
       [
-        (m.can_sell? && (sale = Current.account.sales.find_by_receipt_number(query)) && Result.new("Sale #{sale.receipt_number}", sale.status.humanize, sale_path(sale))),
-        (m.can_sell? && (order = Current.account.customer_orders.find_by_reference(query)) && Result.new(order.reference, order.kind.to_s.humanize, customer_order_path(order))),
+        (m.can_sell? && (sale = Current.account.sales.where(branch: visible_branches).find_by_receipt_number(query)) && Result.new("Sale #{sale.receipt_number}", sale.status.humanize, sale_path(sale))),
+        (m.can_sell? && (order = Current.account.customer_orders.where(branch: visible_branches).find_by_reference(query)) && Result.new(order.reference, order.kind.to_s.humanize, customer_order_path(order))),
         (m.can_purchase? && (po = find_purchase_order(query)) && Result.new(po.reference, "Purchase order · #{po.status.humanize.downcase}", purchase_order_path(po)))
       ].select(&:itself)
     end

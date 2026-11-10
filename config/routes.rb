@@ -73,6 +73,7 @@ Rails.application.routes.draw do
         end
       end
       resources :impersonations, only: :create
+      resources :events, only: :index
       resources :announcements, except: :show
       resources :support_requests, only: %i[ index update ]
       resource :database, only: :show
