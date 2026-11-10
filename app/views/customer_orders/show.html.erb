@@ -14,7 +14,8 @@
     <%= tag.p("Note: #{order.note}", class: "mt-1 text-sm") if order.note.present? %>
   </div>
   <div class="flex flex-wrap gap-2">
-    <%= link_to "PDF", customer_order_path(order, format: :pdf), target: "_blank", class: "btn-secondary" %>
+    <%= render "shared/share_document", pdf_url: customer_order_path(order, format: :pdf), name: "#{order.kind.downcase}-#{order.reference}",
+          title: "#{order.kind} #{order.reference} from #{Current.account.name}", text: "#{order.kind} #{order.reference}: #{money(order.total_cents)}" %>
     <%= whatsapp_button order, phone: order.customer.phone %>
     <%= link_to "Edit", edit_customer_order_path(order), class: "btn-secondary" if order.editable? %>
     <% if order.quote? %>

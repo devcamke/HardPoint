@@ -11,8 +11,14 @@
   <% if @sale.completed? || @sale.voided? %>
     <div class="flex flex-wrap gap-2">
       <%= link_to "Print receipt", sale_receipt_path(@sale, print: 1), target: "_blank", class: "btn-secondary" %>
+      <%= render "shared/share_document", pdf_url: sale_receipt_path(@sale, format: :pdf), name: "receipt-#{@sale.receipt_number}", label: "Share receipt",
+            title: "Receipt #{@sale.receipt_number} from #{Current.account.name}", text: "Receipt #{@sale.receipt_number}: #{money(@sale.total_cents)}" %>
       <%= whatsapp_button @sale, phone: @sale.customer&.phone if @sale.completed? %>
-      <%= link_to "Tax invoice (A4)", sale_invoice_path(@sale), target: "_blank", class: "btn-secondary" if @sale.completed? && @sale.customer %>
+      <% if @sale.completed? && @sale.customer %>
+        <%= link_to "Tax invoice (A4)", sale_invoice_path(@sale), target: "_blank", class: "btn-secondary" %>
+        <%= render "shared/share_document", pdf_url: sale_invoice_path(@sale), name: "invoice-#{@sale.receipt_number}", label: "Share invoice",
+              title: "Tax invoice #{@sale.receipt_number} from #{Current.account.name}", text: "Tax invoice #{@sale.receipt_number}: #{money(@sale.total_cents)}" %>
+      <% end %>
       <% if @sale.completed? && feature?(:deliveries) && DeliveryNote.undelivered_by_line(@sale).any? %>
         <%= link_to (@sale.delivery_notes.where.not(status: "cancelled").exists? ? "Deliver the rest" : "Deliver"), new_delivery_note_path(sale_id: @sale.id), class: "btn-secondary" %>
       <% end %>

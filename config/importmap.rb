@@ -6,3 +6,6 @@ pin "@hotwired/stimulus", to: "stimulus.min.js"
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 pin_all_from "app/javascript/controllers", under: "controllers"
 pin_all_from "app/javascript/offline", under: "offline"
+# Mozilla's pdf.js 4.10.38 (Apache-2.0), vendored (as .js, so it is served as JavaScript) and checked against the npm package: draws documents' PDFs as
+# pictures to share. Loaded only when someone shares a picture; its worker is served from vendor/javascript too.
+pin "pdfjs-dist", to: "pdfjs.min.js", preload: false # @4.10.38
