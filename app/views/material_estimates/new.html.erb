@@ -1,0 +1,102 @@
+<% content_for :title, "Material calculator" %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-xl font-medium"><%= link_to "Orders & quotes", customer_orders_path, class: "link" %> <span class="text-gray-400">/</span> Material calculator</h1>
+    <p class="hint mt-1">Measure the job, and the calculator works out the materials at your prices. Make it a quote in one press.</p>
+  </div>
+  <%= link_to "Link materials to products", edit_material_products_path, class: "btn-secondary" if current_membership.can_manage_catalogue? %>
+</div>
+
+<%= form_with url: material_estimate_path, method: :post, class: "grid items-start gap-6 lg:grid-cols-5", data: { turbo: false } do |form| %>
+  <div class="space-y-4 lg:col-span-3">
+    <% @estimate.parts.each_with_index do |part, index| %>
+      <section class="card" id="part_<%= index %>">
+        <%= hidden_field_tag "parts[#{index}][kind]", part.kind %>
+        <div class="mb-3 flex items-start justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-semibold"><%= part.title %></h2>
+            <p class="hint"><%= part.description %></p>
+          </div>
+          <%= button_tag "Remove", type: "submit", name: "remove", value: index, formnovalidate: true, class: "link text-sm text-red-700" %>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <% part.fields.each do |field| %>
+            <% id = "parts_#{index}_#{field.name}" %>
+            <div class="field">
+              <%= label_tag id, field.label, class: "label" %>
+              <% if field.select? %>
+                <%= select_tag "parts[#{index}][#{field.name}]", options_for_select(field.options, part.values[field.name]), id: id, class: "input" %>
+              <% else %>
+                <%= text_field_tag "parts[#{index}][#{field.name}]", part.values[field.name], id: id, inputmode: "decimal", autocomplete: "off", class: "input" %>
+              <% end %>
+              <% if field.hint %><p class="hint mt-1"><%= field.hint %></p><% end %>
+            </div>
+          <% end %>
+        </div>
+        <% if part.filled? %>
+          <p class="mt-3 text-sm text-gray-700"><%= part.materials.map { |key, quantity| (material = MaterialCalculator.material(key)) && "#{material.name} #{material_quantity(quantity)} #{quantity.to_d == 1 ? material.unit : material.units}" }.join(" · ") %></p>
+        <% end %>
+        <p class="hint mt-2"><%= part.assumptions %></p>
+      </section>
+    <% end %>
+
+    <div class="card">
+      <p class="label mb-2">Add a part</p>
+      <div class="flex flex-wrap gap-2">
+        <% MaterialCalculator::KINDS.each do |kind| %>
+          <%= button_tag "+ #{MaterialCalculator.part_class(kind).title}", type: "submit", name: "add", value: kind, formnovalidate: true, class: "btn-secondary" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <aside class="space-y-4 lg:sticky lg:top-4 lg:col-span-2">
+    <section class="card">
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <h2 class="text-lg font-semibold">Materials</h2>
+        <%= form.submit "Work it out", class: "btn-primary" %>
+      </div>
+      <% if @estimate.lines.any? %>
+        <ul class="divide-y divide-gray-100">
+          <% @estimate.lines.each do |line| %>
+            <li class="flex items-start justify-between gap-3 py-2 text-sm">
+              <div class="min-w-0">
+                <p class="font-medium"><%= line.material.name %></p>
+                <% if line.mapped? %>
+                  <p class="hint"><%= quantity(line.sell_quantity) %> × <%= line.product_unit ? "#{line.product.name} (#{line.product_unit})" : line.product.name %> at <%= money(line.unit_price_cents) %></p>
+                <% else %>
+                  <p class="hint"><%= material_quantity(line.quantity) %> <%= line.quantity == 1 ? line.material.unit : line.material.units %> ·
+                    <span class="text-amber-700">not linked to a product</span></p>
+                <% end %>
+              </div>
+              <p class="shrink-0 tabular-nums <%= "font-semibold" if line.mapped? %>"><%= line.mapped? ? money(line.total_cents) : "—" %></p>
+            </li>
+          <% end %>
+        </ul>
+        <div class="mt-3 flex items-baseline justify-between border-t border-gray-200 pt-3">
+          <p class="font-semibold">Total</p><p class="text-xl font-bold tabular-nums"><%= money(@estimate.total_cents) %></p>
+        </div>
+        <% if @estimate.unmapped.any? %>
+          <p class="hint mt-2"><%= pluralize(@estimate.unmapped.size, "material") %> left out of the total and the quote until
+            <%= current_membership.can_manage_catalogue? ? link_to("linked to a product", edit_material_products_path, class: "link") : "someone links it to a product" %>.</p>
+        <% end %>
+      <% else %>
+        <p class="text-gray-500">Fill in a part's measurements and press <strong>Work it out</strong>.</p>
+      <% end %>
+    </section>
+
+    <section class="card">
+      <h2 class="mb-2 text-lg font-semibold">Make it a quote</h2>
+      <% if @quote_errors.present? %>
+        <div class="mb-3 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800"><%= @quote_errors.to_sentence %>.</div>
+      <% end %>
+      <div class="field">
+        <%= label_tag :customer_id, "Customer", class: "label" %>
+        <%= select_tag :customer_id, options_from_collection_for_select(Current.account.customers.alphabetically, :id, :name, @customer&.id), include_blank: "Choose…", class: "input" %>
+        <p class="hint mt-1">Not listed? <%= link_to "Add a customer", new_customer_path, class: "link" %> first.</p>
+      </div>
+      <%= button_tag "Make a quote", type: "submit", name: "make_quote", value: "1", class: "btn-primary w-full" %>
+      <p class="hint mt-2">The quote lists what was measured, and you can change any line before sending it.</p>
+    </section>
+  </aside>
+<% end %>

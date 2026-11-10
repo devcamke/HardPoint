@@ -29,6 +29,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 - [Customers on account, quotes and orders](#customer-accounts): Credit limits, deposits, statements and delivery notes.
 - [Deliveries and transport charges](#deliveries): Charging transport at the till or afterwards, delivery notes, and tracking the lorry to site.
 - [Jobs for contractors](#contractor-jobs): Tag what contractors buy to their projects (online or offline), track it against a budget, and print a cost summary or a bill for their client.
+- [The material calculator](#material-calculator): From a wall's, slab's or roof's measurements to the blocks, cement, steel and sheets it needs, and a quote at your prices.
 - [Fundi commissions](#fundis): Paying masons, plumbers and electricians a commission on the customers they bring: rates, naming them at the till, and paying them.
 - [Selling online with click-and-collect](#online-store): Your catalogue online: switching it on, what customers see, and handling their orders.
 
@@ -800,6 +801,34 @@ The job's page shows what it has cost so far (sales less anything returned), how
 Contractors often pass the materials on to the people they're building for, with something added. On the job's **Edit** page, fill in **Client** and **Markup on materials**. Then **Bill for … (PDF)** on the job's page gives a materials bill on the contractor's own letterhead (their name, address, phone and PIN, not your shop's). It lists each material, net of returns, at your price plus the markup, with the total. The markup percentage isn't printed. Leave the markup empty to bill at your prices.
 
 When the work is finished, press **Close job** so it stops showing at the till. A job with orders still to be collected can't be closed until they're collected, cancelled or moved to another job, so nothing is rung up without its job. You can reopen it at any time.
+
+<a id="material-calculator"></a>
+
+### The material calculator
+
+_From a wall's, slab's or roof's measurements to the blocks, cement, steel and sheets it needs, and a quote at your prices._
+
+A customer asks what a wall, a slab or a roof will cost. The material calculator works out the materials from the measurements and prices them at your shelf prices, and one press makes it a quote. Find it under **Sell › Orders & quotes** (the actions menu beside the title) or from **New quote**.
+
+#### Before the first time: link the materials
+
+Someone who looks after the catalogue opens **Link materials to products** and, for each material (cement, sand, ballast, stones and blocks, Y8 to Y16 bars, BRC mesh, binding wire, iron sheets, ridge caps, roofing nails, tiles, adhesive, grout, paint), types the SKU, barcode or name of the product you sell for it. If you sell it in a different unit, say how many of your product one unit of the material is: **1000** for sand sold by the kg (the calculator works in tonnes), **0.04** for binding wire sold in 25 kg rolls, **0.05** for paint sold in 20-litre tins. A material that isn't linked is still worked out, but left off the total and the quote.
+
+#### Measuring the job
+
+- **Wall**: length and height (all the walls together), the area of doors and windows to leave out, what it's built with (9×9 or 6×9 machine-cut stone, 6 or 4 inch blocks) and the mortar mix.
+- **Concrete**: a slab, footings or a beam, with how many alike, the mix (1:2:4 for slabs and beams), and the steel: BRC mesh, or bars at a spacing both ways.
+- **Plastering**: the area (both faces of a wall count) and thickness.
+- **Roofing**: the roof's length along the ridge and from eave to ridge, one or two sides, and the sheet length.
+- **Tiling** and **Painting**: the area, and for paint the coats and what the tin says it covers.
+
+Add as many parts as the job has (outside walls and inside walls as two walls, say), press **Work it out**, and the materials and their total appear beside them. Each part says what it assumed: the joints, the waste, the overlaps.
+
+#### Making the quote
+
+Choose the customer and press **Make a quote**. The quote has one line per material at the customer's prices, rounded up to whole bags, lengths and sheets, and its note lists what was measured. Change anything you like before sending it; from there it's an ordinary quote, confirmed into an order, paid a deposit and collected at the till.
+
+The figures are a counter's estimate, not an engineer's. For a large job, the customer's builder or quantity surveyor has the last word.
 
 <a id="fundis"></a>
 

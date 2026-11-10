@@ -1,0 +1,34 @@
+<% content_for :title, "Link materials to products" %>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "Material calculator", new_material_estimate_path, class: "link" %> <span class="text-gray-400">/</span> Link materials to products</h1>
+<p class="hint mb-6">Say which of your products is each material, by SKU, barcode or name. If you sell it in another unit, say how many of
+  your product one unit of the material is: 1,000 for sand sold by the kg, or 0.05 for paint sold in 20-litre tins.</p>
+
+<%= form_with url: material_products_path, method: :patch, class: "card overflow-x-auto" do |form| %>
+  <table class="table">
+    <thead><tr><th>Material</th><th>Your product</th><th class="w-40">Of it per material unit</th></tr></thead>
+    <tbody>
+      <% MaterialCalculator::MATERIALS.each_value do |material| %>
+        <% submitted = params.dig(:materials, material.key) %>
+        <% mapping = @mappings[material.key] %>
+        <tr>
+          <td><p class="font-medium"><%= material.name %></p><p class="hint">per <%= material.unit %></p></td>
+          <td>
+            <%= text_field_tag "materials[#{material.key}][product_code]", submitted ? submitted[:product_code] : (mapping&.product&.sku),
+                  class: "input py-1", placeholder: "SKU, barcode or name", list: "material_products_list", "aria-label": "#{material.name}: your product" %>
+            <% if mapping&.product && !submitted %><p class="hint mt-1"><%= mapping.product.name %></p><% end %>
+            <% if (problem = @problems&.dig(material.key)) %><p class="mt-1 text-sm text-red-700"><%= problem %></p><% end %>
+          </td>
+          <td><%= number_field_tag "materials[#{material.key}][factor]", submitted ? submitted[:factor] : plain_number(mapping&.factor || 1), step: "any", min: 0,
+                  class: "input py-1", "aria-label": "#{material.name}: how many of your product" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <datalist id="material_products_list">
+    <% Current.account.products.active.order(:name).limit(2000).pluck(:sku, :name).each do |sku, name| %><option value="<%= sku %>"><%= name %></option><% end %>
+  </datalist>
+  <div class="mt-4 flex items-center gap-3">
+    <%= form.submit "Save", class: "btn-primary" %>
+    <%= link_to "Cancel", new_material_estimate_path, class: "link" %>
+  </div>
+<% end %>
