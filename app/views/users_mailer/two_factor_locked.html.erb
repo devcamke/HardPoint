@@ -1,0 +1,9 @@
+<p>Hi <%= @user.name %>,</p>
+
+<p>Someone signed in to HardPoint with your email address and password, then typed <%= User::TwoFactor::ATTEMPTS_ALLOWED %> wrong
+  two-factor codes. To keep your account safe, two-factor codes won't be accepted for the next <%= @minutes %> minutes.</p>
+
+<p>If that was you, wait <%= @minutes %> minutes and use the newest code from your authenticator app, or a recovery code.</p>
+
+<p><strong>If it wasn't you, someone knows your password.</strong> Change it straight away with "Forgot password?" on your shop's
+  sign-in page, and tell the shop's owner.</p>

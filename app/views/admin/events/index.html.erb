@@ -1,0 +1,37 @@
+<% content_for :title, "Audit" %>
+
+<h1 class="mb-2 text-xl font-medium">Audit</h1>
+<p class="hint mb-6">Administrators' sign-ins and the support sign-in links they made, newest first. What support does inside a shop is in that shop's Activity.</p>
+
+<div class="card overflow-x-auto">
+  <% if @events.any? %>
+    <table class="table">
+      <thead>
+        <tr><th>When</th><th>Administrator</th><th>What</th><th>Address</th></tr>
+      </thead>
+      <tbody>
+        <% @events.each do |event| %>
+          <tr id="<%= dom_id(event) %>">
+            <td class="whitespace-nowrap" title="<%= l(event.created_at, format: :long) %>"><%= time_ago_in_words(event.created_at) %> ago</td>
+            <td><%= event.user.name %></td>
+            <td>
+              <% case event.action %>
+              <% when "signed_in" %>
+                Signed in
+              <% when "impersonation_link_created" %>
+                Made a link to sign in to <%= event.target_account_id ? link_to(event.particulars["account"], admin_account_path(event.target_account_id), class: "link") : event.particulars["account"] %>
+                as <%= event.particulars["member"] %>
+                <span class="text-gray-500">(<%= event.token_used_at ? "used #{time_ago_in_words(event.token_used_at)} ago" : "not used" %>)</span>
+              <% else %>
+                <%= event.action.humanize %>
+              <% end %>
+            </td>
+            <td class="font-mono text-xs"><%= event.ip_address %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint">Nothing recorded yet.</p>
+  <% end %>
+</div>

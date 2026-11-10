@@ -20,13 +20,17 @@ class My::TwoFactorsControllerTest < ActionDispatch::IntegrationTest
     assert Account.without_isolation { Event.exists?(action: "two_factor_enabled", creator: users(:amina)) }
   end
 
-  test "turning it off needs the password" do
+  test "turning it off needs the password and a code" do
     enable_two_factor_for(users(:amina))
 
-    delete my_two_factor_path, params: { password: "wrong" }
+    delete my_two_factor_path, params: { password: "wrong", code: "aaaaa-11111" }
     assert users(:amina).reload.two_factor_enabled?
 
     delete my_two_factor_path, params: { password: "password" }
+    assert users(:amina).reload.two_factor_enabled?
+
+    recovery_code = users(:amina).two_factor_recovery_codes.split("\n").first
+    delete my_two_factor_path, params: { password: "password", code: recovery_code }
     assert_not users(:amina).reload.two_factor_enabled?
   end
 

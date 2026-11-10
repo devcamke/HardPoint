@@ -25,7 +25,8 @@ class Membership < ApplicationRecord
   validate { errors.add :approval_pin, "is only for owners and managers" if approval_pin.present? && !approver? }
   # A PIN must name one person, or an approval would be put down to the wrong manager.
   validate(if: -> { approval_pin.present? && approver? }) do
-    errors.add :approval_pin, "is already used by someone else here; choose another" if Approval.holder_of(account, approval_pin, except: self)
+    # Saying it's taken would tell this person a colleague's PIN, so the message doesn't say why.
+    errors.add :approval_pin, "can't be used; choose a different PIN" if Approval.holder_of(account, approval_pin, except: self)
   end
 
   validates :user, uniqueness: { scope: :account_id, message: "is already a member of this shop" }
@@ -148,8 +149,9 @@ class Membership < ApplicationRecord
 
   # A shop can reset two-factor only for someone whose sole shop it is: a person's sign-in is shared by every
   # shop they work for, so one shop mustn't weaken it for the others. HardPoint support can reset anyone's.
+  # A platform administrator's two-factor guards the admin area too, so no shop can ever reset it.
   def two_factor_resettable_by_shop?
-    Account.without_isolation { user.memberships.count } == 1
+    !user.admin? && Account.without_isolation { user.memberships.count } == 1
   end
 
   # For someone who has lost their phone and their recovery codes. They're signed out everywhere, told by

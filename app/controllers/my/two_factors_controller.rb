@@ -1,7 +1,10 @@
 class My::TwoFactorsController < ApplicationController
   allow_while_locked
   allow_without_two_factor
-  rate_limit to: 10, within: 3.minutes, only: %i[ create destroy ], with: -> { redirect_to my_profile_path, alert: "Try again later." }
+  rate_limit to: 10, within: 3.minutes, only: %i[ create destroy ], by: -> { "user-#{Current.user&.id}" },
+    with: -> { redirect_to my_profile_path, alert: "Try again later." }
+  # Support signed in as someone mustn't enrol their own phone as that person's second factor, or switch it off.
+  refuse_while_impersonated back_to: -> { my_profile_path }, only: %i[ new create destroy ]
   before_action :ensure_not_enabled, only: %i[ new create ]
 
   def new
@@ -20,12 +23,15 @@ class My::TwoFactorsController < ApplicationController
     end
   end
 
+  # Needs the password and a code: a till left signed in, or a password someone learned, isn't enough to turn it off.
   def destroy
-    if Current.user.authenticate(params[:password])
+    if !Current.user.authenticate(params[:password].to_s)
+      redirect_to my_profile_path, alert: "That password wasn't right, so two-factor sign-in is still on."
+    elsif !Current.user.verify_two_factor(params[:code])
+      redirect_to my_profile_path, alert: "That code didn't work, so two-factor sign-in is still on. Use the latest code from your app, or a recovery code."
+    else
       Current.user.disable_two_factor
       redirect_to my_profile_path, notice: "Two-factor sign-in is off."
-    else
-      redirect_to my_profile_path, alert: "That password wasn't right, so two-factor sign-in is still on."
     end
   end
 

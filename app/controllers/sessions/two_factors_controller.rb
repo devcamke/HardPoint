@@ -18,6 +18,8 @@ class Sessions::TwoFactorsController < ApplicationController
       session.delete(:two_factor_challenge)
       start_new_session_for @user
       redirect_to after_authentication_url
+    elsif @user.two_factor_locked?
+      redirect_to new_session_two_factor_path, alert: "Too many wrong codes. Wait #{User::TwoFactor::LOCKOUT.in_minutes.to_i} minutes, then try again."
     else
       redirect_to new_session_two_factor_path, alert: "That code didn't work. Try the latest code from your app, or a recovery code."
     end

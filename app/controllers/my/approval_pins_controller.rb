@@ -1,8 +1,9 @@
 class My::ApprovalPinsController < ApplicationController
   allow_while_locked
   before_action :set_membership
-  # Setting a PIN checks the password, so it can't be used to guess the password of a till left signed in.
-  rate_limit to: 10, within: 3.minutes, only: :update, by: -> { cookies.signed[:session_id] || request.remote_ip },
+  # Setting a PIN checks the password, so it can't be used to guess the password of a till left signed in; and a
+  # refused PIN means a colleague has it. Tries are counted per person, so signing in again doesn't start afresh.
+  rate_limit to: 10, within: 3.minutes, only: :update, by: -> { "membership-#{Current.membership&.id}" },
     with: -> { redirect_to my_profile_path, alert: "Try again later." }
 
   def edit

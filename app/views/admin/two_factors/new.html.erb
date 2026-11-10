@@ -4,6 +4,10 @@
   <% if @user.two_factor_enabled? %>
     <h1 class="text-xl font-medium">Enter your code</h1>
     <p class="hint mt-2">Enter the 6-digit code from your authenticator app, or a recovery code.</p>
+  <% elsif !may_enrol? %>
+    <h1 class="text-xl font-medium">Two-factor isn't set up</h1>
+    <p class="hint mt-2">Administrators set up two-factor with an enrolment link. Ask whoever runs the servers to make one with
+      <code class="font-mono text-gray-900">bin/rails "admin:enrolment_link[<%= @user.email_address %>]"</code>, open it, and sign in again.</p>
   <% else %>
     <h1 class="text-xl font-medium">Set up two-factor</h1>
     <p class="hint mt-2">Administrators must use two-factor sign-in. Scan this code with your authenticator app.</p>
@@ -13,13 +17,15 @@
     <p class="hint mt-2">Key: <code class="font-mono text-gray-900"><%= @secret.scan(/.{4}/).join(" ") %></code></p>
   <% end %>
 
-  <div class="card mt-6">
-    <%= form_with url: admin_two_factor_path do |form| %>
-      <div class="field">
-        <%= form.label :code, class: "label" %>
-        <%= form.text_field :code, required: true, autofocus: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input text-center font-mono text-2xl tracking-widest" %>
-      </div>
-      <%= form.submit "Verify", class: "btn-primary w-full" %>
-    <% end %>
-  </div>
+  <% if @user.two_factor_enabled? || may_enrol? %>
+    <div class="card mt-6">
+      <%= form_with url: admin_two_factor_path do |form| %>
+        <div class="field">
+          <%= form.label :code, class: "label" %>
+          <%= form.text_field :code, required: true, autofocus: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input text-center font-mono text-2xl tracking-widest" %>
+        </div>
+        <%= form.submit "Verify", class: "btn-primary w-full" %>
+      <% end %>
+    </div>
+  <% end %>
 </div>
