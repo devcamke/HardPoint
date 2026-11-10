@@ -213,6 +213,8 @@ Rails.application.routes.draw do
       resources :products, only: :index
       resources :customers, only: :index
       resource :customer, only: :update
+      resources :fundis, only: :index
+      resource :fundi, only: :update
       resource :job, only: :update
       resources :lines, only: %i[ create update destroy ]
       resource :discount, only: :update
@@ -280,6 +282,11 @@ Rails.application.routes.draw do
       resource :market_rate, only: :create, module: :currencies
     end
     resources :promotions
+    # Fundis who bring customers, their commission rates, and paying them.
+    resource :fundi_rates, only: %i[ edit update ]
+    resources :fundis, except: :destroy do
+      resources :payouts, only: %i[ new create ], module: :fundis
+    end
     resources :jobs, except: :destroy do
       scope module: :jobs do
         resource :closure, only: %i[ create destroy ]

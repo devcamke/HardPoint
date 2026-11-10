@@ -1,0 +1,16 @@
+acme_mason:
+  account: acme
+  name: Otieno Ouma
+  phone: "0711222333"
+  trade: mason
+
+acme_old_plumber:
+  account: acme
+  name: Kariuki Plumber
+  trade: plumber
+  active: false
+
+bolt_electrician:
+  account: bolt
+  name: Wanjala Electrician
+  trade: electrician

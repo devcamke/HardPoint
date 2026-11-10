@@ -11,6 +11,12 @@
       <div class="field"><%= form.label :job_id, "Job", class: "label" %>
         <%= form.select :job_id, jobs.map { [ _1.label, _1.id ] }, { include_blank: "Not for a job" }, class: "input" %></div>
     <% end %>
+    <% if feature?(:fundis) %>
+      <% fundis = ([ customer_order.fundi ] + Current.account.fundis.active.alphabetically.to_a).compact.uniq %>
+      <div class="field"><%= form.label :fundi_id, "Brought by (fundi)", class: "label" %>
+        <%= form.select :fundi_id, fundis.map { [ _1.label, _1.id ] }, { include_blank: "No fundi" }, class: "input" %>
+        <p class="hint mt-1">Earns commission when the order is collected and paid.</p></div>
+    <% end %>
   </div>
 
   <p class="label mt-2">Products</p>

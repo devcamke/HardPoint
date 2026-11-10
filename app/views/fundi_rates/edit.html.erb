@@ -1,0 +1,29 @@
+<% content_for :title, "Commission rates" %>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "Fundis", fundis_path, class: "link" %> <span class="text-gray-400">/</span> Commission rates</h1>
+<p class="hint mb-6">What a fundi earns on each sale they bring, as a share of its value before tax. A fundi with a rate of their own gets that on everything instead.</p>
+
+<%= form_with url: fundi_rates_path, method: :patch, class: "card max-w-2xl" do |form| %>
+  <div class="field">
+    <%= label_tag :fundi_commission_percent, "Shop rate (%)", class: "label" %>
+    <%= number_field_tag :fundi_commission_percent, plain_number(Current.account.fundi_commission_percent), step: "0.1", min: 0, max: 50, inputmode: "decimal", class: "input w-32" %>
+    <p class="hint mt-1">For every category without a rate of its own.</p>
+  </div>
+  <% if @categories.any? %>
+    <table class="table">
+      <thead><tr><th>Category</th><th class="w-40">Rate (%)</th></tr></thead>
+      <tbody>
+        <% @categories.each do |category| %>
+          <tr>
+            <td><%= label_tag "categories_#{category.id}", category.full_name, class: "text-sm" %></td>
+            <td><%= number_field_tag "categories[#{category.id}]", (plain_number(category.fundi_commission_percent) if category.fundi_commission_percent), id: "categories_#{category.id}",
+                  step: "0.1", min: 0, max: 50, inputmode: "decimal", placeholder: category.parent ? "as #{category.parent.name}" : "shop rate", class: "input py-1" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+  <div class="mt-4 flex items-center gap-3">
+    <%= form.submit "Save rates", class: "btn-primary" %>
+    <%= link_to "Cancel", fundis_path, class: "link" %>
+  </div>
+<% end %>

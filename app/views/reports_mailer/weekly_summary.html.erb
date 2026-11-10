@@ -39,6 +39,12 @@
         [ seller.name, seller.takings_cents, money(seller.takings_cents, currency: currency), "#{quantity(seller.quantity)} sold#{margin}" ] } %>
 <% end %>
 
+<% if (fundis = s.fundis)[:top].any? %>
+  <%= mail_section "Fundis", "What the fundis who brought customers sold this week. #{money(fundis[:owed_cents], currency: currency)} in commission is owed in all." %>
+  <%= mail_bar_rows fundis[:top].map { |fundi, sales, earned, owed|
+        [ fundi.name, sales, money(sales, currency: currency), "#{fundi.trade_name} · #{money(earned, currency: currency)} earned · #{money(owed, currency: currency)} owed" ] } %>
+<% end %>
+
 <% receivables = s.receivables %>
 <% if receivables[:total].positive? %>
   <%= mail_section "Who owes you", "#{money(receivables[:total], currency: currency)} on account" +

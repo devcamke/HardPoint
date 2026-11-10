@@ -21,6 +21,26 @@
       </div>
     </details>
   </div>
+  <% if feature?(:fundis) %>
+    <div class="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-1.5 @lg:px-6">
+      <div class="flex min-w-0 items-baseline gap-2">
+        <p class="shrink-0 text-xs uppercase tracking-wide text-gray-500">Fundi</p>
+        <p class="truncate text-sm <%= sale.fundi ? "font-semibold" : "text-gray-500" %>"><%= sale.fundi&.name || "None" %></p>
+      </div>
+      <details class="relative">
+        <summary class="link cursor-pointer list-none text-sm select-none"><%= sale.fundi ? "Change" : "Add" %></summary>
+        <div class="absolute right-0 z-10 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+          <%= form_with url: pos_fundis_path, method: :get, data: { turbo_frame: "fundi_results", controller: "auto-submit" } do |form| %>
+            <%= form.search_field :query, placeholder: "Fundi's name or phone", class: "input py-1.5", "aria-label": "Find fundi", data: { action: "input->auto-submit#debouncedSubmit" } %>
+          <% end %>
+          <%= turbo_frame_tag "fundi_results", src: pos_fundis_path, loading: :lazy %>
+          <% if sale.fundi %>
+            <%= button_to "No fundi", pos_fundi_path, method: :patch, params: { fundi_id: "" }, class: "link mt-2 text-sm" %>
+          <% end %>
+        </div>
+      </details>
+    </div>
+  <% end %>
   <% jobs = sale.customer ? sale.customer.jobs.open.alphabetically.to_a : [] %>
   <% if jobs.any? || sale.job %>
     <%= form_with url: pos_job_path, method: :patch, class: "flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-2 @lg:px-6", data: { controller: "auto-submit" } do |form| %>

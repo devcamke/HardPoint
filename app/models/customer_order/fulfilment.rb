@@ -163,7 +163,7 @@ module CustomerOrder::Fulfilment
       end
       next if errors.any?
 
-      sale.update!(customer_order: self, customer: customer, job: job&.open? ? job : nil)
+      sale.update!(customer_order: self, customer: customer, job: job&.open? ? job : nil, fundi: fundi&.active? ? fundi : sale.fundi)
       # A line quoted under a promotion is sold under it, so the promotion's results count the sale.
       lines.reject(&:collected?).each do |line|
         sale.lines.create!(account: account, product: line.product, product_unit: line.product_unit, quantity: line.remaining_quantity,

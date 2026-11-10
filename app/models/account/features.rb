@@ -12,6 +12,7 @@ module Account::Features
     Feature.new("promotions", "Promotions", "Percent off, buy 10 get 1 free, any 3 for a price", "Selling"),
     Feature.new("currencies", "Foreign currencies", "Dollars and other notes at the till, and suppliers who invoice in them", "Selling"),
     Feature.new("online_store", "Online store", "Click-and-collect from your own web address", "Selling"),
+    Feature.new("fundis", "Fundi commissions", "Pay masons, plumbers and electricians a commission on the customers they bring", "Selling"),
     Feature.new("jobs", "Contractor jobs", "Tag a contractor's purchases to a project and track it against a budget", "Stock and work"),
     Feature.new("batches", "Batches and expiry dates", "For paint, adhesives and chemicals: first-expiring-first selling and recalls", "Stock and work"),
     Feature.new("serial_numbers", "Serial numbers", "Record the serial number of each power tool or generator sold", "Stock and work"),
@@ -53,6 +54,9 @@ module Account::Features
     when "serial_numbers"
       count = products.where(serialized: true).count
       "#{count == 1 ? "A product records" : "#{count} products record"} serial numbers. Untick that on #{count == 1 ? "it" : "them"} first." if count.positive?
+    when "fundis"
+      owed = fundi_entries.sum(:amount_cents)
+      "Fundis are owed #{Money.format(owed)} in commission. Pay it first." if owed.positive?
     when "developers"
       count = api_keys.active.count
       "#{count == 1 ? "An API key is" : "#{count} API keys are"} still active. Revoke #{count == 1 ? "it" : "them"} first." if count.positive?
@@ -67,6 +71,7 @@ module Account::Features
       when "currencies" then currencies.exists?
       when "online_store" then storefront.present?
       when "jobs" then jobs.exists?
+      when "fundis" then fundis.exists?
       when "batches" then stock_batches.exists? || products.where(tracks_batches: true).exists?
       when "serial_numbers" then products.where(serialized: true).exists?
       when "developers" then api_keys.exists? || webhook_endpoints.exists?

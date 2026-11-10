@@ -75,6 +75,21 @@ class OwnerSummary::Weekly
     end
   end
 
+  # The fundis who brought the most in over the week (for shops using fundi commissions), and what's owed to all of them.
+  def fundis
+    @fundis ||= if account.feature?(:fundis)
+      figures = account.fundi_entries.where(kind: %w[ earned reversed ], created_at: starts_on.beginning_of_day..ends_on.end_of_day)
+        .group(:fundi_id).pluck(:fundi_id, Arel.sql("SUM(sales_cents)"), Arel.sql("SUM(amount_cents)"))
+        .select { _2.to_i.positive? }.sort_by { -_2 }.first(LIST_LIMIT)
+      owed = Fundi.balances_by_id
+      named = account.fundis.where(id: figures.map(&:first)).index_by(&:id)
+      { top: figures.filter_map { |id, sales, earned| [ named[id], sales.to_i, earned.to_i, owed[id].to_i ] if named[id] },
+        owed_cents: owed.values.select(&:positive?).sum }
+    else
+      { top: [], owed_cents: 0 }
+    end
+  end
+
   # Stock that hasn't sold in 90 days, the most money tied up first.
   def dead_stock
     @dead_stock ||= begin

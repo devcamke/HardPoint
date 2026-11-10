@@ -2,7 +2,7 @@
 # payments cover the total: it then gets its receipt number and its stock leaves the branch, in one
 # transaction. Prices include tax; tax is worked out from each line's rate.
 class Sale < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Cart, Bundles, Payable, Voidable, Offline, PublishesWebhooks
+  include AccountOwned, Eventable, Monetary, Cart, Bundles, Payable, Voidable, Offline, Fundis, PublishesWebhooks
 
   after_update_commit if: -> { saved_change_to_status? && (completed? || voided?) } do
     publish_webhook(completed? ? "sale.completed" : "sale.voided")
@@ -18,6 +18,7 @@ class Sale < ApplicationRecord
   belongs_to :credit_approver, class_name: "User", optional: true
   belongs_to :customer_order, optional: true
   belongs_to :job, optional: true
+  belongs_to :fundi, optional: true
   has_many :delivery_notes, dependent: :restrict_with_error
   has_many :stk_requests, class_name: "Mpesa::StkRequest", dependent: :destroy
   has_many :airtel_requests, class_name: "Airtel::Request", dependent: :destroy
@@ -29,7 +30,7 @@ class Sale < ApplicationRecord
 
   money_attribute :discount, :subtotal, :tax, :total
 
-  validates_same_account :branch, :register, :shift, :customer, :customer_order, :job
+  validates_same_account :branch, :register, :shift, :customer, :customer_order, :job, :fundi
   validate(if: :job) { errors.add :job, "must be one of the customer's jobs" unless job.customer_id == customer_id }
   validate(if: -> { job && will_save_change_to_job_id? }) { errors.add :job, "is closed" if job.closed? }
 

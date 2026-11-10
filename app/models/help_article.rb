@@ -41,6 +41,8 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
         %w[ customer-accounts whatsapp ]),
       new("contractor-jobs", "Jobs for contractors", "Tag what contractors buy to their projects (online or offline), track it against a budget, and print a cost summary or a bill for their client.", "Customers and orders",
         %w[ customer-accounts ]),
+      new("fundis", "Fundi commissions", "Paying masons, plumbers and electricians a commission on the customers they bring: rates, naming them at the till, and paying them.", "Customers and orders",
+        %w[ customers customer-accounts shifts-and-cash ]),
       new("online-store", "Selling online with click-and-collect", "Your catalogue online: switching it on, what customers see, and handling their orders.", "Customers and orders",
         %w[ customer-accounts mpesa ]),
       new("products", "Products and the catalogue", "Adding products, barcodes and pack sizes, loose goods, kits, special prices and quantity breaks, and printing shelf labels.", "Stock and purchasing",

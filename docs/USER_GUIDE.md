@@ -29,6 +29,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 - [Customers on account, quotes and orders](#customer-accounts): Credit limits, deposits, statements and delivery notes.
 - [Deliveries and transport charges](#deliveries): Charging transport at the till or afterwards, delivery notes, and tracking the lorry to site.
 - [Jobs for contractors](#contractor-jobs): Tag what contractors buy to their projects (online or offline), track it against a budget, and print a cost summary or a bill for their client.
+- [Fundi commissions](#fundis): Paying masons, plumbers and electricians a commission on the customers they bring: rates, naming them at the till, and paying them.
 - [Selling online with click-and-collect](#online-store): Your catalogue online: switching it on, what customers see, and handling their orders.
 
 **Stock and purchasing**
@@ -799,6 +800,34 @@ The job's page shows what it has cost so far (sales less anything returned), how
 Contractors often pass the materials on to the people they're building for, with something added. On the job's **Edit** page, fill in **Client** and **Markup on materials**. Then **Bill for … (PDF)** on the job's page gives a materials bill on the contractor's own letterhead (their name, address, phone and PIN, not your shop's). It lists each material, net of returns, at your price plus the markup, with the total. The markup percentage isn't printed. Leave the markup empty to bill at your prices.
 
 When the work is finished, press **Close job** so it stops showing at the till. A job with orders still to be collected can't be closed until they're collected, cancelled or moved to another job, so nothing is rung up without its job. You can reopen it at any time.
+
+<a id="fundis"></a>
+
+### Fundi commissions
+
+_Paying masons, plumbers and electricians a commission on the customers they bring: rates, naming them at the till, and paying them._
+
+Fundis (masons, plumbers, electricians, carpenters and other tradespeople) bring customers to the shop. HardPoint keeps each fundi's commission for you: it's earned when a sale they brought is paid, taken back if it's voided or returned, and paid out in cash or by M-Pesa. Switch it on in **Settings › Features › Fundi commissions**.
+
+#### Setting the rates
+
+Go to **Customers › Fundis › Commission rates** (owners and managers). Set a **shop rate**, say 2%, then a different rate for any category where it differs: less on cement, more on fittings. A subcategory without a rate uses its parent's. Commission is worked on each line's value **before tax**. If you've agreed a rate with one fundi, put it on their page as **their own rate**; they get it on everything instead.
+
+#### Adding fundis
+
+Press **New** on **Customers › Fundis**, or **New fundi** from the till. Their phone number is the one you pay them on by M-Pesa. A fundi who has stopped coming can be made inactive; their history stays.
+
+#### Naming the fundi at the till
+
+Under the customer at the top of the sale, press **Add** beside **Fundi** and search by name or phone. A quote or order can name the fundi too, and collecting it at the till carries them to the sale. Nothing is earned until the sale is paid in full. Sales made on the offline till don't name a fundi.
+
+#### What they're owed, and paying them
+
+Each fundi's page is their statement: every sale they brought, anything taken back, every payment, and what's owed now. Owners and managers press **Pay commission** and choose **M-Pesa** (type the M-Pesa code) or **Cash from a till**: the cash is recorded as a payout from that till, so its count at close still balances, and the profit and loss counts it as an expense. You can't pay more than is owed.
+
+#### Reports and emails
+
+**Reports › Fundi commissions** shows, for any period, what each fundi brought in, earned, had taken back and was paid, and what each is owed today. The Monday summary email lists the fundis who brought in the most that week.
 
 <a id="online-store"></a>
 

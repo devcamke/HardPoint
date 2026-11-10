@@ -1,0 +1,4 @@
+<% content_for :title, "Add a fundi" %>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "Fundis", fundis_path, class: "link" %> <span class="text-gray-400">/</span> Add a fundi</h1>
+<p class="hint mb-6">A mason, plumber, electrician or other fundi who brings customers. Name them at the till and they earn commission on the sale.</p>
+<%= render "form", fundi: @fundi %>

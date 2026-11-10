@@ -1,0 +1,26 @@
+<% content_for :title, "Pay #{@fundi.name}" %>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "Fundis", fundis_path, class: "link" %> <span class="text-gray-400">/</span> <%= link_to @fundi.name, @fundi, class: "link" %> <span class="text-gray-400">/</span> Pay commission</h1>
+<p class="hint mb-6"><%= @fundi.name %> is owed <strong><%= money(@fundi.balance_cents) %></strong>.</p>
+
+<%= form_with model: @payout, url: fundi_payouts_path(@fundi), class: "card max-w-xl" do |form| %>
+  <%= render "shared/errors", model: @payout %>
+  <div class="field"><%= form.label :amount, class: "label" %>
+    <%= form.text_field :amount, value: plain_number(@payout.amount), required: true, inputmode: "decimal", class: "input w-48" %></div>
+  <fieldset class="field">
+    <legend class="label">Paid by</legend>
+    <% FundiPayout::METHODS.each do |key, name| %>
+      <label class="mr-4 inline-flex items-center gap-2 text-sm"><%= form.radio_button :payment_method, key, class: "accent-primary-500" %> <%= name %></label>
+    <% end %>
+  </fieldset>
+  <div class="field"><%= form.label :reference, "M-Pesa code (for M-Pesa)", class: "label" %>
+    <%= form.text_field :reference, class: "input w-48 uppercase", placeholder: "SGH12ABC34" %></div>
+  <div class="field"><%= label_tag "fundi_payout[shift_id]", "Till the cash comes from (for cash)", class: "label" %>
+    <%= select_tag "fundi_payout[shift_id]", options_for_select(@shifts.map { [ "#{_1.register.name} · #{_1.branch.name}", _1.id ] }, params.dig(:fundi_payout, :shift_id)),
+          include_blank: @shifts.empty? ? "No till is open" : "Choose…", class: "input" %>
+    <p class="hint mt-1">Taken from that till as a payout, so its cash count still balances.</p></div>
+  <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input" %></div>
+  <div class="flex items-center gap-3">
+    <%= form.submit "Pay", class: "btn-primary" %>
+    <%= link_to "Cancel", @fundi, class: "link" %>
+  </div>
+<% end %>

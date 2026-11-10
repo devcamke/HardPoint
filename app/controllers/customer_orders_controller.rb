@@ -89,11 +89,13 @@ class CustomerOrdersController < ApplicationController
     end
 
     def customer_order_params
-      permitted = params.expect(customer_order: [ :customer_id, :job_id, :branch_id, :valid_until, :needed_by, :note,
+      permitted = params.expect(customer_order: [ :customer_id, :job_id, :fundi_id, :branch_id, :valid_until, :needed_by, :note,
         lines_attributes: [ [ :id, :product_code, :quantity, :unit_price, :_destroy ] ] ])
       permitted[:customer] = Current.account.customers.find(permitted.delete(:customer_id)) if permitted[:customer_id].present?
       permitted[:job] = permitted[:job_id].present? ? Current.account.jobs.find(permitted[:job_id]) : nil if permitted.key?(:job_id)
       permitted.delete(:job_id)
+      permitted[:fundi] = permitted[:fundi_id].present? ? Current.account.fundis.find(permitted[:fundi_id]) : nil if permitted.key?(:fundi_id)
+      permitted.delete(:fundi_id)
       permitted[:branch] = visible_branches.find(permitted.delete(:branch_id)) if permitted.key?(:branch_id)
       permitted[:lines_attributes]&.each_value do |line|
         line[:account] = Current.account if line[:id].blank?

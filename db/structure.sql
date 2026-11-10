@@ -187,7 +187,8 @@ CREATE TABLE public.accounts (
     require_second_approver boolean DEFAULT false NOT NULL,
     alert_shift_short_above_cents bigint DEFAULT 200000 NOT NULL,
     alert_void_above_cents bigint DEFAULT 1000000 NOT NULL,
-    alert_count_loss_above_cents bigint DEFAULT 500000 NOT NULL
+    alert_count_loss_above_cents bigint DEFAULT 500000 NOT NULL,
+    fundi_commission_percent numeric(5,2) DEFAULT 0.0 NOT NULL
 );
 
 
@@ -848,7 +849,8 @@ CREATE TABLE public.categories (
     name character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    etims_class_code character varying
+    etims_class_code character varying,
+    fundi_commission_percent numeric(5,2)
 );
 
 ALTER TABLE ONLY public.categories FORCE ROW LEVEL SECURITY;
@@ -982,7 +984,8 @@ CREATE TABLE public.customer_orders (
     updated_at timestamp(6) without time zone NOT NULL,
     source character varying DEFAULT 'shop'::character varying NOT NULL,
     tracking_token character varying,
-    job_id bigint
+    job_id bigint,
+    fundi_id bigint
 );
 
 ALTER TABLE ONLY public.customer_orders FORCE ROW LEVEL SECURITY;
@@ -1527,6 +1530,123 @@ CREATE SEQUENCE public.events_id_seq
 --
 
 ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
+
+
+--
+-- Name: fundi_entries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.fundi_entries (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    fundi_id bigint NOT NULL,
+    kind character varying NOT NULL,
+    amount_cents bigint NOT NULL,
+    sales_cents bigint DEFAULT 0 NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    creator_id bigint,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.fundi_entries FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: fundi_entries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.fundi_entries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: fundi_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.fundi_entries_id_seq OWNED BY public.fundi_entries.id;
+
+
+--
+-- Name: fundi_payouts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.fundi_payouts (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    fundi_id bigint NOT NULL,
+    amount_cents bigint NOT NULL,
+    payment_method character varying NOT NULL,
+    reference character varying,
+    cash_movement_id bigint,
+    paid_by_id bigint NOT NULL,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.fundi_payouts FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: fundi_payouts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.fundi_payouts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: fundi_payouts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.fundi_payouts_id_seq OWNED BY public.fundi_payouts.id;
+
+
+--
+-- Name: fundis; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.fundis (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    name character varying NOT NULL,
+    phone character varying,
+    trade character varying DEFAULT 'other'::character varying NOT NULL,
+    commission_percent numeric(5,2),
+    active boolean DEFAULT true NOT NULL,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.fundis FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: fundis_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.fundis_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: fundis_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.fundis_id_seq OWNED BY public.fundis.id;
 
 
 --
@@ -2443,7 +2563,8 @@ CREATE TABLE public.sales (
     offline_receipt_number character varying,
     job_id bigint,
     void_refund_method character varying,
-    void_refund_reference character varying
+    void_refund_reference character varying,
+    fundi_id bigint
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -3818,6 +3939,27 @@ ALTER TABLE ONLY public.events ALTER COLUMN id SET DEFAULT nextval('public.event
 
 
 --
+-- Name: fundi_entries id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_entries ALTER COLUMN id SET DEFAULT nextval('public.fundi_entries_id_seq'::regclass);
+
+
+--
+-- Name: fundi_payouts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_payouts ALTER COLUMN id SET DEFAULT nextval('public.fundi_payouts_id_seq'::regclass);
+
+
+--
+-- Name: fundis id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundis ALTER COLUMN id SET DEFAULT nextval('public.fundis_id_seq'::regclass);
+
+
+--
 -- Name: goods_receipt_lines id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4462,6 +4604,30 @@ ALTER TABLE ONLY public.etims_submissions
 
 ALTER TABLE ONLY public.events
     ADD CONSTRAINT events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fundi_entries fundi_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_entries
+    ADD CONSTRAINT fundi_entries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fundi_payouts fundi_payouts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_payouts
+    ADD CONSTRAINT fundi_payouts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fundis fundis_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundis
+    ADD CONSTRAINT fundis_pkey PRIMARY KEY (id);
 
 
 --
@@ -5327,6 +5493,13 @@ CREATE INDEX index_customer_orders_on_customer_id ON public.customer_orders USIN
 
 
 --
+-- Name: index_customer_orders_on_fundi_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_orders_on_fundi_id ON public.customer_orders USING btree (fundi_id);
+
+
+--
 -- Name: index_customer_orders_on_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5632,6 +5805,69 @@ CREATE INDEX index_events_on_creator_id ON public.events USING btree (creator_id
 --
 
 CREATE INDEX index_events_on_eventable ON public.events USING btree (eventable_type, eventable_id);
+
+
+--
+-- Name: index_fundi_entries_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundi_entries_on_account_id_and_created_at ON public.fundi_entries USING btree (account_id, created_at);
+
+
+--
+-- Name: index_fundi_entries_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundi_entries_on_creator_id ON public.fundi_entries USING btree (creator_id);
+
+
+--
+-- Name: index_fundi_entries_on_fundi_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundi_entries_on_fundi_id ON public.fundi_entries USING btree (fundi_id);
+
+
+--
+-- Name: index_fundi_entries_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundi_entries_on_source ON public.fundi_entries USING btree (source_type, source_id);
+
+
+--
+-- Name: index_fundi_payouts_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundi_payouts_on_account_id_and_created_at ON public.fundi_payouts USING btree (account_id, created_at);
+
+
+--
+-- Name: index_fundi_payouts_on_cash_movement_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundi_payouts_on_cash_movement_id ON public.fundi_payouts USING btree (cash_movement_id);
+
+
+--
+-- Name: index_fundi_payouts_on_fundi_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundi_payouts_on_fundi_id ON public.fundi_payouts USING btree (fundi_id);
+
+
+--
+-- Name: index_fundi_payouts_on_paid_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundi_payouts_on_paid_by_id ON public.fundi_payouts USING btree (paid_by_id);
+
+
+--
+-- Name: index_fundis_on_account_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fundis_on_account_id_and_name ON public.fundis USING btree (account_id, name);
 
 
 --
@@ -6276,6 +6512,13 @@ CREATE INDEX index_sales_on_customer_order_id ON public.sales USING btree (custo
 --
 
 CREATE INDEX index_sales_on_discount_approver_id ON public.sales USING btree (discount_approver_id);
+
+
+--
+-- Name: index_sales_on_fundi_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sales_on_fundi_id ON public.sales USING btree (fundi_id);
 
 
 --
@@ -6978,6 +7221,14 @@ ALTER TABLE ONLY public.customer_payments
 
 
 --
+-- Name: fundi_payouts fk_rails_0467739f48; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_payouts
+    ADD CONSTRAINT fk_rails_0467739f48 FOREIGN KEY (cash_movement_id) REFERENCES public.cash_movements(id) DEFERRABLE;
+
+
+--
 -- Name: customer_orders fk_rails_07be4466a9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7343,6 +7594,14 @@ ALTER TABLE ONLY public.product_imports
 
 ALTER TABLE ONLY public.registers
     ADD CONSTRAINT fk_rails_3d6ef39a50 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
+-- Name: fundi_entries fk_rails_3f1eaa5695; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_entries
+    ADD CONSTRAINT fk_rails_3f1eaa5695 FOREIGN KEY (fundi_id) REFERENCES public.fundis(id) DEFERRABLE;
 
 
 --
@@ -8042,6 +8301,14 @@ ALTER TABLE ONLY public.delivery_note_lines
 
 
 --
+-- Name: fundi_entries fk_rails_9596acc9bb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_entries
+    ADD CONSTRAINT fk_rails_9596acc9bb FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: stock_count_lines fk_rails_95d9016807; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8210,6 +8477,14 @@ ALTER TABLE ONLY public.shifts
 
 
 --
+-- Name: fundi_payouts fk_rails_a66ddb7d35; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_payouts
+    ADD CONSTRAINT fk_rails_a66ddb7d35 FOREIGN KEY (fundi_id) REFERENCES public.fundis(id) DEFERRABLE;
+
+
+--
 -- Name: purchase_order_lines fk_rails_a75963ca00; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8247,6 +8522,14 @@ ALTER TABLE ONLY public.sales
 
 ALTER TABLE ONLY public.shifts
     ADD CONSTRAINT fk_rails_ac3cac7c53 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: fundi_payouts fk_rails_aeb54dbc83; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundi_payouts
+    ADD CONSTRAINT fk_rails_aeb54dbc83 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -8834,6 +9117,14 @@ ALTER TABLE ONLY public.delivery_note_lines
 
 
 --
+-- Name: fundis fk_rails_fb49284f00; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fundis
+    ADD CONSTRAINT fk_rails_fb49284f00 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: products fk_rails_fb915499a4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9079,6 +9370,27 @@ CREATE POLICY account_isolation ON public.etims_submissions USING (((current_set
 --
 
 CREATE POLICY account_isolation ON public.events USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: fundi_entries account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.fundi_entries USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: fundi_payouts account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.fundi_payouts USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: fundis account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.fundis USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
 
 
 --
@@ -9574,6 +9886,24 @@ ALTER TABLE public.etims_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: fundi_entries; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.fundi_entries ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: fundi_payouts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.fundi_payouts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: fundis; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.fundis ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: goods_receipt_lines; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9868,6 +10198,8 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111120100'),
+('20261111120000'),
 ('20261111080000'),
 ('20261110230100'),
 ('20261110230000'),

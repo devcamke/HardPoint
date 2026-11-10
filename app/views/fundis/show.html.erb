@@ -1,0 +1,52 @@
+<% content_for :title, @fundi.name %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-xl font-medium"><%= link_to "Fundis", fundis_path, class: "link" %> <span class="text-gray-400">/</span> <%= @fundi.name %></h1>
+    <p class="hint mt-1"><%= [ @fundi.trade_name, PhoneNumber.display(@fundi.phone).presence, ("#{plain_number(@fundi.commission_percent)}% on everything" if @fundi.commission_percent) ].compact.join(" · ") %>
+      <%= status_dot("Inactive", :muted, class: "ml-2") unless @fundi.active? %></p>
+    <% if @fundi.note.present? %><p class="mt-1 text-sm text-gray-700"><%= @fundi.note %></p><% end %>
+  </div>
+  <div class="flex gap-2">
+    <%= link_to "Pay commission", new_fundi_payout_path(@fundi), class: "btn-primary" if current_membership.approver? && @balance.positive? %>
+    <%= link_to "Edit", edit_fundi_path(@fundi), class: "btn-secondary" if current_membership.can_sell? %>
+  </div>
+</div>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-3">
+  <div class="card"><p class="hint">Owed now</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@balance) %></p></div>
+  <div class="card"><p class="hint">Sales brought in, all time</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@brought) %></p><p class="hint">before tax</p></div>
+  <div class="card"><p class="hint">Paid so far</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(-@entries.select { _1.kind == "paid" }.sum(&:amount_cents)) %></p></div>
+</div>
+
+<section class="card overflow-x-auto">
+  <h2 class="mb-3 text-lg font-semibold">Statement</h2>
+  <% if @entries.any? %>
+    <table class="table">
+      <thead><tr><th>Date</th><th>What</th><th class="text-right">Sale before tax</th><th class="text-right">Commission</th><th class="text-right">Owed</th></tr></thead>
+      <tbody>
+        <% running = 0 %>
+        <% @entries.each do |entry| %>
+          <% running += entry.amount_cents %>
+          <tr>
+            <td class="whitespace-nowrap text-sm"><%= l(entry.created_at, format: :short) %></td>
+            <td class="text-sm">
+              <% case entry.source %>
+              <% when Sale %>
+                <%= entry.kind == "earned" ? "Sale" : "Voided" %> <%= link_to entry.source.receipt_number, entry.source, class: "link" %><%= " · #{entry.source.customer.name}" if entry.source.customer %>
+              <% when SaleReturn %>
+                Return <%= link_to entry.source.return_number, entry.source.sale, class: "link" %>
+              <% when FundiPayout %>
+                Paid, <%= entry.source.method_name.downcase %><%= " #{entry.source.reference}" if entry.source.reference %> by <%= entry.source.paid_by.name %>
+              <% end %>
+            </td>
+            <td class="text-right tabular-nums text-sm"><%= money(entry.sales_cents) unless entry.kind == "paid" %></td>
+            <td class="text-right tabular-nums <%= "text-red-700" if entry.amount_cents.negative? %>"><%= money(entry.amount_cents) %></td>
+            <td class="text-right tabular-nums font-semibold"><%= money(running) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="text-gray-500">Nothing yet. Name <%= @fundi.name %> at the till when they bring a customer.</p>
+  <% end %>
+</section>
