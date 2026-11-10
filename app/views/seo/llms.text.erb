@@ -1,0 +1,30 @@
+# HardPoint
+
+> Point of sale and stock control for hardware stores in Kenya, as a web app: a scanner-first till that keeps selling offline, M-Pesa and Airtel Money payment prompts on the shop's own Paybill or Till, every sale signed with KRA eTIMS, stock across branches, purchasing, customer accounts and an online store. Built in Kenya; prices in Kenya shillings.
+
+HardPoint is for hardware, building materials, paint, plumbing and electrical shops in Kenya, from one counter to many branches. Shops near the borders also take Ugandan and Tanzanian shillings and dollars at the till. Outside Kenya it works for selling and stock, but tax filing (KRA eTIMS) and mobile money (M-Pesa, Airtel Money Kenya) are Kenyan only today.
+
+Plans, per shop per month (every plan has every feature, <%= Plan::TRIAL.inspect %> free, no card):
+<% @plans.each do |plan| -%>
+- <%= plan.name %>: KES <%= number_with_delimiter(plan.price_cents / 100) %>. <%= plan.blurb %>
+<% end -%>
+
+## What it does
+
+<% SolutionPage.all.each do |page| -%>
+- [<%= page.title %>](<%= solution_url(page) %>): <%= page.description %>
+<% end -%>
+- [Pricing](<%= pricing_url %>): plans, the setup visit and till hardware
+
+## Help centre
+
+<% HelpArticle.all.each do |article| -%>
+- [<%= article.title %>](<%= help_article_url(article) %>): <%= article.summary %>
+<% end -%>
+
+## Optional
+
+- [API and webhooks](<%= developer_docs_url %>)
+- [Privacy and your data](<%= privacy_url %>): in line with Kenya's Data Protection Act, 2019
+- [Terms of service](<%= terms_url %>)
+- [Service level agreement](<%= sla_url %>)

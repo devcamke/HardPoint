@@ -31,9 +31,26 @@ class SeoControllerTest < ActionDispatch::IntegrationTest
     assert_equal "application/xml", response.media_type
     assert_includes response.body, "<loc>http://localhost/pricing</loc>"
     HelpArticle.all.each { assert_includes response.body, "<loc>http://localhost/help/#{_1.slug}</loc>" }
+    SolutionPage.all.each { assert_includes response.body, "<loc>http://localhost/#{_1.slug}</loc>" }
 
     host! "acme.localhost"
     get "/sitemap.xml"
+    assert_response :not_found
+  end
+
+  test "llms.txt says what HardPoint is, where, and links every public page" do
+    use_apex_domain
+    get "/llms.txt"
+    assert_response :success
+    assert_equal "text/markdown", response.media_type
+    assert response.body.start_with?("# HardPoint\n\n> ")
+    assert_includes response.body, "hardware stores in Kenya"
+    assert_includes response.body, "KRA eTIMS"
+    SolutionPage.all.each { assert_includes response.body, "(http://localhost/#{_1.slug})" }
+    HelpArticle.all.each { assert_includes response.body, "(http://localhost/help/#{_1.slug})" }
+
+    host! "acme.localhost"
+    get "/llms.txt"
     assert_response :not_found
   end
 end

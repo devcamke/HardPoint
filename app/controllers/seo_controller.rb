@@ -17,9 +17,18 @@ class SeoController < ActionController::Base
   def sitemap
     return head :not_found if request.subdomain.present?
 
-    @urls = [ marketing_root_url, pricing_url, new_signup_url, help_url, *HelpArticle.all.map { help_article_url(_1) },
+    @urls = [ marketing_root_url, pricing_url, *SolutionPage.all.map { solution_url(_1) }, new_signup_url, help_url, *HelpArticle.all.map { help_article_url(_1) },
               developer_docs_url, privacy_url, terms_url, data_processing_url, sla_url ]
     expires_in 1.day, public: true
     render formats: :xml
+  end
+
+  # /llms.txt (llmstxt.org): what HardPoint is and where its pages are, in plain Markdown, for AI search and assistants.
+  def llms
+    return head :not_found if request.subdomain.present?
+
+    @plans = Plan.all
+    expires_in 1.day, public: true
+    render formats: :text, content_type: "text/markdown"
   end
 end
