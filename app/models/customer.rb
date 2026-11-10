@@ -34,9 +34,9 @@ class Customer < ApplicationRecord
 
     digits = query.gsub(/\D/, "")
     national = digits.sub(/\A(254|0)/, "").first(9) if digits.length >= 4
-    ids = query.split.first(8).map { |word| SearchTerm.starting_with("customers", word).to_sql }.join(" INTERSECT ")
-    ids = "(#{ids}) UNION (#{SearchTerm.starting_with("customers", national).to_sql})" if national
-    matching = where("customers.id IN (#{ids})")
+    ids = SearchTerm.with_every_word("customers", query.split.first(8))
+    ids = Arel::Nodes::Union.new(ids, SearchTerm.starting_with("customers", national).arel) if national
+    matching = where(arel_table[:id].in(ids))
     next matching if matching.exists?
 
     # Phone numbers match on their last nine digits, so 0722 000 111 finds +254722000111.

@@ -17,8 +17,7 @@ module Product::Searchable
 
       # One set of ids (products with every word, and the barcode's), so Postgres looks each up rather than
       # reading the catalogue to test them.
-      with_words = words.map { |word| SearchTerm.starting_with("products", word).to_sql }.join(" INTERSECT ")
-      matching = where("products.id IN ((#{with_words}) UNION (#{barcodes.to_sql}))")
+      matching = where(arel_table[:id].in(Arel::Nodes::Union.new(SearchTerm.with_every_word("products", words), barcodes.arel)))
       unless matching.exists?
         matching = words.inject(all) do |scope, word|
           scope.where("products.name ILIKE :word OR products.sku ILIKE :word", word: "%#{sanitize_sql_like(word)}%")

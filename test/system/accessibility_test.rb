@@ -7,7 +7,7 @@ class AccessibilityTest < ApplicationSystemTestCase
 
   def assert_accessible(screen)
     page.execute_script(AXE) unless page.evaluate_script("typeof window.axe !== 'undefined'")
-    violations = page.evaluate_async_script(<<~JS)
+    violations = page.evaluate_async_script(<<~'JS')
       const done = arguments[arguments.length - 1]
       axe.run(document, { runOnly: { type: "tag", values: [ "wcag2a", "wcag2aa", "wcag21a", "wcag21aa" ] } })
         .then(result => done(result.violations.filter(v => [ "serious", "critical" ].includes(v.impact))

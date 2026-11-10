@@ -15,4 +15,9 @@ class SearchTerm < ApplicationRecord
     terms = terms.where(account_id: Current.account.id) if Current.account
     terms.select(:record_id)
   end
+
+  # Ids of the records with a term starting with every word, as one Arel set ("cem 50" is cem's ∩ 50's).
+  def self.with_every_word(table, words)
+    words.map { |word| starting_with(table, word).arel }.reduce { |all, next_word| Arel::Nodes::Intersect.new(all, next_word) }
+  end
 end
