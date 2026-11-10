@@ -1319,6 +1319,10 @@ Inside the ZIP:
 - **Voids and returns**, reversing their sales, with goods put back into stock at their cost.
 - **Deposits** on orders, and **customers paying** their accounts.
 - **Supplier invoices** with VAT on purchases, and **payments to suppliers**. Invoices in dollars or another currency are converted at the rate they were entered at.
+- **Goods returned to suppliers**: the debit note comes off what you owe the supplier, out of stock and off VAT on purchases.
+- **Stock gains and losses** (found, damaged, stolen, stock takes, lost between branches), at cost, against the stock account, as in the **Profit and loss** report.
+- **Transport and duty** entered on a delivery go into stock, with the other side in a clearing account. When the transporter's or customs' bill is entered in QuickBooks, post it to that clearing account.
+- Refunded deposits come out of the money they were paid back from. Every amount is a positive debit or credit, as QuickBooks wants.
 
 HardPoint sends journal entries rather than invoices because QuickBooks won't import invoices once VAT is set up, which it is for every VAT-registered shop.
 

@@ -164,9 +164,10 @@ module CustomerOrder::Fulfilment
       next if errors.any?
 
       sale.update!(customer_order: self, customer: customer, job: job&.open? ? job : nil)
+      # A line quoted under a promotion is sold under it, so the promotion's results count the sale.
       lines.reject(&:collected?).each do |line|
         sale.lines.create!(account: account, product: line.product, product_unit: line.product_unit, quantity: line.remaining_quantity,
-          unit_price_cents: line.unit_price_cents, detail: line.detail, customer_order_line_id: line.id)
+          unit_price_cents: line.unit_price_cents, detail: line.detail, customer_order_line_id: line.id, promotion_id: line.promotion_id)
       end
       sale.recalculate
     end
