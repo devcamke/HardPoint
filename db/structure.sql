@@ -2602,7 +2602,8 @@ CREATE TABLE public.sales (
     job_id bigint,
     void_refund_method character varying,
     void_refund_reference character varying,
-    fundi_id bigint
+    fundi_id bigint,
+    approved_discount_cents bigint
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -10309,6 +10310,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111123000'),
 ('20261111122000'),
 ('20261111121000'),
 ('20261111120100'),

@@ -403,7 +403,7 @@ If a customer goes to fetch something, **Park this sale** and serve the next per
 
 #### Things that need a manager
 
-A discount above the shop's limit, a void, a return, or a sale that takes a customer past their credit limit asks for an owner's or manager's approval PIN. They type it at the till; it approves that one thing and doesn't sign them in. See [Staff, roles and PINs](#staff-and-roles).
+A discount above the shop's limit, a void, a return, or a sale that takes a customer past their credit limit asks for an owner's or manager's approval PIN. They type it at the till; it approves that one thing and doesn't sign them in. An approved discount covers that discount only: a bigger one later on the same sale, on another line or on the whole sale, asks again. See [Staff, roles and PINs](#staff-and-roles).
 
 #### Returns and voids
 

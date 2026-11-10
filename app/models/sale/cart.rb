@@ -132,9 +132,26 @@ module Sale::Cart
     [ *line_percents, cart_percent ].max || 0
   end
 
-  # Beyond the cashier's limit, and beyond anything a manager already approved on this sale.
+  # The discounts a cashier couldn't give alone: each line's, and the whole sale's, that's over the shop's limit.
+  # Promotions apply by themselves and aren't counted.
+  def discount_over_limit_cents
+    limit = account.max_cashier_discount_percent.to_f + 0.001
+    cart_percent = subtotal_cents.positive? ? discount_cents * 100.0 / subtotal_cents : 0
+    lines.select { _1.discount_percent > limit }.sum { _1.discount_cents.to_i } + (cart_percent > limit ? discount_cents.to_i : 0)
+  end
+
+  # Beyond the cashier's limit, and beyond what a manager already approved on this sale. An approval covers the
+  # discounts over the limit as they were when it was given: no bigger a share of the sale, and no more money.
+  # (Approvals from before the money was recorded cover the share only.)
   def discount_needs_approval?
-    allowed = [ account.max_cashier_discount_percent.to_f, approved_discount_percent.to_f ].max
-    highest_discount_percent > allowed + 0.001
+    return false if highest_discount_percent <= account.max_cashier_discount_percent.to_f + 0.001
+
+    approved_discount_percent.nil? || highest_discount_percent > approved_discount_percent.to_f + 0.001 ||
+      (approved_discount_cents.present? && discount_over_limit_cents > approved_discount_cents)
+  end
+
+  # The discount grew in money, though not as a share of the sale, since a manager approved it.
+  def discount_grew_since_approval?
+    approved_discount_cents.present? && highest_discount_percent <= approved_discount_percent.to_f + 0.001 && discount_over_limit_cents > approved_discount_cents
   end
 end

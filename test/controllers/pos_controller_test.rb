@@ -163,6 +163,26 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success, "within the cashier's own limit"
   end
 
+  test "an approval covers the discount it was given for, not the same share of the whole sale" do
+    Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
+    post pos_lines_path, params: { code: "NAIL-3" }, as: :turbo_stream
+    post pos_lines_path, params: { code: "CEM-50", quantity: 10 }, as: :turbo_stream
+    nails = Account.without_isolation { current_sale.lines.order(:id).first }
+    half = Account.without_isolation { nails.gross_cents } / 2
+
+    patch pos_line_path(nails), params: { sale_line: { discount: (half / 100.0).to_s }, approval_pin: "2468" }, as: :turbo_stream
+    assert_response :success
+    assert_equal half, Account.without_isolation { current_sale.approved_discount_cents }
+
+    patch pos_discount_path, params: { discount: "40%" }, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "more than the KES #{format("%.2f", half / 100.0)} a manager approved", response.body
+    assert_equal 0, Account.without_isolation { current_sale.discount_cents }, "the discount was rolled back"
+
+    patch pos_discount_path, params: { discount: "40%", approval_pin: "2468" }, as: :turbo_stream
+    assert_response :success
+  end
+
   test "an approved discount can't be grown by shrinking the sale" do
     Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
     post pos_lines_path, params: { code: "CEM-50", quantity: 10 }, as: :turbo_stream

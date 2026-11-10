@@ -23,12 +23,16 @@ module PosSale
 
       approver = approver_for_action
       unless approver
+        if @sale.discount_grew_since_approval?
+          raise ApprovalMissing, "That's #{Money.format(@sale.discount_over_limit_cents)} of discount over the cashier's limit, more than the " \
+            "#{Money.format(@sale.approved_discount_cents.to_i)} a manager approved. It needs a manager's approval PIN again"
+        end
         limit = Current.account.max_cashier_discount_percent.to_s("F").delete_suffix(".0")
         raise ApprovalMissing, "That makes the discount #{@sale.highest_discount_percent.round(1).to_s.delete_suffix(".0")}% of the sale. " \
           "A discount over #{limit}% needs a manager's approval PIN"
       end
 
-      @sale.update!(discount_approver: approver, approved_discount_percent: @sale.highest_discount_percent.ceil(2))
+      @sale.update!(discount_approver: approver, approved_discount_percent: @sale.highest_discount_percent.ceil(2), approved_discount_cents: @sale.discount_over_limit_cents)
       @sale.track_event "discount_approved", approver: approver, percent: @sale.highest_discount_percent.round(1)
     end
 
