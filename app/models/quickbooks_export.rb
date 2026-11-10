@@ -4,7 +4,8 @@ require "csv"
 # (QuickBooks won't import invoices where VAT is set up, which every VAT-registered shop has). Each day
 # and branch gets balanced entries: sales by how they were paid with output VAT and cost of sales, voids
 # and returns reversing them, deposits, customers paying their accounts, supplier bills with input VAT,
-# and paying suppliers. Customers and suppliers come as lists to import first, so the names match.
+# paying suppliers, goods sent back to suppliers, stock gains and losses, and transport and duty paid on
+# deliveries. Every amount is on the side it belongs, never negative, as QuickBooks wants. Customers and suppliers come as lists to import first, so the names match.
 # Amounts are in the shop's currency; bills in another currency use the rate they were entered at.
 class QuickbooksExport
   # key => [ what it's for, the QuickBooks account name used unless the shop changes it ]
@@ -23,6 +24,8 @@ class QuickbooksExport
     "cost_of_sales" => [ "Cost of what was sold", "Cost of Goods Sold" ],
     "inventory" => [ "Stock", "Inventory Asset" ],
     "bad_debt" => [ "Customer debts written off", "Bad Debts" ],
+    "stock_adjustments" => [ "Stock gains and losses (damaged, stolen, stock takes, lost in transit)", "Inventory Shrinkage" ],
+    "landed_costs" => [ "Transport and duty paid on deliveries, until the bill for them is entered", "Transport and Duty Clearing" ],
     "points" => [ "Old loyalty-points payments", "Loyalty Points Redeemed" ]
   }.freeze
 
@@ -30,6 +33,8 @@ class QuickbooksExport
                       "card" => "card", "on_account" => "receivable", "deposit" => "deposits", "points" => "points",
                       "bank_transfer" => "bank", "cheque" => "bank" }.freeze
   JOURNAL_HEADERS = [ "Journal No.", "Journal Date", "Account Name", "Debits", "Credits", "Description", "Name" ].freeze
+  # The stock movements that are gains or losses, as in the profit and loss report, and stock lost between branches.
+  ADJUSTMENT_REASONS = (Report::ProfitAndLoss::ADJUSTMENT_REASONS + %w[ lost_in_transit ]).freeze
   ROWS_PER_FILE = 990 # QuickBooks takes up to 1,000 rows a file; entries never split across files
 
   Line = Data.define(:account, :debit, :credit, :description, :name)
@@ -55,7 +60,8 @@ class QuickbooksExport
   def entries
     @entries ||= Time.use_zone(account.time_zone) do
       (sales_entries + void_entries + return_entries + deposit_entries + customer_payment_entries +
-        supplier_invoice_entries + supplier_payment_entries).select { _1.lines.any? }.sort_by(&:date)
+        supplier_invoice_entries + supplier_payment_entries + supplier_return_entries + stock_adjustment_entries +
+        landed_cost_entries).select { _1.lines.any? }.sort_by(&:date)
     end
   end
 
@@ -175,8 +181,15 @@ class QuickbooksExport
       account.deposits.where(created_at: period).includes(customer_order: :customer).to_a.group_by { local_date(_1.created_at) }.map do |date, deposits|
         lines = deposits.flat_map do |deposit|
           name = deposit.customer_order.customer.name
-          [ debit(TENDER_ACCOUNTS.fetch(deposit.tender, "cash"), deposit.amount_cents, name:, description: "Deposit on #{deposit.customer_order.reference}"),
-            credit("deposits", deposit.amount_cents, name:, description: "Deposit on #{deposit.customer_order.reference}") ]
+          money = TENDER_ACCOUNTS.fetch(deposit.tender, "cash")
+          if deposit.amount_cents.negative?
+            # A refund is the deposit going back out of the till or bank.
+            description = "Deposit refunded on #{deposit.customer_order.reference}"
+            [ debit("deposits", -deposit.amount_cents, name:, description:), credit(money, -deposit.amount_cents, name:, description:) ]
+          else
+            description = "Deposit on #{deposit.customer_order.reference}"
+            [ debit(money, deposit.amount_cents, name:, description:), credit("deposits", deposit.amount_cents, name:, description:) ]
+          end
         end
         Entry.new(date, "Deposits on orders", lines)
       end
@@ -234,6 +247,49 @@ class QuickbooksExport
             credit(TENDER_ACCOUNTS.fetch(payment.payment_method, "bank"), payment.amount_cents, description:) ]
         end
         Entry.new(date, "Paying suppliers", lines)
+      end
+    end
+
+    # A debit note: goods sent back come off what's owed to the supplier, out of stock and off the VAT on purchases,
+    # on the day they went, in the shop's currency at the rate the return was made at.
+    def supplier_return_entries
+      account.supplier_returns.where(created_at: period).includes(:supplier).to_a.group_by { local_date(_1.created_at) }.map do |date, returns|
+        lines = returns.flat_map do |sent_back|
+          total, tax = sent_back.to_base_cents(sent_back.total_cents), sent_back.to_base_cents(sent_back.tax_cents)
+          description = "Debit note #{sent_back.reference}"
+          [ debit("payable", total, name: sent_back.supplier.name, description:), credit("inventory", total - tax, description:),
+            (credit("vat_input", tax, description:) if tax.positive?) ].compact
+        end
+        Entry.new(date, "Goods returned to suppliers", lines)
+      end
+    end
+
+    # Stock found, damaged, stolen, counted or lost on the way between branches, at cost, a day and branch at a time.
+    def stock_adjustment_entries
+      account.stock_movements.where(reason: ADJUSTMENT_REASONS, created_at: period).includes(:branch).to_a
+        .group_by { [ _1.branch, local_date(_1.created_at) ] }.filter_map do |(branch, date), movements|
+          lines = movements.group_by(&:reason).flat_map do |reason, group|
+            cents = group.sum { (_1.quantity * _1.unit_cost_cents.to_i).round }
+            description = reason.humanize
+            if cents.positive?
+              [ debit("inventory", cents, description:), credit("stock_adjustments", cents, description:) ]
+            elsif cents.negative?
+              [ debit("stock_adjustments", -cents, description:), credit("inventory", -cents, description:) ]
+            end
+          end.compact
+          Entry.new(date, "Stock gains and losses · #{branch.name}", lines) if lines.any?
+        end
+    end
+
+    # Transport and duty go into the cost of the goods received, so into stock. The other side waits in a clearing
+    # account for the transporter's or customs' bill, which the accountant posts against it.
+    def landed_cost_entries
+      account.goods_receipts.where(created_at: period).where("extra_costs_cents > 0").to_a.group_by { local_date(_1.created_at) }.map do |date, receipts|
+        lines = receipts.flat_map do |receipt|
+          description = "Transport and duty on #{receipt.reference}"
+          [ debit("inventory", receipt.extra_costs_cents, description:), credit("landed_costs", receipt.extra_costs_cents, description:) ]
+        end
+        Entry.new(date, "Transport and duty on deliveries", lines)
       end
     end
 

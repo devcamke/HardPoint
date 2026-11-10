@@ -1,4 +1,4 @@
 HardPoint stopped sending webhooks to <%= @endpoint.url %> for <%= @account.name %>: <%= @endpoint.disabled_reason %>.
 
-Check the receiving server, then switch it back on (and resend the failed events) in Settings › Developers:
+Check the receiving server, then switch it back on in Settings › Developers. Events from while it was off are kept and sent when you do; resend any that failed:
 <%= developers_url(subdomain: @account.subdomain) %>

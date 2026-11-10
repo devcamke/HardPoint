@@ -49,6 +49,7 @@
             <td>
               <% if delivery.delivered? %><%= status_dot "Delivered", :success %> <span class="hint"><%= delivery.response_status %></span>
               <% elsif delivery.failed? %><%= status_dot "Failed", :danger %> <span class="hint"><%= delivery.last_error %></span>
+              <% elsif delivery.skipped? %><%= status_dot "Skipped", :neutral %> <span class="hint">Endpoint was switched off; sent when it's switched back on</span>
               <% else %><%= status_dot "Retrying", :warning %> <span class="hint"><%= delivery.last_error %><%= " · next #{time_ago_in_words(delivery.next_attempt_at)} from now" if delivery.attempts.positive? && delivery.next_attempt_at&.future? %></span>
               <% end %>
             </td>

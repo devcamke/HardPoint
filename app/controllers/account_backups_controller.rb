@@ -1,5 +1,6 @@
 class AccountBackupsController < ApplicationController
   include OwnerOnly, ActiveStorage::Streaming
+  refuse_while_impersonated back_to: -> { account_data_path(anchor: "backups") }, only: :show
   rate_limit to: 5, within: 1.hour, only: :create, with: -> { redirect_to account_data_path(anchor: "backups"), alert: "Several backups were made in the last hour; try again later." }
 
   def create

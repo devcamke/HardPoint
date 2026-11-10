@@ -6,6 +6,9 @@ module Etims
 
   PAYMENT_TYPES = { "cash" => "01", "on_account" => "02", "card" => "05", "mobile_money" => "06", "airtel_money" => "06", "deposit" => "07", "foreign_cash" => "01", "points" => "07" }.freeze
 
+  # A KRA PIN: A for individuals, P for companies, nine digits and a check letter.
+  PIN_FORMAT = /\A[AP]\d{9}[A-Z]\z/
+
   def self.table_name_prefix
     "etims_"
   end
