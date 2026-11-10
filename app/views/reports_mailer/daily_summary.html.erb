@@ -71,6 +71,14 @@
           [ refusal.product.name, refusal.times, pluralize(refusal.times, "time"), "#{quantity(refusal.quantity, refusal.product.unit)} wanted" ] } %>
   <% end %>
 
+  <% if s.moves.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Move it instead of ordering</p>
+    <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">One branch is short and another has more than it needs.</p>
+    <%= mail_list [ "Product", "From", "To", "Move" ], s.moves.first(OwnerSummary::Daily::LIST_LIMIT).map { |move|
+          [ move.product.name, move.from_branch.name, move.to_branch.name, quantity(move.quantity, move.product.unit) ] }, align: [ :left, :left, :left, :right ] %>
+    <p style="margin:6px 0 0; font-size:13px;"><%= link_to "Prepare the transfers", reorder_list_url(**host), style: "color:#{mail_color(:bar)}; font-weight:600;" %></p>
+  <% end %>
+
   <% if s.write_offs.any? %>
     <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Written off, at cost</p>
     <%= mail_bar_rows s.write_offs.map { |off|

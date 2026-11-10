@@ -16,6 +16,9 @@
     Each suggestion covers the supplier's lead time plus two weeks of sales (or twice the reorder level), less what's on hand, already on order or on its way from another branch, rounded up to the supplier's minimum.
     Owners, managers and stock clerks also get the low-stock list by email each morning.</p>
 
+  <%= render "reorder_lists/moves", rebalancing: @rebalancing, branch: selected_branch if @rebalancing && selected_branch %>
+  <% incoming_moves = @rebalancing && selected_branch ? @rebalancing.into(selected_branch).values.flatten.group_by(&:product) : {} %>
+
   <% if @suggestion.rows.empty? %>
     <div class="card"><p class="hint">Nothing needs ordering for this branch right now.</p></div>
   <% end %>
@@ -43,7 +46,8 @@
                 <td class="text-right tabular-nums"><%= quantity(row.sold) %></td>
                 <td class="text-right tabular-nums"><%= quantity(row.reorder_level) %></td>
                 <td class="text-right"><%= row.lead_time %> days</td>
-                <td class="text-right font-semibold tabular-nums"><%= quantity(row.quantity, row.product.unit) %></td>
+                <td class="text-right font-semibold tabular-nums"><%= quantity(row.quantity, row.product.unit) %>
+                  <% if (move = incoming_moves[row.product]) %><span class="block text-xs font-normal text-primary-700">or move <%= quantity(move.sum(&:quantity), row.product.unit) %> first</span><% end %></td>
                 <td class="text-right tabular-nums"><%= money(row.cost_cents, currency: supplier&.currency_code || Current.account.currency) %></td>
               </tr>
             <% end %>
@@ -57,6 +61,7 @@
     <h1 class="text-xl font-medium">Reorder</h1>
     <%= render "shared/branch_picker" %>
   </div>
+  <%= render "reorder_lists/moves", rebalancing: @rebalancing, branch: selected_branch if @rebalancing && selected_branch %>
 
   <p class="hint mb-4">Products at or below their reorder level at <%= selected_branch&.name %>, most urgent first.</p>
 

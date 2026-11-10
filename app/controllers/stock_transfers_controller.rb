@@ -11,9 +11,15 @@ class StockTransfersController < ApplicationController
     @transfer = visible_transfers.find(params[:id])
   end
 
+  # A move suggested on the reorder list arrives filled in (from, to and the lines); it's sent only once checked.
   def new
-    @transfer = Current.account.stock_transfers.new(from_branch: selected_branch)
-    BLANK_LINES.times { @transfer.lines.build }
+    from = visible_branches.find_by(id: params[:from_branch_id]) || selected_branch
+    @transfer = Current.account.stock_transfers.new(from_branch: from, to_branch: Current.account.branches.where.not(id: from&.id).find_by(id: params[:to_branch_id]))
+    Array(params[:lines]).first(BLANK_LINES).each do |line|
+      product = Current.account.products.active.find_by(id: line[:product_id])
+      @transfer.lines.build(product: product, quantity: line[:quantity]) if product
+    end
+    (BLANK_LINES - @transfer.lines.size).clamp(1, BLANK_LINES).times { @transfer.lines.build }
   end
 
   def create

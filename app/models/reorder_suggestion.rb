@@ -10,7 +10,8 @@
 class ReorderSuggestion
   EXTRA_COVER_DAYS = 14
 
-  Row = Data.define(:product, :supplier_product, :on_hand, :on_order, :sold, :daily_sales, :lead_time, :reorder_level, :quantity) do
+  # needed is what's short before rounding up to the supplier's order size; quantity is what to order.
+  Row = Data.define(:product, :supplier_product, :on_hand, :on_order, :sold, :daily_sales, :lead_time, :reorder_level, :needed, :quantity) do
     def cost_cents = ((supplier_product&.cost_cents || product.cost_cents) * quantity).round
   end
 
@@ -21,6 +22,24 @@ class ReorderSuggestion
   def rows
     @rows ||= candidates.filter_map { |product| row_for(product) }.sort_by { [ -_1.quantity * _1.product.cost_cents, _1.product.name ] }
   end
+
+  # What this branch could spare of a product: what it holds beyond the cover it wants for itself (the same cover a
+  # suggestion aims for), so moving it away never leaves the branch needing to reorder. Nothing for one that's short.
+  def spare(product)
+    on_hand = levels.fetch(product.id, 0)
+    return 0 unless on_hand.positive?
+
+    daily = sold.fetch(product.id, 0) / @account.reorder_lookback_days
+    lead_time = product.preferred_supplier_product&.lead_time_days || @account.supplier_lead_time_days
+    reorder_level = reorder_levels.fetch(product.id, product.reorder_level)
+    wanted = [ reorder_level * 2, daily * (lead_time + EXTRA_COVER_DAYS), reorder_level + 1 ].max
+    surplus = on_hand - wanted
+    return 0 unless surplus.positive?
+
+    product.unit.fractional? ? surplus.round(1, BigDecimal::ROUND_DOWN) : surplus.floor
+  end
+
+  def on_hand(product) = levels.fetch(product.id, 0)
 
   # Suggestions grouped by preferred supplier (nil for products with no supplier yet).
   def by_supplier
@@ -52,7 +71,7 @@ class ReorderSuggestion
 
       needed = product.unit.fractional? ? needed.round(1, BigDecimal::ROUND_UP) : needed.ceil
       quantity = supplier_product ? supplier_product.order_quantity_for(needed) : needed
-      Row.new(product:, supplier_product:, on_hand:, on_order:, sold: sold_quantity, daily_sales: daily, lead_time:, reorder_level:, quantity:)
+      Row.new(product:, supplier_product:, on_hand:, on_order:, sold: sold_quantity, daily_sales: daily, lead_time:, reorder_level:, needed:, quantity:)
     end
 
     def levels
