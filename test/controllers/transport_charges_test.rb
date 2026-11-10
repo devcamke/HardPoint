@@ -85,4 +85,24 @@ class TransportChargesTest < ActionDispatch::IntegrationTest
     end
     assert_nil acme { @account.delivery_notes.last.transport_order }
   end
+
+  test "a cashier bound to the yard can't write or change a delivery note for the main branch's sale" do
+    sale = completed_sale(customer: customers(:acme_contractor))
+    post delivery_notes_path, params: { delivery_note: { sale_id: sale.id, address: "Plot 9, Ruiru" } }
+    note = acme { @account.delivery_notes.last }
+
+    acme { memberships(:carl_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:carl), account: @account
+
+    get new_delivery_note_path(sale_id: sale.id)
+    assert_response :not_found
+    assert_no_difference -> { acme { DeliveryNote.count } } do
+      post delivery_notes_path, params: { delivery_note: { sale_id: sale.id, address: "Gate C" } }
+    end
+    assert_response :not_found
+
+    post delivery_note_cancellation_path(note)
+    assert_response :not_found
+    assert_not acme { note.reload.cancelled? }
+  end
 end

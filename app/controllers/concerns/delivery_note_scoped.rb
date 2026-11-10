@@ -7,7 +7,7 @@ module DeliveryNoteScoped
 
   private
     def set_delivery_note
-      @delivery_note = Current.account.delivery_notes.find(params[:delivery_note_id])
+      @delivery_note = within_visible_branches(Current.account.delivery_notes).find(params[:delivery_note_id])
     end
 
     def back_to_note(notice: nil, alert: nil)

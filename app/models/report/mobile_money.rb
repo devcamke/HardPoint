@@ -10,14 +10,30 @@ class Report::MobileMoney < Report
     [ Section.new(title: "Summary", columns: [ Column.new("", :text), Column.new("Payments", :count), Column.new("Amount", :money) ], rows: summary_rows,
         note: ("Your Paybill or Till isn't connected yet (Settings › M-Pesa), so there's nothing from Safaricom to check against." if account.mpesa_shortcodes.none?)),
       Section.new(title: "Received but not used", columns: received_columns, rows: unmatched_rows,
-        note: "Use these at the till, or check with the customer. Payments to the Paybill with an order number or a customer's phone as the account are matched automatically."),
+        note: [ "Use these at the till, or check with the customer. Payments to the Paybill with an order number or a customer's phone as the account are matched automatically.",
+                ("With a branch chosen, payments to a shop-wide Paybill or Till show here once they're used at that branch, or if they came from a prompt sent there." if branch) ].compact.join(" ")),
       Section.new(title: "Recorded at the till but not confirmed by Safaricom", columns: unconfirmed_columns, rows: unconfirmed_rows,
         note: ("Only payments since your first Paybill or Till was connected are checked." if account.mpesa_shortcodes.any?)) ]
   end
 
   private
     def transactions
-      account.mpesa_transactions.where(transacted_at: period.range)
+      scope = account.mpesa_transactions.where(transacted_at: period.range)
+      branch ? scope.where(id: at_branch(scope).select(:id)) : scope
+    end
+
+    # A branch's own Till's payments, and shop-wide ones that belong to it: used on its sales or orders, or paying a
+    # prompt sent from one of its tills.
+    def at_branch(scope)
+      sales = account.sales.where(branch: branch)
+      prompts = account.mpesa_stk_requests.where(sale_id: sales.select(:id))
+      orders = account.customer_orders.where(branch: branch)
+
+      scope.where(shortcode_id: account.mpesa_shortcodes.where(branch: branch).select(:id))
+        .or(scope.where(matched_type: "Payment", matched_id: Payment.where(sale_id: sales.select(:id)).select(:id)))
+        .or(scope.where(matched_type: "Deposit", matched_id: account.deposits.where(customer_order_id: orders.select(:id)).select(:id)))
+        .or(scope.where(source: "stk", trans_id: prompts.where.not(receipt_number: nil).select(:receipt_number)))
+        .or(scope.where("mpesa_transactions.payload #>> '{Body,stkCallback,CheckoutRequestID}' IN (#{prompts.select(:checkout_request_id).to_sql})"))
     end
 
     def summary_rows

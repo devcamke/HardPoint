@@ -5,7 +5,7 @@ class StockBatches::WriteOffsController < ApplicationController
   before_action :ensure_can_manage_stock
 
   def create
-    batch = Current.account.stock_batches.find(params[:stock_batch_id])
+    batch = within_visible_branches(Current.account.stock_batches).find(params[:stock_batch_id])
     reason = params[:reason].presence_in(REASONS) || "expired"
     batch.write_off(params[:quantity].presence || batch.quantity, reason: reason, note: params[:note].presence)
     redirect_to batch, notice: "Written off as #{reason}."

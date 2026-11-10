@@ -11,9 +11,9 @@ class Mobile::ProductsController < Mobile::BaseController
       Current.account.products.find(params[:id])
     end
 
-    @levels = StockLevel.where(product: @product).index_by(&:branch_id)
-    @branches = Current.account.branches.alphabetically
-    @on_order = PurchaseOrderLine.joins(:purchase_order).where(product: @product, purchase_orders: { status: %w[ sent partially_received ] })
+    @branches = visible_branches.alphabetically
+    @levels = StockLevel.where(product: @product, branch: @branches).index_by(&:branch_id)
+    @on_order = PurchaseOrderLine.joins(:purchase_order).where(product: @product, purchase_orders: { status: %w[ sent partially_received ], branch_id: @branches.select(:id) })
       .group("purchase_orders.branch_id").sum("purchase_order_lines.quantity - purchase_order_lines.received_quantity")
     @movements = @product.stock_movements.where(branch: selected_branch).order(created_at: :desc).limit(5)
   end

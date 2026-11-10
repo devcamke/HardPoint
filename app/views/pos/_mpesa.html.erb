@@ -9,7 +9,7 @@
     <%= form.submit "Send prompt", class: "btn-secondary py-2.5" %>
   <% end %>
 
-  <% received = sale.account.mpesa_transactions.unmatched.recent.limit(5) %>
+  <% received = sale.account.mpesa_transactions.unmatched.usable_by(current_membership, at: sale.register).recent.limit(5) %>
   <% if received.any? %>
     <div>
       <p class="label">Received on M-Pesa, not used yet</p>

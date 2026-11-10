@@ -19,6 +19,6 @@ class StockAdjustmentsController < ApplicationController
     def adjustment_params
       permitted = params.expect(stock_adjustment: %i[ product_id branch_id reason quantity note ])
       permitted.merge(product: Current.account.products.find(permitted.delete(:product_id)),
-        branch: Current.account.branches.find(permitted.delete(:branch_id)))
+        branch: visible_branches.find(permitted.delete(:branch_id)))
     end
 end
