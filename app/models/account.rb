@@ -12,6 +12,7 @@ class Account < ApplicationRecord
   has_many :fundi_payouts, dependent: :delete_all
   has_many :fundi_entries, dependent: :delete_all
   has_many :fundis, dependent: :delete_all
+  has_many :material_products, dependent: :delete_all
   has_many :branches, dependent: :destroy
   has_many :account_events, class_name: "Event", dependent: :delete_all
   has_many :registers, dependent: :destroy

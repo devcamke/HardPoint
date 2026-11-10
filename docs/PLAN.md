@@ -831,7 +831,7 @@ set of books.
 ### Phases 35–39 — Ahead of the competition
 Chosen for how Kenyan hardware counters actually trade, in build order. Each is its own pull request.
 
-#### Phase 35 — Fundi commissions *(in progress)*
+#### Phase 35 — Fundi commissions *(done)*
 **Why:** masons, plumbers, electricians and other fundis bring much of a hardware shop's trade, and shops pay them a
 commission for it, tracked today in a notebook or from memory. No general-purpose till does this.
 - **Fundis:** name, phone (their M-Pesa number), trade, an optional commission rate of their own, active or not; kept
@@ -848,7 +848,7 @@ commission for it, tracked today in a notebook or from memory. No general-purpos
   report, and the top fundis in the weekly summary.
 - **Later:** paying by M-Pesa B2C from HardPoint, a fundi's own statement by link, the offline till naming a fundi.
 
-#### Phase 36 — Material calculator on quotes
+#### Phase 36 — Material calculator on quotes *(done)*
 **Why:** "a 3-bedroom house" or "a 40 m wall" has to become blocks, cement, sand, ballast, steel and sheets; doing it
 in the counter's head is slow and loses sales to the shop that answers first.
 - Calculators for walls (blocks or stones, mortar), concrete slabs and footings (cement, sand, ballast, steel),
@@ -856,6 +856,9 @@ in the counter's head is slow and loses sales to the shop that answers first.
   allowance for waste.
 - Each material maps to one of the shop's products, set once; the result fills a quote at today's prices, which then
   takes a deposit or goes to the till like any quote.
+- Built as `MaterialCalculator` (one class per part, plain arithmetic, the assumptions shown beside each), with the
+  form carrying the parts between presses, so nothing is stored until the quote is made. Later: a whole-house template
+  (rooms and storeys into walls, slab and roof), and saving an estimate to come back to.
 
 #### Phase 37 — Branch rebalancing from what was turned away
 **Why:** one branch at zero while another has plenty (the demo shop's Y12 bar) loses the sale and then over-orders.
