@@ -229,6 +229,29 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_equal 76000, Account.without_isolation { current_sale.total_cents }
   end
 
+  test "the customer can't be changed once money has been taken" do
+    post pos_lines_path, params: { code: "CEM-50" }, as: :turbo_stream
+    patch pos_customer_path, params: { customer_id: customers(:acme_contractor).id }, as: :turbo_stream
+    post pos_payments_path, params: { tender: "on_account", amount: "300" }, as: :turbo_stream
+    assert_equal 1, Account.without_isolation { current_sale.payments.count }
+
+    patch pos_customer_path, params: { customer_id: "" }, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match "Remove the payments before changing the customer", response.body
+    assert_equal customers(:acme_contractor), Account.without_isolation { current_sale.customer }
+  end
+
+  test "the till picker says whose shift is open, and asks before joining someone else's" do
+    get new_pos_till_path
+    assert_select "p.hint", /your shift is open/
+    assert_select "form[data-turbo-confirm]", count: 0
+
+    sign_in_as users(:amina)
+    get new_pos_till_path
+    assert_select "p.hint", /#{users(:carl).name}'s shift is open/
+    assert_select "form[data-turbo-confirm^=\"#{users(:carl).name}'s shift is open on #{registers(:acme_front).name}\"]"
+  end
+
   test "another shop's customer can't be chosen" do
     patch pos_customer_path, params: { customer_id: customers(:bolt_customer).id }, as: :turbo_stream
     assert_response :not_found

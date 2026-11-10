@@ -353,7 +353,7 @@ USB and Bluetooth scanners that type like a keyboard work without any setup. Sca
 
 _Opening a shift, scanning, discounts, parking a sale, taking payment, returns and closing up._
 
-The till is a full-screen page made for a barcode scanner and a busy counter. Open it from **Open till** in the top bar, or **Start selling** on a cashier's Home. Each computer remembers which till it is.
+The till is a full-screen page made for a barcode scanner and a busy counter. Open it from **Open till** in the top bar, or **Start selling** on a cashier's Home. Each computer remembers which till it is. The list of tills says whose shift is open on each; every device on a till adds to the same sale and the same cash drawer, so HardPoint asks before you join someone else's.
 
 **Walkthrough: Make a sale at the till**
 
@@ -377,7 +377,7 @@ Count the cash in the drawer and press **Open shift** with that float. Everythin
 
 1. Scan barcodes, type part of a name or SKU and pick the product, or tap through the categories. Quick-pick buttons cover fast movers and pack sizes.
 2. Change the quantity for loose goods: 2.5 metres, 0.75 kg. A box's barcode adds the box at its pack price.
-3. Choose a customer if the sale goes on their account, needs their KRA PIN on the receipt, or is for one of their jobs. Their price list applies as soon as you pick them.
+3. Choose a customer if the sale goes on their account, needs their KRA PIN on the receipt, or is for one of their jobs. Their price list applies as soon as you pick them. Choose them before taking any money: once a payment is on the sale, the customer can't be changed until it's removed.
 4. If you're taking the goods to site, **Add transport** puts the delivery charge on the sale, with where it's going.
 5. Promotions apply by themselves. To give a discount, use the line's or the sale's discount, as an amount or a percentage.
 6. Press **Take payment**: cash (the till works out the change), M-Pesa, Airtel Money, card, foreign notes, on account for approved customers, or a mix. If the sale comes to nothing (a replacement under warranty discounted to zero, say), there's no payment to take: press **Complete sale, nothing to pay** instead. A cashier needs a manager's approval PIN for that.

@@ -1,5 +1,7 @@
 <p>The till is a full-screen page made for a barcode scanner and a busy counter. Open it from <strong>Open till</strong> in the top bar, or
-  <strong>Start selling</strong> on a cashier's Home. Each computer remembers which till it is.</p>
+  <strong>Start selling</strong> on a cashier's Home. Each computer remembers which till it is. The list of tills says whose shift is
+  open on each; every device on a till adds to the same sale and the same cash drawer, so HardPoint asks before you join someone
+  else's.</p>
 
 <%= render "help/walkthrough", tour: HelpTour.find("till") %>
 
@@ -11,7 +13,8 @@
   <li>Scan barcodes, type part of a name or SKU and pick the product, or tap through the categories. Quick-pick buttons cover fast movers and pack sizes.</li>
   <li>Change the quantity for loose goods: 2.5 metres, 0.75 kg. A box's barcode adds the box at its pack price.</li>
   <li>Choose a customer if the sale goes on their account, needs their KRA PIN on the receipt, or is for one of their
-    jobs. Their price list applies as soon as you pick them.</li>
+    jobs. Their price list applies as soon as you pick them. Choose them before taking any money: once a payment is on the sale,
+    the customer can't be changed until it's removed.</li>
   <li>If you're taking the goods to site, <strong>Add transport</strong> puts the delivery charge on the sale, with where it's going.</li>
   <li>Promotions apply by themselves. To give a discount, use the line's or the sale's discount, as an amount or a percentage.</li>
   <li>Press <strong>Take payment</strong>: cash (the till works out the change), M-Pesa, Airtel Money, card, foreign notes, on account for

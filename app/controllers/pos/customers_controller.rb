@@ -14,7 +14,7 @@ class Pos::CustomersController < ApplicationController
       approve_discount!
     end
     render_cart message: customer ? "#{customer.name}#{" · #{customer.price_list.name} prices" if customer.price_list}" : "Walk-in customer"
-  rescue ApprovalMissing => error
+  rescue ApprovalMissing, ArgumentError => error
     render_cart alert: error.message, status: :unprocessable_entity
   end
 end

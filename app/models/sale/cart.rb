@@ -77,8 +77,12 @@ module Sale::Cart
     lines.select(&:transport?).sum(&:total_cents)
   end
 
+  # Payments already taken belong to the customer they were taken for: money on account is their debt, and their
+  # prices set what was due. So the customer is chosen before the money is taken, or the payments come off first.
   def change_customer(customer)
     raise ArgumentError, "The customer of an order can't be changed" if customer_order && customer != customer_order.customer
+    return if customer == self.customer
+    raise ArgumentError, "Money has already been taken on this sale. Remove the payments before changing the customer" if payments.any?
 
     self.customer = customer
     self.job = nil unless job&.customer_id == customer&.id

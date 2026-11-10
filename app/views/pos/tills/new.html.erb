@@ -6,9 +6,13 @@
 <% if @registers.any? %>
   <div class="grid gap-4 sm:grid-cols-3">
     <% @registers.each do |register| %>
-      <%= button_to pos_till_path, params: { register_id: register.id }, class: "card block w-full cursor-pointer text-left hover:border-primary-300" do %>
+      <% shift = register.open_shift
+         someone_else = shift && shift.opened_by != Current.user %>
+      <%# Every device on a till sells into its open shift and its one open sale, so joining someone else's is asked first. %>
+      <%= button_to pos_till_path, params: { register_id: register.id }, class: "card block w-full cursor-pointer text-left hover:border-primary-300",
+            form: ({ data: { turbo_confirm: "#{shift.opened_by.name}'s shift is open on #{register.name}. This device will add to the same sale and the same cash drawer. Use it?" } } if someone_else) do %>
         <p class="text-lg font-semibold"><%= register.name %></p>
-        <p class="hint"><%= register.branch.name %><%= " · shift open" if register.open_shift %></p>
+        <p class="hint"><%= register.branch.name %><% if shift %> · <%= someone_else ? "#{shift.opened_by.name}'s shift is open" : "your shift is open" %><% end %></p>
       <% end %>
     <% end %>
   </div>

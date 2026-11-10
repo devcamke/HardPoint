@@ -25,8 +25,12 @@ class CustomersController < ApplicationController
 
     if @customer.save && params[:for_till].present? && (shift = current_shift)
       # Added from the till: put the sale being rung up in their name and go back to it.
-      shift.current_sale.change_customer(@customer)
-      redirect_to pos_path, notice: "#{@customer.name} added and chosen for this sale#{" · #{@customer.price_list.name} prices" if @customer.price_list}."
+      begin
+        shift.current_sale.change_customer(@customer)
+        redirect_to pos_path, notice: "#{@customer.name} added and chosen for this sale#{" · #{@customer.price_list.name} prices" if @customer.price_list}."
+      rescue ArgumentError => error
+        redirect_to pos_path, alert: "#{@customer.name} added, but not chosen for this sale. #{error.message}."
+      end
     elsif @customer.persisted?
       redirect_to @customer, notice: "#{@customer.name} added."
     else
