@@ -1,4 +1,7 @@
 <div class="receipt">
+  <% if Current.account.logo.attached? %>
+    <%= image_tag Current.account.logo.variant(resize_to_limit: [ 400, 160 ]), alt: Current.account.name, class: "logo" %>
+  <% end %>
   <p class="center bold big"><%= Current.account.name %></p>
   <p class="center"><%= @sale.branch.name %><%= tag.br + @sale.branch.address if @sale.branch.address.present? %><%= tag.br + "Tel #{@sale.branch.phone}" if @sale.branch.phone.present? %></p>
   <hr>
@@ -32,8 +35,10 @@
     <div class="row"><span><%= payment.label %><%= " #{payment.reference}" if payment.reference %></span><span><%= money(payment.cash? || payment.foreign_cash? ? payment.tendered_cents : payment.amount_cents) %></span></div>
   <% end %>
   <% if @sale.change_cents.positive? %><div class="row bold"><span>Change</span><span><%= money(@sale.change_cents) %></span></div><% end %>
+  <% if Current.account.receipt_stamp %>
   <%= render "sales/receipts/stamp", status: (@sale.voided? ? "VOID" : @sale.payments.any?(&:on_account?) ? "ON ACCOUNT" : "PAID"),
         date: (@sale.completed_at || @sale.created_at).strftime("%-d %b %Y"), number: @sale.receipt_number, branch: @sale.branch %>
+  <% end %>
   <% if (submission = @sale.etims_submission) %>
     <hr>
     <% if submission.sent? %>

@@ -3,7 +3,8 @@
 class StockBatch < ApplicationRecord
   include AccountOwned
 
-  EXPIRING_WITHIN = 30.days
+  # How far ahead a batch counts as expiring is the shop's choice (Settings › Shop preferences).
+  def self.expiring_within = Current.account&.expiry_warning || 30.days
 
   belongs_to :branch
   belongs_to :product
@@ -17,7 +18,7 @@ class StockBatch < ApplicationRecord
   scope :in_stock, -> { where("stock_batches.quantity > 0") }
   scope :by_expiry, -> { order(Arel.sql("stock_batches.expires_on ASC NULLS LAST"), :created_at, :id) }
   scope :expired, ->(on = Date.current) { where(expires_on: ...on) }
-  scope :expiring, ->(on = Date.current, within: EXPIRING_WITHIN) { where(expires_on: on..(on + within)) }
+  scope :expiring, ->(on = Date.current, within: expiring_within) { where(expires_on: on..(on + within)) }
 
   def name
     "#{product.name} batch #{number}"
@@ -28,7 +29,7 @@ class StockBatch < ApplicationRecord
   end
 
   def expiring?(on = Date.current)
-    expires_on.present? && !expired?(on) && expires_on <= on + EXPIRING_WITHIN
+    expires_on.present? && !expired?(on) && expires_on <= on + account.expiry_warning
   end
 
   def value_cents

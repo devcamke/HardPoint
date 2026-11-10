@@ -282,6 +282,9 @@ Rails.application.routes.draw do
       resource :market_rate, only: :create, module: :currencies
     end
     resources :promotions
+    # Making HardPoint the shop's own: its colours and logo, and the choices that tune how it works.
+    resource :appearance, only: %i[ edit update ]
+    resource :preferences, only: %i[ edit update ]
     # The material calculator: a job's parts into materials, then a quote; and which product is each material.
     resource :material_estimate, only: %i[ new create ]
     resource :material_products, only: %i[ edit update ]

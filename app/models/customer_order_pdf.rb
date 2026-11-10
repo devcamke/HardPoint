@@ -20,6 +20,8 @@ class CustomerOrderPdf < DocumentPdf
         ("Job: #{@order.job.label}" if @order.job) ]
     end
 
+    def customer_facing? = true
+
     def content
       customer = @order.customer
       two_blocks "For", [ customer.name, customer.phone, customer.email, customer.address, ("PIN #{customer.tax_pin}" if customer.tax_pin.present?) ],

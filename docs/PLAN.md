@@ -876,6 +876,18 @@ in the counter's head is slow and loses sales to the shop that answers first.
   with an M-Pesa link to pay. **Needs:** a Meta business account and approved message templates per shop or for the
   platform, and a cost per conversation; SMS stays the fallback.
 
+### Phase 40 — Make it yours
+**Goal:** an owner tunes HardPoint to their shop from Settings, without asking us.
+- **Appearance:** eight colour themes or the shop's own colour (refused if white text on it would fall below 4.5:1), drawn as ten
+  shades in OKLab and written as plain hex for old till browsers; applied to the app, till, phone, online store, print toolbars and
+  the titles of quotes and invoices. A **logo** on receipts, quotes, invoices, statements and the online store. The receipt stamp
+  on or off.
+- **Shop preferences** (`accounts.preferences`, typed by `Account::Preferences`): quote validity, new customers' payment terms, the
+  till's payment buttons, the expiry warning, the "not selling" period, the reorder list's look-back and the usual supplier lead
+  time, and *How to pay* and *Terms* printed on quotes, invoices and statements. A new preference is one line plus a field.
+- **Later:** the logo in the app's top bar, the offline till honouring the payment buttons, receipt layout choices (58 mm
+  compact, larger totals), a second accent colour, and document numbering prefixes.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.

@@ -188,7 +188,8 @@ CREATE TABLE public.accounts (
     alert_shift_short_above_cents bigint DEFAULT 200000 NOT NULL,
     alert_void_above_cents bigint DEFAULT 1000000 NOT NULL,
     alert_count_loss_above_cents bigint DEFAULT 500000 NOT NULL,
-    fundi_commission_percent numeric(5,2) DEFAULT 0.0 NOT NULL
+    fundi_commission_percent numeric(5,2) DEFAULT 0.0 NOT NULL,
+    preferences jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -10308,6 +10309,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111122000'),
 ('20261111121000'),
 ('20261111120100'),
 ('20261111120000'),

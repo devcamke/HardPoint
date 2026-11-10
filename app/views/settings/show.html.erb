@@ -5,6 +5,8 @@
 <% sections = {
      "Shop" => [
        ([ "Shop details", edit_account_path, "Name, time zone, currency, two-factor rule" ] if current_membership.can_manage_account?),
+       ([ "Appearance", edit_appearance_path, "Your colours, your logo, and how receipts look" ] if current_membership.can_manage_account?),
+       ([ "Shop preferences", edit_preferences_path, "Quotes, payment buttons at the till, stock warnings, what quotes and invoices say" ] if current_membership.can_manage_account?),
        ([ "Billing", billing_path, "Your HardPoint plan, invoices and payments" ] if current_membership.can_manage_account?),
        ([ "Features", features_path, "Switch on only what your shop uses" ] if current_membership.can_manage_account?),
        ([ "Set up your shop", onboarding_path, "The first-day checklist" ] if current_membership.can_manage_account?),

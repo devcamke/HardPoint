@@ -17,6 +17,6 @@ Who owes you: <%= money(r[:total], currency: currency) %>, <%= money(Ageing.over
 Due to suppliers this week:
 <% p[:due].each do |bill| %>- <%= bill.supplier.name %>, <%= bill.due_on.strftime("%a %-d %b") %>: <%= money(bill.outstanding_cents, currency: currency) %>
 <% end %><% end %><% if (d = s.dead_stock)[:count].positive? %>
-Not sold in <%= OwnerSummary::Weekly::DEAD_STOCK_DAYS %> days: <%= pluralize(d[:count], "product") %>, <%= money(d[:value_cents], currency: currency) %> at cost
+Not sold in <%= s.dead_stock_days %> days: <%= pluralize(d[:count], "product") %>, <%= money(d[:value_cents], currency: currency) %> at cost
 <% end %>
 Dashboard: <%= root_url(subdomain: @account.subdomain) %>

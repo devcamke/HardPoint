@@ -18,6 +18,8 @@ class StatementPdf < DocumentPdf
       [ "#{date(@statement.from)} to #{date(@statement.to)}", "Payment terms #{@statement.customer.payment_terms_days} days" ]
     end
 
+    def customer_facing? = true
+
     def content
       customer = @statement.customer
       two_blocks "Account", [ customer.name, customer.phone, customer.email, customer.address, ("PIN #{customer.tax_pin}" if customer.tax_pin.present?) ],

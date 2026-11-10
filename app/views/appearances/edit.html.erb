@@ -1,0 +1,65 @@
+<% content_for :title, "Appearance" %>
+<h1 class="mb-2 text-xl font-medium"><%= link_to "Settings", settings_path, class: "link" %> <span class="text-gray-400">/</span> Appearance</h1>
+<p class="hint mb-6">Make HardPoint look like your shop. The colour is used for the top bar, buttons and links, on every screen, the till and your online store.</p>
+
+<% current = @account.theme_color %>
+<% preset = Theme::PRESETS.values.find { _1.color == current } %>
+<%= form_with url: appearance_path, method: :patch, multipart: true, class: "max-w-3xl space-y-6" do |form| %>
+  <%= render "shared/errors", model: @account %>
+
+  <section class="card">
+    <h2 class="text-lg font-semibold">Colour theme</h2>
+    <fieldset class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <legend class="sr-only">Colour theme</legend>
+      <% Theme::PRESETS.each_value do |theme| %>
+        <% shades = Theme.new(theme.color).shades %>
+        <label class="cursor-pointer rounded-lg border border-gray-200 p-3 hover:border-gray-400 has-checked:border-gray-900 has-checked:ring-2 has-checked:ring-gray-900">
+          <%= radio_button_tag :theme, theme.key, preset&.key == theme.key, class: "sr-only" %>
+          <span class="flex h-8 overflow-hidden rounded" aria-hidden="true">
+            <span class="flex-1" style="background: <%= shades[500] %>"></span>
+            <span class="w-6" style="background: <%= shades[300] %>"></span>
+            <span class="w-6" style="background: <%= shades[100] %>"></span>
+          </span>
+          <span class="mt-2 flex items-center justify-between gap-2">
+            <span class="text-sm font-medium"><%= theme.name %></span>
+            <span class="rounded px-2 py-0.5 text-xs font-semibold text-white" style="background: <%= theme.color %>">Button</span>
+          </span>
+        </label>
+      <% end %>
+    </fieldset>
+
+    <label class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 p-3 has-checked:border-gray-900 has-checked:ring-2 has-checked:ring-gray-900">
+      <%= radio_button_tag :theme, "custom", preset.nil?, class: "size-4 accent-gray-900" %>
+      <span class="text-sm font-medium">Your own colour</span>
+      <%= color_field_tag :custom_color, current, class: "h-9 w-14 cursor-pointer rounded border border-gray-300", "aria-label": "Your own colour" %>
+      <span class="hint">Your brand's colour, dark enough for white writing on it: we check, and say if it isn't.</span>
+    </label>
+  </section>
+
+  <section class="card">
+    <h2 class="text-lg font-semibold">Logo</h2>
+    <p class="hint mt-1">On receipts, quotes, invoices and statements, and at the top of your online store. A PNG or JPEG under 1 MB, wider than it is tall works best.</p>
+    <% if @account.logo.attached? && @account.logo.persisted? %>
+      <div class="mt-3 flex items-center gap-4">
+        <%= image_tag @account.logo, alt: "#{@account.name} logo", class: "max-h-16 max-w-48 rounded border border-gray-200 bg-white object-contain p-1" %>
+        <label class="flex items-center gap-2 text-sm"><%= check_box_tag :remove_logo, "1", false, class: "size-4 accent-primary-500" %> Remove it</label>
+      </div>
+    <% end %>
+    <%= file_field_tag :logo, accept: "image/png,image/jpeg,image/webp", class: "mt-3 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-medium" %>
+  </section>
+
+  <section class="card">
+    <h2 class="text-lg font-semibold">Receipts</h2>
+    <label class="mt-3 flex items-start gap-2">
+      <%= check_box_tag :receipt_stamp, "1", @account.receipt_stamp, class: "mt-1 size-4 accent-primary-500" %>
+      <span><span class="text-sm font-medium">Print the round stamp</span>
+        <span class="hint block">PAID, ON ACCOUNT or VOID with your shop and branch around it. Untick it to save paper on narrow printers.</span></span>
+    </label>
+    <p class="hint mt-3">The line at the bottom of every receipt is on <%= link_to "Shop details", edit_account_path, class: "link" %>.</p>
+  </section>
+
+  <div class="flex items-center gap-3">
+    <%= form.submit "Save", class: "btn-primary" %>
+    <%= link_to "Cancel", settings_path, class: "link" %>
+  </div>
+<% end %>

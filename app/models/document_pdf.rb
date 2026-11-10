@@ -4,7 +4,7 @@
 class DocumentPdf
   # The app's colours (app/assets/tailwind/application.css), without the "#" Prawn doesn't take.
   INK = "1F2937"    # text: gray-800
-  BRAND = "0F5E6E"  # document titles: primary-500, petrol teal
+  BRAND = "0F5E6E"  # document titles: primary-500, petrol teal, unless the shop chose its own theme
   GREY = "6B7280"   # secondary text: gray-500
   SHADE = "F3F7F8"  # table headers: primary-50
   RULE = "E5E7EB"   # lines: gray-200
@@ -27,6 +27,7 @@ class DocumentPdf
       pdf.font "DejaVu"
       letterhead
       content
+      customer_notes if customer_facing?
     end.render
   end
 
@@ -54,13 +55,23 @@ class DocumentPdf
       index >= numeric_from ? :right : :left
     end
 
+    # Documents a customer reads (quotes, invoices, statements) end with how to pay and the shop's terms.
+    def customer_facing? = false
+
+    def brand = account.theme_color.delete("#")
+
     def letterhead
       pdf.fill_color INK
-      pdf.text account.name, size: 18, style: :bold
+      if (logo = logo_image)
+        pdf.image logo, fit: [ 160, 44 ]
+        pdf.move_down 2
+      else
+        pdf.text account.name, size: 18, style: :bold
+      end
       pdf.fill_color GREY
       pdf.text [ branch&.name, branch&.address, branch&.phone ].compact_blank.join(" · ").presence || "All branches", size: 9
-      pdf.move_up 34
-      pdf.fill_color BRAND
+      pdf.move_up logo_image ? 56 : 34
+      pdf.fill_color brand
       pdf.text title.upcase, size: 16, style: :bold, align: :right
       pdf.fill_color INK
       pdf.text reference, size: 12, align: :right
@@ -120,6 +131,30 @@ class DocumentPdf
     def total(label, cents, size: 12, style: :bold, currency: account.currency)
       pdf.fill_color INK
       pdf.text "#{label}  #{Money.format(cents, currency: currency)}", size: size, style: style, align: :right
+    end
+
+    # The shop's logo as a PNG for Prawn, or nil without one (or if it can't be read).
+    def logo_image
+      return @logo_image if defined?(@logo_image)
+
+      @logo_image = (StringIO.new(account.logo.variant(resize_to_limit: [ 640, 176 ], format: :png).processed.download) if account.logo.attached?)
+    rescue StandardError => error
+      Rails.error.report(error, handled: true, context: { account_id: account.id })
+      @logo_image = nil
+    end
+
+    def customer_notes
+      blocks = [ [ "How to pay", account.payment_details ], [ "Terms", account.document_terms ] ].select { _2.present? }
+      return if blocks.empty?
+
+      pdf.move_down 18
+      blocks.each do |title, text|
+        pdf.fill_color brand
+        pdf.text title.upcase, size: 8, style: :bold
+        pdf.fill_color INK
+        pdf.text text, size: 9
+        pdf.move_down 8
+      end
     end
 
     def note(text)

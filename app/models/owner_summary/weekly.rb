@@ -2,7 +2,6 @@
 # sellers and their margin, who owes the shop and how late, what the shop owes this week, and stock that isn't selling.
 class OwnerSummary::Weekly
   WEEKS = 8
-  DEAD_STOCK_DAYS = 90
   LIST_LIMIT = 8
 
   Week = Data.define(:starts_on, :takings_cents)
@@ -18,6 +17,7 @@ class OwnerSummary::Weekly
   end
 
   def starts_on = ends_on - 6
+  def dead_stock_days = account.dead_stock_days
   def currency = account.currency
   def totals = @totals ||= totals_for(starts_on..ends_on)
   def last_week_totals = @last_week_totals ||= totals_for((starts_on - 7)..(ends_on - 7))
@@ -93,7 +93,7 @@ class OwnerSummary::Weekly
   # Stock that hasn't sold in 90 days, the most money tied up first.
   def dead_stock
     @dead_stock ||= begin
-      section = Report::DeadStock.new(account: account, period: period, options: { days: DEAD_STOCK_DAYS.to_s }).sections.first
+      section = Report::DeadStock.new(account: account, period: period, options: { days: dead_stock_days.to_s }).sections.first
       { value_cents: section.totals[4].to_i, count: section.rows.size,
         products: section.rows.first(5).map { |link, _category, on_hand, unit, value, *| [ link.record.name, on_hand, unit, value ] } }
     end

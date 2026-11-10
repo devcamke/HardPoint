@@ -7,7 +7,7 @@ class StockBatchesController < ApplicationController
     @filter = params[:filter].presence_in(FILTERS) || "expiring"
     batches = Current.account.stock_batches.in_stock.where(branch: selected_branch).includes(product: :unit).by_expiry
     @batches = case @filter
-    when "expiring" then batches.where(expires_on: ..(Date.current + StockBatch::EXPIRING_WITHIN))
+    when "expiring" then batches.where(expires_on: ..(Date.current + StockBatch.expiring_within))
     when "expired" then batches.expired
     else batches
     end
