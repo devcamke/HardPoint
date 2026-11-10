@@ -18,9 +18,10 @@ module Sale::Cart
 
     line.reprice
     if (shortage = stock_shortfall(only: line))
-      # Put the cart back as it was: the extra one isn't sold.
+      # Put the cart back as it was: the extra one isn't sold, and the owner hears it was asked for.
       existing ? existing.restore_attributes : lines.target.delete(line)
-      line.errors.add :base, shortage
+      shortage.record
+      line.errors.add :base, shortage.message
       return line
     end
 
@@ -28,8 +29,17 @@ module Sale::Cart
     line
   end
 
+  # What a sale wants of one product, more than the branch has. `record` notes it for the owner's morning email.
+  Shortfall = Data.define(:product, :branch, :needed, :on_hand) do
+    def message = Product.shortage_message(product, on_hand, branch)
+
+    def record
+      branch.account.stock_refusals.create!(branch: branch, product: product, user: Current.user, quantity: needed, on_hand: on_hand)
+    end
+  end
+
   # Stock can't be sold below zero: what a sale takes of each product (a kit counts as its parts, totalled over every
-  # line) must be on the shelf at its branch. Returns what's short, as the till says it, or nil. `lines` is the sale
+  # line) must be on the shelf at its branch. Returns the first Shortfall, or nil. `lines` is the sale
   # as it would be; `only:` looks at just the products that one line takes, so a change to one line isn't held up by
   # another. A sale an offline till already made isn't checked: the goods have gone.
   def stock_shortfall(lines = self.lines, only: nil)
@@ -47,7 +57,7 @@ module Sale::Cart
 
     needed.each do |id, amount|
       on_hand = products[id].stock_at(branch)
-      return Product.shortage_message(products[id], on_hand, branch) if amount > on_hand
+      return Shortfall.new(products[id], branch, amount, on_hand) if amount > on_hand
     end
     nil
   end

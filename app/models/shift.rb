@@ -123,6 +123,8 @@ class Shift < ApplicationRecord
         expected_cash_cents: expected_cash_cents_now, counted_cash_cents: counted_cash_cents
       track_event "closed", expected: expected_cash_cents, counted: counted_cash_cents, variance: variance_cents,
         foreign: foreign.transform_values { _1["counted"] - _1["expected"] }.presence
+      account.alert_owners(:shift_short, self, by: by) if -variance_cents > account.alert_shift_short_above_cents
+      true
     end
   end
 

@@ -1,0 +1,25 @@
+<% currency = @account.currency %>
+<% host = { subdomain: @account.subdomain } %>
+<% short = -@shift.variance_cents %>
+<% content_for :preheader, "#{@shift.register.name} at #{@shift.branch.name}: expected #{money(@shift.expected_cash_cents, currency: currency)}, counted #{money(@shift.counted_cash_cents, currency: currency)}" %>
+<%= render "owner_alerts_mailer/hero", eyebrow: "Cash count short", headline: "#{@shift.register.name} at #{@shift.branch.name} closed with less cash than it should have.",
+      figure: money(short, currency: currency), note: "short, counted by #{@shift.closed_by&.name || "someone"} at #{@shift.closed_at.strftime("%-l:%M %p on %A %-d %B")}" %>
+
+<%= render "owner_alerts_mailer/details", rows: [
+      [ "Opened by", "#{@shift.opened_by.name}, #{@shift.opened_at.strftime("%-l:%M %p %a %-d %b")}" ],
+      [ "Expected in the drawer", money(@shift.expected_cash_cents, currency: currency) ],
+      [ "Counted", money(@shift.counted_cash_cents, currency: currency) ],
+      ([ "Note at close", @shift.note ] if @shift.note.present?)
+    ] %>
+
+<% recent = @account.shifts.closed.where(register: @shift.register).where.not(id: @shift.id).order(closed_at: :desc).limit(5).to_a %>
+<% if recent.any? %>
+  <%= mail_section "This till's last counts" %>
+  <%= mail_list [ "Closed", "By", "Count" ], recent.map { |shift|
+        variance = shift.variance_cents.to_i
+        tone, word = variance.negative? ? [ :critical, "Short" ] : variance.positive? ? [ :warning, "Over" ] : [ :good, "Balanced" ]
+        [ shift.closed_at.strftime("%a %-d %b"), shift.closed_by&.name, mail_status(tone, variance.zero? ? word : "#{word} #{money(variance.abs, currency: currency)}") ] },
+        align: [ :left, :left, :right ] %>
+<% end %>
+
+<%= render "owner_alerts_mailer/footer", button: "Open the shift", url: shift_url(@shift, **host), threshold: "#{money(@account.alert_shift_short_above_cents, currency: currency)} limit" %>

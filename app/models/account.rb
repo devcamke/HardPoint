@@ -1,5 +1,5 @@
 class Account < ApplicationRecord
-  include CatalogueDefaults, DailySummary, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Monetary, Subscription, BillingCycle, Closure, QzSigning
+  include CatalogueDefaults, DailySummary, WeeklySummary, OwnerAlerts, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Monetary, Subscription, BillingCycle, Closure, QzSigning
   # Creation is recorded by Signup, once the new account is current.
   tracks_lifecycle only: :update
 
@@ -20,6 +20,7 @@ class Account < ApplicationRecord
   has_many :products, dependent: :destroy
   has_many :stock_levels, dependent: :delete_all
   has_many :stock_movements, dependent: :delete_all
+  has_many :stock_refusals, dependent: :delete_all
   has_many :stock_batches, dependent: :delete_all
   has_many :stock_adjustments, dependent: :delete_all
   has_many :stock_transfers, dependent: :destroy
@@ -86,6 +87,9 @@ class Account < ApplicationRecord
   # A payout from a till's drawer above this needs an owner's or manager's approval PIN.
   money_attribute :payout_approval_above
   validates :payout_approval_above_cents, numericality: { greater_than_or_equal_to: 0 }
+  # Instant emails to owners: a shift closing short, a completed sale voided, or a stock count losing more than these.
+  money_attribute :alert_shift_short_above, :alert_void_above, :alert_count_loss_above
+  validates :alert_shift_short_above_cents, :alert_void_above_cents, :alert_count_loss_above_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :backup_frequency, inclusion: { in: AccountBackup::FREQUENCIES }
   validates :backup_notifications, inclusion: { in: AccountBackup::NOTIFICATIONS }
   validates :backups_kept, numericality: { only_integer: true, in: AccountBackup::KEPT_RANGE }

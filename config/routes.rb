@@ -108,7 +108,7 @@ Rails.application.routes.draw do
       resource :recovery_codes, only: :show
       resource :approval_pin, only: %i[ edit update ]
       resource :pin, only: %i[ edit update destroy ]
-      resource :daily_summary, only: :update
+      resource :emails, only: :update
     end
     resources :passwords, param: :token
     get "email_confirmations/:token", to: "email_confirmations#show", as: :email_confirmation

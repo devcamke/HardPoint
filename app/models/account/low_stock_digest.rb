@@ -20,12 +20,20 @@ module Account::LowStockDigest
     end.reject { |_, products| products.empty? }
   end
 
+  # Branch → products at zero that have no reorder level, so the list above would never show them.
+  def out_of_stock_unwatched_by_branch(limit: DIGEST_LIMIT)
+    branches.alphabetically.to_h do |branch|
+      [ branch, products.active.out_of_stock_unwatched_at(branch).select("products.*, stock_levels.quantity AS stock_quantity")
+          .includes(:unit).order(:name).limit(limit).to_a ]
+    end.reject { |_, products| products.empty? }
+  end
+
   def low_stock_digest_recipients
     users.where(memberships: { role: DIGEST_ROLES }).pluck(:email_address)
   end
 
   def send_low_stock_digest
-    if low_stock_by_branch(limit: 1).any? && low_stock_digest_recipients.any?
+    if (low_stock_by_branch(limit: 1).any? || out_of_stock_unwatched_by_branch(limit: 1).any?) && low_stock_digest_recipients.any?
       StockMailer.with(account: self).low_stock_digest.deliver_later
     end
   end

@@ -1,0 +1,7 @@
+<% c = @account.currency %><%= @shift.register.name %> at <%= @shift.branch.name %> closed <%= money(-@shift.variance_cents, currency: c) %> short.
+
+Expected in the drawer: <%= money(@shift.expected_cash_cents, currency: c) %>
+Counted: <%= money(@shift.counted_cash_cents, currency: c) %>
+Opened by <%= @shift.opened_by.name %>, counted by <%= @shift.closed_by&.name || "someone" %> at <%= @shift.closed_at.strftime("%-l:%M %p on %A %-d %B") %>
+<%= "Note: #{@shift.note}\n" if @shift.note.present? %>
+<%= shift_url(@shift, subdomain: @account.subdomain) %>

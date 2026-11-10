@@ -37,8 +37,8 @@ class ReportsMailerTest < ActionMailer::TestCase
     Account.without_isolation do
       Current.set(account: accounts(:acme)) do
         html = ReportsMailer.with(account: accounts(:acme), date: Time.use_zone(accounts(:acme).time_zone) { Time.zone.yesterday }).daily_summary.html_part.body.to_s
-        assert_match %r{<td>Cash</td><td style="text-align:right;">KES 1,000.00</td>}, html
-        %w[ Foreign\ cash Points Airtel\ Money M-Pesa ].each { assert_no_match %r{<td>#{_1}</td>}, html }
+        assert_match %r{>Cash<div[^>]*>100%</div></td>.*?KES 1,000\.00</td>}m, html
+        %w[ Foreign\ cash Points Airtel\ Money M-Pesa ].each { assert_no_match %r{>#{_1}<div}, html }
       end
     end
   end

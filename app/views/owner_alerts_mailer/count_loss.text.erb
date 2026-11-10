@@ -1,0 +1,6 @@
+<% c = @account.currency %><%= @count.name %> at <%= @count.branch.name %> came out <%= money(-@count.variance_value_cents, currency: c) %> short at cost.
+
+Approved by <%= @count.approver&.name %> at <%= @count.approved_at.strftime("%-l:%M %p on %A %-d %B") %>.
+The stock has been corrected to what was counted.
+
+<%= stock_count_url(@count, subdomain: @account.subdomain) %>

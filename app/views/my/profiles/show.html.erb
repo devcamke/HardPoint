@@ -50,12 +50,25 @@
   <% end %>
 
   <% if @membership.can_view_reports? %>
+    <% emails = [
+         [ "daily_summary", "Daily summary", "Each morning at about 7:15: yesterday's takings in charts, then what's worth a look, from stock that ran out to cash counts that didn't balance." ],
+         [ "weekly_summary", "Weekly summary", "Each Monday: the week against the ones before, best sellers and their margin, who owes you, what's due to suppliers and stock that isn't selling." ],
+         ([ "alert_emails", "Alerts", "Straight away, when a till closes short, a completed sale is voided or a stock count loses more than the amounts on Shop details." ] if @membership.approver?)
+       ].compact %>
     <section class="card">
-      <h2 class="text-lg font-semibold">Daily summary email</h2>
-      <p class="hint mt-2">Yesterday's takings, margin, best sellers, payments and till counts, each morning at about 7:15.</p>
-      <p class="mt-2"><%= @membership.daily_summary? ? status_dot("On", :success) : status_dot("Off", :muted) %></p>
-      <%= button_to (@membership.daily_summary? ? "Stop sending it" : "Send it to me"), my_daily_summary_path, method: :patch,
-            params: { daily_summary: !@membership.daily_summary? }, class: "btn-secondary mt-4" %>
+      <h2 class="text-lg font-semibold">Emails</h2>
+      <ul class="mt-1 divide-y divide-gray-100">
+        <% emails.each do |key, title, hint| %>
+          <% on = @membership.public_send(key) %>
+          <li class="flex items-start justify-between gap-4 py-3">
+            <div>
+              <p class="font-medium"><%= title %> <span class="ml-1 text-sm"><%= on ? status_dot("On", :success) : status_dot("Off", :muted) %></span></p>
+              <p class="hint mt-0.5"><%= hint %></p>
+            </div>
+            <%= button_to (on ? "Turn off" : "Turn on"), my_emails_path, method: :patch, params: { email: key, on: !on }, class: "btn-secondary shrink-0" %>
+          </li>
+        <% end %>
+      </ul>
     </section>
   <% end %>
 

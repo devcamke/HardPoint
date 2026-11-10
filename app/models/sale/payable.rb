@@ -177,7 +177,7 @@ module Sale::Payable
         payment.errors.add :base, "Enter the serial number for #{missing_serials.map { _1.product.name }.to_sentence}"
       elsif (shortage = stock_shortfall)
         # Another till may have sold it since it was scanned. Stock can't go below zero.
-        payment.errors.add :base, "#{shortage}. Take it off the sale or sell fewer"
+        payment.errors.add :base, "#{shortage.message}. Take it off the sale or sell fewer"
       elsif out_of_date.any?
         line = out_of_date.first
         payment.errors.add :base, "Only #{line.stock_in_date.to_s("F").delete_suffix(".0")} #{line.product.name} here are in date; the rest have expired. " \

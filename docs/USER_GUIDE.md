@@ -984,7 +984,7 @@ Selling carries on during a stock take; HardPoint allows for what was sold while
 
 #### Knowing what to reorder
 
-Give products a **reorder level**. **Stock › Reorder** shows everything at or below it at a branch, and owners, managers and stock clerks get a low-stock email each morning. To turn the list into orders, see [Buying from suppliers](#buying-from-suppliers).
+Give products a **reorder level**. **Stock › Reorder** shows everything at or below it at a branch, and owners, managers and stock clerks get a low-stock email each morning. It also lists anything at zero that has no reorder level, since the till can't sell it and it would otherwise go unnoticed. To turn the list into orders, see [Buying from suppliers](#buying-from-suppliers).
 
 A branch that sells a product faster or slower than the others can have its own level: on the product's page, type it under **Reorder at** next to the branch and press **Set**. Leave it blank to use the product's level. Stock already on order, or on its way from another branch, counts as coming, so it isn't suggested twice.
 
@@ -1281,9 +1281,13 @@ Margins are worked out from what each item cost on the day it was sold, so later
 
 **Reports › QuickBooks export** downloads a month of the books as a zip your accountant imports into QuickBooks Online: journal entries for each day's sales by branch, returns, voids, deposits, customer and supplier payments and supplier invoices, plus customer and supplier lists. Set the QuickBooks account names once on that page so they match your chart of accounts. Each journal file stays under QuickBooks' 1,000-line limit, and anything that couldn't be exported (a sale whose payments don't add up, say) is listed in `not-in-the-journal.csv` with the reason. See [QuickBooks Online export](#quickbooks).
 
-#### The daily summary email
+#### Emails to the owner
 
-Each morning, owners, managers and accountants get yesterday's figures by email. Turn it on or off under **My profile**.
+Owners, managers and accountants can have the figures come to them, each turned on or off under **My profile**:
+
+- **Daily summary**, each morning at about 7:15: yesterday's takings with charts of the day by hour and the last seven days, branches, how it was paid and the best sellers. Then **Worth a look**: products at zero (which the till can't sell), what customers asked for that wasn't on the shelf, stock written off, cash counts that didn't balance, discounts, voids and returns by cashier, anything sold below cost, offline sales to check, tills left open and M-Pesa payments not on any sale. A day without sales sends nothing.
+- **Weekly summary**, each Monday: the week's takings against the eight before, each day, the best sellers and what they made over cost, who owes you and how late, supplier bills due this week, and stock that hasn't sold in 90 days.
+- **Alerts**, for owners and managers, sent straight away: a till closing short, a completed sale voided, or an approved stock count losing more than the amounts set on **Settings › Shop details**. Whoever did it isn't sent one.
 
 <a id="quickbooks"></a>
 
@@ -1410,7 +1414,7 @@ Open your name in the top right and choose **My profile**. It shows your name, e
 - **Two-factor sign-in**, for everyone.
 - **Approval PIN**, for owners and managers: press **Set an approval PIN**, type 4 to 6 digits and your password. You type it at a cashier's till to approve a big discount, a void or a return. It doesn't sign you in.
 - **Till PIN**, for cashiers and stock clerks: press **Set a PIN**, type 4 to 6 digits and your password, then **Save PIN**. Use it with Switch user (below). **Remove PIN** turns it off.
-- **Daily summary email**, for owners, managers and accountants: yesterday's takings, margin, best sellers, payments and till counts, each morning at about 7:15. It's on to begin with; press **Stop sending it** to turn it off, or **Send it to me** to turn it back on.
+- **Emails**, for owners, managers and accountants: the **daily summary** each morning, the **weekly summary** each Monday, and (for owners and managers) **alerts** sent straight away when a till closes short, a big sale is voided or a stock count loses a lot. All are on to begin with; press **Turn off** or **Turn on** beside each.
 
 #### Changing your password
 

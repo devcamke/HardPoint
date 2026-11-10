@@ -1,0 +1,22 @@
+<% s = @summary %><% currency = s.currency %><% change = s.change_on_last_week_percent %>
+<%= @account.name %>, <%= s.starts_on.strftime("%-d %B") %> to <%= s.ends_on.strftime("%-d %B %Y") %>
+
+Takings: <%= money(s.totals[:takings], currency: currency) %><%= " (#{change.abs}% #{change.negative? ? "down" : "up"} on the week before)" if change %>
+Sales: <%= s.totals[:receipts] %>
+Gross margin: <%= money(s.totals[:margin], currency: currency) %><%= " (#{s.totals[:margin_percent].round(1)}%)" if s.totals[:margin_percent] %>
+
+Last eight weeks:
+<% s.weeks.each do |week| %>- Week of <%= week.starts_on.strftime("%-d %b") %>: <%= money(week.takings_cents, currency: currency) %>
+<% end %>
+Best sellers:
+<% s.best_sellers.each do |seller| %>- <%= seller.name %>: <%= money(seller.takings_cents, currency: currency) %> (<%= quantity(seller.quantity) %> sold)
+<% end %><% if (r = s.receivables)[:total].positive? %>
+Who owes you: <%= money(r[:total], currency: currency) %>, <%= money(Ageing.overdue_in(r[:buckets]), currency: currency) %> overdue
+<% r[:debtors].each do |debtor| %>- <%= debtor.customer.name %>: <%= money(debtor.overdue_cents, currency: currency) %> overdue
+<% end %><% end %><% if (p = s.payables)[:due].any? %>
+Due to suppliers this week:
+<% p[:due].each do |bill| %>- <%= bill.supplier.name %>, <%= bill.due_on.strftime("%a %-d %b") %>: <%= money(bill.outstanding_cents, currency: currency) %>
+<% end %><% end %><% if (d = s.dead_stock)[:count].positive? %>
+Not sold in <%= OwnerSummary::Weekly::DEAD_STOCK_DAYS %> days: <%= pluralize(d[:count], "product") %>, <%= money(d[:value_cents], currency: currency) %> at cost
+<% end %>
+Dashboard: <%= root_url(subdomain: @account.subdomain) %>

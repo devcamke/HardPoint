@@ -31,6 +31,25 @@
       <%= form.number_field :payout_approval_above, value: plain_number(@account.payout_approval_above), step: "0.01", min: 0, class: "input w-40" %>
     </div>
 
+    <fieldset class="field">
+      <legend class="label">Email owners and managers straight away when</legend>
+      <p class="hint mb-2">Everything smaller still shows in the next morning's summary. Each person can turn these emails off under My profile.</p>
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div>
+          <%= form.label :alert_shift_short_above, "A till closes short by more than (#{@account.currency})", class: "text-sm text-gray-700" %>
+          <%= form.number_field :alert_shift_short_above, value: plain_number(@account.alert_shift_short_above), step: "0.01", min: 0, class: "input" %>
+        </div>
+        <div>
+          <%= form.label :alert_void_above, "A completed sale over this is voided (#{@account.currency})", class: "text-sm text-gray-700" %>
+          <%= form.number_field :alert_void_above, value: plain_number(@account.alert_void_above), step: "0.01", min: 0, class: "input" %>
+        </div>
+        <div>
+          <%= form.label :alert_count_loss_above, "A stock count loses more than, at cost (#{@account.currency})", class: "text-sm text-gray-700" %>
+          <%= form.number_field :alert_count_loss_above, value: plain_number(@account.alert_count_loss_above), step: "0.01", min: 0, class: "input" %>
+        </div>
+      </div>
+    </fieldset>
+
     <div class="field flex items-start gap-2">
       <%= form.check_box :require_second_approver, class: "mt-1 size-4 accent-primary-500" %>
       <div>

@@ -1,0 +1,9 @@
+<%# locals: (rows:) %>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+  <% rows.compact.each do |label, value| %>
+    <tr>
+      <td width="36%" style="padding:7px 10px 7px 0; border-top:1px solid <%= mail_color(:rule) %>; font-size:13px; color:<%= mail_color(:muted) %>; vertical-align:top;"><%= label %></td>
+      <td style="padding:7px 0; border-top:1px solid <%= mail_color(:rule) %>; font-size:13px; color:<%= mail_color(:ink) %>; vertical-align:top;"><%= value %></td>
+    </tr>
+  <% end %>
+</table>

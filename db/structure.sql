@@ -184,7 +184,10 @@ CREATE TABLE public.accounts (
     qz_certificate text,
     terms_accepted_at timestamp(6) without time zone,
     payout_approval_above_cents bigint DEFAULT 500000 NOT NULL,
-    require_second_approver boolean DEFAULT false NOT NULL
+    require_second_approver boolean DEFAULT false NOT NULL,
+    alert_shift_short_above_cents bigint DEFAULT 200000 NOT NULL,
+    alert_void_above_cents bigint DEFAULT 1000000 NOT NULL,
+    alert_count_loss_above_cents bigint DEFAULT 500000 NOT NULL
 );
 
 
@@ -1704,7 +1707,9 @@ CREATE TABLE public.memberships (
     failed_pin_attempts integer DEFAULT 0 NOT NULL,
     approval_pin_digest character varying,
     daily_summary boolean DEFAULT true NOT NULL,
-    branch_id bigint
+    branch_id bigint,
+    weekly_summary boolean DEFAULT true NOT NULL,
+    alert_emails boolean DEFAULT true NOT NULL
 );
 
 ALTER TABLE ONLY public.memberships FORCE ROW LEVEL SECURITY;
@@ -2874,6 +2879,43 @@ ALTER SEQUENCE public.stock_movements_id_seq OWNED BY public.stock_movements.id;
 
 
 --
+-- Name: stock_refusals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_refusals (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    user_id bigint,
+    quantity numeric(14,3) NOT NULL,
+    on_hand numeric(14,3) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.stock_refusals FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: stock_refusals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_refusals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_refusals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_refusals_id_seq OWNED BY public.stock_refusals.id;
+
+
+--
 -- Name: stock_transfer_lines; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4000,6 +4042,13 @@ ALTER TABLE ONLY public.stock_movements ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: stock_refusals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_refusals ALTER COLUMN id SET DEFAULT nextval('public.stock_refusals_id_seq'::regclass);
+
+
+--
 -- Name: stock_transfer_lines id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4677,6 +4726,14 @@ ALTER TABLE ONLY public.stock_levels
 
 ALTER TABLE ONLY public.stock_movements
     ADD CONSTRAINT stock_movements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_refusals stock_refusals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_refusals
+    ADD CONSTRAINT stock_refusals_pkey PRIMARY KEY (id);
 
 
 --
@@ -6544,6 +6601,34 @@ CREATE INDEX index_stock_movements_on_stock_batch_id ON public.stock_movements U
 
 
 --
+-- Name: index_stock_refusals_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_refusals_on_account_id_and_created_at ON public.stock_refusals USING btree (account_id, created_at);
+
+
+--
+-- Name: index_stock_refusals_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_refusals_on_branch_id ON public.stock_refusals USING btree (branch_id);
+
+
+--
+-- Name: index_stock_refusals_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_refusals_on_product_id ON public.stock_refusals USING btree (product_id);
+
+
+--
+-- Name: index_stock_refusals_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stock_refusals_on_user_id ON public.stock_refusals USING btree (user_id);
+
+
+--
 -- Name: index_stock_transfer_lines_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7789,6 +7874,14 @@ ALTER TABLE ONLY public.stock_counts
 
 
 --
+-- Name: stock_refusals fk_rails_7a3391d34f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_refusals
+    ADD CONSTRAINT fk_rails_7a3391d34f FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: customer_orders fk_rails_7b529e0995; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8002,6 +8095,14 @@ ALTER TABLE ONLY public.memberships
 
 ALTER TABLE ONLY public.active_storage_variant_records
     ADD CONSTRAINT fk_rails_993965df05 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id) DEFERRABLE;
+
+
+--
+-- Name: stock_refusals fk_rails_99f724bbb3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_refusals
+    ADD CONSTRAINT fk_rails_99f724bbb3 FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
 
 
 --
@@ -8306,6 +8407,14 @@ ALTER TABLE ONLY public.purchase_order_lines
 
 ALTER TABLE ONLY public.barcodes
     ADD CONSTRAINT fk_rails_c4f3f76a0d FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) DEFERRABLE;
+
+
+--
+-- Name: stock_refusals fk_rails_c87f5fa768; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_refusals
+    ADD CONSTRAINT fk_rails_c87f5fa768 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
 
 
 --
@@ -9197,6 +9306,13 @@ CREATE POLICY account_isolation ON public.stock_movements USING (((current_setti
 
 
 --
+-- Name: stock_refusals account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.stock_refusals USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: stock_transfer_lines account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -9650,6 +9766,12 @@ ALTER TABLE public.stock_levels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: stock_refusals; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stock_refusals ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: stock_transfer_lines; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9746,6 +9868,7 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111080000'),
 ('20261110230100'),
 ('20261110230000'),
 ('20261110210000'),

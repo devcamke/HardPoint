@@ -1,0 +1,6 @@
+<%# locals: (button:, url:, threshold:) %>
+<div style="height:26px;"></div>
+<%= mail_button button, url %>
+<p style="margin:22px 0 0; color:<%= mail_color(:muted) %>; font-size:12px;">
+  Sent straight away because it's over the <%= threshold %> set on Shop details. Turn these emails off under My profile.
+</p>
