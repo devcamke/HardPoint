@@ -3,8 +3,11 @@
 <%# In the manner of odoo.com: a white page, short bold headlines, the price said out loud in the hero with a
     hand-drawn arrow pointing at it, "Start now, it's free" everywhere, and a grid of app tiles standing in for a
     hero picture. The brand teal does the work Odoo's purple does: buttons, tiles, arrows and one full-colour band
-    for the offline till. The order is an argument: the promise and what it does, why it's
-    different, the claims, the owner's view, the hardware, how to start, the price, the questions, and the door.
+    for the offline till. The order is the usual one for the trade, and an argument: the promise, what it works with,
+    what it does, why it's different, the offline till, the owner's view, the hardware, how to start, how the data
+    is kept, the price, the questions, and the door. Sections alternate white, light grey and a pale tint of the
+    theme colour, so no two neighbours share a background, with two full-colour bands (the offline till and the closing
+    call) as anchors; every section opens the same way, a small label, a bold headline and a line under it.
     The walkthrough of a sale is one click away, "Watch a sale" in the hero, in a dialog over the page.
     From the market: a "works with" strip where Shopify puts its logo wall, Square's "ready for what you've got"
     hardware section, and the questions before the door that both of them carry. %>
@@ -58,6 +61,21 @@
     </div>
     <p class="border-t border-gray-200 bg-gray-50 px-5 py-3 text-center text-sm text-gray-600">Liked it? <%= link_to "Start now, it's free", new_signup_path, class: "font-medium text-accent-600 hover:underline" %> · Every screen has a guide like this one in the <%= link_to "help centre", help_path, class: "link" %>.</p>
   </dialog>
+</section>
+
+<%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
+<section class="border-t border-gray-200 bg-white">
+  <%# The label on its own line, then the eight: one row spaced evenly on a wide screen; two or four neat columns,
+      icons lined up, on smaller ones, so nothing is left alone on a row. %>
+  <div class="mx-auto max-w-6xl px-4 py-8">
+    <p class="text-center text-xs font-semibold tracking-wide text-gray-500 uppercase">Works with what your shop already uses</p>
+    <ul class="mx-auto mt-5 grid w-fit grid-cols-2 gap-x-10 gap-y-4 text-sm font-medium text-gray-700 sm:grid-cols-4 lg:flex lg:w-full lg:justify-between">
+      <% [ [ :mpesa, "M-Pesa" ], [ :airtel, "Airtel Money" ], [ :card, "Cards" ], [ :etims, "KRA eTIMS" ], [ :barcode, "USB scanners" ],
+           [ :printer, "Thermal printers" ], [ :quickbooks, "QuickBooks" ], [ :whatsapp, "WhatsApp" ] ].each do |icon, label| %>
+        <li class="flex items-center gap-2 whitespace-nowrap"><span class="shrink-0 text-primary-600"><%= render "pages/icon", name: icon, classes: "size-5" %></span><%= label %></li>
+      <% end %>
+    </ul>
+  </div>
 </section>
 
 <%# The product as a grid of tiles, one per thing a hardware shop does, each opening its help guide: white tiles with
@@ -117,16 +135,60 @@
   </div>
 </section>
 
-<%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
-<section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-7 lg:flex-row lg:justify-between">
-    <p class="shrink-0 text-sm font-semibold text-gray-500">Works with what your shop already uses</p>
-    <ul class="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm font-medium text-gray-700">
-      <% [ [ :mpesa, "M-Pesa" ], [ :airtel, "Airtel Money" ], [ :card, "Cards" ], [ :etims, "KRA eTIMS" ], [ :barcode, "USB scanners" ],
-           [ :printer, "Thermal printers" ], [ :quickbooks, "QuickBooks" ], [ :whatsapp, "WhatsApp" ] ].each do |icon, label| %>
-        <li class="flex items-center gap-2"><span class="text-primary-600"><%= render "pages/icon", name: icon, classes: "size-5" %></span><%= label %></li>
+<%# Odoo's "Enterprise software done right": short bold claims, a line each, a link. The two that sell a hardware
+    shop in Kenya, M-Pesa and eTIMS, get wide tinted cards; the rest sit in a row of three. Each card wears the
+    same tile icon as the hero grid, so the page reads as one set. %>
+<section class="bg-white">
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Why HardPoint</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Software for hardware stores, done right.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Not a generic till with a hardware skin. The things that matter at a hardware counter in Kenya, built in from the start.</p>
+    </div>
+
+    <dl class="mx-auto mt-14 grid max-w-4xl gap-8 text-center sm:grid-cols-3">
+      <div>
+        <dt class="text-5xl font-bold tracking-tight text-primary-600 tabular-nums">20,000</dt>
+        <dd class="mt-2 text-gray-600">products imported from a spreadsheet in about twelve seconds.</dd>
+      </div>
+      <div>
+        <dt class="text-5xl font-bold tracking-tight text-primary-600">3 keys</dt>
+        <dd class="mt-2 text-gray-600">F2 scan, F8 park, F9 pay. Or finger-sized buttons on a touch screen.</dd>
+      </div>
+      <div>
+        <dt class="text-5xl font-bold tracking-tight text-primary-600">Every sale</dt>
+        <dd class="mt-2 text-gray-600">signed by KRA eTIMS, with the QR code on the receipt.</dd>
+      </div>
+    </dl>
+
+    <% claims = [
+         [ :mpesa, "M-Pesa, Airtel Money and card. Matched to the sale.",
+           "Send a payment prompt to the customer's phone from the till, or let money paid to your Paybill or Till find its own sale. Cash with change, card, foreign notes, on account, or a mix of them.",
+           "How M-Pesa works at the till", help_article_path("mpesa") ],
+         [ :etims, "KRA eTIMS. Built in.",
+           "Every sale, void and return signed by KRA, with the QR code on the receipt. Queued and retried if KRA is down, so the queue never stops for the taxman.",
+           "How eTIMS works", help_article_path("etims") ],
+         [ :stock, "Never sell what isn't there.", "The till won't sell below zero, and tells you every morning what customers asked for and couldn't get. One branch short and another full? It suggests the move before you order.", "Stock and stock takes", help_article_path("stock-and-stock-takes") ],
+         [ :customers, "Customers on account.", "Quotes, orders with deposits, credit limits, statements and a list of who owes you. Reminders by SMS or WhatsApp.", "Customer accounts", help_article_path("customer-accounts") ],
+         [ :reports, "Reports the owner reads.", "A live dashboard, and sales, profit, VAT, stock and shift reports to print or export.", "Reports", help_article_path("reports") ],
+         [ :plans, "Every feature on every plan.", "No higher tier hiding the thing you need. Plans differ only in how many branches, tills and staff logins they allow.", "See pricing", "#pricing" ],
+         [ :fundi, "Fundi commissions.", "Masons, plumbers and electricians who bring customers earn their commission automatically, and you pay it by M-Pesa or from the till, with a statement for each.", "Fundi commissions", help_article_path("fundis") ],
+         [ :calculator, "Quotes in a minute.", "A 40 m wall or a 10 × 8 slab becomes stones, cement, sand, ballast and steel at your prices, then one press makes the quote.", "The material calculator", help_article_path("material-calculator") ],
+         [ :share, "Send it as a picture.", "Quotes, invoices, receipts and credit notes as sharp pictures to WhatsApp, Telegram, email or any app, with your logo and colours on them.", "Sending documents", help_article_path("whatsapp") ],
+         [ :palette, "Make it yours.", "Your colours on every screen and your logo on every receipt and quote. Choose the till's payment buttons, how long quotes last and what your invoices say.", "Shop settings", help_article_path("shop-settings") ],
+         [ :whatsapp, "A person on WhatsApp.", "Questions go to someone who knows the product, on the app your shop already uses. Help guides for everything else.", "WhatsApp us", whatsapp_support_url ]
+       ] %>
+    <div class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-6">
+      <% claims.each.with_index do |(icon, title, body, link_text, href), i| %>
+        <% featured = i < 2 %>
+        <div class="flex flex-col rounded-3xl p-7 sm:p-8 <%= featured ? "bg-primary-50 lg:col-span-3" : "border border-gray-200 lg:col-span-2" %>">
+          <span class="flex size-12 items-center justify-center rounded-xl <%= featured ? "bg-primary-500 text-white" : "bg-primary-100 text-primary-700" %>"><%= render "pages/icon", name: icon, classes: "size-6" %></span>
+          <h3 class="mt-5 font-bold tracking-tight text-gray-950 text-balance <%= featured ? "text-2xl sm:text-3xl" : "text-xl" %>"><%= title %></h3>
+          <p class="mt-3 text-gray-600 <%= "text-sm" unless featured %>"><%= body %></p>
+          <%= link_to href, class: "mt-auto pt-5 inline-block font-medium text-accent-600 hover:underline", **(href.start_with?("http") ? { target: "_blank", rel: "noopener" } : {}) do %><%= link_text %> <span aria-hidden="true">›</span><% end %>
+        </div>
       <% end %>
-    </ul>
+    </div>
   </div>
 </section>
 
@@ -203,63 +265,6 @@
   </div>
 </section>
 
-<%# Odoo's "Enterprise software done right": short bold claims, a line each, a link. The two that sell a hardware
-    shop in Kenya, M-Pesa and eTIMS, get wide tinted cards; the rest sit in a row of three. Each card wears the
-    same tile icon as the hero grid, so the page reads as one set. %>
-<section class="bg-white">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Why HardPoint</p>
-      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Software for hardware stores, done right.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Not a generic till with a hardware skin. The things that matter at a hardware counter in Kenya, built in from the start.</p>
-    </div>
-
-    <dl class="mx-auto mt-14 grid max-w-4xl gap-8 text-center sm:grid-cols-3">
-      <div>
-        <dt class="text-5xl font-bold tracking-tight text-primary-600 tabular-nums">20,000</dt>
-        <dd class="mt-2 text-gray-600">products imported from a spreadsheet in about twelve seconds.</dd>
-      </div>
-      <div>
-        <dt class="text-5xl font-bold tracking-tight text-primary-600">3 keys</dt>
-        <dd class="mt-2 text-gray-600">F2 scan, F8 park, F9 pay. Or finger-sized buttons on a touch screen.</dd>
-      </div>
-      <div>
-        <dt class="text-5xl font-bold tracking-tight text-primary-600">Every sale</dt>
-        <dd class="mt-2 text-gray-600">signed by KRA eTIMS, with the QR code on the receipt.</dd>
-      </div>
-    </dl>
-
-    <% claims = [
-         [ :mpesa, "M-Pesa, Airtel Money and card. Matched to the sale.",
-           "Send a payment prompt to the customer's phone from the till, or let money paid to your Paybill or Till find its own sale. Cash with change, card, foreign notes, on account, or a mix of them.",
-           "How M-Pesa works at the till", help_article_path("mpesa") ],
-         [ :etims, "KRA eTIMS. Built in.",
-           "Every sale, void and return signed by KRA, with the QR code on the receipt. Queued and retried if KRA is down, so the queue never stops for the taxman.",
-           "How eTIMS works", help_article_path("etims") ],
-         [ :stock, "Never sell what isn't there.", "The till won't sell below zero, and tells you every morning what customers asked for and couldn't get. One branch short and another full? It suggests the move before you order.", "Stock and stock takes", help_article_path("stock-and-stock-takes") ],
-         [ :customers, "Customers on account.", "Quotes, orders with deposits, credit limits, statements and a list of who owes you. Reminders by SMS or WhatsApp.", "Customer accounts", help_article_path("customer-accounts") ],
-         [ :reports, "Reports the owner reads.", "A live dashboard, and sales, profit, VAT, stock and shift reports to print or export.", "Reports", help_article_path("reports") ],
-         [ :plans, "Every feature on every plan.", "No higher tier hiding the thing you need. Plans differ only in how many branches, tills and staff logins they allow.", "See pricing", "#pricing" ],
-         [ :fundi, "Fundi commissions.", "Masons, plumbers and electricians who bring customers earn their commission automatically, and you pay it by M-Pesa or from the till, with a statement for each.", "Fundi commissions", help_article_path("fundis") ],
-         [ :calculator, "Quotes in a minute.", "A 40 m wall or a 10 × 8 slab becomes stones, cement, sand, ballast and steel at your prices, then one press makes the quote.", "The material calculator", help_article_path("material-calculator") ],
-         [ :share, "Send it as a picture.", "Quotes, invoices, receipts and credit notes as sharp pictures to WhatsApp, Telegram, email or any app, with your logo and colours on them.", "Sending documents", help_article_path("whatsapp") ],
-         [ :palette, "Make it yours.", "Your colours on every screen and your logo on every receipt and quote. Choose the till's payment buttons, how long quotes last and what your invoices say.", "Shop settings", help_article_path("shop-settings") ],
-         [ :whatsapp, "A person on WhatsApp.", "Questions go to someone who knows the product, on the app your shop already uses. Help guides for everything else.", "WhatsApp us", whatsapp_support_url ]
-       ] %>
-    <div class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-6">
-      <% claims.each.with_index do |(icon, title, body, link_text, href), i| %>
-        <% featured = i < 2 %>
-        <div class="flex flex-col rounded-3xl p-7 sm:p-8 <%= featured ? "bg-primary-50 lg:col-span-3" : "border border-gray-200 lg:col-span-2" %>">
-          <span class="flex size-12 items-center justify-center rounded-xl <%= featured ? "bg-primary-500 text-white" : "bg-primary-100 text-primary-700" %>"><%= render "pages/icon", name: icon, classes: "size-6" %></span>
-          <h3 class="mt-5 font-bold tracking-tight text-gray-950 text-balance <%= featured ? "text-2xl sm:text-3xl" : "text-xl" %>"><%= title %></h3>
-          <p class="mt-3 text-gray-600 <%= "text-sm" unless featured %>"><%= body %></p>
-          <%= link_to href, class: "mt-auto pt-5 inline-block font-medium text-accent-600 hover:underline", **(href.start_with?("http") ? { target: "_blank", rel: "noopener" } : {}) do %><%= link_text %> <span aria-hidden="true">›</span><% end %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-</section>
-
 <%# The owner's view: the dashboard, the evening summary and the reports. %>
 <section class="border-y border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
@@ -270,37 +275,6 @@
     </div>
     <%= image_tag "marketing/dashboard.png", alt: "The HardPoint dashboard: today's takings, sales, margin and what needs doing", class: "mt-14 w-full rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800 %>
     <p class="mt-8 text-center text-gray-600">Sales, profit, VAT, stock and shift reports to print or export. <%= link_to "The reports", help_article_path("reports"), class: "link" %></p>
-  </div>
-</section>
-
-<%# Owners hand over their whole business: say plainly how it's kept, every line true of how HardPoint works
-    (docs/SECURITY.md, the privacy page and the data processing terms say the same, in more detail). %>
-<section id="security" class="scroll-mt-20 bg-white">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Your data</p>
-      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Safe, private, and yours.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Your sales, stock, customers and staff belong to your shop. We look after them, and nothing else: we don't sell data and we don't show adverts.</p>
-    </div>
-    <% promises = [
-         [ :shield, "Walled off from every other shop", "Each shop's data is separated inside the database itself, so no other shop can ever see yours, even if the app had a fault. We test it on every change." ],
-         [ :lock, "Locked down", "Encrypted connections, passwords stored so not even we can read them, M-Pesa and eTIMS keys encrypted, and two-factor sign-in for owners and managers." ],
-         [ :sync, "Backed up every minute", "Copied off-site, encrypted, every minute, so your shop can be brought back to any moment. Your own daily backups are in Settings too." ],
-         [ :log, "Every change recorded", "Activity shows who did what and when, from a void to a price change. If our support staff ever sign in to help, that's recorded too." ],
-         [ :data, "Take it with you, any time", "Export everything as spreadsheets whenever you like, even after you stop paying. Close your account and we delete it for good." ],
-         [ :customers, "Kenya's Data Protection Act", "Written to the Data Protection Act, 2019: we're your data processor, we tell you within 72 hours of a breach, and your customers' rights are respected." ]
-       ] %>
-    <ul class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      <% promises.each do |icon, title, body| %>
-        <li class="rounded-3xl border border-gray-200 p-7">
-          <span class="flex size-12 items-center justify-center rounded-xl bg-primary-100 text-primary-700"><%= render "pages/icon", name: icon, classes: "size-6" %></span>
-          <h3 class="mt-5 text-xl font-bold tracking-tight text-gray-950"><%= title %></h3>
-          <p class="mt-3 text-sm text-gray-600"><%= body %></p>
-        </li>
-      <% end %>
-    </ul>
-    <p class="mt-10 text-center text-gray-600">In full: <%= link_to "Privacy and your data", privacy_path, class: "link" %> ·
-      <%= link_to "Data processing terms", data_processing_path, class: "link" %> · <%= link_to "Service level agreement", sla_path, class: "link" %></p>
   </div>
 </section>
 
@@ -331,7 +305,7 @@
 
 <%# The five setup steps as a path you can walk: numbered tabs on a progress line, and a browser frame showing each
     step's real screen (setup_steps_controller.js). It plays through on its own until touched. %>
-<section class="bg-white">
+<section class="border-y border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto max-w-3xl text-center">
       <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Getting started</p>
@@ -411,10 +385,42 @@
   </div>
 </section>
 
-<section id="pricing" class="scroll-mt-20 border-y border-gray-200 bg-gray-50">
+<%# Owners hand over their whole business: say plainly how it's kept, every line true of how HardPoint works
+    (docs/SECURITY.md, the privacy page and the data processing terms say the same, in more detail). %>
+<section id="security" class="scroll-mt-20 border-y border-primary-100 bg-primary-50/60">
+  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Your data</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Safe, private, and yours.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Your sales, stock, customers and staff belong to your shop. We look after them, and nothing else: we don't sell data and we don't show adverts.</p>
+    </div>
+    <% promises = [
+         [ :shield, "Walled off from every other shop", "Each shop's data is separated inside the database itself, so no other shop can ever see yours, even if the app had a fault. We test it on every change." ],
+         [ :lock, "Locked down", "Encrypted connections, passwords stored so not even we can read them, M-Pesa and eTIMS keys encrypted, and two-factor sign-in for owners and managers." ],
+         [ :sync, "Backed up every minute", "Copied off-site, encrypted, every minute, so your shop can be brought back to any moment. Your own daily backups are in Settings too." ],
+         [ :log, "Every change recorded", "Activity shows who did what and when, from a void to a price change. If our support staff ever sign in to help, that's recorded too." ],
+         [ :data, "Take it with you, any time", "Export everything as spreadsheets whenever you like, even after you stop paying. Close your account and we delete it for good." ],
+         [ :customers, "Kenya's Data Protection Act", "Written to the Data Protection Act, 2019: we're your data processor, we tell you within 72 hours of a breach, and your customers' rights are respected." ]
+       ] %>
+    <ul class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <% promises.each do |icon, title, body| %>
+        <li class="rounded-3xl border border-primary-100 bg-white p-7 shadow-sm shadow-primary-900/5">
+          <span class="flex size-12 items-center justify-center rounded-xl bg-primary-100 text-primary-700"><%= render "pages/icon", name: icon, classes: "size-6" %></span>
+          <h3 class="mt-5 text-xl font-bold tracking-tight text-gray-950"><%= title %></h3>
+          <p class="mt-3 text-sm text-gray-600"><%= body %></p>
+        </li>
+      <% end %>
+    </ul>
+    <p class="mt-10 text-center text-gray-600">In full: <%= link_to "Privacy and your data", privacy_path, class: "link" %> ·
+      <%= link_to "Data processing terms", data_processing_path, class: "link" %> · <%= link_to "Service level agreement", sla_path, class: "link" %></p>
+  </div>
+</section>
+
+<section id="pricing" class="scroll-mt-20 bg-white">
   <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
     <div class="mx-auto mb-12 max-w-3xl text-center">
-      <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Fair pricing.</h2>
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Pricing</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Fair pricing.</h2>
       <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">One price per shop a month. Pay by M-Pesa or card, monthly or yearly.</p>
     </div>
     <%= render "pages/plans", plans: @plans %>
@@ -422,7 +428,7 @@
 </section>
 
 <%# The questions a visitor has before clicking Start. The pricing page has the full list. %>
-<section class="bg-white">
+<section class="border-y border-gray-200 bg-gray-50">
   <div class="mx-auto max-w-3xl px-4 py-20 sm:py-28">
     <div class="text-center">
       <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Questions</p>
@@ -433,18 +439,21 @@
   </div>
 </section>
 
-<section class="border-t border-gray-200 bg-gray-50">
+<%# The door, in the same full-colour band as the offline till: the page ends on its strongest colour. %>
+<section class="offline-band relative overflow-hidden text-white">
   <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
-    <h2 class="text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Open the till.</h2>
-    <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email <%= mail_to Rails.configuration.x.support[:email], nil, class: "link" %>.</p>
+    <p class="text-sm font-semibold tracking-wide text-white/75 uppercase">Ready when you are</p>
+    <h2 class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">Open the till.</h2>
+    <p class="mt-5 text-lg text-white/85 text-balance sm:text-xl">Questions first? Message a person on WhatsApp or email
+      <%= mail_to Rails.configuration.x.support[:email], nil, class: "font-medium text-white underline decoration-white/50 underline-offset-2 hover:decoration-white" %>.</p>
     <div class="relative mt-9 inline-flex flex-col items-center">
-      <%= doodle_arrow.("absolute -left-16 -top-8 size-14 -rotate-6 text-primary-500 max-sm:hidden") %>
-      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary px-8 py-3 text-lg" %>
+      <%= doodle_arrow.("absolute -left-16 -top-8 size-14 -rotate-6 text-white/70 max-sm:hidden") %>
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn rounded-md border border-white bg-white px-8 py-3 text-lg font-semibold text-primary-700 shadow-lg shadow-primary-900/20 hover:bg-primary-50 focus-visible:outline-white" %>
     </div>
-    <ul class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-gray-600">
-      <li class="flex items-center gap-1.5"><%= render "pages/check" %>No card needed</li>
-      <li class="flex items-center gap-1.5"><%= render "pages/check" %><%= trial.capitalize %> free</li>
-      <li class="flex items-center gap-1.5"><%= render "pages/check" %>Selling the same afternoon</li>
+    <ul class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-white/85">
+      <li class="flex items-center gap-1.5"><%= render "pages/check", classes: "text-white" %>No card needed</li>
+      <li class="flex items-center gap-1.5"><%= render "pages/check", classes: "text-white" %><%= trial.capitalize %> free</li>
+      <li class="flex items-center gap-1.5"><%= render "pages/check", classes: "text-white" %>Selling the same afternoon</li>
     </ul>
   </div>
 </section>
