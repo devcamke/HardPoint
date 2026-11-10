@@ -22,7 +22,7 @@
       <%= form.text_field :refund_reference, value: params[:refund_reference], autocomplete: "off", class: "input font-mono uppercase", placeholder: "e.g. SJK4H7T2QP" %>
     </div>
   <% end %>
-  <% unless current_membership.approver? %>
+  <% unless current_membership.approves_own_actions? %>
     <div class="field"><%= form.label :approval_pin, "Manager approval PIN", class: "label" %><%= form.password_field :approval_pin, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %></div>
   <% end %>
   <%= form.submit "Void sale", class: "btn-danger" %>

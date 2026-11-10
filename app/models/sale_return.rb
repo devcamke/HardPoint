@@ -77,6 +77,6 @@ class SaleReturn < ApplicationRecord
     def restock_and_record
       lines.select(&:restock?).each { |line| line.sale_line.restore_stock(line.quantity, source: self, branch: branch) }
       sale.track_event "returned", creator: creator, return_number: return_number, total: total_cents,
-        refund_method: refund_method, approver: approver&.name
+        refund_method: refund_method, approver: approver
     end
 end

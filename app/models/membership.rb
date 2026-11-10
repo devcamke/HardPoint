@@ -23,6 +23,10 @@ class Membership < ApplicationRecord
   validate :pin_only_for_till_roles, if: -> { pin.present? }
   validates :approval_pin, format: { with: /\A\d{4,6}\z/, message: "must be 4 to 6 digits" }, allow_nil: true
   validate { errors.add :approval_pin, "is only for owners and managers" if approval_pin.present? && !approver? }
+  # A PIN must name one person, or an approval would be put down to the wrong manager.
+  validate(if: -> { approval_pin.present? && approver? }) do
+    errors.add :approval_pin, "is already used by someone else here; choose another" if Approval.holder_of(account, approval_pin, except: self)
+  end
 
   validates :user, uniqueness: { scope: :account_id, message: "is already a member of this shop" }
   validate { errors.add :branch, "must be one of this shop's" if branch && branch.account_id != account_id }
@@ -122,6 +126,11 @@ class Membership < ApplicationRecord
 
   def approver?
     owner? || manager?
+  end
+
+  # Owners and managers approve their own voids, discounts and credit, unless the shop asks for a second person.
+  def approves_own_actions?
+    approver? && !account.require_second_approver?
   end
 
   def can_sell?

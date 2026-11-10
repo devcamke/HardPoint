@@ -117,7 +117,7 @@ module Sale::Payable
       return false if errors.any?
 
       complete
-      track_event "completed_without_payment", approver: approver.name, total: total_cents
+      track_event "completed_without_payment", approver: approver, total: total_cents
       true
     end
   end
@@ -153,7 +153,7 @@ module Sale::Payable
 
     def approve_credit(payment, approver)
       update!(credit_approver: approver)
-      track_event "credit_approved", approver: approver.name, customer: customer.name, amount: payment.amount_cents,
+      track_event "credit_approved", approver: approver, customer: customer.name, amount: payment.amount_cents,
         available: customer.available_credit_cents
     end
 

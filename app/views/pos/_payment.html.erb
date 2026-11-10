@@ -69,7 +69,7 @@
         <%= form.label :reference, "Code", class: inline %>
         <%= form.text_field :reference, autocomplete: "off", placeholder: "e.g. SJK4H7T2QP", class: "input font-mono uppercase" %>
       </div></div>
-      <% unless current_membership.approver? %>
+      <% unless current_membership.approves_own_actions? %>
         <div class="hidden w-32" data-payment-target="approvalField">
           <%= form.label :approval_pin, "Manager PIN", class: "label", title: "Needed to go over the customer's credit limit" %>
           <%= form.password_field :approval_pin, inputmode: "numeric", autocomplete: "off", placeholder: "Over limit", class: "input" %>

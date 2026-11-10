@@ -16,21 +16,21 @@ module EventsHelper
     in [ "Membership", "pin_set" ] then "set #{whose(event)} till PIN"
     in [ "Membership", "pin_removed" ] then "removed #{whose(event)} till PIN"
     in [ "Shift", "opened" ] then "opened a shift on #{subject} with #{money(event.particulars["opening_float"])} float"
-    in [ "Shift", "payout_approved" ] then "paid out #{money(event.particulars["amount"])} from the drawer on #{subject}, approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
+    in [ "Shift", "payout_approved" ] then "paid out #{money(event.particulars["amount"])} from the drawer on #{subject}, approved by #{approver_words(event)}: #{event.particulars["reason"]}"
     in [ "Shift", "closed" ] then "closed the shift on #{subject}: counted #{money(event.particulars["counted"])}, #{variance_words(event.particulars["variance"])}"
-    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}" \
+    in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{approver_words(event)}: #{event.particulars["reason"]}" \
       "#{"; #{Sale::Voidable.refund_words(event.particulars["refund_method"], event.particulars["refund_reference"])}" if event.particulars["refund_method"]}"
-    in [ "Sale", "completed_without_payment" ] then "completed sale #{subject} with nothing to pay, approved by #{event.particulars["approver"]}"
+    in [ "Sale", "completed_without_payment" ] then "completed sale #{subject} with nothing to pay, approved by #{approver_words(event)}"
     in [ "Sale", "returned" ] then "took back items from #{subject}: #{event.particulars["return_number"]}, refunded #{money(event.particulars["total"])} by #{event.particulars["refund_method"].to_s.humanize.downcase}"
-    in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{event.particulars["approver"]}"
+    in [ "Sale", "discount_approved" ] then "got a #{event.particulars["percent"]}% discount approved by #{approver_words(event)}"
     in [ "CustomerOrder", "part_collected" ] then "collected part of #{subject} (#{event.particulars["receipt_number"]}); still waiting: #{Array(event.particulars["remaining"]).to_sentence}"
-    in [ "CustomerOrder", "credit_approved" ] then "had #{subject} (#{money(event.particulars["amount"])}, over #{event.particulars["customer"]}'s credit) approved by #{event.particulars["approver"]}"
+    in [ "CustomerOrder", "credit_approved" ] then "had #{subject} (#{money(event.particulars["amount"])}, over #{event.particulars["customer"]}'s credit) approved by #{approver_words(event)}"
     in [ "DeliveryNote", "cancelled" ] then "cancelled delivery #{subject}#{" and its transport order #{event.particulars["transport_order"]}" if event.particulars["transport_order"] && !event.particulars["transport_paid_on"]}" \
       "#{"; the transport was paid on #{event.particulars["transport_paid_on"]}, so refund it from that receipt" if event.particulars["transport_paid_on"]}"
     in [ "Customer", "paid" ] then "took #{money(event.particulars["amount"])} from #{subject} on account by #{event.particulars["payment_method"].to_s.humanize.downcase}#{" (#{event.particulars["reference"]})" if event.particulars["reference"].present?}"
     in [ "Customer", "credit_refunded" ] then "refunded #{money(event.particulars["amount"])} of account credit to #{subject} by #{event.particulars["payment_method"].to_s.humanize.downcase}"
-    in [ "Customer", "written_off" ] then "wrote off #{money(event.particulars["amount"])} of #{subject}'s account, approved by #{event.particulars["approver"]}: #{event.particulars["reason"]}"
-    in [ "CustomerOrder", "deposit_kept" ] then "kept the #{money(event.particulars["amount"])} deposit on #{subject} (#{event.particulars["receipt_number"]}), approved by #{event.particulars["approver"]}#{": #{event.particulars["reason"]}" if event.particulars["reason"].present?}"
+    in [ "Customer", "written_off" ] then "wrote off #{money(event.particulars["amount"])} of #{subject}'s account, approved by #{approver_words(event)}: #{event.particulars["reason"]}"
+    in [ "CustomerOrder", "deposit_kept" ] then "kept the #{money(event.particulars["amount"])} deposit on #{subject} (#{event.particulars["receipt_number"]}), approved by #{approver_words(event)}#{": #{event.particulars["reason"]}" if event.particulars["reason"].present?}"
     in [ _, "offline_sale_refused" ] then "rang up offline sale #{event.particulars["receipt_number"] || "without a number"} for #{money(event.particulars["total"])}" \
       "#{" on #{subject}" if event.eventable_type == "Register"}#{" at #{Time.zone.parse(event.particulars["happened_at"]).to_fs(:short)}" if event.particulars["happened_at"]}, " \
       "which couldn't be recorded: #{event.particulars["error"]}. The money is in the drawer; ring it up by hand"
@@ -103,6 +103,11 @@ module EventsHelper
 
     def whose(event)
       event.creator&.name == event.particulars["name"] ? "their" : "#{event.particulars["name"]}'s"
+    end
+
+    # An owner or manager who approved their own void, discount or credit is called out, not just named.
+    def approver_words(event)
+      event.particulars["self_approved"] ? "themselves" : event.particulars["approver"]
     end
 
     def describe_changes(event)
