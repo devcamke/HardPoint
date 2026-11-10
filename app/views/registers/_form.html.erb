@@ -8,7 +8,7 @@
 
   <div class="field">
     <%= form.label :branch_id, "Branch", class: "label" %>
-    <%= form.collection_select :branch_id, Current.account.branches.alphabetically, :id, :name, {}, class: "input" %>
+    <%= form.collection_select :branch_id, visible_branches.alphabetically, :id, :name, {}, class: "input" %>
   </div>
 
   <div class="field">

@@ -49,3 +49,35 @@ class BranchesControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 end
+
+class BranchBoundManagerTest < ActionDispatch::IntegrationTest
+  setup do
+    Account.without_isolation { memberships(:sara_acme).update!(role: "manager", branch: branches(:acme_main)) }
+    sign_in_as users(:sara), account: accounts(:acme)
+  end
+
+  test "a manager bound to a branch looks after that branch and its tills, and no other" do
+    get branches_path
+    assert_select "td", text: branches(:acme_main).name
+    assert_select "td", text: "Timber yard", count: 0
+    assert_select "a", text: "Add branch", count: 0
+
+    patch branch_path(branches(:acme_main)), params: { branch: { phone: "0700 000 000" } }
+    assert_redirected_to branches_path
+
+    patch branch_path(branches(:acme_yard)), params: { branch: { name: "Mine now" } }
+    assert_response :not_found
+    post branches_path, params: { branch: { name: "Westlands" } }
+    assert_response :forbidden
+    delete branch_path(branches(:acme_main))
+    assert_response :forbidden
+
+    get registers_path
+    assert_select "td", text: registers(:acme_yard).name, count: 0
+    patch register_path(registers(:acme_yard)), params: { register: { active: "0" } }
+    assert_response :not_found
+    post registers_path, params: { register: { name: "Back counter", branch_id: branches(:acme_yard).id } }
+    assert_response :not_found
+    assert Account.without_isolation { registers(:acme_yard).reload.active? }
+  end
+end

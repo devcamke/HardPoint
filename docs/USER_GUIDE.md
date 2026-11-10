@@ -291,6 +291,8 @@ Everyone who uses HardPoint gets their own login, so the activity log shows who 
 
 Each person only sees the areas their role uses: a cashier sees Home, Sell, Customers and Stock, and starts at the till.
 
+Someone given one branch sees only that branch. A manager given one branch looks after that branch's details and tills; adding or removing branches is for an owner, or a manager who sees every branch.
+
 Managers can add staff and change their roles, but only an owner can make someone an owner, or change or remove an owner. Removing someone signs them out of every till and phone straight away.
 
 **Walkthrough: Add a member of staff**

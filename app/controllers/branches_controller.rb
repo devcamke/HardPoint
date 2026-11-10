@@ -1,9 +1,11 @@
 class BranchesController < ApplicationController
   before_action :ensure_can_manage_branches, except: :index
+  # A manager bound to one branch looks after that branch; opening and closing branches is for staff who see them all.
+  before_action :ensure_sees_every_branch, only: %i[ new create destroy ]
   before_action :set_branch, only: %i[ edit update destroy ]
 
   def index
-    @branches = Current.account.branches.alphabetically
+    @branches = visible_branches.alphabetically
   end
 
   def new
@@ -41,7 +43,11 @@ class BranchesController < ApplicationController
 
   private
     def set_branch
-      @branch = Current.account.branches.find(params[:id])
+      @branch = visible_branches.find(params[:id])
+    end
+
+    def ensure_sees_every_branch
+      head :forbidden if current_membership.bound_to_branch?
     end
 
     def branch_params

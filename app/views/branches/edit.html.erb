@@ -6,5 +6,7 @@
   <%= render "form", branch: @branch %>
 </div>
 
-<%= button_to "Remove branch", branch_path(@branch), method: :delete, class: "btn-danger mt-6",
-      form: { data: { turbo_confirm: "Remove #{@branch.name}?" } } %>
+<% unless current_membership.bound_to_branch? %>
+  <%= button_to "Remove branch", branch_path(@branch), method: :delete, class: "btn-danger mt-6",
+        form: { data: { turbo_confirm: "Remove #{@branch.name}?" } } %>
+<% end %>
