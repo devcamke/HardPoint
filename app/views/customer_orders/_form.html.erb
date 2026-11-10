@@ -66,6 +66,10 @@
       <%= form.submit "Save quote", class: "btn-primary" %>
       <%= form.button "Save as confirmed order", name: "order_now", value: "1", class: "btn-secondary" %>
     <% else %>
+      <% if customer_order.ordered? && customer_order.customer&.buys_on_account? && !current_membership.approves_own_actions? %>
+        <div><%= label_tag :approval_pin, "Manager PIN, if this takes #{customer_order.customer.name.split.first} past their credit", class: "label" %>
+          <%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", class: "input w-32" %></div>
+      <% end %>
       <%= form.submit "Save", class: "btn-primary" %>
     <% end %>
   </div>

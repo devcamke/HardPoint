@@ -729,7 +729,7 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 #### Quotes and orders
 
 1. In **Sell › Orders & quotes**, press **New**, choose the customer and add the goods. Save it as a quote, and send it as a PDF or by email. Quotes are valid for 14 days unless you change it.
-2. When the customer agrees, press **Confirm order**. For a customer who buys on account, an order worth more than the credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
+2. When the customer agrees, press **Confirm order**. For a customer who buys on account, an order worth more than the credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. The same goes for **Save as confirmed order** (without the PIN it's kept as a quote) and for adding to a confirmed order. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
 3. When the goods are in, press **Mark ready to collect** (with SMS on, the customer can be texted).
 4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted. The sale, VAT and all, goes to KRA then, not when the deposit was taken (see [KRA eTIMS](#etims)).
 

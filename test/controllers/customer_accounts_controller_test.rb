@@ -65,6 +65,38 @@ class CustomerAccountsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", "Mwangi Builders Ltd"
   end
 
+  test "saving straight away as a confirmed order checks the customer's credit like confirming a quote" do
+    lines = { "0" => { product_code: "CEM-50", quantity: "100" } } # far past the contractor's KES 50,000
+    post customer_orders_path, params: { order_now: "1", customer_order: { customer_id: customers(:acme_contractor).id, branch_id: branches(:acme_main).id, lines_attributes: lines } }
+    order = without_isolation { CustomerOrder.last }
+    assert_redirected_to customer_order_path(order)
+    assert without_isolation { order.reload.quote? }
+    assert_match(/Saved as quote #{without_isolation { order.reference }}, not confirmed: .*needs a manager.s approval PIN/, flash[:alert])
+
+    post customer_orders_path, params: { order_now: "1", approval_pin: "2468", customer_order: { customer_id: customers(:acme_contractor).id, branch_id: branches(:acme_main).id, lines_attributes: lines } }
+    assert without_isolation { CustomerOrder.last.ordered? }
+  end
+
+  test "raising a confirmed order past the customer's credit needs a manager's PIN" do
+    order = create_quote
+    post customer_order_confirmation_path(order)
+    assert without_isolation { order.reload.ordered? }
+    line = without_isolation { order.lines.sole }
+    params = { customer_order: { lines_attributes: { "0" => { id: line.id, product_code: "CEM-50", quantity: "100" } } } }
+
+    get edit_customer_order_path(order)
+    assert_select "input[name=approval_pin]"
+
+    patch customer_order_path(order), params: params
+    assert_response :unprocessable_entity
+    assert_match "needs a manager&#39;s approval PIN", response.body
+    assert_equal 10, without_isolation { line.reload.quantity }
+
+    patch customer_order_path(order), params: params.merge(approval_pin: "2468")
+    assert_redirected_to customer_order_path(order)
+    assert_equal 100, without_isolation { line.reload.quantity }
+  end
+
   test "a cashier needs a manager's PIN to go over a customer's credit limit" do
     post pos_lines_path, params: { code: "CEM-50", quantity: "70" }, as: :turbo_stream # 70 × 760.00 = 53,200.00 > 50,000.00
     patch pos_customer_path, params: { customer_id: customers(:acme_contractor).id }, as: :turbo_stream
