@@ -6,6 +6,7 @@ class CustomerAccountTest < ActiveSupport::TestCase
     Current.session = accounts(:acme).sessions.create!(user: users(:carl))
     @shift = shifts(:acme_front_open)
     @customer = customers(:acme_contractor) # 50,000.00 credit limit, 30 days' terms
+    stock_up products(:acme_nails), 500
   end
 
   def account_sale(quantity:, days_ago: 0, approver: nil)

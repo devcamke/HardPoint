@@ -3,6 +3,8 @@ class Product < ApplicationRecord
 
   # Raised when a sale or transfer would have to take stock from an expired batch.
   ExpiredStock = Class.new(StandardError)
+  # Raised when a sale would take more than is on the shelf: stock can't be sold below zero.
+  OutOfStock = Class.new(StandardError)
   publishes_webhooks "product"
   tracks_lifecycle
 

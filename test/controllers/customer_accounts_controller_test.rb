@@ -3,6 +3,8 @@ require "test_helper"
 class CustomerAccountsControllerTest < ActionDispatch::IntegrationTest
   setup do
     Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
+    stock_up products(:acme_nails), 500
+    stock_up products(:acme_cement), 200
     sign_in_as users(:carl) # cashier
     post pos_till_path, params: { register_id: registers(:acme_front).id }
   end

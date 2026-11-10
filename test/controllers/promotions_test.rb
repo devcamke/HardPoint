@@ -1,7 +1,10 @@
 require "test_helper"
 
 class PromotionsControllerTest < ActionDispatch::IntegrationTest
-  setup { @account = accounts(:acme) }
+  setup do
+    @account = accounts(:acme)
+    stock_up products(:acme_pipe), 20
+  end
 
   def acme(&) = Account.without_isolation(&)
 

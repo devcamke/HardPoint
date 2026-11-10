@@ -42,6 +42,9 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    # Stock can't be sold below zero, so a test that sells more than the fixtures hold puts it on the shelf first.
+    def stock_up(product, quantity, branch: branches(:acme_main))
+      Account.without_isolation { product.move_stock(branch: branch, quantity: quantity, reason: "received", creator: nil) }
+    end
   end
 end

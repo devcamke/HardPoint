@@ -6,6 +6,7 @@ class PromotionTest < ActiveSupport::TestCase
     Current.session = accounts(:acme).sessions.create!(user: users(:carl))
     @shift = shifts(:acme_front_open)
     @cement, @nails = products(:acme_cement), products(:acme_nails)
+    stock_up products(:acme_pipe), 20
   end
 
   def promote(**attributes)
