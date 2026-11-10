@@ -934,6 +934,10 @@ in the counter's head is slow and loses sales to the shop that answers first.
   longer holds up the rest.
 - **Accessibility in CI:** the first system tests, an axe-core 4.10.2 scan (WCAG 2.1 A/AA, serious and critical
   problems fail) of the landing page, sign-in, dashboard, products, a product, customers, a customer and settings.
+  What it found is fixed: links are underlined (not told apart by colour alone), the header's search button and the
+  landing page's faint gray text meet 4.5:1, and a table box that scrolls sideways joins the tab order (named after
+  its heading) so it can be scrolled from the keyboard. A table's negative margin no longer makes its box scroll by
+  3 px.
 - **Stale assets in development:** `bin/dev` removes a `public/assets` left by a production build. The test suite was
   checked and doesn't write it.
 
