@@ -145,6 +145,6 @@ class WhatsappSharingTest < ActionDispatch::IntegrationTest
     share = Account.without_isolation { Current.set(account: accounts(:acme), user: users(:amina)) { DocumentShare.create_for!(@sale) } }
     delete document_share_path(share)
     assert_response :not_found
-    assert_nil share.reload.revoked_at
+    assert_nil Account.without_isolation { share.reload.revoked_at }
   end
 end
