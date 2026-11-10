@@ -62,6 +62,18 @@ module Product::Stockable
     level.positive? && stock_at(branch) <= level
   end
 
+  class_methods do
+    # "Only 3 Claw hammer 16oz left at Moi Avenue", or "... is out of stock at ..." when there's none.
+    def shortage_message(product, on_hand, branch)
+      on_hand = on_hand.to_d
+      if on_hand.positive?
+        "Only #{on_hand.to_s("F").delete_suffix(".0")} #{product.name} left at #{branch.name}"
+      else
+        "#{product.name} is out of stock at #{branch.name}"
+      end
+    end
+  end
+
   # Movements that must never take expired stock: a customer mustn't be sold it, and another branch mustn't
   # be sent it. Counts, corrections and write-offs may take it, since that's how it leaves.
   IN_DATE_ONLY = %w[ sold transfer_out ].freeze
@@ -71,13 +83,18 @@ module Product::Stockable
   # given (a write-off) or first-expiring-first, skipping expired batches: a sale or transfer that
   # would need them raises Product::ExpiredStock, other movements fall through to them when nothing
   # else is left. Each batch touched gets its own ledger line.
-  def move_stock(branch:, quantity:, reason:, source: nil, note: nil, unit_cost_cents: cost_cents, creator: Current.user, batch: nil, reverses: nil, allow_expired: nil)
+  # With allow_negative: false, stock out that would leave the level below zero raises Product::OutOfStock. The check
+  # is made with the level locked, so two tills selling the last one at once can't both have it.
+  def move_stock(branch:, quantity:, reason:, source: nil, note: nil, unit_cost_cents: cost_cents, creator: Current.user, batch: nil, reverses: nil, allow_expired: nil, allow_negative: true)
     raise ArgumentError, "#{name} doesn't track stock" unless track_stock?
     allow_expired = !reason.to_s.in?(IN_DATE_ONLY) if allow_expired.nil?
 
     transaction do
       level = stock_levels.create_or_find_by!(account: account, branch: branch)
       level.lock!
+      if !allow_negative && quantity.negative? && level.quantity + quantity.to_d < 0
+        raise Product::OutOfStock, Product.shortage_message(self, level.quantity, branch)
+      end
 
       portions = tracks_batches? ? Product::Batching.new(self, branch).portions(quantity.to_d, batch: batch, reverses: reverses, allow_expired: allow_expired) : [ [ nil, quantity.to_d ] ]
       portions.map do |stock_batch, amount|

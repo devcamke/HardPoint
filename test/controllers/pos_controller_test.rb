@@ -55,6 +55,20 @@ class PosControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test "raising a quantity past the stock on the shelf is refused; lowering it is always fine" do
+    post pos_lines_path, params: { code: "PVC-2" }, as: :turbo_stream # 3 in stock
+    line = Account.without_isolation { current_sale.lines.sole }
+
+    patch pos_line_path(line), params: { sale_line: { quantity: "4" } }, as: :turbo_stream
+    assert_response :unprocessable_entity
+    assert_match(/Only 3 .* left at Main branch/, response.body)
+    assert_equal 1, Account.without_isolation { line.reload.quantity }
+
+    patch pos_line_path(line), params: { sale_line: { quantity: "3" } }, as: :turbo_stream
+    assert_response :success
+    assert_equal 3, Account.without_isolation { line.reload.quantity }
+  end
+
   test "changing quantity and pack reprices the line" do
     post pos_lines_path, params: { code: "SCR-815" }, as: :turbo_stream
     line = Account.without_isolation { current_sale.lines.sole }

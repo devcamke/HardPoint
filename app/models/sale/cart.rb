@@ -17,8 +17,39 @@ module Sale::Cart
     end
 
     line.reprice
+    if (shortage = stock_shortfall(only: line))
+      # Put the cart back as it was: the extra one isn't sold.
+      existing ? existing.restore_attributes : lines.target.delete(line)
+      line.errors.add :base, shortage
+      return line
+    end
+
     transaction { line.save && recalculate }
     line
+  end
+
+  # Stock can't be sold below zero: what a sale takes of each product (a kit counts as its parts, totalled over every
+  # line) must be on the shelf at its branch. Returns what's short, as the till says it, or nil. `lines` is the sale
+  # as it would be; `only:` looks at just the products that one line takes, so a change to one line isn't held up by
+  # another. A sale an offline till already made isn't checked: the goods have gone.
+  def stock_shortfall(lines = self.lines, only: nil)
+    return if offline_uuid.present?
+
+    needed = Hash.new(0)
+    products = {}
+    lines.each do |line|
+      line.stock_items.each do |item, amount|
+        needed[item.id] += amount
+        products[item.id] = item
+      end
+    end
+    needed.slice!(*only.stock_items.map { _1.first.id }) if only
+
+    needed.each do |id, amount|
+      on_hand = products[id].stock_at(branch)
+      return Product.shortage_message(products[id], on_hand, branch) if amount > on_hand
+    end
+    nil
   end
 
   # Transport to the customer's site at what the trip costs, as its own line on this sale.

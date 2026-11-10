@@ -69,11 +69,25 @@ class SaleLine < ApplicationRecord
   end
 
   # Recorded when the sale completes, so margins stay true after costs change.
-  # An offline till couldn't know a batch had expired, and the goods have gone, so its sales may take them.
+  # Stock can't be sold below zero. An offline till couldn't know a batch had expired or another till had sold the
+  # last one, and the goods have gone, so its sales may take expired stock and go below zero (and are flagged).
   def deduct_stock
     update_columns cost_cents: current_cost_cents
+    offline = sale.offline_uuid.present?
     stock_items.each do |item, amount|
-      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier, allow_expired: sale.offline_uuid.present?)
+      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier, allow_expired: offline, allow_negative: offline)
+    end
+  end
+
+  # Kits take their components out of stock; untracked products (services) take nothing.
+  # [ [ product, quantity in its base unit ], ... ]
+  def stock_items
+    if product.kit?
+      product.kit_components.includes(:component).select { _1.component.track_stock? }.map { [ _1.component, _1.quantity * base_quantity ] }
+    elsif product.track_stock?
+      [ [ product, base_quantity ] ]
+    else
+      []
     end
   end
 
@@ -111,17 +125,6 @@ class SaleLine < ApplicationRecord
   end
 
   private
-    # Kits take their components out of stock; untracked products (services) take nothing.
-    def stock_items
-      if product.kit?
-        product.kit_components.includes(:component).select { _1.component.track_stock? }.map { [ _1.component, _1.quantity * base_quantity ] }
-      elsif product.track_stock?
-        [ [ product, base_quantity ] ]
-      else
-        []
-      end
-    end
-
     def calculate_totals
       self.total_cents = gross_cents - discount_cents - promotion_discount_cents.to_i
       self.tax_cents = (total_cents * tax_rate / (100 + tax_rate)).round

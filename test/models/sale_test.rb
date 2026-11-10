@@ -350,4 +350,47 @@ class SaleTest < ActiveSupport::TestCase
     assert_nil Approval.approver_for(accounts(:acme), "1234"), "a cashier's till PIN approves nothing"
     assert_not memberships(:carl_acme).set_approval_pin("1357")
   end
+
+  test "stock can't be sold below zero: the till refuses the one too many and leaves the line as it was" do
+    pipe = products(:acme_pipe) # 3 at the main branch
+    line = @sale.add(pipe, quantity: 3)
+    assert line.persisted?
+
+    refused = @sale.add(pipe)
+    assert_equal "Only 3 #{pipe.name} left at Main branch", refused.errors.full_messages.to_sentence
+    assert_equal 3, line.reload.quantity
+    assert_equal [ line ], @sale.lines.reload.to_a
+
+    pipe.move_stock(branch: branches(:acme_main), quantity: -3, reason: "damaged")
+    assert_equal "#{pipe.name} is out of stock at Main branch", @sale.add(pipe).errors.full_messages.to_sentence
+  end
+
+  test "a kit counts its parts against stock, together with the same parts sold on their own" do
+    @sale.add(products(:acme_pipe), quantity: 2) # 3 in stock; the kit takes 2 more
+    kit = @sale.add(products(:acme_plumbing_kit))
+
+    assert_match(/Only 3 .* left at Main branch/, kit.errors.full_messages.to_sentence)
+    assert_equal 1, @sale.lines.reload.size
+  end
+
+  test "a final payment is refused when another till sold the stock since it was scanned, and nothing is taken" do
+    pipe = products(:acme_pipe)
+    @sale.add(pipe, quantity: 3)
+    pipe.move_stock(branch: branches(:acme_main), quantity: -2, reason: "sold") # the other till
+
+    payment = @sale.pay(tender: "cash", tendered_cents: 10_000_00)
+    assert_not payment.persisted?
+    assert_equal "Only 1 #{pipe.name} left at Main branch. Take it off the sale or sell fewer", payment.errors.full_messages.to_sentence
+    assert @sale.reload.open?
+    assert_equal 1, pipe.stock_at(branches(:acme_main))
+  end
+
+  test "taking stock below zero is refused with the level locked, for a sale racing another till" do
+    pipe = products(:acme_pipe)
+    error = assert_raises(Product::OutOfStock) do
+      pipe.move_stock(branch: branches(:acme_main), quantity: -4, reason: "sold", allow_negative: false)
+    end
+    assert_equal "Only 3 #{pipe.name} left at Main branch", error.message
+    assert_equal 3, pipe.stock_at(branches(:acme_main))
+  end
 end

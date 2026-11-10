@@ -18,6 +18,9 @@ class Pos::LinesController < ApplicationController
     line = @sale.lines.find(params[:id])
     line.assign_attributes(line_params)
     line.reprice if line.quantity_changed? || line.product_unit_id_changed?
+    if takes_more_stock?(line) && (shortage = @sale.stock_shortfall(@sale.lines.map { _1.id == line.id ? line : _1 }, only: line))
+      return render_cart alert: shortage, status: :unprocessable_entity
+    end
 
     SaleLine.transaction do
       line.save!
@@ -62,6 +65,14 @@ class Pos::LinesController < ApplicationController
         permitted[:product_unit_id] = permitted[:product_unit_id].presence && Current.account.product_units.find(permitted[:product_unit_id]).id
       end
       permitted
+    end
+
+    # Raising the quantity, or switching to a bigger pack, takes more off the shelf; lowering it never needs stock.
+    def takes_more_stock?(line)
+      return false unless line.quantity_changed? || line.product_unit_id_changed?
+
+      pack_was = Current.account.product_units.find_by(id: line.product_unit_id_was)&.quantity || 1
+      line.base_quantity > line.quantity_was.to_d * pack_was
     end
 
     def stock_warning(line)
