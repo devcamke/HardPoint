@@ -3,7 +3,7 @@ class Billings::PlansController < ApplicationController
 
   def update
     if Current.account.change_plan(params[:plan])
-      redirect_to billing_path, notice: "You're on the #{Current.account.subscription_plan.name} plan. The new price applies from the next invoice.", status: :see_other
+      redirect_to billing_path, notice: "You're on the #{Current.account.subscription_plan.name} plan. #{rest_of_period_notice(Current.account)}The new price applies from the next invoice.", status: :see_other
     else
       redirect_to billing_path, alert: Current.account.errors.full_messages.to_sentence, status: :see_other
     end

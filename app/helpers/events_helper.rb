@@ -47,6 +47,7 @@ module EventsHelper
     in [ "Account", "add_ons_changed" ] then "changed the HardPoint add-ons to #{pluralize(event.particulars["extra_branches"], "extra branch")} and #{pluralize(event.particulars["extra_registers"], "extra till")}, billed #{event.particulars["billing_interval"]}#{by_platform(event)}"
     in [ "Account", "invoice_issued" ] then "issued HardPoint invoice #{event.particulars["invoice"]} for #{money(event.particulars["amount"])}#{" (#{event.particulars["description"]})" if event.particulars["description"]}#{by_platform(event)}"
     in [ "Account", "subscription_paid" ] then "paid HardPoint invoice #{event.particulars["invoice"]} by #{event.particulars["provider"] == "mpesa" ? "M-Pesa" : event.particulars["provider"]} (#{event.particulars["receipt"]})"
+    in [ "Account", "period_restarted" ] then "paid invoice #{event.particulars["invoice"]} while read-only, so the paid period runs from #{Date.parse(event.particulars["from"]).to_fs(:long)} to #{(Date.parse(event.particulars["until"]) - 1).to_fs(:long)}"
     in [ "Account", "made_read_only" ] then "made the shop read-only: invoice #{event.particulars["invoice"]} is overdue"
     in [ "Account", "trial_extended" ] then "extended the free trial by #{pluralize(event.particulars["days"], "day")}#{by_platform(event)}"
     in [ "Account", "suspended" ] then "suspended the shop#{": #{event.particulars["reason"]}" if event.particulars["reason"]}#{by_platform(event)}"

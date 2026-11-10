@@ -74,6 +74,9 @@ module Account::Subscription
     { branches: extra_branches, registers: extra_registers }
   end
 
+  # The invoice for the rest of the period, when the last change of plan or add-ons needed one.
+  attr_reader :rest_of_period_invoice
+
   def within_plan?(target = subscription_plan, extras: add_ons)
     usage.all? { |resource, count| (limit = limit(resource, on: target, extras: extras)).nil? || count <= limit }
   end
@@ -93,8 +96,9 @@ module Account::Subscription
     yearly? ? monthly_price_cents * Plan::YEARLY_MONTHS_CHARGED : monthly_price_cents
   end
 
-  # Upgrades take effect at once; a smaller plan only if what's in use fits it. The new price
-  # applies from the next invoice. Add-ons carry over unless the new plan has no limits.
+  # Upgrades take effect at once, and the rest of a paid period is billed at the difference; a
+  # smaller plan only if what's in use fits it, at the new price from the next invoice. Add-ons
+  # carry over unless the new plan has no limits.
   def change_plan(key, by: Current.user)
     target = Plan.find(key)
     extras = target.add_ons? ? add_ons : { branches: 0, registers: 0 }
@@ -104,13 +108,15 @@ module Account::Subscription
       return false
     end
 
-    previous = plan
+    previous, rest_of_period, previous_price_cents = plan, self.rest_of_period, monthly_price_cents
     update!(plan: target.key, extra_branches: extras[:branches], extra_registers: extras[:registers])
-    track_event "plan_changed", creator: by, from: previous, to: target.key, **platform_particulars
+    invoice = bill_rest_of_period(rest_of_period, previous_price_cents, "Upgrade to the #{target.name} plan")
+    track_event "plan_changed", creator: by, from: previous, to: target.key, invoice: invoice&.number, **platform_particulars
   end
 
   # Buying or giving up extra branches and tills, and choosing monthly or yearly billing. More
-  # room applies at once; less only if what's in use still fits. Prices change from the next invoice.
+  # room applies at once, and the rest of a paid period is billed for it; less only if what's in
+  # use still fits, at the lower price from the next invoice.
   def change_add_ons(extra_branches: self.extra_branches, extra_registers: self.extra_registers, billing_interval: self.billing_interval, by: Current.user)
     unless subscription_plan.add_ons? || (extra_branches.to_i.zero? && extra_registers.to_i.zero?)
       errors.add :base, "#{subscription_plan.name} has no limits, so there's nothing to add"
@@ -126,11 +132,14 @@ module Account::Subscription
     end
 
     before = { extra_branches: self.extra_branches, extra_registers: self.extra_registers, billing_interval: self.billing_interval }
+    rest_of_period, previous_price_cents = self.rest_of_period, monthly_price_cents
     return true unless update(extra_branches: extras[:branches], extra_registers: extras[:registers], billing_interval: billing_interval.to_s)
     return true if before == { extra_branches: self.extra_branches, extra_registers: self.extra_registers, billing_interval: self.billing_interval }
 
+    added = Plan::ADD_ONS.filter_map { |resource| (more = extras[resource] - before[:"extra_#{resource}"]).positive? && Plan.allowance(more, resource).sub(" ", " extra ") }
+    invoice = bill_rest_of_period(rest_of_period, previous_price_cents, "#{added.to_sentence.upcase_first} added") if added.any?
     track_event "add_ons_changed", creator: by, extra_branches: self.extra_branches, extra_registers: self.extra_registers,
-      billing_interval: self.billing_interval, monthly_price: monthly_price_cents, **platform_particulars
+      billing_interval: self.billing_interval, monthly_price: monthly_price_cents, invoice: invoice&.number, **platform_particulars
   end
 
   # Platform support: a longer trial, e.g. while a shop finishes setting up.
@@ -164,6 +173,27 @@ module Account::Subscription
   end
 
   private
+    # What's left of the period paid (or invoiced) for, as the share of a month's price it's worth
+    # (twelve months charged as ten for a yearly shop), and the day it ends. nil during the trial.
+    def rest_of_period
+      today = Time.current.in_time_zone(time_zone).to_date
+      ends = [ current_period_ends_at&.in_time_zone(time_zone)&.to_date, open_subscription_invoice&.period_end ].compact.max
+      return unless ends && ends > today
+
+      starts = ends - (yearly? ? 1.year : 1.month)
+      [ Rational(ends - today, ends - starts) * (yearly? ? Plan::YEARLY_MONTHS_CHARGED : 1), ends ]
+    end
+
+    # More bought partway through a period would otherwise be free until the next invoice, so the
+    # difference in price for what's left of it is billed at once, due on the usual terms.
+    def bill_rest_of_period(rest_of_period, previous_price_cents, what)
+      share, ends = rest_of_period
+      amount_cents = share && ((monthly_price_cents - previous_price_cents) * share).round
+      return @rest_of_period_invoice = nil unless amount_cents&.positive?
+
+      @rest_of_period_invoice = issue_one_off_invoice("#{what}, for the rest of the period to #{(ends - 1).to_fs(:long)}", amount_cents)
+    end
+
     def status_from_billing
       if (invoice = open_invoice)
         invoice.overdue? ? "read_only" : "payment_due"

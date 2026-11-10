@@ -19,6 +19,9 @@ class BillingTest < ActiveSupport::TestCase
     assert_match "allows 2 tills", till.errors.full_messages.to_sentence
     spare = Register.create(branch: branches(:acme_main), name: "Spare", active: false)
     assert spare.persisted?, spare.errors.full_messages.to_sentence
+    assert_not spare.update(active: true), "switching a spare till on counts like adding one"
+    assert_match "allows 2 tills", spare.errors.full_messages.to_sentence
+    assert registers(:acme_front).update(name: "Front counter"), "a till already counted can still be edited"
     product = Product.create(name: "Yet another screw", sku: "SCR-9999", unit: units(:acme_piece), price_cents: 100)
     assert product.persisted?, product.errors.full_messages.to_sentence
 
@@ -80,6 +83,44 @@ class BillingTest < ActiveSupport::TestCase
     travel_to 200.days.from_now do
       @account.bill
       assert_equal 1, @account.billing_invoices.count, "nothing more is billed during the year"
+    end
+  end
+
+  test "add-ons bought or a plan upgraded partway through a paid period are billed for the rest of it at once; less waits for the next" do
+    @account.update!(billing_interval: "yearly")
+    travel_to 11.days.from_now do
+      @account.bill
+      invoice = @account.open_invoice
+      invoice.payments.create!(account: @account, provider: "manual", amount_cents: invoice.amount_cents, reference: "EFT-Y").succeed(receipt: "EFT-Y")
+    end
+    period = @account.reload.billing_invoices.first
+    days = period.period_end - period.period_start
+
+    travel_to 41.days.from_now do
+      left = period.period_end - Date.current
+      assert @account.change_add_ons(extra_registers: 3)
+      extra = @account.open_invoice
+      assert extra.one_off?
+      assert_equal (3 * 500_00 * 10 * left / days.to_r).round, extra.amount_cents
+      assert_equal Date.current + 7, extra.due_on
+      assert_match "3 extra tills", extra.description
+      assert @account.reload.payment_due?
+      assert_equal extra.number, @account.events.where(action: "add_ons_changed").last.particulars["invoice"]
+      extra.payments.create!(account: @account, provider: "manual", amount_cents: extra.amount_cents, reference: "EFT-A").succeed(receipt: "EFT-A")
+
+      assert @account.change_add_ons(extra_registers: 1)
+      assert_nil @account.open_invoice, "giving add-ons back applies from the next period"
+      assert_equal 1, @account.billing_invoices.one_off.count
+
+      assert @account.change_plan("enterprise")
+      upgrade = @account.open_invoice
+      assert_equal ((15_000_00 - 6_500_00 - 500_00) * 10 * left / days.to_r).round, upgrade.amount_cents
+      assert_match "Enterprise", upgrade.description
+      assert_equal upgrade.number, @account.events.where(action: "plan_changed").last.particulars["invoice"]
+
+      @account.billing_invoices.one_off.open.each { _1.update!(status: "void") }
+      assert @account.change_plan("business")
+      assert_nil @account.open_invoice, "a smaller plan applies from the next period"
     end
   end
 
@@ -150,6 +191,31 @@ class BillingTest < ActiveSupport::TestCase
       @account.bill
       assert @account.reload.payment_due?
       assert_equal 2, @account.billing_invoices.count
+    end
+  end
+
+  test "a shop that pays after being locked starts its next period from the day it paid, not billed for the locked months" do
+    travel_to 11.days.from_now do
+      @account.bill
+    end
+    travel_to 19.days.from_now do
+      @account.bill
+      assert @account.reload.read_only?
+    end
+
+    travel_to 90.days.from_now do
+      assert @account.record_manual_payment("EFT-LATE")
+      assert @account.reload.active?
+      assert_equal Date.current + 1.month, @account.current_period_ends_at.in_time_zone(@account.time_zone).to_date
+      assert @account.events.exists?(action: "period_restarted")
+
+      @account.bill
+      assert_nil @account.open_invoice, "the months it was locked aren't billed"
+    end
+
+    travel_to 90.days.from_now + 1.month do
+      @account.bill
+      assert_equal Date.current, @account.open_invoice.period_start, "the next month runs on from the paid one"
     end
   end
 
