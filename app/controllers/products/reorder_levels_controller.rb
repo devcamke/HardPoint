@@ -4,7 +4,7 @@ class Products::ReorderLevelsController < ApplicationController
 
   def update
     product = Current.account.products.find(params[:product_id])
-    branch = Current.account.branches.find(params[:branch_id])
+    branch = visible_branches.find(params[:branch_id])
     level = product.stock_levels.create_or_find_by!(account: Current.account, branch: branch)
 
     if level.update(reorder_level: params[:reorder_level].presence)

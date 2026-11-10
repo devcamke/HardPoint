@@ -106,4 +106,21 @@ class Pos::AirtelControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to airtel_merchants_path
     assert_not Account.without_isolation { merchant.reload.active? }
   end
+
+  test "a cashier bound to a branch uses only Airtel payments for prompts sent from this till" do
+    Account.without_isolation { memberships(:carl_acme).update!(branch: branches(:acme_main)) }
+    request = Account.without_isolation do
+      Current.set(account: accounts(:acme), session: accounts(:acme).sessions.create!(user: users(:carl))) do
+        yard_shift = accounts(:acme).shifts.create!(branch: branches(:acme_yard), register: registers(:acme_yard), opened_by: users(:carl), opening_float_cents: 0, opened_at: Time.current)
+        yard_sale = yard_shift.current_sale.tap { _1.add(products(:acme_cement)) }
+        @merchant.requests.create!(account: accounts(:acme), sale: yard_sale, phone: "254733000222", amount_cents: 700_00, status: :paid, airtel_money_id: "AIRYARD1", resolved_at: Time.current)
+      end
+    end
+
+    get pos_path
+    assert_select ".font-mono", text: "AIRYARD1", count: 0
+    post pos_airtel_matches_path, params: { request_id: request.id }
+    assert_response :not_found
+    assert_nil Account.without_isolation { request.reload.payment }
+  end
 end

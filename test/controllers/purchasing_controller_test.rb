@@ -173,6 +173,25 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     get suppliers_path
     assert_response :forbidden
   end
+
+  test "a stock clerk bound to the yard can't receive goods into the main branch" do
+    order = new_order
+    Account.without_isolation { Current.set(account: accounts(:acme), user: users(:sara)) { order.mark_sent } }
+    Account.without_isolation { memberships(:sara_acme).update!(branch: branches(:acme_yard)) }
+    receipts = -> { Account.without_isolation { GoodsReceipt.count } }
+
+    assert_no_difference receipts do
+      post goods_receipts_path, params: { goods_receipt: { supplier_id: suppliers(:acme_plumbing_supplies).id, branch_id: branches(:acme_main).id,
+        lines_attributes: { "0" => { product_code: "PVC-2", quantity: "5", unit_cost: "900" } } } }
+      assert_response :not_found
+
+      get new_goods_receipt_path(purchase_order_id: order.id)
+      assert_select "input[value=?]", Account.without_isolation { order.lines.first.id.to_s }, count: 0
+      post goods_receipts_path, params: { goods_receipt: { purchase_order_id: order.id,
+        lines_attributes: { "0" => { purchase_order_line_id: Account.without_isolation { order.lines.first.id }, quantity: "5" } } } }
+      assert_response :not_found
+    end
+  end
 end
 
 class PayablesControllerTest < ActionDispatch::IntegrationTest

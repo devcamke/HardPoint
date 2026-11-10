@@ -28,14 +28,6 @@ class StockTransfersController < ApplicationController
   end
 
   private
-    # Transfers that touch a branch the member may see, at either end.
-    def visible_transfers
-      transfers = Current.account.stock_transfers
-      return transfers unless current_membership&.bound_to_branch?
-
-      transfers.where(from_branch_id: current_membership.branch_id).or(transfers.where(to_branch_id: current_membership.branch_id))
-    end
-
     def transfer_params
       permitted = params.expect(stock_transfer: [ :from_branch_id, :to_branch_id, :note, lines_attributes: [ [ :product_code, :quantity ] ] ])
       permitted.merge(from_branch: visible_branches.find(permitted.delete(:from_branch_id)),

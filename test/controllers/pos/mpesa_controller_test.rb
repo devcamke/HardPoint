@@ -75,4 +75,37 @@ class Pos::MpesaControllerTest < ActionDispatch::IntegrationTest
     post mpesa_shortcode_connection_test_path(Account.without_isolation { Mpesa::Shortcode.find_by!(shortcode: "600100") })
     assert_equal "Connected to Safaricom: Till 5123456 is ready.", flash[:notice]
   end
+
+  test "a cashier bound to a branch uses only payments to its own Till or the shop-wide one, and prompts sent from this till" do
+    Account.without_isolation { memberships(:carl_acme).update!(branch: branches(:acme_main)) }
+    now = Time.current.in_time_zone("Nairobi").strftime("%Y%m%d%H%M%S")
+    yard_till, shop_wide, other_till_prompt = Account.without_isolation do
+      Current.set(account: accounts(:acme), session: accounts(:acme).sessions.create!(user: users(:carl))) do
+        yard = accounts(:acme).mpesa_shortcodes.create!(name: "Yard till", shortcode: "600100", transaction_type: "buy_goods", till_number: "5123456",
+          environment: "simulator", branch: branches(:acme_yard))
+        yard_shift = accounts(:acme).shifts.create!(branch: branches(:acme_yard), register: registers(:acme_yard), opened_by: users(:carl), opening_float_cents: 0, opened_at: Time.current)
+        yard_sale = yard_shift.current_sale.tap { _1.add(products(:acme_cement)) }
+        prompt = @shortcode.stk_requests.create!(account: accounts(:acme), sale: yard_sale, phone: "254722000333", amount_cents: 700_00, checkout_request_id: "ws_CO_YARD1")
+        prompt.update!(status: :expired)
+        late = { "Body" => { "stkCallback" => { "CheckoutRequestID" => "ws_CO_YARD1", "ResultCode" => 0, "ResultDesc" => "OK",
+          "CallbackMetadata" => { "Item" => [ { "Name" => "MpesaReceiptNumber", "Value" => "SJQYARD001" }, { "Name" => "Amount", "Value" => 700 } ] } } } }
+        @shortcode.receive_stk_callback(late)
+        [ yard.receive_c2b_confirmation("TransID" => "SJQYARD002", "TransAmount" => "1000.00", "TransTime" => now, "MSISDN" => "254722000222", "FirstName" => "Yardpayer"),
+          @shortcode.receive_c2b_confirmation("TransID" => "SJQSHOP003", "TransAmount" => "1000.00", "TransTime" => now, "MSISDN" => "254722000111"),
+          accounts(:acme).mpesa_transactions.find_by!(trans_id: "SJQYARD001") ]
+      end
+    end
+
+    get pos_path
+    assert_select ".font-mono", text: "SJQSHOP003"
+    assert_select ".font-mono", text: "SJQYARD002", count: 0
+    assert_select ".font-mono", text: "SJQYARD001", count: 0
+
+    post pos_mpesa_matches_path, params: { transaction_id: yard_till.id }
+    assert_response :not_found
+    post pos_mpesa_matches_path, params: { transaction_id: other_till_prompt.id }
+    assert_response :not_found
+    post pos_mpesa_matches_path, params: { transaction_id: shop_wide.id }
+    assert_redirected_to pos_path(completed: current_sale.id)
+  end
 end
