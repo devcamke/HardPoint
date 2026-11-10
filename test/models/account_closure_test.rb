@@ -61,4 +61,13 @@ class AccountClosureTest < ActiveSupport::TestCase
     end
     assert Account.exists?(@account.id)
   end
+
+  test "the shop's logo goes with it" do
+    Account.without_isolation do
+      accounts(:acme).logo.attach(io: file_fixture("signed-note.png").open, filename: "logo.png", content_type: "image/png")
+      blob_id = accounts(:acme).logo.blob.id
+      accounts(:acme).reload.purge!
+      assert_not ActiveStorage::Attachment.exists?(blob_id: blob_id)
+    end
+  end
 end

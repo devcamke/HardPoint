@@ -1,6 +1,7 @@
 # Development data. Shops live on subdomains of localhost (browsers resolve *.localhost):
 #   http://demo.localhost:3000   owner@demo.test / hardpoint-demo   (cashier PIN: Carol 1234)
 #   http://admin.localhost:3000  admin@hardpoint.test / hardpoint-demo, two-factor key below
+#   bin/rails dev:refresh_demo  rebuilds these demo shops with fresh dates (shops you made yourself are kept)
 if Rails.env.development? && !Account.exists?(subdomain: "demo")
   DEV_ADMIN_TWO_FACTOR_SECRET = "HARDPOINTDEVADMINTOTPSECRETKEYAB" # add to an authenticator app for local use only
 
@@ -70,6 +71,22 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
         tax_rate: account.default_tax_rate, serialized: category == "Power tools")
       account.stock_adjustments.create!(branch: main, product: product, quantity: main_stock, reason: "opening") if main_stock.positive?
       account.stock_adjustments.create!(branch: yard, product: product, quantity: yard_stock, reason: "opening") if yard_stock.positive?
+    end
+
+    # The till won't sell what isn't on the shelf, so the made-up history has a delivery arrive before any sale the
+    # shelf couldn't cover (with a little over, as a real delivery would bring), and then rings the sale up.
+    stocked_add = ->(sale, product, quantity = 1) do
+      wanted = Hash.new(0)
+      (sale.lines.reject(&:new_record?) + [ SaleLine.new(product: product, quantity: quantity) ]).each do |line|
+        line.stock_items.each { |item, amount| wanted[item] += amount }
+      end
+      wanted.each do |item, amount|
+        short = amount - item.stock_at(sale.branch)
+        next unless short.positive?
+
+        item.move_stock(branch: sale.branch, quantity: short + (item.reorder_level * 2).ceil.clamp(5, 200), reason: "received", creator: owner)
+      end
+      sale.add(product, quantity: quantity)
     end
 
     products = account.products.index_by(&:sku)
@@ -168,7 +185,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
       sale = shift.current_sale
       sale.change_customer(customer)
       sale.update!(job: job)
-      items.each { |sku, quantity| sale.add(products[sku], quantity: quantity) }
+      items.each { |sku, quantity| stocked_add.(sale, products[sku], quantity) }
       sale.pay(tender: "on_account", credit_approver: owner)
       sale.update_columns(completed_at: days_ago.days.ago, created_at: days_ago.days.ago)
       shift.close(counted_cash_cents: 5000_00)
@@ -182,7 +199,10 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     account_sale.(otieno, 8, { "PVC-4" => 6, "PLB-GV34" => 6, "PLB-TAP12" => 4 }, job: ruiru)
     mwangi.customer_payments.create!(account: account, paid_on: 20.days.ago.to_date, amount: 40_000, payment_method: "bank_transfer", reference: "EFT 77301")
 
-    note = account.delivery_notes.create!(sale: delivered, contact_phone: "0722 000 111", note: "Ask for the site foreman")
+    # The first drop takes the nails and four of the six mesh sheets; the second, the balance of the mesh.
+    note = account.delivery_notes.new(sale: delivered, contact_phone: "0722 000 111", note: "Ask for the site foreman")
+    delivered.lines.each { |line| note.lines.build(account: account, sale_line_id: line.id, quantity: line.product.sku == "STL-BRC142" ? 4 : line.quantity) }
+    note.save!
     note.dispatch(driver_name: "Joseph Mutua", vehicle: "KDA 123B")
     note.deliver(received_by: "Peter (site foreman)")
     account.delivery_notes.create!(sale: delivered, address: "Plot 12, Mombasa Road, Nairobi", note: "Second drop: balance of the mesh")
@@ -216,7 +236,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
           random.rand(1..3).times do
             sku = skus.sample(random: random)
             quantity = %w[ CEM-BAM-50 CEM-SAV-50 STL-Y12 STL-Y10 ].include?(sku) ? random.rand(2..25) : random.rand(1..6)
-            sale.add(products[sku], quantity: quantity)
+            stocked_add.(sale, products[sku], quantity)
           end
           # A small discount within the cashier's limit most days, and now and then a bigger one a manager approved.
           sale.update!(discount_cents: (sale.subtotal_cents * 0.03).round) && sale.recalculate if index == 3
@@ -289,7 +309,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     adhesive_sale = account.shifts.find_by!(register: front_counter, closed_at: nil).current_sale
     adhesive_sale.change_customer(mwangi)
     adhesive_sale.update!(job: maisonettes)
-    adhesive_sale.add(products["ADH-TILE20"], quantity: 12)
+    stocked_add.(adhesive_sale, products["ADH-TILE20"], 12)
     adhesive_sale.pay(tender: "on_account", credit_approver: owner)
 
     # Foreign currencies: dollars and Ugandan shillings at the till (a border-town trade), and an importer who invoices
@@ -311,7 +331,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     till_shift = account.shifts.find_by!(register: front_counter, closed_at: nil)
     { "USD" => [ [ "TL-WB", 1 ], 50_00 ], "UGX" => [ [ "NAIL-4", 4 ], 30_000_00 ] }.each do |code, ((sku, quantity), notes)|
       foreign_sale = till_shift.current_sale
-      foreign_sale.add(products[sku], quantity: quantity)
+      stocked_add.(foreign_sale, products[sku], quantity)
       foreign_sale.pay(tender: "foreign_cash", currency: code, foreign_tendered_cents: notes)
     end
 
@@ -323,8 +343,8 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     account.promotions.create!(name: "Rainy season roofing", kind: "percent_off", percent_off: 8, category_ids: [ account.categories.find_by!(name: "Roofing").id ],
       branch_ids: [ yard.id ], starts_on: 20.days.from_now.to_date, ends_on: 50.days.from_now.to_date)
     promotion_sale = till_shift.current_sale
-    promotion_sale.add(products["CEM-BAM-50"], quantity: 22)
-    promotion_sale.add(products["PNT-CRN-W20"], quantity: 2)
+    stocked_add.(promotion_sale, products["CEM-BAM-50"], 22)
+    stocked_add.(promotion_sale, products["PNT-CRN-W20"], 2)
     promotion_sale.pay(tender: "mobile_money", reference: "SKP9RT2M4X")
     cement_week.touch
 
@@ -332,7 +352,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
     account.promotions.create!(name: "Toolbox trio", kind: "bundle", bundle_quantity: 3, bundle_price_cents: 3000_00,
       product_ids: products.values_at("TL-HAM16", "TL-TAPE5", "TL-LVL600").map(&:id), starts_on: Date.current - 3, ends_on: Date.current + 25)
     trio_sale = till_shift.current_sale
-    %w[ TL-HAM16 TL-LVL600 TL-TAPE5 ].each { trio_sale.add(products[_1]) }
+    %w[ TL-HAM16 TL-LVL600 TL-TAPE5 ].each { stocked_add.(trio_sale, products[_1]) }
     trio_sale.pay(tender: "cash", tendered_cents: 3000_00)
 
     # The online store, collecting from both branches.
@@ -358,6 +378,27 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
       { "TA-2603" => 4, "TA-2609" => 18, "TA-2702" => 40 }.each { |number, quantity| adhesive.count_batch(number: number, quantity: quantity) }
       adhesive.count_batch(number: "TA-2611", quantity: 5, expires_on: 75.days.from_now.to_date)
       count.lines.find_by!(product: products["SEAL-300"]).count_batch(number: "SL-0311", quantity: 17)
+    end
+
+    # Fundis brought in some of the last fortnight's sales: their commission is earned, and one has been paid.
+    fundis = account.fundis.order(:name).to_a
+    account.sales.completed.where(completed_at: 14.days.ago..).order(:completed_at).last(10).each_with_index do |sale, index|
+      sale.update_columns(fundi_id: fundis[index % fundis.size].id)
+      if (entry = sale.reload.earn_fundi_commission)
+        FundiEntry.where(id: entry.id).update_all(created_at: sale.completed_at)
+      end
+    end
+    if (paid = fundis.max_by(&:balance_cents)) && paid.balance_cents.positive?
+      account.fundi_payouts.create!(fundi: paid, amount_cents: paid.balance_cents / 2, payment_method: "mobile_money", reference: "SKL4M2N8PQ", paid_by: owner)
+    end
+
+    # What the till turned away yesterday for want of stock, for the morning email and the reorder list.
+    yard = account.branches.find_by!(name: "Industrial Area yard")
+    { "STL-Y12" => [ 3, 20 ], "ELC-LED9" => [ 2, 10 ], "PNT-BR3" => [ 1, 4 ] }.each do |sku, (times, quantity)|
+      times.times do |time|
+        account.stock_refusals.create!(branch: yard, product: products[sku], user: owner, quantity: quantity, on_hand: [ products[sku].stock_at(yard), 0 ].max,
+          created_at: 1.day.ago.change(hour: 10 + time * 2))
+      end
     end
   ensure
     Current.reset
@@ -385,9 +426,12 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
   demo = Account.find_by!(subdomain: "demo")
   Current.set(account: demo) { demo.update_columns(features: (Account::Features::DEFAULTS + demo.features_in_use).uniq.sort) }
 
-  Announcement.create!(title: "New: export all your shop's data", body: "Owners can download everything as spreadsheets from Settings → Your data.",
-    starts_at: 1.day.ago, ends_at: 2.weeks.from_now)
+  # Kept from an earlier seeding when the demo shops are rebuilt (bin/rails dev:refresh_demo).
+  Announcement.find_or_create_by!(title: "New: export all your shop's data") do |announcement|
+    announcement.assign_attributes(body: "Owners can download everything as spreadsheets from Settings → Your data.", starts_at: 1.day.ago, ends_at: 2.weeks.from_now)
+  end
 
-  User.create!(name: "Platform Admin", email_address: "admin@hardpoint.test", password: "hardpoint-demo", admin: true,
-    two_factor_secret: DEV_ADMIN_TWO_FACTOR_SECRET, two_factor_enabled_at: Time.current)
+  User.find_or_create_by!(email_address: "admin@hardpoint.test") do |admin|
+    admin.assign_attributes(name: "Platform Admin", password: "hardpoint-demo", admin: true, two_factor_secret: DEV_ADMIN_TWO_FACTOR_SECRET, two_factor_enabled_at: Time.current)
+  end
 end
