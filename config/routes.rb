@@ -205,6 +205,7 @@ Rails.application.routes.draw do
       end
     end
     resource :reorder_list, only: :show
+    resource :suggested_reorder_levels, only: :create
 
     # The till
     resource :pos, only: :show, controller: :pos

@@ -869,10 +869,15 @@ in the counter's head is slow and loses sales to the shop that answers first.
   cover the reorder list would aim for there, so a move never leaves it short. The transfer form arrives filled in and
   is sent only once checked.
 
-#### Phase 38 — Reorder suggestions that learn
+#### Phase 38 — Reorder suggestions that learn *(done)*
 **Why:** fixed reorder levels don't follow the rains, the building season or a supplier's lead time.
 - Suggested quantities from the last weeks' sales and turned-away demand, each supplier's real lead time (from orders
   to deliveries) and a safety margin; a suggested reorder level the owner can accept.
+- Built as `DemandForecast` (per branch, a handful of grouped queries): demand = sales + each day's biggest
+  turned-away shortfall; season = the weeks ahead last year against the year's average (0.5–2×, with a year of
+  history); safety = 1.65 σ of daily sales × √lead time; lead time = the middle of the supplier's last order-to-
+  delivery times once there are two. `ReorderSuggestion` and branch rebalancing both use it; each line explains
+  itself, and suggested levels are accepted one by one or all at once.
 
 #### Phase 39 — WhatsApp sending
 **Why:** customers and fundis live on WhatsApp; the share links (Phase 31) still need someone to press send.

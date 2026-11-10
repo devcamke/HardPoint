@@ -107,10 +107,11 @@ class PurchasingTest < ActiveSupport::TestCase
   test "stock on its way from another branch counts as on order" do
     products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -40, reason: "sold")
     row = -> { ReorderSuggestion.new(accounts(:acme), branches(:acme_main)).rows.find { _1.product.sku == "CEM-50" } }
-    assert_equal [ 0, 30 ], [ row.().on_order, row.().quantity ]
+    before = row.().quantity
+    assert_equal 0, row.().on_order
 
     transfer = accounts(:acme).stock_transfers.create!(from_branch: branches(:acme_yard), to_branch: branches(:acme_main), lines_attributes: [ { product_code: "CEM-50", quantity: 10 } ])
-    assert_equal [ 10, 20 ], [ row.().on_order, row.().quantity ], "the 10 in transit are counted"
+    assert_equal [ 10, before - 10 ], [ row.().on_order, row.().quantity ], "the 10 in transit are counted"
 
     transfer.cancel
     assert_equal 0, row.().on_order
@@ -185,7 +186,11 @@ class PurchasingTest < ActiveSupport::TestCase
   test "reorder suggestions use reorder levels, sales, lead time, what's on order and minimum order sizes" do
     # PVC pipe: 3 on hand, reorder at 5, minimum order of 5 → wants 10, needs 7, rounded up to 10
     # Cement: 50 on hand but selling 3 bags a day with a 3-day lead time → wants 3 × 17 = 51... still covered
-    30.times { products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -3, reason: "sold") }
+    # Three a day, every day for the last 30 (steady sales leave no extra margin for busy days).
+    30.times do |days_ago|
+      sold = products(:acme_cement).move_stock(branch: branches(:acme_main), quantity: -3, reason: "sold")
+      StockMovement.where(id: sold.id).update_all(created_at: days_ago.days.ago)
+    end
     # Cement now 50 − 90 = −40 → wants max(40, 3 × 17 = 51) → needs 91 → rounded to 100 in tens
     suggestion = ReorderSuggestion.new(accounts(:acme), branches(:acme_main))
     rows = suggestion.rows.to_h { [ _1.product.sku, _1.quantity ] }
