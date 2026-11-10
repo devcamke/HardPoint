@@ -87,6 +87,7 @@ module Account::Closure
         .or(ActiveStorage::Attachment.where(record_type: "DeliveryNote", record_id: delivery_notes.select(:id)))
         .or(ActiveStorage::Attachment.where(record_type: "AccountExport", record_id: account_exports.select(:id)))
         .or(ActiveStorage::Attachment.where(record_type: "AccountBackup", record_id: account_backups.select(:id)))
+        .or(ActiveStorage::Attachment.where(record_type: "Account", record_id: id)) # the shop's logo
         .pluck(:blob_id)
     end
 
