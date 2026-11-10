@@ -65,6 +65,40 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", /KES 1,600.00 refunded in cash/
   end
 
+  test "an owner's own void is marked as approved by themselves" do
+    sign_in_as users(:amina)
+    post sale_void_path(@sale), params: { reason: "Rang up twice" }
+    assert_redirected_to sale_path(@sale)
+
+    event = Account.without_isolation { @sale.events.find_by!(action: "voided") }
+    assert event.particulars["self_approved"]
+    get events_path
+    assert_select "body", /approved by themselves/
+  end
+
+  test "a shop can require a second person to approve an owner's or manager's own void" do
+    Account.without_isolation do
+      accounts(:acme).update!(require_second_approver: true)
+      memberships(:sara_acme).update!(role: "manager")
+      Current.set(account: accounts(:acme)) { memberships(:sara_acme).set_approval_pin("1357") }
+    end
+    sign_in_as users(:amina)
+
+    get new_sale_void_path(@sale)
+    assert_select "input[name=approval_pin]"
+
+    post sale_void_path(@sale), params: { reason: "Rang up twice" }
+    assert_response :unprocessable_entity
+    post sale_void_path(@sale), params: { reason: "Rang up twice", approval_pin: "2468" }
+    assert_response :unprocessable_entity, "not with their own PIN"
+    assert_not Account.without_isolation { @sale.reload.voided? }
+
+    post sale_void_path(@sale), params: { reason: "Rang up twice", approval_pin: "1357" }
+    assert_redirected_to sale_path(@sale)
+    event = Account.without_isolation { @sale.events.find_by!(action: "voided") }
+    assert_equal [ users(:sara).name, nil ], event.particulars.values_at("approver", "self_approved")
+  end
+
   test "voiding a sale paid by phone asks for the reversal's code, and Activity records how the money went back" do
     paid_by_phone = Current.set(account: accounts(:acme), session: Account.without_isolation { accounts(:acme).sessions.create!(user: users(:carl)) }) do
       shifts(:acme_front_open).current_sale.tap { |sale| sale.add(products(:acme_pipe)); sale.pay(tender: "mobile_money", reference: "SJK4H7T2QP") }

@@ -20,7 +20,7 @@ module CustomerOrder::Fulfilment
 
     transaction do
       if check_credit && over_credit_limit?
-        track_event "credit_approved", approver: approver.name, customer: customer.name, amount: balance_to_pay_cents, available: customer.available_credit_cents
+        track_event "credit_approved", approver: approver, customer: customer.name, amount: balance_to_pay_cents, available: customer.available_credit_cents
       end
       update(status: :ordered, ordered_at: Time.current).tap { |confirmed| track_event "confirmed", total: total_cents if confirmed }
     end
@@ -66,7 +66,7 @@ module CustomerOrder::Fulfilment
       payment = sale.pay(tender: "deposit", amount_cents: amount)
       raise ActiveRecord::RecordInvalid, payment unless payment.persisted? && sale.reload.completed?
 
-      track_event "deposit_kept", amount: amount, approver: approver.name, receipt_number: sale.receipt_number, reason: reason
+      track_event "deposit_kept", amount: amount, approver: approver, receipt_number: sale.receipt_number, reason: reason
       update!(status: :cancelled)
       track_event "cancelled", reason: reason.presence || "Deposit kept"
     end
@@ -164,9 +164,10 @@ module CustomerOrder::Fulfilment
       next if errors.any?
 
       sale.update!(customer_order: self, customer: customer, job: job&.open? ? job : nil)
+      # A line quoted under a promotion is sold under it, so the promotion's results count the sale.
       lines.reject(&:collected?).each do |line|
         sale.lines.create!(account: account, product: line.product, product_unit: line.product_unit, quantity: line.remaining_quantity,
-          unit_price_cents: line.unit_price_cents, detail: line.detail, customer_order_line_id: line.id)
+          unit_price_cents: line.unit_price_cents, detail: line.detail, customer_order_line_id: line.id, promotion_id: line.promotion_id)
       end
       sale.recalculate
     end

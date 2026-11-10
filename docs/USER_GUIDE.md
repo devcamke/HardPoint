@@ -707,7 +707,7 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 1. In **Sell › Orders & quotes**, press **New**, choose the customer and add the goods. Save it as a quote, and send it as a PDF or by email. Quotes are valid for 14 days unless you change it.
 2. When the customer agrees, press **Confirm order**. For a customer who buys on account, an order worth more than the credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
 3. When the goods are in, press **Mark ready to collect** (with SMS on, the customer can be texted).
-4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted.
+4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted. The sale, VAT and all, goes to KRA then, not when the deposit was taken (see [KRA eTIMS](#etims)).
 
 **Walkthrough: Write a quote**
 
@@ -1230,11 +1230,14 @@ _Connecting your branch's control unit and what happens when KRA is unreachable.
 
 KRA's eTIMS needs every sale to be sent to a control unit registered to your KRA PIN and branch. Register each branch's OSCU device on KRA's eTIMS portal first. Then in **Settings › KRA eTIMS › Add control unit**, enter the PIN, branch ID and serial number KRA gave you, and press **Set up with KRA**.
 
-- Products are registered with KRA the first time they're sold at that branch.
+- Products are registered with KRA the first time they're sold at that branch, and again if you change a product's name or tax rate.
 - Each sale, void and return is sent to KRA, and KRA's signature and QR code are printed on the receipt.
-- If KRA can't be reached, the sale goes ahead and is queued. HardPoint keeps retrying, and **Settings › KRA eTIMS › Submissions** shows anything still waiting, and anything KRA refused with the reason; fix it and send it again. The owner's dashboard warns about refusals.
+- If KRA can't be reached, the sale goes ahead and is queued. HardPoint keeps retrying, and **Settings › KRA eTIMS › Submissions** shows anything still waiting, and anything KRA refused with the reason; fix it and send it again. The owner's dashboard warns about refusals. Each control unit sends its invoices one at a time, in order, and every hour HardPoint checks for any sale that never made it into the queue and sends it.
+- A customer's tax PIN, if they gave one, is put on their invoices, so check it's their KRA PIN (like P051234567X).
 
 Set each tax rate's eTIMS code, and the item class of your categories, so KRA classifies your goods correctly.
+
+**Deposits and VAT.** A deposit on an order or quote isn't a sale yet, so it isn't sent to KRA when it's taken. The whole sale, with its VAT, goes to KRA when the order is collected at the till, and the deposit counts as part of the payment. If your accountant treats a deposit as the point when VAT is due, account for those deposits separately; HardPoint won't report them to KRA early.
 
 <a id="reports"></a>
 
@@ -1316,6 +1319,10 @@ Inside the ZIP:
 - **Voids and returns**, reversing their sales, with goods put back into stock at their cost.
 - **Deposits** on orders, and **customers paying** their accounts.
 - **Supplier invoices** with VAT on purchases, and **payments to suppliers**. Invoices in dollars or another currency are converted at the rate they were entered at.
+- **Goods returned to suppliers**: the debit note comes off what you owe the supplier, out of stock and off VAT on purchases.
+- **Stock gains and losses** (found, damaged, stolen, stock takes, lost between branches), at cost, against the stock account, as in the **Profit and loss** report.
+- **Transport and duty** entered on a delivery go into stock, with the other side in a clearing account. When the transporter's or customs' bill is entered in QuickBooks, post it to that clearing account.
+- Refunded deposits come out of the money they were paid back from. Every amount is a positive debit or credit, as QuickBooks wants.
 
 HardPoint sends journal entries rather than invoices because QuickBooks won't import invoices once VAT is set up, which it is for every VAT-registered shop.
 
@@ -1458,11 +1465,11 @@ Under **Add-ons and how often you pay**, choose **Monthly** or **Yearly**. A yea
 
 #### Changing plan
 
-Pick another plan on the Billing page. A bigger plan applies straight away. A smaller one only if your branches, tills and staff fit within it. The new price applies from the next invoice. Products never count towards a plan.
+Pick another plan on the Billing page. A bigger plan applies straight away, and the difference for the rest of the period you've paid for comes as its own invoice, due a week later. A smaller one only if your branches, tills and staff fit within it. The new price applies from the next invoice. Products never count towards a plan.
 
 #### One more till or branch
 
-If you only need one more till or branch than your plan allows, add it under **Add-ons and how often you pay** rather than moving up a plan. Type how many extra you want and press **Save**. The room is there straight away, and the price is on your next invoice. You can give an extra back the same way once you've retired the till or branch that used it.
+If you only need one more till or branch than your plan allows, add it under **Add-ons and how often you pay** rather than moving up a plan. Type how many extra you want and press **Save**. The room is there straight away. If you've already paid for this month or year, the rest of it comes as its own invoice for the extra, due a week later; after that it's on your regular invoice. You can give an extra back the same way once you've retired the till or branch that used it.
 
 #### Setup visits and till kits
 
@@ -1470,7 +1477,7 @@ If HardPoint set your shop up on site, trained your staff or supplied a till kit
 
 #### If an invoice isn't paid
 
-A week after it's due, the shop becomes **read-only**: everyone can still sign in and look things up, and the owner can export the data, but nothing can be sold or changed. Paying the invoice unlocks the shop straight away. Offline sales rung up before the lock are still accepted.
+A week after it's due, the shop becomes **read-only**: everyone can still sign in and look things up, and the owner can export the data, but nothing can be sold or changed. Paying the invoice unlocks the shop straight away, and the month (or year) you've paid for starts that day: the time the shop was read-only isn't charged. Offline sales rung up before the lock are still accepted.
 
 <a id="connecting-apps"></a>
 

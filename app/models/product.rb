@@ -44,6 +44,9 @@ class Product < ApplicationRecord
 
   before_validation { self.sku = "P#{SecureRandom.alphanumeric(7).upcase}" if sku.blank? }
   before_save { self.track_stock = false if kit? }
+  # KRA keeps the name and tax type a control unit registered, so a change is sent again.
+  after_update_commit -> { Etims::ItemUpdateJob.perform_later(self) if Etims::ItemRegistration.exists?(product: self) },
+    if: -> { saved_change_to_name? || saved_change_to_tax_rate_id? }
 
   scope :active, -> { where(active: true) }
   scope :alphabetically, -> { order(:name) }

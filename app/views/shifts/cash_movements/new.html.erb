@@ -23,7 +23,7 @@
     <%= form.collection_select :supplier_id, Current.account.suppliers.active.alphabetically, :id, :name, { include_blank: "No" }, class: "input" %>
     <p class="hint">It's recorded as a cash payment to them, off what the shop owes.</p>
   </div>
-  <% unless current_membership.approver? %>
+  <% unless current_membership.approves_own_actions? %>
     <div class="field">
       <%= label_tag :approval_pin, "Manager approval PIN (for a payout over #{money(Current.account.payout_approval_above_cents)})", class: "label" %>
       <%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", class: "input w-40" %>

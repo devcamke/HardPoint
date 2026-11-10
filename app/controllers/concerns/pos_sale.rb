@@ -29,7 +29,7 @@ module PosSale
       end
 
       @sale.update!(discount_approver: approver, approved_discount_percent: @sale.highest_discount_percent.ceil(2))
-      @sale.track_event "discount_approved", approver: approver.name, percent: @sale.highest_discount_percent.round(1)
+      @sale.track_event "discount_approved", approver: approver, percent: @sale.highest_discount_percent.round(1)
     end
 
     # Once money has been taken, the sale can't shrink to it or below it: the payment would be left paying for

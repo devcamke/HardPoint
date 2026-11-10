@@ -12,9 +12,12 @@ class Customer < ApplicationRecord
 
   normalizes :email, with: ->(email) { email.strip.downcase }
   normalizes :phone, with: ->(phone) { phone.gsub(/[^\d+]/, "") }
+  normalizes :tax_pin, with: ->(pin) { pin.gsub(/\s/, "").upcase.presence }
 
   validates :name, presence: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
+  # Checked when it changes, so a customer saved with an odd PIN before this can still be edited otherwise.
+  validates :tax_pin, format: { with: Etims::PIN_FORMAT, message: "must be a KRA PIN like P051234567X" }, allow_blank: true, if: :tax_pin_changed?
   validates :credit_limit_cents, numericality: { greater_than_or_equal_to: 0 }
   validates :payment_terms_days, numericality: { greater_than_or_equal_to: 0, only_integer: true }
   validates_same_account :price_list

@@ -42,7 +42,7 @@ module Sale::Voidable
         void_refund_method: (refund_method if refundable_payments.any?), void_refund_reference: refund_reference.to_s.strip.upcase.presence
       account.mpesa_transactions.where(matched: payments.select(&:mobile_money?)).update_all(refunded_at: Time.current) if payments.any?(&:mobile_money?)
       customer_order&.reopen(self)
-      track_event "voided", creator: by, reason: reason, approver: approver.name, total: total_cents,
+      track_event "voided", creator: by, reason: reason, approver: approver, total: total_cents,
         refund_method: void_refund_method, refund_reference: void_refund_reference
     end
   end
