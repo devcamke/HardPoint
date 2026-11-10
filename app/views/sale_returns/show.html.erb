@@ -24,9 +24,11 @@
     <div class="flex flex-wrap gap-2">
       <%= link_to "Print", return_path(@return, print: 1), target: "_blank", class: "btn-secondary" %>
       <%= render "shared/share_document", pdf_url: return_path(@return, format: :pdf), name: "credit-note-#{@return.return_number}", label: "Share credit note",
-            title: "Credit note #{@return.return_number} from #{Current.account.name}", text: "Credit note #{@return.return_number}: #{money(@return.total_cents)}" %>
+            title: "Credit note #{@return.return_number} from #{Current.account.name}", text: "Credit note #{@return.return_number}: #{money(@return.total_cents)}",
+            whatsapp: ({ kind: "credit_note", id: @return.id, phone: @return.sale.customer.phone, name: @return.sale.customer.name } if @return.sale.customer) %>
     </div>
   </div>
+  <%= shared_links @return %>
   <div class="card max-w-2xl">
     <table class="table">
       <thead><tr><th>Item</th><th class="text-right">Qty</th><th>Restocked</th><th class="text-right">Refund</th></tr></thead>

@@ -12,7 +12,8 @@
     <div class="flex flex-wrap gap-2">
       <%= link_to "Print receipt", sale_receipt_path(@sale, print: 1), target: "_blank", class: "btn-secondary" %>
       <%= render "shared/share_document", pdf_url: sale_receipt_path(@sale, format: :pdf), name: "receipt-#{@sale.receipt_number}", label: "Share receipt",
-            title: "Receipt #{@sale.receipt_number} from #{Current.account.name}", text: "Receipt #{@sale.receipt_number}: #{money(@sale.total_cents)}" %>
+            title: "Receipt #{@sale.receipt_number} from #{Current.account.name}", text: "Receipt #{@sale.receipt_number}: #{money(@sale.total_cents)}",
+            whatsapp: ({ kind: "receipt", id: @sale.id, phone: @sale.customer.phone, name: @sale.customer.name } if @sale.customer) %>
       <%= whatsapp_button @sale, phone: @sale.customer&.phone if @sale.completed? %>
       <% if @sale.completed? && @sale.customer %>
         <%= link_to "Tax invoice (A4)", sale_invoice_path(@sale), target: "_blank", class: "btn-secondary" %>

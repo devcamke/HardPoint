@@ -16,6 +16,10 @@ Rails.application.routes.draw do
   post "webhooks/billing/mpesa/:token", to: "webhooks/billing_mpesa#create", as: :billing_mpesa_webhook
   post "webhooks/paystack", to: "webhooks/paystack#create", as: :paystack_webhook
 
+  # Meta's status updates for HardPoint's WhatsApp number (signature-checked), on any host; GET is Meta's address check.
+  get "webhooks/whatsapp", to: "webhooks/whatsapp#show", as: :whatsapp_webhook
+  post "webhooks/whatsapp", to: "webhooks/whatsapp#create"
+
   # Bounces and complaints from AWS SES, through its SNS topic (signature-checked), on any host.
   post "webhooks/ses", to: "webhooks/ses#create", as: :ses_webhook
 
@@ -126,6 +130,7 @@ Rails.application.routes.draw do
     resource :quickbooks_export, path: "reports/quickbooks", only: %i[ show update ]
     # Documents sent by WhatsApp, opened without signing in (DocumentShare).
     get "share/:token", to: "shares#show", as: :share
+    resources :whatsapp_messages, only: %i[ index create ]
     resources :shares, only: %i[ create destroy ], as: :document_shares # links made by the WhatsApp buttons, and taking one back
     resources :support_requests, only: %i[ new create ]
     resource :account_data, only: :show

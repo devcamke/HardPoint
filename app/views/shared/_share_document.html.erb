@@ -1,4 +1,5 @@
-<%# locals: (pdf_url:, name:, title:, text: nil, label: "Share") %>
+<%# locals: (pdf_url:, name:, title:, text: nil, label: "Share", whatsapp: nil) %>
+<%# whatsapp: { kind:, id:, phone:, name: } sends it from HardPoint's WhatsApp number, for shops with that feature on. %>
 <%# Share or save a document as a sharp picture (JPEG) or its PDF, through the device's own share sheet: WhatsApp, Telegram,
     email, Bluetooth and the rest. The picture is made on this device from the document's PDF. %>
 <div class="relative inline-block" data-controller="dropdown document-share"
@@ -20,6 +21,12 @@
     <button type="button" class="block w-full cursor-pointer px-4 py-2 text-left hover:bg-gray-50" data-action="document-share#sharePdf dropdown#close">
       <span class="font-medium">Share the PDF</span><span class="hint block">For printing or accounts</span>
     </button>
+    <% if whatsapp && whatsapp[:phone].present? && feature?(:whatsapp_messages) %>
+      <%= button_to whatsapp_messages_path, params: whatsapp.slice(:kind, :id, :phone), class: "block w-full cursor-pointer border-y border-gray-100 px-4 py-2 text-left hover:bg-gray-50",
+            form: { data: { turbo_confirm: "Send #{title} to #{whatsapp[:name] || PhoneNumber.display(whatsapp[:phone])} on WhatsApp?" } } do %>
+        <span class="font-medium">Send on WhatsApp</span><span class="hint block">From HardPoint to <%= whatsapp[:name] || PhoneNumber.display(whatsapp[:phone]) %>, with delivery and read receipts</span>
+      <% end %>
+    <% end %>
     <%= link_to pdf_url, target: "_blank", rel: "noopener", class: "block px-4 py-2 hover:bg-gray-50", data: { action: "dropdown#close", turbo: false } do %>
       <span class="font-medium">Open the PDF</span><span class="hint block">To print or download</span>
     <% end %>

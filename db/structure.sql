@@ -3718,6 +3718,52 @@ ALTER SEQUENCE public.webhook_endpoints_id_seq OWNED BY public.webhook_endpoints
 
 
 --
+-- Name: whatsapp_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.whatsapp_messages (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    document_type character varying,
+    document_id bigint,
+    document_share_id bigint,
+    sent_by_id bigint,
+    template character varying NOT NULL,
+    to_phone character varying NOT NULL,
+    recipient_name character varying,
+    status character varying DEFAULT 'queued'::character varying NOT NULL,
+    provider_message_id character varying,
+    error character varying,
+    sent_at timestamp(6) without time zone,
+    delivered_at timestamp(6) without time zone,
+    read_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.whatsapp_messages FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: whatsapp_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.whatsapp_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: whatsapp_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.whatsapp_messages_id_seq OWNED BY public.whatsapp_messages.id;
+
+
+--
 -- Name: account_backups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4345,6 +4391,13 @@ ALTER TABLE ONLY public.webhook_deliveries ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.webhook_endpoints ALTER COLUMN id SET DEFAULT nextval('public.webhook_endpoints_id_seq'::regclass);
+
+
+--
+-- Name: whatsapp_messages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_messages ALTER COLUMN id SET DEFAULT nextval('public.whatsapp_messages_id_seq'::regclass);
 
 
 --
@@ -5081,6 +5134,14 @@ ALTER TABLE ONLY public.webhook_deliveries
 
 ALTER TABLE ONLY public.webhook_endpoints
     ADD CONSTRAINT webhook_endpoints_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: whatsapp_messages whatsapp_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_messages
+    ADD CONSTRAINT whatsapp_messages_pkey PRIMARY KEY (id);
 
 
 --
@@ -7247,6 +7308,41 @@ CREATE INDEX index_webhook_endpoints_on_creator_id ON public.webhook_endpoints U
 
 
 --
+-- Name: index_whatsapp_messages_on_account_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_whatsapp_messages_on_account_id_and_created_at ON public.whatsapp_messages USING btree (account_id, created_at);
+
+
+--
+-- Name: index_whatsapp_messages_on_document; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_whatsapp_messages_on_document ON public.whatsapp_messages USING btree (document_type, document_id);
+
+
+--
+-- Name: index_whatsapp_messages_on_document_share_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_whatsapp_messages_on_document_share_id ON public.whatsapp_messages USING btree (document_share_id);
+
+
+--
+-- Name: index_whatsapp_messages_on_provider_message_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_whatsapp_messages_on_provider_message_id ON public.whatsapp_messages USING btree (provider_message_id) WHERE (provider_message_id IS NOT NULL);
+
+
+--
+-- Name: index_whatsapp_messages_on_sent_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_whatsapp_messages_on_sent_by_id ON public.whatsapp_messages USING btree (sent_by_id);
+
+
+--
 -- Name: webhook_deliveries fk_rails_001f6484db; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8263,6 +8359,14 @@ ALTER TABLE ONLY public.sale_returns
 
 
 --
+-- Name: whatsapp_messages fk_rails_7fab28d55d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_messages
+    ADD CONSTRAINT fk_rails_7fab28d55d FOREIGN KEY (document_share_id) REFERENCES public.document_shares(id) DEFERRABLE;
+
+
+--
 -- Name: customer_payment_allocations fk_rails_8036134554; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9263,6 +9367,14 @@ ALTER TABLE ONLY public.purchase_order_lines
 
 
 --
+-- Name: whatsapp_messages fk_rails_fe981970d0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_messages
+    ADD CONSTRAINT fk_rails_fe981970d0 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: account_backups; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9835,6 +9947,13 @@ CREATE POLICY account_isolation ON public.webhook_endpoints USING (((current_set
 
 
 --
+-- Name: whatsapp_messages account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.whatsapp_messages USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: airtel_merchants; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10303,12 +10422,19 @@ ALTER TABLE public.webhook_deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: whatsapp_messages; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111123000'),
 ('20261111122000'),
 ('20261111121000'),
 ('20261111120100'),

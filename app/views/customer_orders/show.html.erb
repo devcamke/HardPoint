@@ -15,7 +15,8 @@
   </div>
   <div class="flex flex-wrap gap-2">
     <%= render "shared/share_document", pdf_url: customer_order_path(order, format: :pdf), name: "#{order.kind.downcase}-#{order.reference}",
-          title: "#{order.kind} #{order.reference} from #{Current.account.name}", text: "#{order.kind} #{order.reference}: #{money(order.total_cents)}" %>
+          title: "#{order.kind} #{order.reference} from #{Current.account.name}", text: "#{order.kind} #{order.reference}: #{money(order.total_cents)}",
+          whatsapp: { kind: "order", id: order.id, phone: order.customer.phone, name: order.customer.name } %>
     <%= whatsapp_button order, phone: order.customer.phone %>
     <%= link_to "Edit", edit_customer_order_path(order), class: "btn-secondary" if order.editable? %>
     <% if order.quote? %>

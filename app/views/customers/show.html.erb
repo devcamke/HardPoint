@@ -13,6 +13,10 @@
       <%= link_to "Add a job", new_job_path(customer_id: @customer.id), class: "btn-secondary" if feature?(:jobs) %>
     <% end %>
     <%= link_to "Statement", customer_statement_path(@customer), class: "btn-secondary" if current_membership.can_manage_receivables? %>
+    <% if feature?(:whatsapp_messages) && current_membership.can_manage_receivables? && @customer.phone.present? && @customer.balance_cents.positive? %>
+      <%= button_to "Remind on WhatsApp", whatsapp_messages_path, params: { kind: "statement", id: @customer.id, reminder: 1 }, class: "btn-secondary",
+            form: { data: { turbo_confirm: "Send #{@customer.name} a reminder of the #{money(@customer.balance_cents)} owed, with their statement, on WhatsApp?" } } %>
+    <% end %>
     <% if current_membership.can_manage_receivables? && Current.account.sms_enabled? && @customer.phone.present? && @customer.balance_cents.positive? && !@customer.sms_opt_out? %>
       <%= button_to "Text a reminder", customer_balance_reminder_path(@customer), class: "btn-secondary" %>
     <% end %>
@@ -21,6 +25,8 @@
     <%= link_to "Record payment", new_customer_payment_path(@customer), class: "btn-primary" if @customer.balance_cents.positive? %>
   </div>
 </div>
+
+<%= shared_links @customer if current_membership.can_manage_receivables? %>
 
 <div class="mb-6 grid gap-4 sm:grid-cols-4" data-tour="customer-account">
   <div class="card"><p class="hint">Prices</p><p class="mt-1 text-xl font-bold"><%= @customer.price_list&.name || "Retail" %></p></div>
