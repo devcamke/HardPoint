@@ -13,6 +13,9 @@
       hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
       .item { margin: 3px 0; }
       .receipt svg.barcode { display: block; width: 100%; height: 12mm; margin-top: 4px; }
+      /* The rubber stamp: red ink on screen, plain black on the thermal printer. */
+      .receipt svg.stamp { display: block; width: 36mm; height: 36mm; margin: 3mm auto 1mm; color: #9F1D1D; }
+      @media print { .receipt svg.stamp { color: #000; } }
       .toolbar { font-family: sans-serif; text-align: center; margin: 12px; }
       .toolbar button { background: #0F5E6E; color: #FFFFFF; border: 0; border-radius: 6px; padding: 8px 14px; font-weight: 700; cursor: pointer; }
       @media print { body { background: #fff; } .receipt { margin: 0; padding: 0 1mm; } .toolbar { display: none; } @page { size: 80mm auto; margin: 0; } }
