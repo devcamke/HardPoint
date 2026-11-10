@@ -38,6 +38,28 @@ class DevelopersControllerTest < ActionDispatch::IntegrationTest
     assert_select "#deliveries", /Delivered/
   end
 
+  test "HardPoint support signed in as the owner can't make keys or point webhooks somewhere" do
+    endpoint = Current.set(account: @account, user: users(:amina)) do
+      Account.without_isolation { @account.webhook_endpoints.create!(url: "https://shop.example.com/hooks", event_types: %w[ sale.completed ]) }
+    end
+    Account.without_isolation { Session.where(user: users(:amina)).update_all(impersonator_id: users(:ada).id, expires_at: 1.hour.from_now) }
+
+    assert_no_difference -> { Account.without_isolation { ApiKey.count } } do
+      post api_keys_path, params: { api_key: { name: "Sneaky", scope: "write" } }
+    end
+    assert_redirected_to developers_path
+    assert_equal "Not while HardPoint support is signed in as you.", flash[:alert]
+
+    assert_no_difference -> { Account.without_isolation { WebhookEndpoint.count } } do
+      post webhook_endpoints_path, params: { webhook_endpoint: { url: "https://elsewhere.example.com/hooks", event_types: [ "sale.completed" ] } }
+    end
+    patch webhook_endpoint_path(endpoint), params: { webhook_endpoint: { url: "https://elsewhere.example.com/hooks" } }
+    assert_equal "https://shop.example.com/hooks", Account.without_isolation { endpoint.reload.url }
+
+    get developers_path
+    assert_response :success, "they can still look"
+  end
+
   test "cashiers can't manage developer settings" do
     sign_out
     sign_in_as users(:carl), account: @account

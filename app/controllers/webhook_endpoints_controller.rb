@@ -1,5 +1,6 @@
 class WebhookEndpointsController < ApplicationController
   include DeveloperSettings
+  refuse_while_impersonated back_to: -> { developers_path }, only: %i[ new create edit update ]
   before_action :set_endpoint, only: %i[ show edit update destroy ]
 
   def show
