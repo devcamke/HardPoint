@@ -942,7 +942,9 @@ HardPoint keeps stock per branch. Every sale, delivery, transfer and correction 
 
 Open the product and press **Adjust stock**. Choose the branch, how many to add or take off, and the reason: opening stock, found, damaged, stolen, expired, internal use or a correction. Adjustments are in the activity log with who made them.
 
-A level can go below zero when something is sold before its delivery is recorded. **Stock › Stock levels** counts these for the branch; press **Below zero** to list them (the same **Below zero** filter is on the products list), then record the delivery or adjust the stock.
+The till only sells what is on the shelf: once a product is down to zero at the branch, it can't be sold until the delivery is recorded or the stock adjusted, and the till says how many are left when a cashier tries to sell more. A kit needs all its parts.
+
+A level can still go below zero when the offline till sold something that another till had already sold, since the goods have gone. **Stock › Stock levels** counts these for the branch; press **Below zero** to list them (the same **Below zero** filter is on the products list), then record the delivery or adjust the stock.
 
 A product's unit, whether it tracks stock and whether it is a kit can't change while any branch has stock of it, since the quantities on hand would mean something else: adjust the stock to zero first.
 
