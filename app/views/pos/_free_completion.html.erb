@@ -2,8 +2,8 @@
     so an owner or manager completes it here, at the till or by approval PIN. Takes the place of the payment pane. %>
 <div class="border-t border-gray-200 bg-gray-50 px-4 py-3 @lg:px-6">
   <%= form_with url: pos_completion_path do |form| %>
-    <p class="mb-2 text-sm">Nothing to pay on this sale.<%= " Completing it needs a manager's approval PIN." unless current_membership.approver? %></p>
-    <% unless current_membership.approver? %>
+    <p class="mb-2 text-sm">Nothing to pay on this sale.<%= " Completing it needs a manager's approval PIN." unless current_membership.approves_own_actions? %></p>
+    <% unless current_membership.approves_own_actions? %>
       <div class="field">
         <%= form.label :approval_pin, "Manager PIN", class: "label" %>
         <%= form.password_field :approval_pin, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-40" %>

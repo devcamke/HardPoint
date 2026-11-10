@@ -189,7 +189,7 @@ guess); time it on the real server at the first drill and adjust the RTO if need
 | Symptom | First steps |
 |---|---|
 | Site down | `bin/kamal app details`, `bin/kamal logs`; `curl -I https://hardpoint.app/up` and `https://hardpoint.app/health?token=…` (which check is failing). Tills keep selling offline meanwhile. |
-| An alert email, or Sentry | The subject names the check or the error; the body has the details and the other checks. The same alert repeats at most once an hour, so a quiet inbox after a fix means it's fixed. Failed jobs: `bin/kamal console`, `SolidQueue::FailedExecution.last(5).map(&:error)`, then `.retry` on each once the cause is fixed. |
+| An alert email, or Sentry | The subject names the check or the error; the body has the details and the other checks. The first alert is sent straight away, then a "Still happening" reminder at most once a day while it lasts; a platform check that passes again sends "All clear". Failed jobs: `bin/kamal console`, `SolidQueue::FailedExecution.last(5).map(&:error)`, then `.retry` on each once the cause is fixed. |
 | WAL heartbeat silent | `/var/log/hardpoint-wal.log` on the host: the store refused an upload, or the data volume moved. Segments wait in `wal_archive` and go when it works again; Postgres keeps running regardless (the archive copy is local). |
 | "could not obtain a connection" / "too many connections" | Pool too small for its threads, or Postgres' `max_connections` spent: see the connection budget in section 6 before raising either |
 | Slow | Admin Database page: long-running queries and connections; `bin/kamal accessory logs db` for slow-query lines (over 500 ms are logged); raise `WEB_CONCURRENCY` if CPU is spare |
@@ -289,7 +289,8 @@ Somebody is told within minutes when something breaks, in three layers:
    (`after_discard` in `ApplicationJob`), every failed recurring task and everything the app reports
    with `Rails.error` goes to **Sentry** when `SENTRY_DSN` is set (`config/initializers/sentry.rb`; no
    request bodies, cookies or addresses are sent). Without Sentry, `Alerts::ErrorSubscriber` emails
-   the same things to `ALERTS_EMAIL` (default: the support address), at most once an hour per error
+   the same things to `ALERTS_EMAIL` (default: the support address): the first straight away, then at
+   most one "Still happening" reminder a day (with a count) per error
    class and place, with the backtrace (`config/initializers/error_reporting.rb`).
 2. **Platform checks, every 10 minutes.** `PlatformHealthJob` runs `PlatformHealth`: the primary
    answers; the replica is streaming and under a minute behind; Solid Queue has a live worker,
@@ -297,7 +298,7 @@ Somebody is told within minutes when something breaks, in three layers:
    no shop has a sale waiting more than 2 hours for KRA; no shop backup failed in the last day or has
    run for more than 3 hours; SES will still send for us (not paused, reputation healthy, under 80% of
    today's quota, no spam complaints in the last day); the disk is under 80% (warning) or 90% (failing). A failing check is
-   emailed (throttled the same way). The same checks are the **Platform checks** panel at the top of
+   emailed (reminded the same way), with an "All clear" when it passes again. The same checks are the **Platform checks** panel at the top of
    the admin Database page.
 3. **From outside.** `GET /health` (any host, no sign-in) answers 200 while every check passes and 503
    when one fails, with the checks' names; with `?token=HEALTH_TOKEN` it includes the details. Point

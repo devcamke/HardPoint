@@ -35,6 +35,11 @@ production:
     class: Etims::RetryJob
     schedule: every 5 minutes
 
+  # Sales, voids and returns that were never queued for KRA eTIMS (the app stopped part-way).
+  etims_reconcile:
+    class: Etims::ReconcileJob
+    schedule: every hour at minute 25
+
   # The day's market exchange rates; 06:30 in Nairobi, after the feed's daily update.
   exchange_rates:
     class: ExchangeRatesJob

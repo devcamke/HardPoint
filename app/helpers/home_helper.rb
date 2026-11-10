@@ -14,6 +14,18 @@ module HomeHelper
         "Their receipts aren't signed until they're sent again", "See why", etims_submissions_path(status: "failed"))
     end
 
+    if membership.can_manage_account?
+      if (count = account.webhook_endpoints.where(active: true).where.not(disabled_at: nil).count).positive?
+        tasks << HomeTask.new(:webhooks_disabled, :danger, "#{pluralize(count, "webhook endpoint")} switched off",
+          "Too many deliveries failed. Events are kept until it's switched back on", "Review", developers_path)
+      end
+
+      if account.account_backups.where(status: %w[ succeeded failed ]).chronologically.first&.failed?
+        tasks << HomeTask.new(:backup_failed, :danger, "Your last backup failed", "Try again, or tell us if it keeps failing",
+          "See backups", account_data_path)
+      end
+    end
+
     if (count = dashboard.low_stock_count).positive?
       tasks << HomeTask.new(:low_stock, :warning, "#{pluralize(count, "product")} running low", branch ? "At #{branch.name}" : "Across your branches",
         membership.can_purchase? ? "Order them" : "See which", reorder_list_path(branch_id: branch&.id))

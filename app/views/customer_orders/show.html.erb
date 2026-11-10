@@ -18,7 +18,7 @@
     <%= whatsapp_button order, phone: order.customer.phone %>
     <%= link_to "Edit", edit_customer_order_path(order), class: "btn-secondary" if order.editable? %>
     <% if order.quote? %>
-      <% if order.over_credit_limit? && !current_membership.approver? %>
+      <% if order.over_credit_limit? && !current_membership.approves_own_actions? %>
         <%= form_with url: customer_order_confirmation_path(order), class: "flex items-end gap-2" do |form| %>
           <div><%= label_tag :approval_pin, "Manager PIN (over #{order.customer.name.split.first}'s credit)", class: "label" %><%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", required: true, class: "input w-32" %></div>
           <%= form.submit "Confirm order", class: "btn-secondary" %>

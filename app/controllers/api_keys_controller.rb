@@ -1,5 +1,6 @@
 class ApiKeysController < ApplicationController
   include DeveloperSettings
+  refuse_while_impersonated back_to: -> { developers_path }, only: %i[ new create ]
 
   def new
     @api_key = Current.account.api_keys.new(scope: "read")

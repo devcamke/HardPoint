@@ -72,6 +72,15 @@ class ConcurrencyTest < ActiveSupport::TestCase
     assert_match "more than", stale.refund_deposit(amount_cents: 100_00, tender: "cash", shift: @shift).errors.full_messages.to_sentence
   end
 
+  test "removing or demoting an owner locks the shop first, so two owners can't each leave the other last" do
+    second = accounts(:acme).memberships.create!(user: users(:bob), role: "owner")
+
+    assert locks_taken { second.update!(role: "manager") }.any? { _1.include?(%("accounts")) }
+    second.update!(role: "owner")
+    assert locks_taken { second.destroy! }.any? { _1.include?(%("accounts")) }
+    assert_not memberships(:amina_acme).destroy, "amina is the last owner again"
+  end
+
   test "a webhook retry claims each delivery, so a run overlapping another sends it once" do
     endpoint = accounts(:acme).webhook_endpoints.create!(url: "https://hooks.example.com/hardpoint", event_types: %w[ sale.completed ])
     fake_transport(WebhookDelivery, "/hardpoint" => [ 500, {} ])

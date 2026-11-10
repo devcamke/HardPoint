@@ -1,6 +1,6 @@
 class Api::V1::Orders::CancellationsController < Api::V1::BaseController
   def create
-    @order = Current.account.customer_orders.find(params[:order_id])
+    @order = find_related(Current.account.customer_orders, params[:order_id], field: :order_id, name: "order")
     if @order.cancel(reason: params[:reason].presence || "Cancelled through the API")
       render "api/v1/orders/show"
     else

@@ -56,6 +56,53 @@ class QuickbooksExportTest < ActiveSupport::TestCase
     assert_includes lines_of(entries.find { _1.description == "Paying suppliers" }), [ "M-Pesa", 0, 11600_00, nil ]
   end
 
+  test "a refunded deposit is a credit to the money it went back out of, not a negative debit" do
+    order = @account.customer_orders.create!(branch: branches(:acme_main), customer: customers(:acme_contractor),
+      lines_attributes: [ { account: @account, product_code: "CEM-50", quantity: 1 } ]).tap(&:confirm)
+    order.take_deposit(amount_cents: 500_00, tender: "mobile_money", reference: "SKX1", shift: @shift)
+    order.refund_deposit(amount_cents: 200_00, tender: "cash", shift: @shift)
+
+    entry = export.entries.find { _1.description == "Deposits on orders" }
+    assert entry.balanced?
+    assert entry.lines.all? { _1.debit >= 0 && _1.credit >= 0 }, "QuickBooks refuses negative amounts"
+    assert_includes lines_of(entry), [ "Customer Deposits", 200_00, 0, "Mwangi Builders Ltd" ]
+    assert_includes lines_of(entry), [ "Cash on hand", 0, 200_00, "Mwangi Builders Ltd" ]
+  end
+
+  test "goods sent back to a supplier come off what's owed, stock and VAT on purchases" do
+    sent_back = @account.supplier_returns.create!(supplier: suppliers(:acme_cement_distributor), branch: branches(:acme_main), reason: "damaged",
+      lines_attributes: [ { account: @account, product: products(:acme_cement), quantity: 3, unit_cost: "680" } ])
+
+    entry = export.entries.find { _1.description.start_with?("Goods returned to suppliers") }
+    assert entry.balanced?
+    assert_equal [ [ "Accounts Payable (A/P)", sent_back.total_cents, 0, "Nairobi Cement Distributors" ],
+                   [ "Inventory Asset", 0, 3 * 680_00, nil ], [ "VAT Input", 0, sent_back.tax_cents, nil ] ], lines_of(entry)
+  end
+
+  test "stock gains and losses, and transport and duty paid on deliveries, reach the stock account" do
+    @account.stock_adjustments.create!(branch: branches(:acme_main), product: products(:acme_cement), quantity: -2, reason: "damaged")
+    @account.stock_adjustments.create!(branch: branches(:acme_main), product: products(:acme_nails), quantity: 1, reason: "found")
+    transfer = @account.stock_transfers.create!(from_branch: branches(:acme_main), to_branch: branches(:acme_yard),
+      lines_attributes: [ { product_code: "CEM-50", quantity: 5 } ])
+    transfer.receive(received: { transfer.lines.sole.id.to_s => "4" }, shortfall: "lost")
+    @account.goods_receipts.create!(supplier: suppliers(:acme_cement_distributor), branch: branches(:acme_main), extra_costs: "3000",
+      lines_attributes: [ { product_code: "CEM-50", quantity: 20, unit_cost: "700" } ])
+
+    entries = export.entries
+    assert entries.all?(&:balanced?)
+    damaged, found, lost = %w[ damaged found lost_in_transit ].map { |reason| StockMovement.find_by!(reason: reason).then { (_1.quantity * _1.unit_cost_cents).round } }
+    adjustments = entries.select { _1.description.start_with?("Stock gains and losses") }.flat_map { lines_of(_1) }
+    assert_includes adjustments, [ "Inventory Shrinkage", -damaged, 0, nil ]
+    assert_includes adjustments, [ "Inventory Asset", 0, -damaged, nil ]
+    assert_includes adjustments, [ "Inventory Asset", found, 0, nil ]
+    assert_includes adjustments, [ "Inventory Shrinkage", 0, found, nil ]
+    assert_includes adjustments, [ "Inventory Shrinkage", -lost, 0, nil ]
+    assert_not entries.any? { _1.description.include?("transfer") }, "stock moving between branches stays in stock"
+
+    landed = entries.find { _1.description == "Transport and duty on deliveries" }
+    assert_equal [ [ "Inventory Asset", 3000_00, 0, nil ], [ "Transport and Duty Clearing", 0, 3000_00, nil ] ], lines_of(landed)
+  end
+
   test "the shop's own account names are used, and paying a supplier in dollars is listed rather than guessed" do
     @account.update!(quickbooks_accounts: { "cash" => "Till cash", "mobile_money" => "Safaricom M-Pesa" })
     @account.currencies.create!(code: "USD", rate: 130)
