@@ -10,7 +10,7 @@ gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 3.2"
 
 # Uploads on S3-compatible object storage once there's more than one web server [docs/RUNBOOK.md]
-gem "aws-sdk-s3", "~> 1.232", require: false
+gem "aws-sdk-s3", "~> 1.238", require: false
 # Email through AWS SES's API, and the SNS topic that brings bounces and complaints back (app/models/ses.rb).
 gem "aws-sdk-sesv2", "~> 1.119"
 gem "aws-sdk-sns", "~> 1.128"
@@ -71,8 +71,8 @@ gem "strong_migrations", "~> 2.8"
 
 # Error reporting to Sentry when SENTRY_DSN is set; without it the gems stay quiet and
 # config/initializers/error_reporting.rb emails the operators instead.
-gem "sentry-ruby", "~> 6.2"
-gem "sentry-rails", "~> 6.2"
+gem "sentry-ruby", "~> 7.2"
+gem "sentry-rails", "~> 7.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
