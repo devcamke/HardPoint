@@ -110,6 +110,21 @@ class CustomerOrderTest < ActiveSupport::TestCase
     assert_equal 50 - 10, products(:acme_cement).stock_at(branches(:acme_main))
   end
 
+  test "a quote priced under a promotion is collected under it, so the promotion's results count it" do
+    promotion = Current.account.promotions.create!(name: "Cement week", kind: "percent_off", percent_off: 10, product_ids: [ products(:acme_cement).id ],
+      starts_on: Date.current, ends_on: Date.current + 7)
+    order = quote(customer: customers(:acme_walk_in), lines: { "CEM-50" => 2 })
+    assert_equal promotion, order.lines.sole.promotion
+
+    sale = @shift.current_sale
+    order.load_into(sale)
+    assert_equal promotion, sale.lines.sole.promotion
+    sale.pay(tender: "cash", tendered_cents: sale.balance_due_cents)
+
+    result = Promotion::Results.for([ promotion ]).fetch(promotion.id)
+    assert_equal [ 1, 2, 2 * 720_00 ], [ result.sales, result.units, result.takings_cents ]
+  end
+
   test "collecting part of an order leaves the rest waiting, and the next collection takes only that" do
     order = quote(lines: { "CEM-50" => 10, "PVC-2" => 2 })
     order.confirm
