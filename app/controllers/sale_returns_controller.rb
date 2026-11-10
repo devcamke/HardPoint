@@ -7,6 +7,12 @@ class SaleReturnsController < ApplicationController
 
   def show
     @return = within_visible_branches(Current.account.sale_returns).find(params[:id])
-    render layout: "receipt" if params[:print]
+    respond_to do |format|
+      format.html { render layout: "receipt" if params[:print] }
+      format.pdf do
+        pdf = CreditNotePdf.new(@return)
+        send_data pdf.render, filename: pdf.filename, type: :pdf, disposition: :inline
+      end
+    end
   end
 end

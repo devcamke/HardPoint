@@ -144,4 +144,14 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get pricing_path
     assert_response :not_found
   end
+
+  test "the landing page says how a shop's data is kept, and answers whether it's safe" do
+    get marketing_root_path
+    assert_select "section#security h2", "Safe, private, and yours."
+    assert_select "section#security li", 6
+    assert_select "section#security a[href='#{privacy_path}']"
+    assert_match "Is my shop&#39;s data safe?", response.body
+    assert_select "a[href='#{help_article_path("fundis")}']"
+    assert_select "a[href='#{help_article_path("material-calculator")}']"
+  end
 end

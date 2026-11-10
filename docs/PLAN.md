@@ -892,6 +892,20 @@ in the counter's head is slow and loses sales to the shop that answers first.
 - **Later:** the logo in the app's top bar, the offline till honouring the payment buttons, receipt layout choices (58 mm
   compact, larger totals), a second accent colour, and document numbering prefixes.
 
+### Phase 41 — Share documents as pictures, and say how data is kept
+**Goal:** documents reach customers the way they actually talk (pictures in a chat), and owners know their data is safe.
+- **Share menu** on receipts, quotes and orders, tax invoices and credit notes (and the till's done screen): *Share as a
+  picture* (a sharp JPEG with the shop's logo and colours, through the device's own share sheet: WhatsApp, Telegram,
+  email, Bluetooth…), *Save the picture*, *Share the PDF*, *Open the PDF*. The picture is drawn in the browser from the
+  document's PDF by Mozilla's pdf.js 4.10.38 (vendored, checked against the npm package, loaded only when used), the
+  last page trimmed below its last line; browsers that can't share files save it instead.
+- New PDFs: `ReceiptPdf` (the till roll, 80 mm wide, as long as it needs, with the eTIMS QR code drawn as squares) and
+  `CreditNotePdf` (a return, on the letterhead).
+- **Landing page:** fundis and the calculator among the tiles; cards for selling only what's there, fundi commissions,
+  quotes in a minute, sending pictures and making it yours; the morning and Monday emails and alerts; a **"Safe,
+  private, and yours"** section, every line true of the system (docs/SECURITY.md, the privacy page); and "Is my shop's
+  data safe?" among the questions.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.

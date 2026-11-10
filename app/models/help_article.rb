@@ -28,7 +28,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
         %w[ selling staff-and-roles etims ]),
       new("offline", "When the internet goes down", "How the till keeps selling offline and sends the sales when it's back.", "At the till",
         %w[ selling tills-and-printers ]),
-      new("whatsapp", "Sending documents on WhatsApp", "Receipts, quotes, statements, purchase orders and delivery notes, sent from your own WhatsApp with a link.", "At the till",
+      new("whatsapp", "Sending documents: pictures, PDFs and WhatsApp", "Receipts, quotes, invoices and credit notes as pictures or PDFs to any app, and documents sent from your own WhatsApp with a link.", "At the till",
         %w[ selling customer-accounts ]),
       new("promotions", "Promotions and offers", "Percentages off, \"buy 10, get 1 free\" and mix-and-match bundles, applied by the till by itself.", "At the till",
         %w[ selling customer-accounts ]),

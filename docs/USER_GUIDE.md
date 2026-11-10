@@ -20,7 +20,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 - [Shifts, cash and closing up](#shifts-and-cash): Opening with a float, cash drops and payouts, the X report, the blind count at close, over or short, and the Z report.
 - [Returns, refunds and voids](#returns-and-refunds): Taking goods back against a receipt, restocking or writing off, refund methods, approval PINs, and voiding a sale rung up by mistake.
 - [When the internet goes down](#offline): How the till keeps selling offline and sends the sales when it's back.
-- [Sending documents on WhatsApp](#whatsapp): Receipts, quotes, statements, purchase orders and delivery notes, sent from your own WhatsApp with a link.
+- [Sending documents: pictures, PDFs and WhatsApp](#whatsapp): Receipts, quotes, invoices and credit notes as pictures or PDFs to any app, and documents sent from your own WhatsApp with a link.
 - [Promotions and offers](#promotions): Percentages off, "buy 10, get 1 free" and mix-and-match bundles, applied by the till by itself.
 
 **Customers and orders**
@@ -569,11 +569,21 @@ To be ready for an outage, open the till once a day while online so its copy of 
 
 <a id="whatsapp"></a>
 
-### Sending documents on WhatsApp
+### Sending documents: pictures, PDFs and WhatsApp
 
-_Receipts, quotes, statements, purchase orders and delivery notes, sent from your own WhatsApp with a link._
+_Receipts, quotes, invoices and credit notes as pictures or PDFs to any app, and documents sent from your own WhatsApp with a link._
 
 Most customers and suppliers would rather get a document on WhatsApp than by email. HardPoint writes the message and the link for you; WhatsApp sends it from your own phone or computer, so there's nothing to set up.
+
+#### Sharing as a picture or a PDF
+
+On a receipt, a quote or order, a tax invoice and a credit note (a return), press **Share** (or **Share receipt**, **Share invoice**, **Share credit note**). It's also on the till when a sale is done.
+
+- **Share as a picture** makes a sharp JPEG of the document, with your logo and colours, and opens your phone's or computer's share menu: WhatsApp, Telegram, email, Bluetooth, or any app you have. Customers see it straight away in the chat, without opening a link.
+- **Save the picture** keeps the JPEG on the device, to attach later.
+- **Share the PDF** sends the PDF instead, for printing or for the customer's accounts.
+
+The picture is made on your own device from the document, and only goes where you send it. On a computer whose browser can't share files (Firefox, for one), it's saved instead: attach it in WhatsApp Web or your email.
 
 #### Where the WhatsApp button is
 
