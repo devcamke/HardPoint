@@ -10,7 +10,7 @@
            [ "Stock levels and reconciliation", stock_path, "Value per branch and a check that levels match the ledger" ] ] :
          [ [ "Who owes us", receivables_path, "Customer balances by how late they are" ],
            [ "What we owe", payables_path, "Supplier balances by how late they are" ],
-           [ "QuickBooks export", quickbooks_export_path, "A month of the books for your accountant, ready to import into QuickBooks Online" ] ] %>
+           ([ "QuickBooks export", quickbooks_export_path, "A month of the books for your accountant, ready to import into QuickBooks Online" ] unless current_membership.bound_to_branch?) ].compact %>
     <section class="rounded border border-gray-200 bg-white">
       <h2 class="border-b border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-800"><%= group %></h2>
       <% (reports.map { [ _1.title, report_path(_1.key), _1.description ] } + extra).each do |title, path, description| %>

@@ -69,4 +69,33 @@ class StockBatchesControllerTest < ActionDispatch::IntegrationTest
     get sale_path(sale)
     assert_match "batch X-1", response.body
   end
+
+  test "staff bound to a branch see and write off only its batches, and only its buyers" do
+    yard_batch = as_acme do
+      @cement.move_stock(branch: branches(:acme_yard), quantity: 4, reason: "received", batch: { number: "X-1", expires_on: 3.days.ago.to_date })
+      @cement.stock_batches.find_by!(number: "X-1", branch: branches(:acme_yard))
+    end
+    main_sale = acme do
+      Current.set(account: @account, session: @account.sessions.create!(user: users(:carl))) do
+        shifts(:acme_front_open).current_sale.tap do |sale|
+          sale.add(@cement, quantity: @cement.unbatched_stock_at(branches(:acme_main)) + 2)
+          sale.pay(tender: "card", reference: "VISA 1")
+        end
+      end
+    end
+    Account.without_isolation { memberships(:sara_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:sara)
+
+    get stock_batch_path(yard_batch)
+    assert_response :success
+    assert_select "a[href=?]", sale_path(main_sale), count: 0
+    assert_select "h2", text: "Same batch at other branches", count: 0
+
+    get stock_batch_path(@batch)
+    assert_response :not_found
+    assert_no_difference -> { acme { @batch.reload.quantity } } do
+      post stock_batch_write_off_path(@batch), params: { quantity: "1", reason: "damaged" }
+    end
+    assert_response :not_found
+  end
 end

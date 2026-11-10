@@ -4,7 +4,7 @@ class Pos::MpesaMatchesController < ApplicationController
   include PosSale
 
   def create
-    transaction = Current.account.mpesa_transactions.unmatched.find(params[:transaction_id])
+    transaction = Current.account.mpesa_transactions.unmatched.usable_by(current_membership, at: @sale.register).find(params[:transaction_id])
     payment = transaction.attach_to(@sale)
 
     if payment.errors.any?

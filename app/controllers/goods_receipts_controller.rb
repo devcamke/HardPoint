@@ -15,7 +15,7 @@ class GoodsReceiptsController < ApplicationController
 
   # Against an order: its outstanding lines, ready to confirm. Without one: blank lines to scan into.
   def new
-    order = Current.account.purchase_orders.find_by(id: params[:purchase_order_id])
+    order = within_visible_branches(Current.account.purchase_orders).find_by(id: params[:purchase_order_id])
     @goods_receipt = Current.account.goods_receipts.new(purchase_order: order, supplier: order&.supplier, branch: order&.branch || selected_branch)
 
     if order
@@ -46,11 +46,11 @@ class GoodsReceiptsController < ApplicationController
     def goods_receipt_params
       permitted = params.expect(goods_receipt: [ :supplier_id, :branch_id, :purchase_order_id, :supplier_reference, :extra_costs, :note, :exchange_rate,
         lines_attributes: [ [ :purchase_order_line_id, :product_code, :pack, :quantity, :unit_cost, :batch_number, :expires_on ] ] ])
-      order = Current.account.purchase_orders.find(permitted.delete(:purchase_order_id)) if permitted[:purchase_order_id].present?
+      order = within_visible_branches(Current.account.purchase_orders).find(permitted.delete(:purchase_order_id)) if permitted[:purchase_order_id].present?
 
       permitted[:purchase_order] = order
       permitted[:supplier] = order&.supplier || Current.account.suppliers.find(permitted.delete(:supplier_id))
-      permitted[:branch] = order&.branch || Current.account.branches.find(permitted.delete(:branch_id))
+      permitted[:branch] = order&.branch || visible_branches.find(permitted.delete(:branch_id))
       permitted.delete(:supplier_id)
       permitted.delete(:branch_id)
       permitted[:lines_attributes]&.each_value do |line|

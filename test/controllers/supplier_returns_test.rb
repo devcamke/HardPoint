@@ -47,4 +47,14 @@ class SupplierReturnsControllerTest < ActionDispatch::IntegrationTest
     get new_supplier_return_path
     assert_response :forbidden
   end
+
+  test "a stock clerk bound to the yard can't return the main branch's stock" do
+    acme { memberships(:sara_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:sara), account: @account
+
+    post supplier_returns_path, params: { supplier_return: { supplier_id: suppliers(:acme_cement_distributor).id, branch_id: branches(:acme_main).id,
+      reason: "damaged", lines_attributes: { "0" => { product_code: "CEM-50", quantity: "2" } } } }
+    assert_response :not_found
+    assert_equal 50, acme { products(:acme_cement).stock_at(branches(:acme_main)) }
+  end
 end

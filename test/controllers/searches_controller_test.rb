@@ -51,4 +51,17 @@ class SearchesControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[name=q][value=cement]"
     assert_select "turbo-frame#search_results a", /Bamburi cement/
   end
+
+  test "staff bound to a branch don't find another branch's sales by receipt number" do
+    sale = Account.without_isolation do
+      Current.set(account: accounts(:acme), session: accounts(:acme).sessions.create!(user: users(:carl))) do
+        shifts(:acme_front_open).current_sale.tap { |sale| sale.add(products(:acme_nails)); sale.pay(tender: "card", reference: "VISA 1") }
+      end
+    end
+    Account.without_isolation { memberships(:carl_acme).update!(branch: branches(:acme_yard)) }
+    sign_in_as users(:carl)
+
+    get search_path(q: Account.without_isolation { sale.receipt_number }), headers: { "Turbo-Frame" => "search_results" }
+    assert_select "a[href=?]", sale_path(sale, from: "search:documents"), count: 0
+  end
 end

@@ -26,7 +26,7 @@ class SupplierReturnsController < ApplicationController
 
   # From a delivery: its products, ready for how many go back. Otherwise blank lines to scan into.
   def new
-    receipt = Current.account.goods_receipts.find_by(id: params[:goods_receipt_id])
+    receipt = within_visible_branches(Current.account.goods_receipts).find_by(id: params[:goods_receipt_id])
     supplier = receipt&.supplier || Current.account.suppliers.find_by(id: params[:supplier_id])
     @supplier_return = Current.account.supplier_returns.new(goods_receipt: receipt, supplier: supplier, branch: receipt&.branch || selected_branch, reason: "damaged")
     if receipt
@@ -53,16 +53,16 @@ class SupplierReturnsController < ApplicationController
     def supplier_return_params
       permitted = params.expect(supplier_return: [ :supplier_id, :branch_id, :goods_receipt_id, :reason, :note,
         lines_attributes: [ [ :product_id, :product_code, :quantity, :unit_cost, :stock_batch_id ] ] ])
-      receipt = Current.account.goods_receipts.find(permitted.delete(:goods_receipt_id)) if permitted[:goods_receipt_id].present?
+      receipt = within_visible_branches(Current.account.goods_receipts).find(permitted.delete(:goods_receipt_id)) if permitted[:goods_receipt_id].present?
       permitted[:goods_receipt] = receipt
       permitted[:supplier] = receipt&.supplier || Current.account.suppliers.find(permitted[:supplier_id])
-      permitted[:branch] = receipt&.branch || Current.account.branches.find(permitted[:branch_id])
+      permitted[:branch] = receipt&.branch || visible_branches.find(permitted[:branch_id])
       permitted.delete(:supplier_id)
       permitted.delete(:branch_id)
       permitted[:lines_attributes]&.each_value do |line|
         line[:account] = Current.account
         line[:product] = Current.account.products.find(line.delete(:product_id)) if line[:product_id].present?
-        line[:stock_batch] = Current.account.stock_batches.find(line.delete(:stock_batch_id)) if line[:stock_batch_id].present?
+        line[:stock_batch] = within_visible_branches(Current.account.stock_batches).find(line.delete(:stock_batch_id)) if line[:stock_batch_id].present?
         line.delete(:product_id)
         line.delete(:stock_batch_id)
         line.delete(:unit_cost) if line[:unit_cost].blank?

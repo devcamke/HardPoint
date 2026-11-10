@@ -9,7 +9,7 @@
 <% columns = { 4 => "lg:grid-cols-4", 5 => "lg:grid-cols-5", 6 => "lg:grid-cols-6" }[4 + (@expiring ? 1 : 0) + (@below_zero.positive? ? 1 : 0)] %>
 <div class="mb-6 grid gap-4 sm:grid-cols-2 <%= columns %>">
   <% if current_membership.can_see_costs? %>
-    <div class="card"><p class="hint">Stock value at cost</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@valuation.total_value_cents) %></p><p class="hint">all branches<%= " and in transit" if @valuation.in_transit.lines.positive? %></p></div>
+    <div class="card"><p class="hint">Stock value at cost</p><p class="mt-1 text-2xl font-bold tabular-nums"><%= money(@valuation.total_value_cents) %></p><p class="hint"><%= current_membership.bound_to_branch? ? "at #{current_membership.branch.name}" : "all branches" %><%= " and in transit" if @valuation.in_transit.lines.positive? %></p></div>
   <% end %>
   <%= link_to reorder_list_path, class: "card block hover:border-primary-300" do %>
     <p class="hint">Low stock at <%= selected_branch&.name %></p><p class="mt-1 text-2xl font-bold <%= "text-primary-700" if @low_stock_count.positive? %>"><%= @low_stock_count %></p><p class="hint">products to reorder</p>
