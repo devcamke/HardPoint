@@ -25,6 +25,7 @@
           <%= link_to "Adoption", admin_adoption_path, class: "hover:text-white" %>
           <%= link_to "Database", admin_database_path, class: "hover:text-white" %>
           <%= link_to "Email", admin_email_path, class: "hover:text-white" %>
+          <%= link_to "Audit", admin_events_path, class: "hover:text-white" %>
           <span class="ml-auto"><%= current_administrator.name %></span>
           <%= button_to "Sign out", admin_session_path, method: :delete, class: "cursor-pointer hover:text-white" %>
         <% end %>

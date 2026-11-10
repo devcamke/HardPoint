@@ -1,5 +1,8 @@
 class MembershipsController < ApplicationController
   before_action :ensure_can_manage_staff
+  # Support can look at the staff list, but not add people (an invitation is a way in that outlives the
+  # support session), change roles or remove anyone.
+  refuse_while_impersonated back_to: -> { memberships_path }, only: %i[ new create edit update destroy ]
   before_action :set_membership, only: %i[ edit update destroy ]
   # Only owners hand out, change or take away the owner role: a manager can't promote themselves or remove an owner.
   before_action :ensure_owner_for_owner_roles, only: %i[ create update destroy ]

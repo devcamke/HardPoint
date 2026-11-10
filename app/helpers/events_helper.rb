@@ -79,7 +79,8 @@ module EventsHelper
   end
 
   def event_actor(event)
-    event.creator&.name || (event.particulars["api_key"] ? "API key “#{event.particulars["api_key"]}”" : "HardPoint")
+    actor = event.creator&.name || (event.particulars["api_key"] ? "API key “#{event.particulars["api_key"]}”" : "HardPoint")
+    event.particulars["impersonated_by"] ? "#{actor} (support: #{event.particulars["impersonated_by"]})" : actor
   end
 
   private

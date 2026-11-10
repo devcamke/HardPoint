@@ -3,12 +3,20 @@ class User < ApplicationRecord
 
   has_secure_password
   has_many :sessions, dependent: :destroy
+  has_many :admin_sessions, dependent: :delete_all
   has_many :memberships, dependent: :destroy
   has_many :accounts, through: :memberships
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
   MINIMUM_PASSWORD_LENGTH = 10
+  INVITATION_EXPIRES_IN = 3.days
+
+  # The set-password link in a new member's invitation. It lasts longer than a reset link (staff are often added
+  # before they start), and stops working once a password has been chosen, as a reset link does.
+  generates_token_for :invitation, expires_in: INVITATION_EXPIRES_IN do
+    password_salt&.last(10)
+  end
 
   validates :name, presence: true
   # Every way of setting a password (sign-up, an invitation, a reset, My profile) needs at least this many characters.
@@ -35,6 +43,12 @@ class User < ApplicationRecord
 
     Account.without_isolation { sessions.destroy_all }
     update!(password: SecureRandom.base58(32))
+  end
+
+  # Signs this person out of every shop and of the admin area, but for the session +except+ (the one in use).
+  def end_sessions(except: nil)
+    Account.without_isolation { sessions.where.not(id: except&.id).destroy_all }
+    admin_sessions.delete_all
   end
 
   private

@@ -1,9 +1,11 @@
 # Changing your password while signed in. It's the same sign-in for every shop you work for, so every other
-# session, in every shop, is signed out; this one stays signed in.
+# session, in every shop and in the admin area, is signed out; this one stays signed in.
 class My::PasswordsController < ApplicationController
   allow_while_locked
   allow_without_two_factor
-  rate_limit to: 10, within: 3.minutes, only: :update, with: -> { redirect_to edit_my_password_path, alert: "Try again later." }
+  # Per person: guesses at the current password from a till left signed in count however many tills there are.
+  rate_limit to: 10, within: 3.minutes, only: :update, by: -> { "user-#{Current.user&.id}" },
+    with: -> { redirect_to edit_my_password_path, alert: "Try again later." }
 
   before_action { redirect_to my_profile_path, alert: "Not while HardPoint support is signed in as you." if Current.session.impersonated? }
 
@@ -25,7 +27,7 @@ class My::PasswordsController < ApplicationController
     end
     return render(:edit, status: :unprocessable_entity) if @error
 
-    Account.without_isolation { user.sessions.where.not(id: Current.session.id).destroy_all }
+    user.end_sessions(except: Current.session)
     user.track_event "password_changed"
     redirect_to my_profile_path, notice: "Your password is changed. You've been signed out everywhere else."
   end
