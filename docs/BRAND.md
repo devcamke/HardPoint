@@ -58,11 +58,13 @@ White text on `primary-500` is 7.4:1, `accent-600` on white is 9.0:1 and `gray-5
 
 ## Logo
 
-A hex nut next to the wordmark **HardPoint**, rendered by `app/views/shared/_logo.html.erb`, drawn like the landing
-page: the nut in petrol with an ink (`#0F2327`) outline and a hard offset shadow, and the wordmark in Bricolage
-Grotesque ExtraBold, tightly spaced. On the teal bars (`dark: true`) the nut is white and the shadow a deeper teal.
-The app icon (`public/icon.svg`, and `icon.png` rendered from it at 512 px) is the same nut on a highlighter-yellow
-rounded square with an ink edge.
+A hex nut with the **H** of HardPoint cut through it, next to the wordmark **HardPoint**, rendered by
+`app/views/shared/_logo.html.erb`. It's drawn like the public site: the nut in petrol with an ink (`#0F2327`) outline
+and a hard offset shadow, the H in white, and the wordmark in Bricolage Grotesque ExtraBold, tightly spaced. On the
+teal bars (`dark: true`) the nut is white, the H teal and the shadow a deeper teal. Inside the app, a shop without its
+own logo gets the same mark flat (white nut, H in the shop's theme colour) in `shared/_navigation`. The app icon
+(`public/icon.svg`, and `icon.png` rendered from it at 512 px) is the mark on a highlighter-yellow rounded square with
+an ink edge.
 
 ## Components
 

@@ -88,6 +88,17 @@
   </ul>
 </div></aside>
 
+<%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
+<div class="lp-works"><div class="lp-wrap">
+  <p class="lp-also-label">Works with what your shop already uses:</p>
+  <ul>
+    <% [ [ :mpesa, "M-Pesa" ], [ :airtel, "Airtel Money" ], [ :card, "Cards" ], [ :etims, "KRA eTIMS" ], [ :barcode, "Barcode scanners" ],
+         [ :printer, "Receipt printers" ], [ :whatsapp, "WhatsApp" ], [ :quickbooks, "QuickBooks" ] ].each do |icon, label| %>
+      <li><%= render "pages/icon", name: icon, classes: "" %><%= label %></li>
+    <% end %>
+  </ul>
+</div></div>
+
 <%# Before and after, the Basecamp way: what a hardware shop keeps track with today, and what replaces each. %>
 <section class="lp-section" id="how"><div class="lp-wrap">
   <div class="lp-head">
@@ -201,6 +212,85 @@
   </div>
   <ul class="lp-anno-list" aria-hidden="true"><% owner_notes.each do |note| %><li><%= note %></li><% end %></ul>
   <p class="lp-center"><%= more.("Sales, profit, VAT, stock and shift reports", "reports") %></p>
+</div></section>
+
+<%# Keeping an eye on the counter, told as an example of the morning email and the alerts that don't wait for it.
+    The wording is the email's own (CashierPatterns, OwnerAlertsMailer); the names and numbers are made up. %>
+<section class="lp-section lp-rule" id="counter"><div class="lp-wrap">
+  <div class="lp-watch">
+    <div>
+      <p class="lp-kicker">Trust, but check</p>
+      <h2>Know what happened at the counter, without standing at it.</h2>
+      <p class="lp-lede">Most shrinkage isn’t theft from the shelf. It’s a void here, a discount there, a drawer opened
+        for change. HardPoint asks for the right person at the right moment, and tells you the next morning what stood out.</p>
+      <ul class="lp-checks">
+        <% [ [ "A manager’s PIN for the big things.", "Discounts over your limit, voids, returns and going over a credit limit. The PIN approves that one thing and signs nobody in." ],
+             [ "Shifts that add up.", "An opening float, cash drops and payouts, a blind count at close and a Z report." ],
+             [ "No silent drawer.", "Opening the drawer without a sale asks why, and every opening is listed on the shift." ],
+             [ "Each cashier against their own usual.", "Voids, discounts, cash refunds and drawer openings well above a cashier’s normal day are flagged in the morning email." ],
+             [ "Alerts that don’t wait.", "An email straight away when a till closes short, a big sale is voided or a stock count comes out short." ],
+             [ "A record of who did what.", "From a price change to a void, including our support staff if they ever sign in." ] ].each do |bold, rest| %>
+          <li><%= tick %><span><b><%= bold %></b> <%= rest %></span></li>
+        <% end %>
+      </ul>
+      <%= more.("Shifts and cash", "shifts-and-cash") %>
+    </div>
+    <figure class="lp-mail" aria-label="An example of the owner's morning email">
+      <figcaption class="lp-mail-cap">An example morning email</figcaption>
+      <div class="lp-mail-card">
+        <div class="lp-mail-top"><span class="lp-mail-from">HardPoint</span><span>7:00</span></div>
+        <p class="lp-mail-subject">Mwangi Hardware: KES 184,250.00 taken on Wednesday</p>
+        <div class="lp-mail-figs">
+          <div><span>Takings</span><b>KES 184,250</b><em>+12% on last Wednesday</em></div>
+          <div><span>Sales</span><b>41</b></div>
+          <div><span>Margin</span><b>18.4%</b></div>
+        </div>
+        <p class="lp-mail-h">Worth a look</p>
+        <ul class="lp-mail-flags">
+          <li><b>Kevin</b> voided 7 sales <span>(usually about 1 a day)</span></li>
+          <li><b>Grace</b> opened the drawer without a sale 5 times <span>(usually under one a day)</span></li>
+        </ul>
+      </div>
+      <div class="lp-mail-alert"><span class="lp-mail-dot" aria-hidden="true"></span><span><b>Sent at 18:42:</b> Front counter closed KES 1,200 short</span></div>
+    </figure>
+  </div>
+</div></section>
+
+<%# Away from the counter: the stock app on a phone for the staff, and a customer's own page for the customers.
+    Both screenshots are of the demo shop as it is today. %>
+<section class="lp-section lp-pricing" id="phones"><div class="lp-wrap">
+  <div class="lp-head lp-center">
+    <p class="lp-kicker">Away from the till</p>
+    <h2>Your staff and your customers have it on their phones.</h2>
+    <p class="lp-lede">Nothing to install from a store. It opens in the phone’s browser, signed in like any other screen.</p>
+  </div>
+  <div class="lp-phones">
+    <figure>
+      <div class="lp-phone"><%= image_tag "marketing/phone-stock-count.png", alt: "HardPoint Stock on a phone: two stock takes being counted at Moi Avenue, with Look up, Count and Receive along the bottom", width: 585, height: 1266, loading: "lazy" %></div>
+      <figcaption>
+        <h3>In the store room</h3>
+        <p>Look up any product, count a stock take shelf by shelf and check a delivery in, with the phone’s camera as the scanner.</p>
+        <%= more.("Stock on your phone", "stock-on-your-phone") %>
+      </figcaption>
+    </figure>
+    <figure>
+      <div class="lp-phone"><%= image_tag "marketing/phone-customer-portal.png", alt: "A contractor's own page on a phone: what they owe, how much is overdue, a Pay with M-Pesa form and their unpaid invoices", width: 585, height: 1266, loading: "lazy" %></div>
+      <figcaption>
+        <h3>In your customer’s pocket</h3>
+        <p>A link to a contractor’s own page: what they owe, their invoices, quotes and statements, and Pay with M-Pesa straight onto their account.</p>
+        <%= more.("The customer portal", "customer-portal") %>
+      </figcaption>
+    </figure>
+    <div class="lp-phone-more">
+      <h3>And on WhatsApp.</h3>
+      <ul class="lp-checks">
+        <li><%= tick %><span><b>Receipts, quotes, invoices and statements</b> sent as sharp pictures or PDFs, or from HardPoint’s own number with delivery and read receipts.</span></li>
+        <li><%= tick %><span><b>An online store</b> at your own address for click-and-collect, paid ahead by M-Pesa or on collection.</span></li>
+        <li><%= tick %><span><b>Monday reminders</b> to everyone overdue, by SMS, or on WhatsApp with their statement.</span></li>
+      </ul>
+      <%= more.("WhatsApp", "whatsapp") %> <%= more.("The online store", "online-store") %>
+    </div>
+  </div>
 </div></section>
 
 <%# The rest of the shop, as cards in sticky-note colours; then everything else as a row of links. The Features
