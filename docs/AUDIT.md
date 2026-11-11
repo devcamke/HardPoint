@@ -36,9 +36,9 @@ first below.
 2. **The code.** Every finding left open by the first run was checked again at its place in the code, and marked still
    open, fixed, or wrong. The eight commits that fixed the first run's findings (`161f75a`…`8eda4e3`) were reviewed for
    problems they brought in.
-3. **The tests.** `bin/rails test` passes (953 runs, 0 failures, 0 errors), as do `bin/rubocop`, `bin/brakeman` and the
-   JavaScript tests. None of the four problems in [Problems the fixes brought in](#problems-the-fixes-brought-in) is
-   caught by a test.
+3. **The tests.** `bin/rails test` passed (953 runs), as did `bin/rubocop`, `bin/brakeman` and the JavaScript tests, yet
+   none of the four problems in [Problems the fixes brought in](#problems-the-fixes-brought-in) was caught by a test.
+   Each now has one; after their fixes the suite is 960 runs, 0 failures, 0 errors.
 
 | Severity | Meaning |
 |---|---|
@@ -55,7 +55,7 @@ Contrast failures fell from 190 of the owner's screens to 19, now that the top b
 the browser: the online store's second page, the Activity log, Enter after a name at the till, the till picker's
 warning, **Close shift** away from the till, branch limits for a bound manager, and the import's stock default.
 
-**Worse in four places**, all from the fixes:
+**Worse in four places**, all from the fixes, and since fixed:
 - a Paybill payment can crash its webhook;
 - offline M-Pesa sales without a code are refused after the first;
 - a late M-Pesa prompt payment can pay the wrong customer's sale;
@@ -71,14 +71,15 @@ warning, **Close shift** away from the till, branch limits for a bound manager, 
 
 ## Fix first
 
-Ten things, in order. The first four are problems the fixes brought in; the rest are the open Highs that cost the most.
+Ten things, in order. The first four were problems the fixes brought in, and are now fixed (see
+[Problems the fixes brought in](#problems-the-fixes-brought-in)); the rest are the open Highs that cost the most.
 
 | # | What | Where | Fix |
 |---|---|---|---|
-| 1 | A Paybill payment whose code a cashier typed in another case crashes the C2B webhook (500), and Safaricom's retry skips matching, so the money sits unmatched for good | `mpesa/transaction.rb:59,81`; `concerns/mobile_money_code.rb` | Compare codes the same way in `already_recorded` (upper-cased, trimmed), and store references upper-cased; use `create` and check `persisted?` |
-| 2 | Offline M-Pesa payments sent without a code all get the reference `"OFFLINE"`, so every one after the first is refused and the sale parked | `sale/offline.rb:150` | Skip the code check for that placeholder, or give each a unique one (e.g. `OFFLINE-<sale uuid>`) |
-| 3 | Money for an expired prompt is applied to whatever the sale holds when it arrives, which may be the next customer's goods | `mpesa/stk_request.rb` (`pending? \|\| expired?`) | For an expired prompt, record the money and mark the prompt paid, but leave it unmatched for the cashier to pick |
-| 4 | Every past void credited to an account counts as credit from the moment of deploy, with no notice; QuickBooks still reverses those voids to cash or M-Pesa, so the books and the app disagree | `customer/receivables.rb` (`void_credit_payments`); `quickbooks_export.rb:165` | Count only voids after the deploy (a cut-off date), tell owners about older ones, and credit accounts receivable in the QuickBooks void entry |
+| 1 | **Fixed.** A Paybill payment whose code a cashier typed in another case crashes the C2B webhook (500), and Safaricom's retry skips matching, so the money sits unmatched for good | `mpesa/transaction.rb:59,81`; `concerns/mobile_money_code.rb` | Compare codes the same way in `already_recorded` (upper-cased, trimmed), and store references upper-cased; use `create` and check `persisted?` |
+| 2 | **Fixed.** Offline M-Pesa payments sent without a code all get the reference `"OFFLINE"`, so every one after the first is refused and the sale parked | `sale/offline.rb:150` | Skip the code check for that placeholder, or give each a unique one (e.g. `OFFLINE-<sale uuid>`) |
+| 3 | **Fixed.** Money for an expired prompt is applied to whatever the sale holds when it arrives, which may be the next customer's goods | `mpesa/stk_request.rb` (`pending? \|\| expired?`) | For an expired prompt, record the money and mark the prompt paid, but leave it unmatched for the cashier to pick |
+| 4 | **Fixed.** Every past void credited to an account counts as credit from the moment of deploy, with no notice; QuickBooks still reverses those voids to cash or M-Pesa, so the books and the app disagree | `customer/receivables.rb` (`void_credit_payments`); `quickbooks_export.rb:165` | Count only voids after the deploy (a cut-off date), tell owners about older ones, and credit accounts receivable in the QuickBooks void entry |
 | 5 | A payment can be removed from a sale with one tap: no confirmation, no PIN, no Activity entry. Cash taken can be removed and the sale finished on account | `pos/_payment.html.erb:9`, `pos/payments_controller.rb:19`, `sale/payable.rb:99` | Confirm; record `payment_removed`; need approval for cash and card |
 | 6 | A write-off has no limit, so writing off more than is owed makes credit, and **Refund credit** pays it out with no approval | `customer_payment.rb:25-34`, `customers/write_offs_controller.rb:13` | Cap at the balance; approval for cash refunds of credit |
 | 7 | The sending branch can press **Mark received** on its own transfer and write off the "short" stock at the other branch | `stock_transfers/receipts_controller.rb:5`, `stock_transfers/show.html.erb:10-12,44` | Receiving only at the to-branch or by an approver; cancelling only at the from-branch |
@@ -88,25 +89,28 @@ Ten things, in order. The first four are problems the fixes brought in; the rest
 
 ## Problems the fixes brought in
 
-From reviewing commits `161f75a`…`8eda4e3`. Items 1–4 are also in [Fix first](#fix-first).
+From reviewing commits `161f75a`…`8eda4e3`. All but four have since been fixed (commits `92e1179` and the one after
+it, with tests); the **Status** column says which.
 
-| Sev. | Problem | Where | Fix |
+| Sev. | Problem | Where | Status |
 |---|---|---|---|
-| **High** | Paybill webhook crash on a code typed in another case | `mpesa/transaction.rb:59,81` | Fix first, 1 |
-| **High** | Offline M-Pesa payments without a code refused after the first | `sale/offline.rb:150` | Fix first, 2 |
-| **High** | A late prompt payment lands on whatever the sale holds now. Related, and older: **Clear sale** is allowed with only an expired prompt, and deleting the sale deletes the prompt, so a late payment for it is never recorded | `mpesa/stk_request.rb`, `sale/voidable.rb` (`discard`), `sale.rb` (`dependent: :destroy`) | Fix first, 3; keep prompts when a sale is cleared |
-| **High** | Past voids credited to an account now count; QuickBooks disagrees | `customer/receivables.rb`, `quickbooks_export.rb:165` | Fix first, 4 |
-| Medium | The order credit check has gaps: moving a confirmed order to another on-account customer isn't checked; the API's `POST /orders` still creates confirmed orders with no check; the new-order form has no PIN field, so a cashier's **Save as confirmed order** over the limit always ends as a quote; an order saved straight as confirmed with a past date is refused as an "expired" quote | `customer_orders_controller.rb` (`update_within_credit`), `api/v1/orders_controller.rb:17`, `customer_orders/_form.html.erb:69` | Check on a customer change too; check in the API; a PIN field on the new form for on-account customers; skip the expiry check when confirming at once |
-| Medium | Closed shifts with a cash void of a deposit or on-account sale no longer add up on their page: the void line uses the new rule, the stored expected cash the old one | `shifts/show.html.erb:69`, `shift.rb` | Store the void refund amount on the sale at void time and show that |
-| Medium | The duplicate-code check scans every payment, deposit and account payment on each M-Pesa payment, inside the sale's lock at the till; there's no index on `reference` | `concerns/mobile_money_code.rb` | An index on `upper(trim(reference))` for each table, or store references upper-cased and index them |
-| Low | Re-picking the same customer no longer reprices the sale after their price list changes | `sale/cart.rb` (`change_customer`) | Return early only when nothing about the customer changed, or always reprice |
-| Low | The Settings **Tills** card counts every till, while a branch-bound manager now sees only their own | `settings_helper.rb:58` | Count `within_visible_branches` |
-| Low | `MobileMoneyCode`'s comment says typed codes the Paybill hasn't seen show on the M-Pesa report; only sale payments do | `report/mobile_money.rb` | List deposits and account payments too |
-| Low | Paying a sale whose discount grew in money (not in share) since approval is refused with a percentage message | `sale/payable.rb` (`check_ready_to_complete`) | Word it as the till does |
-| Low | "More than one product matches" at the till is styled as an error, though it's guidance | `pos/_message.html.erb` | Show it as a message |
-| Unverified | Voiding a sale and ringing it up again with the same M-Pesa code is now refused | `concerns/mobile_money_code.rb` | Decide; if allowed, skip payments on voided sales |
-| Unverified | An unknown Code 39/128 barcode containing letters can add the one product whose name or SKU contains it | `pos/lines_controller.rb` | Name search only when the code has a space or isn't barcode-shaped |
-| Unverified | `check_status` tests `pending?` before taking the lock, so a callback committing in between leaves an extra `STK…` transaction | `mpesa/stk_request.rb` | Check inside the lock |
+| **High** | Paybill webhook crash on a code typed in another case | `mpesa/transaction.rb` | **Fixed:** codes compared upper-cased and trimmed; a refused auto-match leaves the money to be picked |
+| **High** | Offline M-Pesa payments without a code refused after the first | `sale/offline.rb:150` | **Fixed:** the `OFFLINE` stand-in (`Payment::NO_CODE`) isn't treated as a code |
+| **High** | A late prompt payment landed on whatever the sale held by then; and a callback for a prompt whose sale was cleared was dropped | `mpesa/stk_request.rb`, `mpesa/shortcode/callbacks.rb` | **Fixed:** late money marks the prompt paid and waits on the till's list; money for a deleted prompt is recorded |
+| **High** | Past voids credited to an account counted after the fact; QuickBooks disagreed | `customer/receivables.rb`, `quickbooks_export.rb` | **Fixed:** the void keeps what it handed back (`sales.void_refund_cents`); only those voids credit; QuickBooks credits receivables for them |
+| Medium | Order credit check gaps: changing a confirmed order's customer; no PIN on the new form | `customer_orders_controller.rb`, `customer_orders/_form.html.erb` | **Fixed** |
+| Medium | The API's `POST /orders` creates confirmed orders without a credit check | `api/v1/orders_controller.rb:17` | **Open, by choice:** the API can't carry a PIN, and the till checks credit again when the order is collected on account |
+| Medium | An order saved straight as confirmed with a past "valid until" is refused as an expired quote | `customer_order/fulfilment.rb` (`confirm`) | Open (Low): skip the expiry check when confirming at once |
+| Medium | Closed shifts with a cash void of a deposit or on-account sale no longer added up | `shift.rb` | **Fixed:** older voids count their whole total, as when the shift closed |
+| Medium | The used-code check scanned every payment, without an index | `concerns/mobile_money_code.rb` | **Fixed:** an index on `upper(trim(reference))` per table, built concurrently |
+| Low | Re-picking the same customer no longer repriced the sale | `sale/cart.rb` | **Fixed** (unless money has been taken) |
+| Low | The Settings Tills and Branches cards counted every one | `settings_helper.rb` | **Fixed** |
+| Low | `MobileMoneyCode`'s comment overstated the M-Pesa report | `concerns/mobile_money_code.rb` | **Fixed** (comment); listing deposits and account payments as unconfirmed is still open |
+| Low | A discount that grew in money was refused at payment in percentage words | `sale/payable.rb` | **Fixed** |
+| Low | "More than one product matches" at the till is styled as an error, though it's guidance | `pos/_message.html.erb` | Open |
+| Unverified | Voiding a sale and ringing it up again with the same M-Pesa code is refused | `concerns/mobile_money_code.rb` | Open: a decision for the team; if allowed, skip payments on voided sales |
+| Unverified | An unknown Code 39/128 barcode containing letters can add the one product whose name or SKU contains it | `pos/lines_controller.rb` | Open |
+| Unverified | `check_status` could leave an extra `STK…` transaction when the callback overtook it | `mpesa/stk_request.rb` | **Fixed:** a status check with no receipt does nothing once the prompt isn't pending |
 
 ## Fixed since the first run
 
