@@ -1,51 +1,60 @@
+<%# The back office's navigation (NavigationHelper). On a laptop: the shop, its areas, search, the till and the
+    account, in one bar in the shop's colour (petrol teal unless it chose another), with the area's own menu underneath. On a phone the areas move to a tab bar along the
+    bottom, within reach of a thumb, so only the shop's bar and the area's menu sit above the page. %>
 <% app = current_app %>
-<% area_link = ->(each_app, extra = "") { link_to each_app.name, each_app.path, class: class_names("whitespace-nowrap rounded px-2.5 py-1.5 hover:bg-white/15 #{extra}", "bg-white/20" => each_app == app), aria: { current: ("page" if each_app == app) } } %>
-<nav class="sticky top-0 z-40 print:hidden" data-controller="command-palette" data-action="keydown@window->command-palette#shortcut">
+<% area_class = ->(each_app) { class_names("whitespace-nowrap rounded-md px-3 py-2 text-[15px] font-medium",
+     each_app == app ? "bg-white font-semibold text-primary-800" : "text-white hover:bg-white/15") } %>
+<nav class="sticky top-0 z-40 print:hidden" aria-label="Main" data-controller="command-palette" data-action="keydown@window->command-palette#shortcut">
   <div class="bg-primary-500 text-white shadow-sm">
-    <div class="flex h-11 items-center gap-1 px-2 text-sm">
-      <%= link_to root_path, class: "mr-2 flex items-center gap-2 rounded px-2 py-1 hover:bg-white/15", title: "Home" do %>
-        <svg viewBox="0 0 64 64" class="size-6 shrink-0" aria-hidden="true"><path d="M32 5 55 18.5v27L32 59 9 45.5v-27Z" fill="#FFFFFF"/><circle cx="32" cy="32" r="11" fill="<%= Current.account&.theme_color || "#0F5E6E" %>"/></svg>
-        <span class="hidden text-[15px] font-semibold sm:inline">HardPoint</span>
+    <div class="flex h-12 items-center gap-2 px-3 md:h-14 md:px-4">
+      <%= link_to root_path, class: "flex min-w-0 items-center gap-2.5 rounded-md py-1 pr-2 md:mr-3", title: "Home", aria: { label: "#{Current.account.name}, home" } do %>
+        <%# A logo still being uploaded (and refused) on the Appearance page isn't one yet. %>
+        <% if (logo = Current.account.logo).attached? && logo.persisted? && logo.variable? %>
+          <%= image_tag Current.account.logo.variant(resize_to_limit: [ 160, 64 ]), alt: "", class: "h-8 w-auto max-w-28 rounded bg-white object-contain p-0.5" %>
+        <% else %>
+          <svg viewBox="0 0 64 64" class="size-8 shrink-0" aria-hidden="true"><path d="M32 5 55 18.5v27L32 59 9 45.5v-27Z" fill="#FFFFFF"/><circle cx="32" cy="32" r="11" class="fill-primary-500"/></svg>
+        <% end %>
+        <span class="max-w-36 truncate text-base font-semibold md:hidden xl:inline xl:max-w-48"><%= Current.account.name %></span>
       <% end %>
-      <div class="hidden min-w-0 items-center gap-0.5 overflow-x-auto md:flex" data-tour="areas">
-        <% navigation_apps.each do |each_app| %><%= area_link.(each_app) %><% end %>
+
+      <div class="hidden min-w-0 items-center gap-1 overflow-x-auto md:flex" data-tour="areas">
+        <% navigation_apps.each do |each_app| %>
+          <%= link_to each_app.name, each_app.path, class: area_class.(each_app), aria: { current: ("page" if each_app == app) } %>
+        <% end %>
       </div>
 
-      <div class="ml-auto flex items-center gap-1">
+      <div class="ml-auto flex items-center gap-1.5">
         <button type="button" data-action="command-palette#open" aria-keyshortcuts="Control+K" aria-label="Search" data-tour="search"
-                class="flex cursor-pointer items-center gap-2 rounded bg-white/15 px-2.5 py-1.5 text-white hover:bg-white/25 lg:w-64">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4 shrink-0" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <span class="hidden lg:inline">Search…</span>
-          <kbd class="ml-auto hidden rounded border border-white/40 px-1 text-[11px] font-sans lg:inline">Ctrl K</kbd>
+                class="flex size-10 cursor-pointer items-center justify-center gap-2 rounded-md text-white hover:bg-white/15 xl:h-10 xl:w-64 xl:justify-start xl:bg-white/15 xl:px-3 xl:hover:bg-white/25">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-5 shrink-0 xl:size-4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="hidden xl:inline">Search…</span>
+          <kbd class="ml-auto hidden rounded border border-white/50 px-1.5 text-xs font-sans text-white xl:inline">Ctrl K</kbd>
         </button>
         <% if current_membership&.can_sell? %>
-          <%= link_to "Open till", pos_path, class: "rounded bg-[#c2561c] px-3 py-1.5 font-semibold hover:bg-[#a8471a]", data: { tour: "open-till" } %>
+          <%= link_to "Open till", pos_path, class: "whitespace-nowrap rounded-md bg-[#c2561c] px-3 py-2 text-[15px] font-semibold text-white hover:bg-[#a8471a]", data: { tour: "open-till" } %>
         <% end %>
-        <span class="hidden px-2 text-white/80 lg:inline"><%= Current.account.name %></span>
-        <%= link_to settings_path, class: class_names("flex size-9 items-center justify-center rounded hover:bg-white/15", "bg-white/20" => app == settings_app), title: "Settings", aria: { label: "Settings" }, data: { tour: "settings" } do %>
+        <%= link_to settings_path, class: class_names("hidden size-10 items-center justify-center rounded-md sm:flex", app == settings_app ? "bg-white text-primary-800" : "text-white hover:bg-white/15"),
+              title: "Settings", aria: { label: "Settings", current: ("page" if app == settings_app) }, data: { tour: "settings" } do %>
           <%= app_icon(settings_app, css: "size-5") %>
         <% end %>
-        <button type="button" popovertarget="user-menu" class="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 hover:bg-white/15" aria-label="Your account" data-tour="user-menu">
-          <span class="flex size-7 items-center justify-center rounded bg-white/20 text-xs font-semibold"><%= Current.user.name.split.map(&:first).first(2).join.upcase %></span>
+        <button type="button" popovertarget="user-menu" class="flex cursor-pointer items-center rounded-md p-1 hover:bg-white/15" aria-label="Your account" data-tour="user-menu">
+          <span class="flex size-8 items-center justify-center rounded-full bg-white text-xs font-semibold text-primary-800"><%= Current.user.name.split.map(&:first).first(2).join.upcase %></span>
         </button>
-        <div id="user-menu" popover class="fixed top-11 right-2 bottom-auto left-auto m-0 w-60 rounded border border-gray-200 bg-white py-1 text-sm text-gray-800 shadow-lg">
-          <div class="border-b border-gray-100 px-4 py-2">
-            <p class="font-semibold"><%= Current.user.name %></p>
-            <p class="text-xs text-gray-500"><%= current_membership&.role&.humanize %> · <%= Current.account.name %></p>
+        <div id="user-menu" popover class="fixed top-14 right-2 bottom-auto left-auto m-0 w-64 rounded-md border border-gray-200 bg-white py-1 text-[15px] text-gray-800 shadow-lg">
+          <div class="border-b border-gray-100 px-4 py-2.5">
+            <p class="font-semibold text-gray-900"><%= Current.user.name %></p>
+            <p class="text-sm text-gray-600"><%= current_membership&.role&.humanize %> at <%= Current.account.name %></p>
           </div>
-          <%= link_to "My profile", my_profile_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
-          <%= link_to "Switch user", new_session_switch_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
-          <%= link_to "Help", help_url(subdomain: false), class: "block px-4 py-1.5 hover:bg-gray-100" %>
-          <%= link_to "Guided tours", tours_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
-          <%= link_to "Contact support", new_support_request_path, class: "block px-4 py-1.5 hover:bg-gray-100" %>
+          <%= link_to "My profile", my_profile_path, class: "block px-4 py-2 hover:bg-gray-100" %>
+          <%= link_to "Settings", settings_path, class: "block px-4 py-2 hover:bg-gray-100 sm:hidden" %>
+          <%= link_to "Switch user", new_session_switch_path, class: "block px-4 py-2 hover:bg-gray-100" %>
+          <%= link_to "Help", help_url(subdomain: false), class: "block px-4 py-2 hover:bg-gray-100" %>
+          <%= link_to "Guided tours", tours_path, class: "block px-4 py-2 hover:bg-gray-100" %>
+          <%= link_to "Contact support", new_support_request_path, class: "block px-4 py-2 hover:bg-gray-100" %>
           <div class="my-1 border-t border-gray-100"></div>
-          <%= button_to "Sign out", session_path, method: :delete, class: "block w-full cursor-pointer px-4 py-1.5 text-left hover:bg-gray-100" %>
+          <%= button_to "Sign out", session_path, method: :delete, class: "block w-full cursor-pointer px-4 py-2 text-left hover:bg-gray-100" %>
         </div>
       </div>
-    </div>
-
-    <div class="flex gap-0.5 overflow-x-auto border-t border-white/15 px-2 py-1 text-sm md:hidden">
-      <% navigation_apps.each do |each_app| %><%= area_link.(each_app, "py-1") %><% end %>
     </div>
   </div>
 
@@ -67,12 +76,31 @@
   </dialog>
 
   <% if app && app.menu.size > 1 %>
-    <nav class="flex gap-1 overflow-x-auto border-b border-gray-200 bg-white px-3 text-sm" aria-label="<%= app.name %> menu" data-tour="area-menu">
-      <% app.menu.each do |name, path| %>
-        <% active = app_menu_item_active?(path) %>
-        <%= link_to name, path, class: class_names("-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 hover:text-primary-700",
-              active ? "border-primary-500 font-medium text-gray-900" : "border-transparent text-gray-600"), aria: { current: ("page" if active) } %>
-      <% end %>
-    </nav>
+    <%# The area's own menu; on a phone it scrolls sideways, faded at the edge so it's plain there's more. %>
+    <div class="border-b border-gray-200 bg-gray-50 max-md:[mask-image:linear-gradient(to_right,black_85%,transparent)]">
+      <nav class="flex gap-1 overflow-x-auto px-2 md:px-3" aria-label="<%= app.name %> menu" data-tour="area-menu">
+        <% app.menu.each do |name, path| %>
+          <% active = app_menu_item_active?(path) %>
+          <%= link_to name, path, class: class_names("-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-[15px]",
+                active ? "border-primary-600 font-medium text-gray-900" : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-900"),
+                aria: { current: ("page" if active) } %>
+        <% end %>
+      </nav>
+    </div>
   <% end %>
 </nav>
+
+<%# On a phone, the areas along the bottom of the screen. %>
+<nav class="fixed inset-x-0 bottom-0 z-40 bg-primary-500 pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-1px_3px_rgb(0_0_0/0.15)] md:hidden print:hidden" aria-label="Areas">
+  <div class="grid auto-cols-fr grid-flow-col">
+    <% navigation_apps.each do |each_app| %>
+      <% active = each_app == app %>
+      <%= link_to each_app.path, class: class_names("flex flex-col items-center gap-0.5 pt-1.5 pb-1 text-xs", active ? "font-semibold" : "text-white"),
+            aria: { current: ("page" if active) } do %>
+        <span class="<%= class_names("flex h-7 w-12 items-center justify-center rounded-full", "bg-white text-primary-800" => active) %>"><%= app_icon(each_app, css: "size-5") %></span>
+        <span class="max-w-full truncate px-0.5"><%= each_app.name %></span>
+      <% end %>
+    <% end %>
+  </div>
+</nav>
+
