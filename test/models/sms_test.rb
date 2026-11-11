@@ -49,6 +49,7 @@ class SmsTest < ActiveSupport::TestCase
     accounts(:acme).mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator")
 
     Sms::Message.receipt(sale, to: "0722000111")
+    accounts(:acme).update!(features: accounts(:acme).features - [ "customer_portal" ])
     Sms::Message.balance_reminder(customers(:acme_contractor))
     delivering { perform_enqueued_jobs }
 
@@ -56,6 +57,14 @@ class SmsTest < ActiveSupport::TestCase
     assert_match "receipt #{sale.receipt_number}", receipt
     assert_match "Total KES 1,000.00 paid by on account", receipt
     assert_equal "Acme Hardware: your account balance is KES 1,000.00. Pay to Paybill 174379, account 0722000111. Thank you.", reminder
+
+    # With the customer portal, the link to it (where they can pay) takes the Paybill's place, and it's still one text.
+    accounts(:acme).update!(features: accounts(:acme).features + [ "customer_portal" ])
+    Sms::Message.where(purpose: "balance_reminder").delete_all # one reminder a day per customer
+    Sms::Message.balance_reminder(customers(:acme_contractor).reload)
+    delivering { perform_enqueued_jobs }
+    link = customers(:acme_contractor).portal_links.sole
+    assert_equal "Acme Hardware: your account balance is KES 1,000.00. See your invoices and pay: #{link.url}", Sms::Outbox.deliveries.last[:message]
     assert Sms::Outbox.deliveries.all? { _1[:message].length <= 160 }
   end
 

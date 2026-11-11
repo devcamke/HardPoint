@@ -1998,7 +1998,7 @@ CREATE TABLE public.mpesa_stk_requests (
     id bigint NOT NULL,
     account_id bigint NOT NULL,
     shortcode_id bigint NOT NULL,
-    sale_id bigint NOT NULL,
+    sale_id bigint,
     payment_id bigint,
     requested_by_id bigint,
     phone character varying NOT NULL,
@@ -2011,7 +2011,10 @@ CREATE TABLE public.mpesa_stk_requests (
     receipt_number character varying,
     resolved_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    customer_id bigint,
+    customer_payment_id bigint,
+    portal_link_id bigint
 );
 
 ALTER TABLE ONLY public.mpesa_stk_requests FORCE ROW LEVEL SECURITY;
@@ -2120,6 +2123,46 @@ CREATE SEQUENCE public.payments_id_seq
 --
 
 ALTER SEQUENCE public.payments_id_seq OWNED BY public.payments.id;
+
+
+--
+-- Name: portal_links; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.portal_links (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    customer_id bigint NOT NULL,
+    created_by_id bigint,
+    token character varying NOT NULL,
+    expires_at timestamp(6) without time zone NOT NULL,
+    revoked_at timestamp(6) without time zone,
+    opened_count integer DEFAULT 0 NOT NULL,
+    last_opened_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.portal_links FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: portal_links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.portal_links_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: portal_links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.portal_links_id_seq OWNED BY public.portal_links.id;
 
 
 --
@@ -4181,6 +4224,13 @@ ALTER TABLE ONLY public.payments ALTER COLUMN id SET DEFAULT nextval('public.pay
 
 
 --
+-- Name: portal_links id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portal_links ALTER COLUMN id SET DEFAULT nextval('public.portal_links_id_seq'::regclass);
+
+
+--
 -- Name: price_list_items id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4852,6 +4902,14 @@ ALTER TABLE ONLY public.mpesa_shortcodes
 
 
 --
+-- Name: mpesa_stk_requests mpesa_stk_requests_pay_something; Type: CHECK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mpesa_stk_requests
+    ADD CONSTRAINT mpesa_stk_requests_pay_something CHECK (((sale_id IS NOT NULL) OR (customer_id IS NOT NULL))) NOT VALID;
+
+
+--
 -- Name: mpesa_stk_requests mpesa_stk_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4873,6 +4931,14 @@ ALTER TABLE ONLY public.mpesa_transactions
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: portal_links portal_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portal_links
+    ADD CONSTRAINT portal_links_pkey PRIMARY KEY (id);
 
 
 --
@@ -6255,10 +6321,31 @@ CREATE UNIQUE INDEX index_mpesa_stk_requests_on_checkout_request_id ON public.mp
 
 
 --
+-- Name: index_mpesa_stk_requests_on_customer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_stk_requests_on_customer_id ON public.mpesa_stk_requests USING btree (customer_id);
+
+
+--
+-- Name: index_mpesa_stk_requests_on_customer_payment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_stk_requests_on_customer_payment_id ON public.mpesa_stk_requests USING btree (customer_payment_id);
+
+
+--
 -- Name: index_mpesa_stk_requests_on_payment_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_mpesa_stk_requests_on_payment_id ON public.mpesa_stk_requests USING btree (payment_id);
+
+
+--
+-- Name: index_mpesa_stk_requests_on_portal_link_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mpesa_stk_requests_on_portal_link_id ON public.mpesa_stk_requests USING btree (portal_link_id);
 
 
 --
@@ -6329,6 +6416,27 @@ CREATE INDEX index_payments_on_account_sales ON public.payments USING btree (acc
 --
 
 CREATE INDEX index_payments_on_sale_id ON public.payments USING btree (sale_id);
+
+
+--
+-- Name: index_portal_links_on_account_id_and_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_portal_links_on_account_id_and_token ON public.portal_links USING btree (account_id, token);
+
+
+--
+-- Name: index_portal_links_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_portal_links_on_created_by_id ON public.portal_links USING btree (created_by_id);
+
+
+--
+-- Name: index_portal_links_on_customer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_portal_links_on_customer_id ON public.portal_links USING btree (customer_id);
 
 
 --
@@ -7796,6 +7904,14 @@ ALTER TABLE ONLY public.support_requests
 
 
 --
+-- Name: mpesa_stk_requests fk_rails_27aee22cc0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT fk_rails_27aee22cc0 FOREIGN KEY (customer_id) REFERENCES public.customers(id) DEFERRABLE NOT VALID;
+
+
+--
 -- Name: supplier_invoices fk_rails_291f86350e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8420,6 +8536,14 @@ ALTER TABLE ONLY public.shifts
 
 
 --
+-- Name: portal_links fk_rails_79a59e38cf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portal_links
+    ADD CONSTRAINT fk_rails_79a59e38cf FOREIGN KEY (customer_id) REFERENCES public.customers(id) DEFERRABLE;
+
+
+--
 -- Name: stock_counts fk_rails_79e8c88cba; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8577,6 +8701,14 @@ ALTER TABLE ONLY public.stock_count_batches
 
 ALTER TABLE ONLY public.supplier_products
     ADD CONSTRAINT fk_rails_8e1c65b71a FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
+-- Name: portal_links fk_rails_8ed83ded1f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.portal_links
+    ADD CONSTRAINT fk_rails_8ed83ded1f FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -8868,6 +9000,14 @@ ALTER TABLE ONLY public.sale_return_lines
 
 
 --
+-- Name: mpesa_stk_requests fk_rails_b76643d600; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT fk_rails_b76643d600 FOREIGN KEY (portal_link_id) REFERENCES public.portal_links(id) DEFERRABLE NOT VALID;
+
+
+--
 -- Name: material_products fk_rails_b7c4ea66ae; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9081,6 +9221,14 @@ ALTER TABLE ONLY public.api_idempotency_keys
 
 ALTER TABLE ONLY public.customer_order_lines
     ADD CONSTRAINT fk_rails_d48831d047 FOREIGN KEY (customer_order_id) REFERENCES public.customer_orders(id) DEFERRABLE;
+
+
+--
+-- Name: mpesa_stk_requests fk_rails_d4dacd170f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mpesa_stk_requests
+    ADD CONSTRAINT fk_rails_d4dacd170f FOREIGN KEY (customer_payment_id) REFERENCES public.customer_payments(id) DEFERRABLE NOT VALID;
 
 
 --
@@ -9783,6 +9931,13 @@ CREATE POLICY account_isolation ON public.payments USING (((current_setting('app
 
 
 --
+-- Name: portal_links account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.portal_links USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: price_list_items account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -10304,6 +10459,12 @@ ALTER TABLE public.mpesa_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: portal_links; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.portal_links ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: price_list_items; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10556,6 +10717,8 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111125100'),
+('20261111125000'),
 ('20261111124000'),
 ('20261111123000'),
 ('20261111122000'),

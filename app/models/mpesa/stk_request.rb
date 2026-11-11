@@ -1,5 +1,6 @@
-# A "pay with M-Pesa" prompt sent to a customer's phone from the till. Safaricom calls back when
-# the customer enters their PIN (or cancels); if no callback comes, the till asks Safaricom.
+# A "pay with M-Pesa" prompt sent to a customer's phone: from the till for a sale, or from the customer portal
+# for what they owe on account. Safaricom calls back when the customer enters their PIN (or cancels); if no callback
+# comes, the till or the portal asks Safaricom.
 class Mpesa::StkRequest < ApplicationRecord
   include AccountOwned, Monetary
 
@@ -7,8 +8,11 @@ class Mpesa::StkRequest < ApplicationRecord
   EXPIRES_AFTER = 3.minutes
 
   belongs_to :shortcode
-  belongs_to :sale
+  belongs_to :sale, optional: true
+  belongs_to :customer, optional: true
+  belongs_to :portal_link, optional: true
   belongs_to :payment, optional: true
+  belongs_to :customer_payment, optional: true
   belongs_to :requested_by, class_name: "User", default: -> { Current.user }, optional: true
 
   enum :status, %w[ pending paid failed cancelled expired ].index_by(&:itself), default: :pending
@@ -17,7 +21,8 @@ class Mpesa::StkRequest < ApplicationRecord
 
   validates :phone, format: { with: /\A254[17]\d{8}\z/, message: "must be a Safaricom number like 0722 000 111" }
   validates :amount_cents, numericality: { greater_than_or_equal_to: 100 }
-  validates_same_account :shortcode, :sale
+  validates_same_account :shortcode, :sale, :customer, :portal_link
+  validate { errors.add :base, "A prompt pays either a sale or a customer's account" unless sale.nil? ^ customer.nil? }
 
   # M-Pesa takes whole shillings, so a due amount with cents is rounded up; the sale is only
   # ever paid what's due.
@@ -26,8 +31,8 @@ class Mpesa::StkRequest < ApplicationRecord
   end
 
   def send_prompt
-    response = shortcode.client.stk_push(phone: phone, amount: whole_shillings, reference: sale.branch.code,
-      description: "#{shortcode.account.name.first(8)} sale", callback_url: shortcode.callback_url(:stk))
+    response = shortcode.client.stk_push(phone: phone, amount: whole_shillings, reference: account_reference,
+      description: "#{shortcode.account.name.first(8)} #{sale ? "sale" : "account"}", callback_url: shortcode.callback_url(:stk))
     update!(merchant_request_id: response["MerchantRequestID"], checkout_request_id: response["CheckoutRequestID"])
   rescue Mpesa::Client::Refused, JsonHttp::Unreachable => error
     update!(status: :failed, result_description: error.message, resolved_at: Time.current)
@@ -39,7 +44,7 @@ class Mpesa::StkRequest < ApplicationRecord
         transaction = record_transaction(receipt_number, amount_cents || self.amount_cents, phone, transacted_at, payload)
         if pending?
           update!(status: :paid, result_code: result_code, result_description: description, receipt_number: transaction.trans_id, resolved_at: Time.current)
-          pay_sale(transaction)
+          sale ? pay_sale(transaction) : pay_account(transaction)
         end
       elsif pending?
         update!(status: result_code == "1032" ? :cancelled : :failed, result_code: result_code, result_description: description, resolved_at: Time.current)
@@ -66,6 +71,14 @@ class Mpesa::StkRequest < ApplicationRecord
   end
 
   private
+    # What the customer sees on the prompt: the branch for a sale; for an account, the number their payments to
+    # the Paybill go under (their phone), else their customer number.
+    def account_reference
+      return sale.branch.code if sale
+
+      PhoneNumber.display(customer.phone).to_s.delete(" ").presence&.last(12) || "C#{customer.id}"
+    end
+
     # A paid prompt is money received even if the till gave up waiting, so it's always recorded.
     # A status check says "paid" without a receipt number; the checkout ID stands in for it.
     def record_transaction(receipt_number, amount_cents, phone, transacted_at, payload)
@@ -84,5 +97,15 @@ class Mpesa::StkRequest < ApplicationRecord
           transaction.match(payment)
         end
       end
+    end
+
+    # Money on account: settles the oldest invoices first, as a payment to the Paybill would.
+    def pay_account(transaction)
+      return if transaction.matched
+
+      payment = customer.customer_payments.create!(account: account, amount_cents: transaction.amount_cents, payment_method: "mobile_money",
+        reference: transaction.trans_id, paid_on: transaction.transacted_at.to_date, note: "Paid with M-Pesa from the customer portal", creator: nil)
+      update!(customer_payment: payment)
+      transaction.match(payment)
     end
 end

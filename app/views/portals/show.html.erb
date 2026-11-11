@@ -1,0 +1,109 @@
+<% content_for :title, "Your account" %>
+<% balance = @customer.balance_cents %>
+<% shortcode = Current.account.portal_shortcode %>
+
+<section class="card">
+  <h1 class="hint"><%= balance.negative? ? "Credit on your account" : "You owe" %></h1>
+  <p class="mt-1 text-3xl font-bold tabular-nums"><%= money(balance.abs) %></p>
+  <% if @overdue_cents.positive? %>
+    <p class="mt-1 font-semibold text-red-700"><%= money(@overdue_cents) %> of it is overdue</p>
+  <% end %>
+  <% if @customer.buys_on_account? %>
+    <p class="hint mt-2">You can buy on account up to <%= money(@customer.credit_limit_cents) %>; <%= money(@customer.available_credit_cents) %> is left. Invoices are due <%= pluralize(@customer.payment_terms_days, "day") %> after the sale.</p>
+  <% end %>
+</section>
+
+<% if @waiting %>
+  <p class="rounded border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-900" role="status">
+    An M-Pesa prompt is waiting on <%= PhoneNumber.display(@waiting.phone) %>. <%= link_to "See if it's paid", portal_payment_path(@link.token, @waiting), class: "link" %>
+  </p>
+<% end %>
+
+<% if balance.positive? && shortcode %>
+  <section class="card">
+    <h2 class="text-lg font-semibold">Pay with M-Pesa</h2>
+    <p class="hint mt-1">We'll send a prompt to your phone. Enter your M-Pesa PIN there and the payment goes straight onto your account, oldest invoices first.</p>
+    <%= form_with url: portal_payments_path(@link.token), class: "mt-4 grid gap-4 sm:grid-cols-2" do |form| %>
+      <div>
+        <%= form.label :phone, "Safaricom number", class: "label" %>
+        <%= form.telephone_field :phone, value: (PhoneNumber.display(@customer.phone) if PhoneNumber.normalize(@customer.phone)), required: true, autocomplete: "tel", inputmode: "tel", placeholder: "0722 000 111", class: "input w-full" %>
+      </div>
+      <div>
+        <%= form.label :amount, "Amount (#{Current.account.currency})", class: "label" %>
+        <%= form.number_field :amount, value: (balance / 100.0).ceil, min: 1, step: 1, required: true, inputmode: "numeric", class: "input w-full tabular-nums" %>
+      </div>
+      <div class="sm:col-span-2">
+        <%= form.submit "Send the M-Pesa prompt", class: "btn-primary w-full sm:w-auto" %>
+      </div>
+    <% end %>
+    <% if PhoneNumber.normalize(@customer.phone) %>
+      <p class="hint mt-4">Or pay from the M-Pesa menu: <%= shortcode.label %><%= ", account #{PhoneNumber.display(@customer.phone).delete(" ")}" unless shortcode.buy_goods? %>.</p>
+    <% end %>
+  </section>
+<% end %>
+
+<section class="card">
+  <h2 class="text-lg font-semibold">Unpaid invoices</h2>
+  <% if @open_invoices.any? %>
+    <ul class="mt-2 divide-y divide-gray-100">
+      <% @open_invoices.each do |open| %>
+        <li class="flex items-start justify-between gap-4 py-3">
+          <div>
+            <%= link_to open.sale.receipt_number, portal_invoice_path(@link.token, open.sale), class: "link font-mono", target: "_blank", rel: "noopener" %>
+            <p class="hint"><%= l(open.sale.completed_at.to_date, format: :long) %> · due <%= l(open.due_date, format: :long) %></p>
+            <% if open.days_overdue.positive? %><p class="text-sm font-semibold text-red-700"><%= pluralize(open.days_overdue, "day") %> overdue</p><% end %>
+          </div>
+          <div class="text-right">
+            <p class="whitespace-nowrap font-semibold tabular-nums"><%= money(open.outstanding_cents) %></p>
+            <% if open.outstanding_cents != open.amount_cents %><p class="hint whitespace-nowrap tabular-nums">of <%= money(open.amount_cents) %></p><% end %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="hint mt-2">Nothing owed. Thank you!</p>
+  <% end %>
+</section>
+
+<% if @quotes.any? || @orders.any? %>
+  <section class="card">
+    <h2 class="text-lg font-semibold">Quotes and orders</h2>
+    <ul class="mt-2 divide-y divide-gray-100">
+      <% (@orders + @quotes).each do |order| %>
+        <li class="flex items-start justify-between gap-4 py-3">
+          <div>
+            <%= link_to "#{order.kind} #{order.reference}", portal_quote_path(@link.token, order), class: "link", target: "_blank", rel: "noopener" %>
+            <p class="hint">
+              <% if order.quote? %><%= order.valid_until ? "Valid until #{l(order.valid_until, format: :long)}" : "Quote" %><% else %><%= order.ready? ? "Ready to collect" : "Being prepared" %><% end %>
+            </p>
+          </div>
+          <p class="whitespace-nowrap font-semibold tabular-nums"><%= money(order.total_cents) %></p>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>
+
+<section class="card">
+  <h2 class="text-lg font-semibold">Statements</h2>
+  <p class="hint mt-1">Everything bought and paid over a period, as a PDF.</p>
+  <ul class="mt-3 flex flex-wrap gap-2">
+    <% PortalsController::PERIODS.each do |key, label| %>
+      <li><%= link_to label, portal_statement_path(@link.token, period: key), class: "btn-secondary", target: "_blank", rel: "noopener" %></li>
+    <% end %>
+  </ul>
+</section>
+
+<% if @payments.any? %>
+  <section class="card">
+    <h2 class="text-lg font-semibold">Recent payments</h2>
+    <ul class="mt-2 divide-y divide-gray-100">
+      <% @payments.each do |payment| %>
+        <li class="flex justify-between gap-4 py-2">
+          <span><%= l(payment.paid_on, format: :long) %> · <%= payment.payment_method.humanize %><%= " · #{payment.reference}" if payment.reference.present? %></span>
+          <span class="whitespace-nowrap tabular-nums"><%= money(payment.amount_cents) %></span>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

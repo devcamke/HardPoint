@@ -13,6 +13,7 @@ module Account::Features
     Feature.new("currencies", "Foreign currencies", "Dollars and other notes at the till, and suppliers who invoice in them", "Selling"),
     Feature.new("online_store", "Online store", "Click-and-collect from your own web address", "Selling"),
     Feature.new("whatsapp_messages", "WhatsApp from HardPoint", "Send receipts, quotes, credit notes, statements and balance reminders from HardPoint's WhatsApp number, and see when they're read", "Selling"),
+    Feature.new("customer_portal", "Customer portal", "Send customers a link to their balance, invoices, quotes and statement, where they can pay with M-Pesa", "Selling"),
     Feature.new("fundis", "Fundi commissions", "Pay masons, plumbers and electricians a commission on the customers they bring", "Selling"),
     Feature.new("jobs", "Contractor jobs", "Tag a contractor's purchases to a project and track it against a budget", "Stock and work"),
     Feature.new("batches", "Batches and expiry dates", "For paint, adhesives and chemicals: first-expiring-first selling and recalls", "Stock and work"),
@@ -73,6 +74,7 @@ module Account::Features
       when "online_store" then storefront.present?
       when "jobs" then jobs.exists?
       when "fundis" then fundis.exists?
+      when "customer_portal" then portal_links.current.exists?
       when "whatsapp_messages" then whatsapp_messages.exists?
       when "batches" then stock_batches.exists? || products.where(tracks_batches: true).exists?
       when "serial_numbers" then products.where(serialized: true).exists?

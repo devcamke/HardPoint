@@ -4,7 +4,9 @@ require "test_helper"
 # as an owner (who can reach everything in their own shop). Each must be refused or not found.
 class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
   # Route segments that aren't record ids.
-  NOT_RECORDS = %w[ reports#show help#show solutions#show ].freeze
+  # The customer portal is opened by a link's token, not by signing in; PortalsControllerTest checks that a token
+  # opens only its own customer's documents, and only at its own shop.
+  NOT_RECORDS = %w[ reports#show help#show solutions#show portals#invoice portals#quote portal_payments#show ].freeze
   # Controllers whose :id names a record of another model.
   MODEL_FOR_CONTROLLER = {
     "etims_devices" => "Etims::Device", "etims_submissions" => "Etims::Submission", "mpesa_shortcodes" => "Mpesa::Shortcode",
