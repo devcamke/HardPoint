@@ -174,6 +174,15 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     slugs.each { |slug| assert HelpArticle.find(slug), "No help article #{slug}" }
   end
 
+  test "the landing page shows how the counter is watched, and HardPoint on staff's and customers' phones" do
+    get marketing_root_path
+    assert_select "#counter li", minimum: 6
+    assert_select "#counter .lp-mail", /voided 7 sales \(usually about 1 a day\)/
+    assert_select "#phones img[src*='phone-stock-count']"
+    assert_select "#phones img[src*='phone-customer-portal']"
+    assert_select ".lp-works li", 8
+  end
+
   test "the landing page's prices come from the plans" do
     get marketing_root_path
     Plan.all.each do |plan|

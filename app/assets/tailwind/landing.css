@@ -280,6 +280,55 @@ a.lp-chip:hover { background: var(--lp-card); }
   .lp-btn:hover { transform: none; }
 }
 
+
+/* What it works with: a row of icons under "What you won't get". */
+.lp-works { border-bottom: 2px solid var(--lp-ink); }
+.lp-works .lp-wrap { display: grid; gap: 12px; padding-block: 22px 24px; }
+.lp-works .lp-also-label { margin: 0; }
+.lp-works ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 22px; }
+@media (min-width: 1100px) { .lp-works ul { justify-content: space-between; } }
+@media (max-width: 600px) { .lp-works ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; } .lp-works li { white-space: normal; } }
+.lp-works li { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 15px; white-space: nowrap; }
+.lp-works svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--lp-teal); }
+
+/* Keeping an eye on the counter: the list, and an example of the morning email beside it. */
+.lp-watch { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 56px; align-items: start; }
+@media (max-width: 960px) { .lp-watch { grid-template-columns: minmax(0, 1fr); } }
+.lp-checks { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 14px; }
+.lp-checks li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; font-size: 16px; line-height: 1.5; color: #2a3f43; }
+.lp-checks svg { width: 22px; height: 22px; margin-top: 1px; fill: none; stroke: var(--lp-ok); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.lp-checks b { color: var(--lp-ink); font-weight: 600; }
+.lp-mail { margin: 8px 0 0; }
+.lp-mail-cap { font-family: var(--lp-hand); font-weight: 700; font-size: 19px; color: var(--lp-teal); margin-bottom: 12px; transform: rotate(-1.5deg); transform-origin: left; }
+.lp-mail-card { background: #fff; border: 2px solid var(--lp-ink); border-radius: 18px; box-shadow: 10px 10px 0 var(--lp-ink); padding: 0 0 18px; overflow: hidden; }
+.lp-mail-top { display: flex; justify-content: space-between; padding: 12px 20px; background: var(--lp-teal); color: rgb(255 255 255 / 0.85); font-size: 13px; }
+.lp-mail-from { font-family: var(--lp-display); font-weight: 800; color: #fff; font-size: 16px; letter-spacing: -0.02em; }
+.lp-mail-subject { margin: 0; padding: 14px 20px 6px; font-weight: 700; font-size: 16px; }
+.lp-mail-figs { display: grid; grid-template-columns: 1.4fr 0.6fr 0.7fr; gap: 8px; margin: 8px 20px 0; }
+.lp-mail-figs div { background: var(--lp-card); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; min-width: 0; }
+.lp-mail-figs span { font-size: 12px; color: var(--lp-muted); }
+.lp-mail-figs b { font-family: var(--lp-display); font-size: 19px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lp-mail-figs em { font-style: normal; font-size: 12px; color: var(--lp-ok); }
+.lp-mail-h { margin: 18px 20px 8px; font-family: var(--lp-display); font-weight: 800; font-size: 18px; }
+.lp-mail-flags { list-style: none; margin: 0 20px; padding: 0; display: grid; gap: 8px; }
+.lp-mail-flags li { position: relative; padding: 10px 12px 10px 34px; border-radius: 10px; background: var(--lp-warn-soft); font-size: 15px; line-height: 1.4; }
+.lp-mail-flags li::before { content: "▲"; position: absolute; left: 12px; top: 10px; color: var(--lp-warn); font-size: 12px; }
+.lp-mail-flags span { color: var(--lp-muted); }
+.lp-mail-alert { display: flex; gap: 10px; align-items: center; margin: 22px 0 0 18px; padding: 12px 16px; border: 2px solid var(--lp-ink); border-radius: 14px; background: #fff; font-size: 15px; transform: rotate(-1deg); width: fit-content; max-width: 100%; }
+.lp-mail-dot { width: 10px; height: 10px; border-radius: 50%; background: #c0392b; flex-shrink: 0; box-shadow: 0 0 0 4px rgb(192 57 43 / 0.18); }
+
+/* Phones: real screenshots in a drawn phone, with what each is for beside it. */
+.lp-phones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 32px; margin-top: 56px; align-items: start; }
+@media (max-width: 1000px) { .lp-phones { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lp-phone-more { grid-column: 1 / -1; } }
+@media (max-width: 620px) { .lp-phones { grid-template-columns: minmax(0, 1fr); } }
+.lp-phones figure { margin: 0; display: grid; gap: 22px; justify-items: center; }
+.lp-phone { width: min(100%, 270px); border: 2px solid var(--lp-ink); border-radius: 34px; padding: 9px; background: var(--lp-ink); box-shadow: 10px 10px 0 color-mix(in srgb, var(--lp-ink) 22%, transparent); }
+.lp-phone img { display: block; width: 100%; height: auto; border-radius: 26px; }
+.lp-phones figcaption { max-width: 320px; text-align: center; }
+.lp-phones figcaption p { margin: 8px 0 0; color: var(--lp-muted); font-size: 16px; }
+.lp-phone-more { align-self: center; }
+.lp-phone-more .lp-more { margin-right: 14px; }
+
 /* ---- The kit the other public pages are built from ------------------------------------------------------------ */
 
 /* The top of an inner page (pages/_page_head): a handwritten kicker, a big headline and a line under it. */
