@@ -277,6 +277,7 @@ Rails.application.routes.draw do
         resource :statement_email, only: :create
         resource :balance_reminder, only: :create
         resource :portal_link, only: %i[ create destroy ]
+        resource :credit_hold_lift, only: %i[ create destroy ]
       end
     end
     # The stock app for phones.

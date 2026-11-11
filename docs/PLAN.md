@@ -35,7 +35,7 @@ customers, staff, or reports.
 | Receivables | Payments and returns credited to the account settle the oldest account sales first (FIFO), mirroring supplier payables; ageing and statements are based on that |
 | Cash away from the sale | Cash deposits and cash account payments go through the device's till and its open shift, so the drawer count still balances |
 | Credit limit | Going over it at the till needs an owner's or manager's approval PIN (or their own sign-in); the approver is recorded on the sale and in Activity |
-| Stock for orders | Not reserved; orders are visible in "Open orders" and "Ready to collect". Reservation waits until shops ask |
+| Stock for orders | Confirmed orders promise their stock until collected or cancelled (quotes promise nothing). The till warns before selling it to someone else, or refuses if the shop holds order stock (Phase 46); the reorder list and branch rebalancing always count it |
 | Deliveries | One delivery note per trip from a completed sale: pending → dispatched (driver, vehicle) → delivered (received by, optional photo of the signed note) |
 | Loyalty points | Skipped (optional in the plan) |
 | Cost of sales | Each sale line records its cost (weighted average at the time, ex tax; kits cost their parts) when the sale completes, so margins don't move when costs change later. Lines sold before this were back-filled at the cost of the day |
@@ -958,6 +958,43 @@ in the counter's head is slow and loses sales to the shop that answers first.
   first), matched to its M-Pesa transaction. One prompt waits at a time per customer, and at most 5 are sent per
   link in 10 minutes. The Paybill and account number are also shown for paying from the M-Pesa menu.
 
+### Phase 44 — Credit control: holds for overdue accounts, and Monday reminders
+**Goal:** stop a credit shop's debts growing while a customer is months behind, without a manager watching every sale.
+- **Holds** (Settings › Preferences › Credit control): an account with an invoice more than N days overdue (0, the
+  default, never holds) is on hold. Nothing more goes on account at the till, and no order is confirmed, without an
+  owner's or manager's approval PIN; the approval is recorded with what was overdue. The hold is worked out from
+  what's owed each time, so paying the late invoices ends it by itself. The customer's page shows why the account is
+  held, and the till marks the customer "On hold".
+- **Lifting a hold:** an owner or manager lifts it for 7, 14 or 30 days with a reason (a payment plan, a cheque in
+  the post). The page shows who lifted it, until when and why, and it can be put back at once. Both are recorded.
+- **Monday reminders** at 9 (Nairobi), for shops that choose them: every customer with an overdue invoice, a phone
+  and no opt-out gets an SMS (linking to the customer portal when that's on), or a WhatsApp message with their
+  statement. SMS keeps its one-a-day-per-customer rule and the shop's daily limit.
+
+### Phase 45 — Loss prevention: each cashier against their own usual, and drawer openings
+**Goal:** catch the cashier whose day is out of character, without flagging the ones who always discount for regulars.
+- **`CashierPatterns`:** a day's voids, discounts (on the sale and its lines), cash refunds and drawer openings without
+  a sale, per cashier, beside the same cashier's working days over the previous eight weeks. Flagged only when it's
+  at least a floor (3 voids or openings, KES 1,000 of discounts or cash refunds), more than twice their usual, and
+  beyond their usual spread (mean + 2 standard deviations). Cashiers with fewer than ten working days have no usual
+  yet and aren't flagged. The morning email's "Money and staff" section lists them: "Carl voided 5 sales (usually
+  under one a day)".
+- **Drawer openings without a sale:** the till's Open drawer is now a menu of reasons (change for a customer, a cash
+  drop, checking the float, other), recorded with the shift. The shift's page lists each opening with who and why,
+  and the discounts and voids report counts them per cashier.
+
+### Phase 46 — Stock held for confirmed orders
+**Goal:** a contractor who paid a deposit on 30 bags finds 30 bags waiting, not a walk-in's receipt for them.
+- **Settings › Preferences › Stock promised to confirmed orders:** *warn* (the default, as before: the till says how
+  much is promised but sells it) or *hold*. Holding, the till sells only what's free: on hand less what other
+  customers' confirmed orders still have to collect. The refusal names the orders ("Only 20 Bamburi cement free at
+  Main: 30 are held for order MAIN-O00012"), is checked again at payment, and is kept as demand turned away for the
+  morning email and the reorder forecast. The order being collected takes its own stock; cancelling or collecting an
+  order frees it.
+- **Reorder suggestions** treat promised stock as gone (on hand + on order − held) and list it ("30 held for
+  orders"); products with promised stock are always considered. **Branch rebalancing** never moves held stock away.
+- **The product page** shows, per branch, how much is held and links to the orders holding it.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -974,11 +1011,11 @@ in the counter's head is slow and loses sales to the shop that answers first.
 **Features to consider next**, chosen for Kenyan hardware shops and ordered by likely value:
 1. ~~**Customer portal by link:**~~ Done (Phase 43). a signed link (WhatsApp or SMS) to a contractor's statement, open invoices and quotes,
    with "Pay with M-Pesa" (STK) for the balance. Speeds up collections, the biggest cash-flow pain for credit shops.
-2. **Credit control:** put an account on hold automatically past N days overdue or over the limit, with an owner's
+2. ~~**Credit control:**~~ Done (Phase 44). put an account on hold automatically past N days overdue or over the limit, with an owner's
    override, and a weekly reminder run by WhatsApp/SMS.
-3. **Loss prevention alerts:** partly done (Phase 34: give-aways per cashier, cash counts and instant alerts). Still
+3. ~~**Loss prevention alerts:**~~ Done (Phases 34 and 45). partly done (Phase 34: give-aways per cashier, cash counts and instant alerts). Still
    to do: each cashier against their own usual, and no-sale drawer openings.
-4. **Stock reserved for confirmed orders**, so a deposit-paid order's goods aren't sold to a walk-in (deferred "until
+4. ~~**Stock reserved for confirmed orders**~~ Done (Phase 46)., so a deposit-paid order's goods aren't sold to a walk-in (deferred "until
    shops ask"; pilot shops with yards are likely to).
 5. **Cutting and weighing:** sell by length or weight from a bulk item with offcut tracking, and Web Serial scales.
 6. ~~**Branch rebalancing**~~: planned as Phase 37.

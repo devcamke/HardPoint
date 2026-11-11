@@ -20,13 +20,17 @@ class NavigationTest < ActionDispatch::IntegrationTest
     assert_select "nav [aria-label='Stock menu'] a[aria-current=page]", text: "Products"
     assert_select "nav [aria-label='Stock menu'] a", text: "Reorder"
     %w[ Categories Brands Units ].each { assert_select "nav [aria-label='Stock menu'] a", text: _1, count: 0 }
+
+    # On a phone the same areas sit in a tab bar along the bottom, the current one marked.
+    assert_select "nav[aria-label=Areas] a", count: 6
+    assert_select "nav[aria-label=Areas] a[aria-current=page]", text: /Stock/
   end
 
   test "catalogue lists, staff and activity live under Settings" do
     sign_in_as users(:amina)
 
     get categories_path
-    assert_select "nav a[aria-label=Settings].bg-white\\/20"
+    assert_select "nav a[aria-label=Settings][aria-current=page]"
 
     get memberships_path
     assert_select "nav [aria-label='Settings menu'] a[aria-current=page]", text: "Staff"

@@ -1,29 +1,21 @@
 <%# locals: (status:, date:, branch:, number: nil, account: Current.account) %>
-<%# A round rubber stamp for the receipt: the shop around the top, the branch around the bottom, and what
-    happened in the middle (PAID, ON ACCOUNT, VOID). Drawn in one colour so a thermal printer gets crisp
-    black; the long-name case shrinks the ring text rather than clipping it. %>
+<%# A rectangular rubber stamp for the receipt: the shop across the top, what happened in the middle (PAID, ON
+    ACCOUNT, VOID), then the date and receipt number, and the branch along the bottom. Drawn in one colour so a
+    thermal printer gets crisp black, and tilted a little, as a stamp pressed by hand is. Long names get a smaller
+    size rather than being clipped: a bold capital is about 0.7 of its size wide, and a regular one about 0.6. %>
 <% top = account.name.upcase
    bottom = [ branch.name, branch.phone.presence ].compact.join(" · ").upcase
-   # The ring's half-circumference is ~160 units; a bold capital is about three-quarters of the font size wide.
-   ring_size = ->(text) { (135.0 / ([ text.length, 1 ].max * 0.75)).clamp(5.0, 9.0).round(1) } %>
-<svg class="stamp" viewBox="0 0 120 120" role="img" aria-label="<%= [ status, number, date ].compact.join(", ") %>">
-  <defs>
-    <path id="stamp_top_<%= number %>" d="M 9 60 A 51 51 0 1 1 111 60"/>
-    <path id="stamp_bottom_<%= number %>" d="M 9 60 A 51 51 0 0 0 111 60"/>
-  </defs>
-  <g transform="rotate(-8 60 60)" fill="currentColor" stroke="currentColor" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
-    <circle cx="60" cy="60" r="56" fill="none" stroke-width="2.5"/>
-    <circle cx="60" cy="60" r="46" fill="none" stroke-width="1.2"/>
-    <text stroke="none" font-size="<%= ring_size.(top) %>" letter-spacing="0.6">
-      <textPath href="#stamp_top_<%= number %>" startOffset="50%"><%= top %></textPath>
-    </text>
-    <text stroke="none" font-size="<%= ring_size.(bottom) %>" letter-spacing="0.6">
-      <textPath href="#stamp_bottom_<%= number %>" startOffset="50%"><%= bottom %></textPath>
-    </text>
-    <line x1="30" y1="47" x2="90" y2="47" stroke-width="1"/>
-    <text x="60" y="67" stroke="none" font-size="<%= status.length > 6 ? 11 : 16 %>" letter-spacing="1"><%= status %></text>
-    <line x1="30" y1="73" x2="90" y2="73" stroke-width="1"/>
-    <text x="60" y="83" stroke="none" font-size="6.5" font-weight="400"><%= date %></text>
-    <% if number %><text x="60" y="92" stroke="none" font-size="6" font-weight="400"><%= number %></text><% end %>
+   detail = [ date, number ].compact.join(" · ")
+   fit = ->(text, width, max, ratio: 0.7) { (width / ([ text.length, 1 ].max * ratio)).clamp(4.5, max).round(1) } %>
+<svg class="stamp" viewBox="0 0 172 104" role="img" aria-label="<%= [ status, number, date ].compact.join(", ") %>">
+  <g transform="translate(6 7) rotate(-3 80 45)" fill="currentColor" stroke="currentColor" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
+    <rect x="1" y="1" width="158" height="88" rx="4" fill="none" stroke-width="2.6"/>
+    <rect x="6" y="6" width="148" height="78" rx="2" fill="none" stroke-width="1"/>
+    <text x="80" y="21" stroke="none" font-size="<%= fit.(top, 136, 12) %>" letter-spacing="0.5"><%= top %></text>
+    <line x1="14" y1="27" x2="146" y2="27" stroke-width="0.8"/>
+    <text x="80" y="50" stroke="none" font-size="<%= fit.(status, 130, 21, ratio: 0.75) %>" letter-spacing="1.5"><%= status %></text>
+    <line x1="14" y1="57" x2="146" y2="57" stroke-width="0.8"/>
+    <text x="80" y="67" stroke="none" font-size="<%= fit.(detail, 136, 7.5, ratio: 0.6) %>" font-weight="400"><%= detail %></text>
+    <text x="80" y="78" stroke="none" font-size="<%= fit.(bottom, 136, 7, ratio: 0.68) %>" letter-spacing="0.4"><%= bottom %></text>
   </g>
 </svg>

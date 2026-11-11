@@ -1,0 +1,21 @@
+<%# Credit control (Customer::CreditHold): an account held for being too long overdue, or one whose hold is lifted for now. %>
+<% if customer.on_credit_hold? %>
+  <section class="mb-6 rounded border border-red-200 bg-red-50 p-4" id="credit-hold">
+    <h2 class="font-semibold text-red-800">On hold</h2>
+    <p class="mt-1 text-sm text-red-800"><%= customer.credit_hold.message(customer.name) %>. Nothing more goes on account without a manager's PIN until the late invoices are paid.</p>
+    <% if current_membership.approver? %>
+      <%= form_with url: customer_credit_hold_lift_path(customer), class: "mt-3 flex flex-wrap items-end gap-3" do |form| %>
+        <div><%= form.label :days, "Lift the hold for", class: "label" %>
+          <%= form.select :days, Customer::CreditHold::LIFT_DAYS.map { [ "#{_1} days", _1 ] }, { selected: 14 }, class: "input" %></div>
+        <div class="min-w-48 flex-1"><%= form.label :reason, "Because", class: "label" %>
+          <%= form.text_field :reason, required: true, maxlength: 200, placeholder: "Agreed to pay KES 20,000 on Friday", class: "input w-full" %></div>
+        <%= form.submit "Lift the hold", class: "btn-secondary" %>
+      <% end %>
+    <% end %>
+  </section>
+<% elsif customer.credit_hold_lifted? %>
+  <section class="mb-6 rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" id="credit-hold">
+    Hold lifted until <%= l(customer.credit_hold_lifted_until, format: :long) %> by <%= customer.credit_hold_lifted_by&.name || "a manager" %>: <%= customer.credit_hold_lift_reason %>.
+    <%= button_to "Put it back on hold now", customer_credit_hold_lift_path(customer), method: :delete, class: "link ml-1", form_class: "inline" if current_membership.approver? %>
+  </section>
+<% end %>
