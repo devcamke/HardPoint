@@ -7,16 +7,6 @@
  * font size is 14px. Colours come from the theme (primary teal) plus a highlighter yellow and a sticky-note pink.
  */
 
-/* The headline face: Bricolage Grotesque, variable from 700 to 800 (SIL Open Font Licence), Latin subset, served
-   from app/assets/fonts so nothing is fetched from Google. */
-@font-face {
-  font-family: "Bricolage Grotesque";
-  font-style: normal;
-  font-weight: 700 800;
-  font-display: swap;
-  src: url("bricolage-grotesque.woff2") format("woff2");
-}
-
 .lp {
   --lp-ink: #0f2327;
   --lp-muted: #4c6266;
@@ -32,7 +22,7 @@
   --lp-ok: #13643a;
   --lp-warn: #8a4508;
   --lp-warn-soft: #fff1dc;
-  --lp-display: "Bricolage Grotesque", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --lp-display: var(--font-display);
   --lp-hand: var(--font-hand);
   --lp-mono: ui-monospace, "SFMono-Regular", "Roboto Mono", Menlo, Consolas, monospace;
 
@@ -83,7 +73,7 @@
 .lp-cta { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; margin-top: 34px; }
 
 /* Hero */
-.lp-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; padding-block: 56px 72px; }
+.lp-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; padding-block: 104px 72px; }
 @media (max-width: 960px) { .lp-hero { grid-template-columns: minmax(0, 1fr); gap: 48px; padding-block: 32px 56px; } }
 
 /* The example till in the hero, with "Pull the plug" (offline_demo_controller.js) */
@@ -113,7 +103,7 @@
 .lp-note-weigh svg { right: -40px; top: 30px; width: 44px; height: 26px; }
 .lp-note-etims { left: -6px; bottom: 96px; transform: rotate(3deg); }
 .lp-note-etims svg { right: -40px; top: -10px; width: 44px; height: 26px; }
-.lp-sticky { position: absolute; z-index: 3; right: -18px; top: -96px; width: 168px; padding: 16px 16px 18px; background: var(--lp-sticky); color: var(--lp-sticky-ink); font-family: var(--lp-hand); font-weight: 700; font-size: 18px; line-height: 1.15; transform: rotate(5deg); box-shadow: 0 10px 18px -10px rgb(0 0 0 / 0.45); margin: 0; }
+.lp-sticky { position: absolute; z-index: 3; right: -18px; top: -112px; width: 168px; padding: 16px 16px 18px; background: var(--lp-sticky); color: var(--lp-sticky-ink); font-family: var(--lp-hand); font-weight: 700; font-size: 18px; line-height: 1.15; transform: rotate(5deg); box-shadow: 0 10px 18px -10px rgb(0 0 0 / 0.45); margin: 0; }
 .lp-sticky b { display: block; font-size: 30px; line-height: 1; margin-bottom: 4px; }
 /* Narrower than this, the notes would sit on the till: they go under it, and the sticky note above it. */
 @media (max-width: 1179px) {

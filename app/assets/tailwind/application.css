@@ -10,6 +10,8 @@
  */
 @theme {
   --font-sans: "Roboto", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  /* Headlines on the landing page, and the logo's wordmark everywhere. */
+  --font-display: "Bricolage Grotesque", "Arial Black", "Helvetica Neue", Arial, sans-serif;
   /* Handwriting for the marketing page's annotations, from whatever the device has. */
   --font-hand: "Kalam", "Segoe Print", "Bradley Hand", "Marker Felt", "Comic Sans MS", cursive;
 
@@ -37,6 +39,16 @@
   font-weight: 700;
   font-display: swap;
   src: url("kalam-700.woff2") format("woff2");
+}
+
+/* The logo's wordmark and the landing page's headlines: Bricolage Grotesque, variable from 700 to 800 (SIL Open
+   Font Licence), Latin subset, also served from app/assets/fonts. */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 700 800;
+  font-display: swap;
+  src: url("bricolage-grotesque.woff2") format("woff2");
 }
 
 @layer base {
