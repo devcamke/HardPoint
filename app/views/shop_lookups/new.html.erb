@@ -1,24 +1,24 @@
 <% content_for :title, "Sign in" %>
 <% content_for :noindex, true %>
+<%# Finding your shop in the public site's look (landing.css): one boxed field on an outlined panel. %>
 
-<section class="bg-white">
- <div class="mx-auto max-w-md px-4 pt-16 pb-20 sm:pt-20 sm:pb-28">
-  <h1 class="text-center text-4xl font-semibold tracking-tight text-gray-950 sm:text-5xl">Sign in to your shop</h1>
-  <p class="mt-4 mb-10 text-center text-lg text-gray-600 text-balance">Every shop has its own web address, like <span class="font-mono text-base">yourshop.<%= request.host %></span>.</p>
+<div class="lp">
+  <%= render "pages/page_head", kicker: "Welcome back", title: "Sign in to your shop",
+        lede: safe_join([ "Every shop has its own web address, like ", tag.span("yourshop.#{request.host}", class: "font-mono text-base text-[#0f2327]"), "." ]) %>
 
-  <div class="rounded-3xl bg-gray-100 p-6 sm:p-8">
-    <%= form_with url: shop_lookup_path, data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
-      <div class="field">
-        <%= form.label :subdomain, "Your shop's web address", class: "label" %>
-        <div class="flex items-center gap-2">
-          <%= form.text_field :subdomain, value: params[:subdomain], required: true, autofocus: true, autocapitalize: "none", class: "input", placeholder: "yourshop" %>
-          <span class="text-gray-500">.<%= request.host %></span>
+  <div class="lp-wrap pb-[96px]">
+    <div class="lp-panel max-w-[520px] mx-auto">
+      <%= form_with url: shop_lookup_path, class: "lp-form", data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
+        <div class="field">
+          <%= form.label :subdomain, "Your shop's web address", class: "label" %>
+          <div class="lp-suffix">
+            <%= form.text_field :subdomain, value: params[:subdomain], required: true, autofocus: true, autocapitalize: "none", class: "input", placeholder: "yourshop" %>
+            <span>.<%= request.host %></span>
+          </div>
         </div>
-      </div>
-      <%= form.submit "Continue", class: "btn-primary w-full py-2.5 text-base" %>
-    <% end %>
+        <%= form.submit "Continue", class: "lp-btn" %>
+      <% end %>
+    </div>
+    <p class="lp-fine lp-center mt-[28px]">New to HardPoint? <%= link_to "Start a free #{Plan::TRIAL.inspect} trial ›", new_signup_path %></p>
   </div>
-
-  <p class="mt-8 text-center text-gray-600">New to HardPoint? <%= link_to new_signup_path, class: "font-medium text-accent-600 hover:underline" do %>Start a free <%= Plan::TRIAL.inspect %> trial <span aria-hidden="true">›</span><% end %></p>
- </div>
-</section>
+</div>

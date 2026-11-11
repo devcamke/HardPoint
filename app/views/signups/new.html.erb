@@ -1,70 +1,71 @@
 <% content_for :title, "Open your shop" %>
 <% content_for :description, "Open your hardware store on HardPoint: your own web address, till, stock and M-Pesa in minutes. #{Plan::TRIAL.inspect.capitalize} free, no card needed." %>
+<%# Signup in the public site's look (landing.css): the form on an outlined panel with big, boxed fields. %>
 
-<section class="bg-white">
-<div class="mx-auto max-w-xl px-4 pt-16 pb-20 sm:pt-20 sm:pb-28">
-<h1 class="text-center text-4xl font-semibold tracking-tight text-gray-950 sm:text-5xl">Open your shop</h1>
-<p class="mt-4 mb-10 text-center text-lg text-gray-600 text-balance">Free for <%= Plan::TRIAL.inspect %>, no card needed. Your shop's data is private to your shop.</p>
+<div class="lp">
+  <%= render "pages/page_head", kicker: "#{Plan::TRIAL.inspect.capitalize} free, no card needed", title: "Open your shop",
+        lede: "Your own web address, till, stock and M-Pesa in minutes. Your shop’s data is private to your shop." %>
 
-<div class="rounded-3xl bg-gray-100 p-6 sm:p-8">
-  <%# Turbo can't follow the redirect to the new shop's subdomain (another origin), so submit normally. %>
-  <%= form_with model: @signup, url: signup_path, data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
-    <%= render "shared/errors", model: @signup %>
+  <div class="lp-wrap pb-[96px]">
+    <div class="lp-panel max-w-[600px] mx-auto">
+      <%# Turbo can't follow the redirect to the new shop's subdomain (another origin), so submit normally. %>
+      <%= form_with model: @signup, url: signup_path, class: "lp-form", data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
+        <%= render "shared/errors", model: @signup %>
 
-    <div class="field">
-      <%= form.label :shop_name, "Business name", class: "label" %>
-      <%= form.text_field :shop_name, required: true, autofocus: true, class: "input" %>
-    </div>
+        <div class="field">
+          <%= form.label :shop_name, "Business name", class: "label" %>
+          <%= form.text_field :shop_name, required: true, autofocus: true, class: "input" %>
+        </div>
 
-    <div class="field">
-      <%= form.label :subdomain, "Web address", class: "label" %>
-      <div class="flex items-center gap-2">
-        <%= form.text_field :subdomain, required: true, pattern: "[a-z0-9]+(-[a-z0-9]+)*", class: "input", placeholder: "acme" %>
-        <span class="text-gray-500">.<%= request.host %></span>
-      </div>
-    </div>
+        <div class="field">
+          <%= form.label :subdomain, "Web address", class: "label" %>
+          <div class="lp-suffix">
+            <%= form.text_field :subdomain, required: true, pattern: "[a-z0-9]+(-[a-z0-9]+)*", class: "input", placeholder: "acme" %>
+            <span>.<%= request.host %></span>
+          </div>
+        </div>
 
-    <div class="field">
-      <%= form.label :owner_name, "Your name", class: "label" %>
-      <%= form.text_field :owner_name, required: true, autocomplete: "name", class: "input" %>
-    </div>
+        <div class="field">
+          <%= form.label :owner_name, "Your name", class: "label" %>
+          <%= form.text_field :owner_name, required: true, autocomplete: "name", class: "input" %>
+        </div>
 
-    <div class="field">
-      <%= form.label :email_address, class: "label" %>
-      <%= form.email_field :email_address, required: true, autocomplete: "username", class: "input" %>
-    </div>
+        <div class="field">
+          <%= form.label :email_address, class: "label" %>
+          <%= form.email_field :email_address, required: true, autocomplete: "username", class: "input" %>
+        </div>
 
-    <div class="field">
-      <%= form.label :password, class: "label" %>
-      <%= form.password_field :password, required: true, minlength: 10, maxlength: 72, autocomplete: "new-password", class: "input" %>
-    </div>
+        <div class="field">
+          <%= form.label :password, class: "label" %>
+          <%= form.password_field :password, required: true, minlength: 10, maxlength: 72, autocomplete: "new-password", class: "input" %>
+          <p class="hint">At least 10 characters.</p>
+        </div>
 
-    <fieldset class="field">
-      <legend class="label">Plan after the trial</legend>
-      <div class="grid gap-2 sm:grid-cols-3">
-        <% Plan.all.each do |plan| %>
-          <label class="flex cursor-pointer flex-col rounded-2xl border border-transparent bg-white p-3 text-sm has-[:checked]:border-primary-500 has-[:checked]:ring-1 has-[:checked]:ring-primary-500">
-            <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :plan, plan.key %> <%= plan.name %></span>
-            <span class="text-gray-500"><%= plan.price %>/month</span>
+        <fieldset class="field">
+          <legend>Plan after the trial</legend>
+          <div class="lp-choices">
+            <% Plan.all.each do |plan| %>
+              <label class="lp-choice">
+                <b><%= form.radio_button :plan, plan.key %> <%= plan.name %></b>
+                <span>KES <%= number_with_delimiter(plan.price_cents / 100) %> a month</span>
+              </label>
+            <% end %>
+          </div>
+          <p class="hint">You can change plan at any time. <%= link_to "Compare plans", pricing_path, class: "link", target: "_blank" %></p>
+        </fieldset>
+
+        <div class="field">
+          <label class="flex items-start gap-3 text-[15px] leading-snug">
+            <%= form.check_box :terms_accepted, required: true, class: "mt-1 size-4 accent-[#0f5e6e]" %>
+            <span>I agree to the <%= link_to "terms of service", terms_path, class: "link", target: "_blank" %> and the
+              <%= link_to "data processing terms", data_processing_path, class: "link", target: "_blank" %>, and I’ve read
+              <%= link_to "how HardPoint handles data", privacy_path, class: "link", target: "_blank" %>.</span>
           </label>
-        <% end %>
-      </div>
-      <p class="hint mt-1">You can change plan at any time. <%= link_to "Compare plans", pricing_path, class: "link", target: "_blank" %></p>
-    </fieldset>
+        </div>
 
-    <div class="field">
-      <label class="flex items-start gap-2 text-sm">
-        <%= form.check_box :terms_accepted, required: true, class: "mt-1" %>
-        <span>I agree to the <%= link_to "terms of service", terms_path, class: "link", target: "_blank" %> and the
-          <%= link_to "data processing terms", data_processing_path, class: "link", target: "_blank" %>, and I've read
-          <%= link_to "how HardPoint handles data", privacy_path, class: "link", target: "_blank" %>.</span>
-      </label>
+        <%= form.submit "Create my shop", class: "lp-btn" %>
+      <% end %>
     </div>
-
-    <%= form.submit "Create my shop", class: "btn-primary w-full py-2.5 text-base" %>
-  <% end %>
+    <p class="lp-fine lp-center mt-[28px]">Already have a shop? <%= link_to "Sign in ›", new_shop_lookup_path %></p>
+  </div>
 </div>
-<p class="mt-8 text-center text-gray-600">Already have a shop? <%= link_to new_shop_lookup_path, class: "font-medium text-accent-600 hover:underline" do %>Sign in <span aria-hidden="true">›</span><% end %></p>
-</div>
-</section>
-
