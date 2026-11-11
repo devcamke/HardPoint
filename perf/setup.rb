@@ -1,5 +1,5 @@
 # Builds the "loadtest" shop the k6 scenario sells in: Enterprise plan, two branches, one till and
-# one cashier per virtual user, and 2,000 products with barcodes and stock. Safe to run again.
+# one cashier per virtual user, and 20,000 products (a big shop's catalogue) with barcodes and stock. Safe to run again.
 #
 #   TILLS=40 bin/rails runner perf/setup.rb
 #
@@ -7,7 +7,12 @@
 abort "Not in production" if Rails.env.production?
 
 TILLS = Integer(ENV.fetch("TILLS", 40))
-PRODUCTS = Integer(ENV.fetch("PRODUCTS", 2_000))
+PRODUCTS = Integer(ENV.fetch("PRODUCTS", 20_000))
+
+# Names like a hardware shop's, so a search finds a handful of products the way it would at the till, not all of them.
+ITEMS = %w[ cement nails pipe elbow tee socket valve tap wire cable bulb switch paint brush roller hinge lock bolt nut
+  washer screw sheet board tile grout gutter bend union adaptor clip chain hook bracket plug hose fitting mesh rod padlock ]
+MATERIALS = %w[ steel pvc brass galv copper chrome white black ]
 PASSWORD = "loadtest-password"
 
 unless Account.exists?(subdomain: "loadtest")
@@ -24,7 +29,7 @@ Account.without_isolation do
 
     if account.products.count < PRODUCTS
       csv = +"sku,name,category,unit,price,cost,barcode,stock\n"
-      PRODUCTS.times { |i| csv << "LT-#{i},Load item #{i},Group #{i % 40},Piece,#{100 + i % 900},#{50 + i % 400},#{(6_000_000_000_000 + i)},100000\n" }
+      PRODUCTS.times { |i| csv << "LT-#{i},#{ITEMS[i % ITEMS.size].capitalize} #{MATERIALS[i / ITEMS.size % MATERIALS.size]} #{5 * (1 + i % 60)}mm no. #{i},Group #{i % 40},Piece,#{100 + i % 900},#{50 + i % 400},#{(6_000_000_000_000 + i)},100000\n" }
       branches.each do |branch|
         import = account.product_imports.create!(csv: csv, branch: branch, filename: "loadtest.csv")
         import.check
@@ -46,7 +51,7 @@ Account.without_isolation do
     end
 
     barcodes = account.barcodes.limit(PRODUCTS).pluck(:code)
-    File.write(Rails.root.join("perf/loadtest.json"), JSON.pretty_generate(host: "loadtest", tills: tills, barcodes: barcodes, searches: %w[ load item group 12 34 ]))
+    File.write(Rails.root.join("perf/loadtest.json"), JSON.pretty_generate(host: "loadtest", tills: tills, barcodes: barcodes, searches: [ "cement", "pvc elb", "brass tap 15", "galv bolt 20mm", "LT-1234", "padl", "chrome hinge" ]))
     puts "loadtest shop: #{tills.size} tills, #{account.products.count} products, #{barcodes.size} barcodes"
   end
 end

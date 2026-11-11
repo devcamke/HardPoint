@@ -916,22 +916,43 @@ in the counter's head is slow and loses sales to the shop that answers first.
   private, and yours"** section, every line true of the system (docs/SECURITY.md, the privacy page); and "Is my shop's
   data safe?" among the questions.
 
+### Phase 42 — Ready for the pilot: fast search, fewer queries, accessibility checked
+**Goal:** close the "Before the pilot" gaps that would show at a big shop's till.
+- **Search under row-level security.** A `search_terms` table holds each word of a product's name and SKU (and the
+  SKU's parts: CEM-50 gives cem and 50) and of a customer's name, plus the customer's phone as its last nine digits.
+  Database triggers keep it in step with every write, imports' upserts included. A typed word is found as a range of
+  a btree index (`term >= 'cem' AND term < 'cem' || U+10FFFF`, in the C collation). Comparing text is leakproof, so
+  Postgres uses the index under forced RLS, where it wouldn't for ILIKE. Words match from their start ("pvc elb");
+  only a search that finds nothing that way falls back to anywhere-in-the-name. Measured as a non-superuser, with
+  20,000 products in each of two shops: a typical search went from 24–31 ms to 1–5 ms, an exact SKU from 25 ms to
+  0.2 ms, and a broad word ("steel", a sixth of the catalogue) from 28 ms to 19 ms. `perf/setup.rb` now builds
+  20,000 products with names like a hardware shop's, and the k6 scenario searches them the way a cashier would.
+- **Query hot spots.** A customer's page works out the balance once, and the overdue figure from the open invoices it
+  already has (48 queries down to 26). Reorder suggestions filter in the database: only products with demand, or a
+  shelf at or below the level, are loaded. The eTIMS retry run picks only the shops with something waiting and sends
+  each in its own `Etims::ShopRetryJob` (never two at once for a shop), so one shop's slow connection to KRA no
+  longer holds up the rest.
+- **Accessibility in CI:** the first system tests, an axe-core 4.10.2 scan (WCAG 2.1 A/AA, serious and critical
+  problems fail) of the landing page, sign-in, dashboard, products, a product, customers, a customer and settings.
+  What it found is fixed: links are underlined (not told apart by colour alone), the header's search button and the
+  landing page's faint gray text meet 4.5:1, and a table box that scrolls sideways joins the tab order (named after
+  its heading) so it can be scrolled from the keyboard. A table's negative margin no longer makes its box scroll by
+  3 px.
+- **Stale assets in development:** `bin/dev` removes a `public/assets` left by a production build. The test suite was
+  checked and doesn't write it.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
-1. **Product and customer search under row-level security.** `ILIKE` and `similarity` aren't leakproof, so Postgres
-   won't use the trigram indexes under forced RLS and every search reads the shop's whole catalogue (24–36 ms at
-   20,000 products, on every keystroke at the till). Move search into a `SECURITY DEFINER` SQL function that takes the
-   shop's id, or search a leakproof prefix/`tsvector` column. Grow `perf/setup.rb` to 20,000 products and add the
-   catalogue download, category tabs, dashboard and a year's report to the k6 scenario.
+1. ~~**Product and customer search under row-level security.**~~ Done (Phase 42): leakproof prefix search on
+   `search_terms`. Still to add to the k6 scenario: the catalogue download, category tabs, dashboard and a year's report.
 2. ~~**A QZ Tray certificate per shop.**~~ Done (Phase 33): each shop signs with its own key (`Account::QzSigning`).
 3. ~~**Session lifetime and devices.**~~ Done (Phase 33): 14 days idle, 90 days in all, Signed-in devices on My profile.
 4. ~~**Airtel Money callbacks**~~ confirmed with Airtel before crediting, and ~~share links~~ revocable with statements
    fixed to their period. Done (Phase 33).
 5. ~~**Error reporting and uptime alerts**~~ Done (Phase 33): Sentry or email alerts, `PlatformHealth`, `/health`.
-6. **Remaining query hot spots:** a customer's page works out its balance several times; reorder suggestions load
-   every product with a reorder level; the eTIMS retry job sends shop after shop in one run.
-7. **Accessibility checks in CI:** an axe scan of the main screens in the system tests, so regressions are caught.
+6. ~~**Remaining query hot spots**~~ (customer balance, reorder candidates, eTIMS retries). Done (Phase 42).
+7. ~~**Accessibility checks in CI.**~~ Done (Phase 42): axe over the main screens in the system tests.
 
 **Features to consider next**, chosen for Kenyan hardware shops and ordered by likely value:
 1. **Customer portal by link:** a signed link (WhatsApp or SMS) to a contractor's statement, open invoices and quotes,

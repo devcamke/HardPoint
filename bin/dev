@@ -13,4 +13,11 @@ export PORT="${PORT:-3000}"
 export RUBY_DEBUG_OPEN="true"
 export RUBY_DEBUG_LAZY="true"
 
+# Precompiled assets (from a production build, or assets:precompile) make Propshaft serve those instead of the
+# live files, so the CSS stops updating. They're never wanted in development.
+if [ -f public/assets/.manifest.json ]; then
+  echo "Removing precompiled assets in public/assets (they'd hide your changes)"
+  rm -rf public/assets
+fi
+
 exec foreman start -f Procfile.dev "$@"

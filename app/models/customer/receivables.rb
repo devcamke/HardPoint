@@ -100,6 +100,11 @@ module Customer::Receivables
     @balance_cents || (charged_cents - credited_cents)
   end
 
+  # Works the balance out once, for a page that shows it in several places.
+  def remember_balance
+    tap { self.balance_cents = balance_cents }
+  end
+
   def due_date_for(sale)
     sale.completed_at.to_date + payment_terms_days
   end
@@ -126,8 +131,9 @@ module Customer::Receivables
     Ageing.buckets_for(open_invoices(as_of: as_of), as_of: as_of)
   end
 
-  def overdue_cents(as_of: Date.current)
-    open_invoices(as_of: as_of).select { _1.days_overdue(as_of).positive? }.sum(&:outstanding_cents)
+  # Given the open invoices already worked out, from those.
+  def overdue_cents(as_of: Date.current, invoices: open_invoices(as_of: as_of))
+    invoices.select { _1.days_overdue(as_of).positive? }.sum(&:outstanding_cents)
   end
 
   def statement(from: Date.current.beginning_of_month, to: Date.current)

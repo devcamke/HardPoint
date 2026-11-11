@@ -70,7 +70,7 @@ export default function () {
   for (let i = 0; i < lines; i++) {
     if (Math.random() < 0.25) {
       const query = data.searches[Math.floor(Math.random() * data.searches.length)]
-      const found = http.get(`${BASE}/pos/products?query=${query}`, { tags: { action: "search" }, headers: { Accept: "text/html" } })
+      const found = http.get(`${BASE}/pos/products?query=${encodeURIComponent(query)}`, { tags: { action: "search" }, headers: { Accept: "text/html" } })
       check(found, { "search ok": (r) => r.status === 200 })
       spent += found.timings.duration
       sleep(THINK * Math.random())

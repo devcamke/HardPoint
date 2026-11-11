@@ -6,7 +6,7 @@ about a second between actions (`THINK`, in seconds). That is several times fast
 counter, where a cashier scans every few seconds and serves a customer every couple of minutes.
 
 ```sh
-TILLS=40 bin/rails runner perf/setup.rb          # the "loadtest" shop: 40 tills and cashiers, 2,000 products
+TILLS=40 bin/rails runner perf/setup.rb          # the "loadtest" shop: 40 tills and cashiers, 20,000 products
 PERF=1 WEB_CONCURRENCY=4 RAILS_MAX_THREADS=5 bin/rails server   # development, but no reloading and quiet logs
 k6 run -e VUS=40 -e HOLD=2m perf/till.js
 ```

@@ -31,7 +31,7 @@
 <div class="mb-6 grid gap-4 sm:grid-cols-4" data-tour="customer-account">
   <div class="card"><p class="hint">Prices</p><p class="mt-1 text-xl font-bold"><%= @customer.price_list&.name || "Retail" %></p></div>
   <div class="card"><p class="hint"><%= @customer.balance_cents.negative? ? "Credit on account" : "Owes on account" %></p><p class="mt-1 text-xl font-bold tabular-nums"><%= money(@customer.balance_cents.abs) %></p>
-    <% overdue = @customer.overdue_cents %><%= tag.p("#{money(overdue)} overdue", class: "text-sm font-semibold text-red-700") if overdue.positive? %></div>
+    <% overdue = @customer.overdue_cents(invoices: @open_invoices) %><%= tag.p("#{money(overdue)} overdue", class: "text-sm font-semibold text-red-700") if overdue.positive? %></div>
   <div class="card"><p class="hint">Credit left</p><p class="mt-1 text-xl font-bold tabular-nums"><%= @customer.buys_on_account? ? money(@customer.available_credit_cents) : "Cash only" %></p>
     <% if @customer.buys_on_account? %><p class="hint">of <%= money(@customer.credit_limit_cents) %></p><% end %></div>
   <div class="card"><p class="hint">Pays within</p><p class="mt-1 text-xl font-bold"><%= pluralize(@customer.payment_terms_days, "day") %></p></div>

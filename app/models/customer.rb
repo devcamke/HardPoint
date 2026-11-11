@@ -25,13 +25,22 @@ class Customer < ApplicationRecord
   validates_same_account :price_list
 
   scope :alphabetically, -> { order(:name) }
+  # Every word must start a word of the name, or the digits must start the phone number's last nine
+  # (0722 000 finds +254 722 000 111), looked up in search_terms, which stays fast under row-level security. Only
+  # when that finds nothing does it look anywhere in the name and number, which reads every customer.
   scope :search, ->(query) do
     query = query.to_s.squish
     next all if query.blank?
 
+    digits = query.gsub(/\D/, "")
+    national = digits.sub(/\A(254|0)/, "").first(9) if digits.length >= 4
+    ids = SearchTerm.with_every_word("customers", query.split.first(8))
+    ids = Arel::Nodes::Union.new(ids, SearchTerm.starting_with("customers", national).arel) if national
+    matching = where(arel_table[:id].in(ids))
+    next matching if matching.exists?
+
     # Phone numbers match on their last nine digits, so 0722 000 111 finds +254722000111.
-    digits = query.gsub(/\D/, "").last(9)
-    phone_match = digits.length >= 4 ? "%#{digits}%" : nil
+    phone_match = digits.length >= 4 ? "%#{digits.last(9)}%" : nil
     where("customers.name ILIKE :like OR customers.phone LIKE :phone", like: "%#{sanitize_sql_like(query)}%", phone: phone_match)
   end
 

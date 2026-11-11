@@ -23,6 +23,59 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
 
 
+--
+-- Name: refresh_search_terms(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.refresh_search_terms() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF TG_OP <> 'INSERT' THEN
+    DELETE FROM search_terms WHERE record_type = TG_TABLE_NAME AND record_id = OLD.id;
+  END IF;
+  IF TG_OP <> 'DELETE' THEN
+    IF TG_TABLE_NAME = 'products' THEN
+      INSERT INTO search_terms (account_id, record_type, record_id, term)
+        SELECT NEW.account_id, 'products', NEW.id, term FROM search_terms_for(NEW.name || ' ' || NEW.sku) term;
+    ELSE
+      INSERT INTO search_terms (account_id, record_type, record_id, term)
+        SELECT NEW.account_id, 'customers', NEW.id, term FROM search_terms_for(NEW.name) term
+        UNION SELECT NEW.account_id, 'customers', NEW.id, search_phone_term(NEW.phone) WHERE search_phone_term(NEW.phone) IS NOT NULL;
+    END IF;
+  END IF;
+  RETURN NULL;
+END
+$$;
+
+
+--
+-- Name: search_phone_term(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.search_phone_term(phone text) RETURNS text
+    LANGUAGE sql IMMUTABLE PARALLEL SAFE
+    AS $$
+  SELECT CASE WHEN length(digits) >= 9 THEN right(digits, 9) END
+  FROM (SELECT regexp_replace(coalesce(phone, ''), '\D', '', 'g') AS digits) cleaned
+$$;
+
+
+--
+-- Name: search_terms_for(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.search_terms_for(words text) RETURNS SETOF text
+    LANGUAGE sql IMMUTABLE PARALLEL SAFE
+    AS $$
+  SELECT DISTINCT left(term, 100) FROM (
+    SELECT regexp_split_to_table(lower(words), '\s+') AS term
+    UNION ALL
+    SELECT regexp_split_to_table(lower(words), '[^[:alnum:]]+')
+  ) split WHERE term <> ''
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -2634,6 +2687,20 @@ ALTER SEQUENCE public.sales_id_seq OWNED BY public.sales.id;
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
+
+
+--
+-- Name: search_terms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.search_terms (
+    account_id bigint NOT NULL,
+    record_type character varying NOT NULL,
+    record_id bigint NOT NULL,
+    term text NOT NULL COLLATE pg_catalog."C"
+);
+
+ALTER TABLE ONLY public.search_terms FORCE ROW LEVEL SECURITY;
 
 
 --
@@ -6692,6 +6759,20 @@ CREATE INDEX index_sales_on_voided_by_id ON public.sales USING btree (voided_by_
 
 
 --
+-- Name: index_search_terms_for_lookup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_terms_for_lookup ON public.search_terms USING btree (account_id, record_type, term) INCLUDE (record_id);
+
+
+--
+-- Name: index_search_terms_on_record_type_and_record_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_search_terms_on_record_type_and_record_id ON public.search_terms USING btree (record_type, record_id);
+
+
+--
 -- Name: index_sessions_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7340,6 +7421,34 @@ CREATE UNIQUE INDEX index_whatsapp_messages_on_provider_message_id ON public.wha
 --
 
 CREATE INDEX index_whatsapp_messages_on_sent_by_id ON public.whatsapp_messages USING btree (sent_by_id);
+
+
+--
+-- Name: customers search_terms_changed; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER search_terms_changed AFTER UPDATE OF name, phone ON public.customers FOR EACH ROW WHEN ((((old.name)::text IS DISTINCT FROM (new.name)::text) OR ((old.phone)::text IS DISTINCT FROM (new.phone)::text))) EXECUTE FUNCTION public.refresh_search_terms();
+
+
+--
+-- Name: products search_terms_changed; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER search_terms_changed AFTER UPDATE OF name, sku ON public.products FOR EACH ROW WHEN ((((old.name)::text IS DISTINCT FROM (new.name)::text) OR ((old.sku)::text IS DISTINCT FROM (new.sku)::text))) EXECUTE FUNCTION public.refresh_search_terms();
+
+
+--
+-- Name: customers search_terms_written; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER search_terms_written AFTER INSERT OR DELETE ON public.customers FOR EACH ROW EXECUTE FUNCTION public.refresh_search_terms();
+
+
+--
+-- Name: products search_terms_written; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER search_terms_written AFTER INSERT OR DELETE ON public.products FOR EACH ROW EXECUTE FUNCTION public.refresh_search_terms();
 
 
 --
@@ -9765,6 +9874,13 @@ CREATE POLICY account_isolation ON public.sales USING (((current_setting('app.by
 
 
 --
+-- Name: search_terms account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.search_terms USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: sessions account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -10266,6 +10382,12 @@ ALTER TABLE public.sale_returns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sales ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: search_terms; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.search_terms ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: sessions; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10434,6 +10556,7 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111124000'),
 ('20261111123000'),
 ('20261111122000'),
 ('20261111121000'),
