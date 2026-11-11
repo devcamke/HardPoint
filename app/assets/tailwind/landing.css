@@ -44,7 +44,7 @@
 .lp-center .lp-kicker { transform-origin: center; }
 .lp h1, .lp h2 { font-family: var(--lp-display); font-weight: 800; letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
 .lp h1 { font-size: clamp(46px, 7vw, 88px); line-height: 0.98; }
-.lp h2 { font-size: clamp(36px, 5vw, 64px); line-height: 1.02; }
+.lp h2 { font-size: clamp(33px, 5vw, 64px); line-height: 1.02; }
 .lp h3 { font-family: var(--lp-display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; line-height: 1.15; margin: 0; text-wrap: balance; }
 .lp-lede { font-size: clamp(18px, 1.6vw, 21px); line-height: 1.55; color: var(--lp-muted); max-width: 34em; margin: 24px 0 0; text-wrap: pretty; }
 .lp-lede strong { color: var(--lp-ink); font-weight: 500; }
@@ -54,6 +54,11 @@
 .lp-head.lp-center .lp-lede { margin-left: auto; margin-right: auto; }
 .lp-hl { position: relative; white-space: nowrap; z-index: 0; }
 .lp-hl::before { content: ""; position: absolute; z-index: -1; left: -0.08em; right: -0.1em; top: 0.18em; bottom: 0.02em; background: var(--lp-marker); border-radius: 0.12em 0.4em 0.18em 0.5em; transform: rotate(-1.2deg) skewX(-6deg); }
+/* On the narrowest phones the highlighted words may need two lines: the marker becomes a background that follows them. */
+@media (max-width: 379px) {
+  .lp-hl { white-space: normal; padding: 0 0.06em; background: linear-gradient(transparent 20%, var(--lp-marker) 20%, var(--lp-marker) 96%, transparent 96%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .lp-hl::before { display: none; }
+}
 .lp-more { display: inline-flex; gap: 6px; margin-top: 18px; font-weight: 500; color: var(--lp-teal); text-decoration: none; }
 .lp-more:hover { text-decoration: underline; text-underline-offset: 4px; }
 .lp-link { font-weight: 500; color: var(--lp-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--lp-ink) 40%, transparent); }
@@ -164,8 +169,8 @@
 .lp-anno-left svg { right: -84px; width: 80px; height: 40px; }
 .lp-anno-right svg { left: -84px; width: 80px; height: 40px; }
 .lp-anno-list { display: none; }
-@media (min-width: 1200px) { .lp-shot-wrap { margin-left: 130px; margin-right: 130px; } }
-@media (max-width: 1199px) {
+@media (min-width: 1260px) { .lp-shot-wrap { margin-left: 130px; margin-right: 130px; } }
+@media (max-width: 1259px) {
   .lp-anno { display: none; }
   .lp-anno-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 28px; list-style: none; padding: 0; margin: 36px 0 0; font-family: var(--lp-hand); font-weight: 700; font-size: 19px; line-height: 1.25; color: var(--lp-teal); }
   .lp-anno-list li { padding-left: 22px; position: relative; }
