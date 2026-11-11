@@ -27,6 +27,8 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 
 - [Customers](#customers): Adding customers with their KRA PIN and prices, choosing them at the till, and what the customer page shows.
 - [Customers on account, quotes and orders](#customer-accounts): Credit limits, deposits, statements and delivery notes.
+- [Credit control: holds and reminders](#credit-control): Holding accounts with invoices too long overdue, lifting a hold for a while, and Monday reminders to everyone who owes you.
+- [The customer portal](#customer-portal): A link to a customer's own page: what they owe, their invoices, quotes and statements, and paying with M-Pesa.
 - [Deliveries and transport charges](#deliveries): Charging transport at the till or afterwards, delivery notes, and tracking the lorry to site.
 - [Jobs for contractors](#contractor-jobs): Tag what contractors buy to their projects (online or offline), track it against a budget, and print a cost summary or a bill for their client.
 - [The material calculator](#material-calculator): From a wall's, slab's or roof's measurements to the blocks, cement, steel and sheets it needs, and a quote at your prices.
@@ -122,11 +124,16 @@ HardPoint is arranged in six areas, named for the job: **Home**, **Sell**, **Cus
 
 #### The top bar
 
-- The areas are along the top. The one you're in is highlighted, and its own menu is underneath: in Stock, for example, **Products**, **Stock levels**, **Reorder**, **Stock takes**, **Transfers** and **Expiry**.
+- Your shop's logo (or the HardPoint mark) and name are on the left, and take you Home. The bar is in your shop's colour (**Settings › Appearance**).
+- The areas are along the top. The one you're in is a white tab, and its own menu is underneath: in Stock, for example, **Products**, **Stock levels**, **Reorder**, **Stock takes**, **Transfers**, **Expiry** and **Labels**.
 - **Search** (or **Ctrl K** anywhere) finds products, customers, suppliers, receipt and order numbers, and pages, even by the names they used to have. Scan a barcode into it to open that product.
 - **Open till** takes you straight to the point of sale, for those who sell.
 - The **gear** opens Settings.
 - Your name, on the right, opens **My profile** (password, PINs, two-factor, the daily email), **Switch user**, **Help**, **Contact support** and signing out.
+
+On a phone
+
+The areas move to a bar along the bottom of the screen, with an icon for each, where your thumb can reach them. The area's own menu is under the top bar; slide it sideways for more. Settings is in the menu under your initials.
 
 #### Home
 
@@ -141,6 +148,7 @@ If you used HardPoint before the six areas: Products, Inventory and the stock si
 Lists such as Products, Sales, Orders & quotes and Purchase orders have a search bar at the top.
 
 - Type a few letters of a name, SKU, receipt or order number and press Enter. A barcode scanner works in the search bar too.
+- For products and customers, each word you type matches the start of a word in the name or SKU, in any order: **pvc elb** finds "PVC elbow 1/2 inch", and **CEM-5** finds CEM-50. If nothing starts that way, it looks for the letters anywhere. Customers are found by phone number too, however it's written (0722… or +254 722…).
 - The small arrow at the end of the bar opens **Filters**: a branch, a status, a date and so on. Each filter you choose shows in the bar as a tag; press its **×** to remove it.
 - Long lists are split into pages; use **‹** and **›** on the right.
 
@@ -161,7 +169,7 @@ Open a group to see what's in it. Filters and search still apply, so "Open order
 <a id="features"></a>
 #### Switching features on and off
 
-Owners choose what their shop uses in **Settings › Features**: deliveries, promotions, foreign currencies, the online store, contractor jobs, batches and expiry dates, serial numbers, and the API. A feature that's off is left out of the menus, Settings, Home and forms. Nothing is deleted, so switching it back on brings everything back. A feature can't be switched off while it's live (a promotion running, products recording batches); the page says what to finish first.
+Owners choose what their shop uses in **Settings › Features**: deliveries, promotions, foreign currencies, the online store, WhatsApp from HardPoint, the customer portal, fundi commissions, contractor jobs, batches and expiry dates, serial numbers, and the API. A feature that's off is left out of the menus, Settings, Home and forms. Nothing is deleted, so switching it back on brings everything back. A feature can't be switched off while it's live (a promotion running, products recording batches); the page says what to finish first.
 
 #### Getting help
 
@@ -206,7 +214,8 @@ The page also shows your shop's web address. To change it, contact support. Pres
 
 **Settings › Shop preferences** tunes how HardPoint works for you. Anything left alone keeps the usual setting.
 
-- **Selling**: how many days a quote is valid (14 to begin with), the payment terms new customers on account get (30 days), and which payment buttons the till shows. Cash is always there; hide Card, say, if you don't take cards.
+- **Selling**: how many days a quote is valid (14 to begin with), the payment terms new customers on account get (30 days), and which payment buttons the till shows. Cash is always there; hide Card, say, if you don't take cards. Also what the till does with **stock promised to confirmed orders**: warn the cashier, or hold it for the order (see [Customers on account, quotes and orders](#customer-accounts)).
+- **Credit control**: put accounts on hold when an invoice is too many days overdue, and remind everyone with an overdue invoice each Monday, by SMS or WhatsApp (see [Credit control](#credit-control)).
 - **Stock**: how far ahead batches count as expiring (30 days), when stock counts as not selling (90 days, for the dead stock report and the Monday email), how many days of sales the reorder list looks at (30), and how long suppliers usually take to deliver (7) for those without a lead time of their own.
 - **Quotes, invoices and statements**: _How to pay_ (your Paybill or bank account) and your _Terms_, printed at the end of each.
 
@@ -225,7 +234,7 @@ The page also shows your shop's web address. To change it, contact support. Pres
 
 #### Features
 
-**Settings › Features** switches parts of HardPoint on and off: deliveries, promotions, foreign currencies, the online store, contractor jobs, batches and expiry dates, serial numbers, and the API. Press **Save features** after changing them. See [Switching features on and off](#features).
+**Settings › Features** switches parts of HardPoint on and off: deliveries, promotions, foreign currencies, the online store, WhatsApp from HardPoint, the customer portal, fundi commissions, contractor jobs, batches and expiry dates, serial numbers, and the API. Press **Save features** after changing them. See [Switching features on and off](#features).
 
 #### Text messages (SMS)
 
@@ -446,7 +455,7 @@ Press **Shift** in the till's top bar, then **Cash drop / payout**. Choose what'
 
 Cash movements go on the till this device is set to, since that's the drawer the cash is in. A payout above the shop's limit (KES 5,000 to start with; owners change it under **Settings › Shop details**) needs an owner's or manager's approval PIN, and **Settings › Activity** records who approved it.
 
-Each one shows on the shift report with its reason. On tills that print through QZ Tray, **Open drawer** in the top bar opens the drawer without a sale. It's logged as "No sale" in **Settings › Activity**.
+Each one shows on the shift report with its reason. On tills that print through QZ Tray, **Open drawer** in the top bar opens the drawer without a sale. It asks why first: **Change for a customer**, **Cash drop to the safe**, **Checking the float** or **Other**. Each opening is listed on the shift report with who opened it and why, counted per cashier in the **Discounts, voids and returns** report, and kept in **Settings › Activity**.
 
 #### The X report
 
@@ -726,7 +735,7 @@ Contractors and regular customers can buy on account and pay later. Customers li
 
 #### Credit limits and terms
 
-Open the customer, press **Edit**, and give them a credit limit and payment terms (30 days is the default). A price list (contractor, wholesale) gives them their own prices whenever they're chosen at the till. A sale that would take them past their limit needs an owner's or manager's approval PIN.
+Open the customer, press **Edit**, and give them a credit limit and payment terms (30 days is the default). A price list (contractor, wholesale) gives them their own prices whenever they're chosen at the till. A sale that would take them past their limit needs an owner's or manager's approval PIN. A shop can also hold accounts whose invoices are too long overdue: see [Credit control](#credit-control).
 
 #### Selling on account
 
@@ -735,9 +744,16 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 #### Quotes and orders
 
 1. In **Sell › Orders & quotes**, press **New**, choose the customer and add the goods. Save it as a quote, and send it as a PDF or by email. Quotes are valid for 14 days unless you change it.
-2. When the customer agrees, press **Confirm order**. For a customer who buys on account, an order worth more than the credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. **Take deposit** records money paid up front (cash, M-Pesa, card or bank).
+2. When the customer agrees, press **Confirm order**. For a customer who buys on account, an order worth more than the credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. **Take deposit** records money paid up front (cash, M-Pesa, card or bank). A confirmed order holds its goods for the customer (below).
 3. When the goods are in, press **Mark ready to collect** (with SMS on, the customer can be texted).
 4. When they come, press **Collect at …** on the order at the till: it's rung up at the quoted prices, with the deposit already counted. The sale, VAT and all, goes to KRA then, not when the deposit was taken (see [KRA eTIMS](#etims)).
+
+Stock held for orders
+
+A confirmed order promises its goods until it's collected or cancelled; a quote promises nothing. The product page shows how much is held at each branch and for which orders, and **Stock › Reorder** counts it as gone, so you reorder before the order's goods are sold. What the till does with promised stock is set in **Settings › Preferences**, under **Stock promised to confirmed orders**:
+
+- **Warn the cashier** (the usual setting): the till says how much is promised to orders, but sells it.
+- **Hold it**: the till sells only what's free, and names the orders holding the rest ("Only 20 Bamburi cement free at Main: 30 are held for order MAIN-O00012"). Collecting the order itself uses its own stock.
 
 **Walkthrough: Write a quote**
 
@@ -752,11 +768,85 @@ At the till, choose the customer and pay **On account**. The sale is the invoice
 
 Press **Record payment** on the customer to take money against their account; it settles their oldest sales first unless you fill in amounts under **Put against particular sales**, which pays those sales and leaves the others (a disputed invoice, say) open. If they've paid more than they owe, **Refund credit** hands the credit back; cash goes out of this device's till. A debt the shop has given up on is removed with **Write off**: an owner or manager approves it (an accountant types a manager's approval PIN) with a reason, and it stays on the statement and in Activity. **Statement** prints or emails what's owed and how old it is at the end of the period, and balance reminders can go by SMS. **Customers › Who owes us** lists every customer's balance by how late it is.
 
+With the [customer portal](#customer-portal) on, send a customer a link to their own page, where they see their invoices and statements and pay with M-Pesa.
+
 #### Deliveries
 
 For goods going out on the lorry, press **Deliver** on the sale and print the delivery note with a signature line. Mark it dispatched with the driver and vehicle, then delivered with who received it and a photo of the signed note. **Sell › Deliveries** lists what's due out.
 
 To charge for transport after the sale, enter the **Transport charge** on the delivery note. It becomes an order for the customer, collected at the till or put on their account like any other. A charge needs a named customer. To charge it at the time of the sale instead, use **Add transport** on the till. See [Deliveries and transport charges](#deliveries).
+
+<a id="credit-control"></a>
+
+### Credit control: holds and reminders
+
+_Holding accounts with invoices too long overdue, lifting a hold for a while, and Monday reminders to everyone who owes you._
+
+Credit control keeps a customer who is months behind from running up more on account, and reminds everyone who owes you, without anyone having to watch every sale. Both are in **Settings › Preferences › Credit control**, and both are off until an owner turns them on.
+
+#### Putting accounts on hold
+
+Set **Put an account on hold when an invoice is overdue by more than** a number of days, say 30. From then on, a customer with an invoice that late is on hold:
+
+- The till won't put anything more on their account without an owner's or manager's approval PIN. The customer's name shows **On hold** at the till.
+- Their quotes can't be confirmed as orders without the same approval.
+- Their page in **Customers** says why: how much is late, and by how many days.
+- An approval to sell anyway is recorded on the sale and in **Activity**, with what was overdue.
+
+Paying the late invoices takes the hold off by itself; there's nothing to undo. Cash, M-Pesa and card sales are never affected. Set it to **0** to never hold accounts.
+
+#### Lifting a hold for a while
+
+When a customer has agreed to pay (a cheque coming on Friday, a payment plan), an owner or manager can open the customer and use **Lift the hold** for 7, 14 or 30 days, with the reason. The customer's page shows who lifted it, until when and why. When the time runs out the hold comes back if the invoices are still late. **Put it back on hold now** ends the lift early.
+
+#### Monday reminders
+
+Choose **Every Monday, remind customers with overdue invoices**: by SMS, or on WhatsApp with their statement. At 9 in the morning every customer with an overdue invoice, a phone number, and who hasn't asked not to be texted, gets a reminder of what they owe.
+
+- **By SMS:** needs texting switched on (**Settings › SMS**). With the [customer portal](#customer-portal) on, the text links to their page, where they can see their invoices and pay with M-Pesa. A customer gets at most one reminder a day, however many people press the button.
+- **On WhatsApp:** needs WhatsApp from HardPoint switched on in **Settings › Features**. The statement for the last three months goes with it.
+
+You can still remind one customer at any time with **Text a reminder** or the WhatsApp button on their page.
+
+<a id="customer-portal"></a>
+
+### The customer portal
+
+_A link to a customer's own page: what they owe, their invoices, quotes and statements, and paying with M-Pesa._
+
+The customer portal is a page of a customer's own at your shop, opened from a link with no password. It shows what they owe, their unpaid invoices and quotes, and statements to download, and lets them **pay with M-Pesa** from wherever they are. A contractor on site can check the balance and settle it without coming to the counter.
+
+#### Switching it on
+
+An owner switches on **Customer portal** in **Settings › Features**. For customers to pay from it, the shop also needs M-Pesa set up (see [M-Pesa payments](#mpesa)). Payments go to the shop-wide Paybill or Till, or to a branch's if that's all you have.
+
+#### Sending a customer their link
+
+1. Open the customer in **Customers**. The **Customer portal** card is on their page.
+2. Press **Send on WhatsApp**. WhatsApp opens with a message ready, saying what they owe, with the link. Or press **Make a link** and **Copy** it to send another way.
+3. The card shows how many times the link has been opened, and when it stops working.
+
+A link works for 90 days. Sending it again sends the same link while it has more than a week left. With SMS on, the balance reminder text carries the link too (see [Credit control](#credit-control)).
+
+#### What the customer sees
+
+- **What they owe**, how much of it is overdue, and the credit they have left.
+- **Unpaid invoices**, with when each was due and how late it is. Each one opens as its tax invoice.
+- **Quotes and orders** still open, each as a PDF.
+- **Statements** for this month, last month, the last three months or this year.
+- **Recent payments.**
+
+The page is in your shop's colours, with your logo, and works on any phone. It shows only that customer's documents, at your shop.
+
+#### Paying with M-Pesa
+
+The customer enters their Safaricom number and the amount (the whole balance unless they change it), and presses **Send the M-Pesa prompt**. They enter their PIN on their phone, and the page says when it's paid. The money goes on their account as an M-Pesa payment, settling their oldest invoices first, just as a payment you record would. It shows on the customer's page and in the M-Pesa report.
+
+Only one prompt can wait at a time, and a link can send only a few in ten minutes, so nobody can use it to keep pushing prompts at a phone. The page also shows your Paybill and their account number, for paying from the M-Pesa menu instead.
+
+#### Stopping a link
+
+Press **Stop the link** on the customer's page and it stops opening straight away, for anyone who has it. Send a new one when you're ready. Only staff who handle customer accounts (owners, managers and accountants) can send or stop links.
 
 <a id="deliveries"></a>
 
@@ -977,6 +1067,14 @@ Search by name or SKU, or scan a barcode into the search box. Filter by **Catego
 #### Shelf labels
 
 **Print labels** in the ⚙ menu labels the products in your current search or category; the button on a product page labels just that one. Set the copies for each, choose an **A4 sheet** (3 × 8 labels) or a **Label printer roll** (50 × 25 mm), and press **Open print view**. Print at 100% scale with no margins.
+
+Labels waiting to be printed
+
+When a product is added, or its price or name changes, it waits in **Stock › Labels** for a new shelf label, so the shelf and the till don't disagree. That includes prices changed in bulk and by an import. The list shows why each is there: **Shelf shows KES 850.00** (the old price, still on the shelf), **Name changed** or **New product**, oldest first.
+
+1. Set the copies for each, choose the label stock, and press **Open print view**.
+2. Print them and put them on the shelf.
+3. Press **Mark … labels done**. Owners, managers and stock clerks can do this.
 
 Stock levels and counts are covered in [Stock levels, transfers and stock takes](#stock-and-stock-takes), and offers in [Promotions and offers](#promotions).
 
@@ -1384,7 +1482,8 @@ Margins are worked out from what each item cost on the day it was sold, so later
 
 Owners, managers and accountants can have the figures come to them, each turned on or off under **My profile**:
 
-- **Daily summary**, each morning at about 7:15: yesterday's takings with charts of the day by hour and the last seven days, branches, how it was paid and the best sellers. Then **Worth a look**: products at zero (which the till can't sell), what customers asked for that wasn't on the shelf, stock written off, cash counts that didn't balance, discounts, voids and returns by cashier, anything sold below cost, offline sales to check, tills left open and M-Pesa payments not on any sale. A day without sales sends nothing.
+- **Daily summary**, each morning at about 7:15: yesterday's takings with charts of the day by hour and the last seven days, branches, how it was paid and the best sellers. Then **Worth a look**: products at zero (which the till can't sell), what customers asked for that wasn't on the shelf, stock written off, cash counts that didn't balance, discounts, voids and returns by cashier, **Unusual for the cashier** (below), anything sold below cost, offline sales to check, tills left open and M-Pesa payments not on any sale. A day without sales sends nothing.
+- **Unusual for the cashier**, in the daily summary: each cashier's voids, discounts, cash refunds and drawer openings without a sale, set beside what that same cashier usually does on the days they work, over the last eight weeks. Only a clear jump is listed, for example "Carl voided 5 sales (usually under one a day)": well above their own usual, and not just a small number. A cashier with under ten working days has no usual yet. Each cashier is judged against themselves, so a counter that always gives contractors a discount isn't flagged for it every day.
 - **Weekly summary**, each Monday: the week's takings against the eight before, each day, the best sellers and what they made over cost, who owes you and how late, supplier bills due this week, and stock that hasn't sold in 90 days.
 - **Alerts**, for owners and managers, sent straight away: a till closing short, a completed sale voided, or an approved stock count losing more than the amounts set on **Settings › Shop details**. Whoever did it isn't sent one.
 

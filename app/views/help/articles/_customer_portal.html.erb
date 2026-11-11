@@ -1,0 +1,39 @@
+<p>The customer portal is a page of a customer's own at your shop, opened from a link with no password. It shows what they owe, their
+  unpaid invoices and quotes, and statements to download, and lets them <strong>pay with M-Pesa</strong> from wherever they are. A
+  contractor on site can check the balance and settle it without coming to the counter.</p>
+
+<h2>Switching it on</h2>
+<p>An owner switches on <strong>Customer portal</strong> in <strong>Settings › Features</strong>. For customers to pay from it, the shop
+  also needs M-Pesa set up (see <%= link_to "M-Pesa payments", help_article_path("mpesa"), class: "link" %>). Payments go to the shop-wide
+  Paybill or Till, or to a branch's if that's all you have.</p>
+
+<h2>Sending a customer their link</h2>
+<ol>
+  <li>Open the customer in <strong>Customers</strong>. The <strong>Customer portal</strong> card is on their page.</li>
+  <li>Press <strong>Send on WhatsApp</strong>. WhatsApp opens with a message ready, saying what they owe, with the link. Or press
+    <strong>Make a link</strong> and <strong>Copy</strong> it to send another way.</li>
+  <li>The card shows how many times the link has been opened, and when it stops working.</li>
+</ol>
+<p>A link works for 90 days. Sending it again sends the same link while it has more than a week left. With SMS on, the balance reminder
+  text carries the link too (see <%= link_to "Credit control", help_article_path("credit-control"), class: "link" %>).</p>
+
+<h2>What the customer sees</h2>
+<ul>
+  <li><strong>What they owe</strong>, how much of it is overdue, and the credit they have left.</li>
+  <li><strong>Unpaid invoices</strong>, with when each was due and how late it is. Each one opens as its tax invoice.</li>
+  <li><strong>Quotes and orders</strong> still open, each as a PDF.</li>
+  <li><strong>Statements</strong> for this month, last month, the last three months or this year.</li>
+  <li><strong>Recent payments.</strong></li>
+</ul>
+<p>The page is in your shop's colours, with your logo, and works on any phone. It shows only that customer's documents, at your shop.</p>
+
+<h2>Paying with M-Pesa</h2>
+<p>The customer enters their Safaricom number and the amount (the whole balance unless they change it), and presses <strong>Send the M-Pesa
+  prompt</strong>. They enter their PIN on their phone, and the page says when it's paid. The money goes on their account as an M-Pesa payment,
+  settling their oldest invoices first, just as a payment you record would. It shows on the customer's page and in the M-Pesa report.</p>
+<p>Only one prompt can wait at a time, and a link can send only a few in ten minutes, so nobody can use it to keep pushing prompts at a phone.
+  The page also shows your Paybill and their account number, for paying from the M-Pesa menu instead.</p>
+
+<h2>Stopping a link</h2>
+<p>Press <strong>Stop the link</strong> on the customer's page and it stops opening straight away, for anyone who has it. Send a new one when
+  you're ready. Only staff who handle customer accounts (owners, managers and accountants) can send or stop links.</p>

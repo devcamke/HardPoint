@@ -36,6 +36,7 @@ to use it, the help centre (`/help` on the public site). The plan the phases cam
 - [Phase 30: tool hire, loyalty points and the customer display removed](#phase-30-tool-hire-loyalty-points-and-the-customer-display-removed)
 - [Phase 31: WhatsApp, transport, bulk prices, QuickBooks and Airtel Money](#phase-31-whatsapp-transport-bulk-prices-quickbooks-and-airtel-money)
 - [Since then: the new look, lists and help](#since-then-the-new-look-lists-and-help)
+- [Phases 34 to 47: ahead of the competition](#phases-34-to-47-ahead-of-the-competition)
 
 ## Phase 1: shops, staff and sign-in
 
@@ -743,3 +744,28 @@ approval PIN, may be left off the screenshot.
 - **On phones and tablets:** wide tables scroll inside their card, money fields bring up the number keypad, and small
   buttons (remove a payment, filters, pager) are finger-sized; the offline till can't record a sale twice on a double
   tap
+
+## Phases 34 to 47: ahead of the competition
+
+Each of these is described in full, with the decisions behind it, in [PLAN.md](PLAN.md); how to use them is in the
+help centre.
+
+- **34. Stock can't go below zero, and the owner's emails:** the till refuses the one too many and keeps what was turned
+  away; a morning email with charts and "worth a look", a Monday summary, and instant alerts.
+- **35. Fundi commissions:** rates by category, tagging at the till, a ledger, and payouts by M-Pesa or from the till.
+- **36. The material calculator:** walls, slabs, plaster, roofs, tiles and paint into materials and a quote.
+- **37. Branch rebalancing:** move stock from a branch that can spare it before ordering more.
+- **38. Reorder suggestions that learn:** demand, unmet demand, the season, safety stock and measured supplier lead times.
+- **39. WhatsApp from HardPoint:** documents and balance reminders from HardPoint's own number, with delivery status.
+- **40. Make it yours:** colour themes, a logo, and shop preferences on a refreshed Settings page.
+- **41. Documents as pictures**, a receipt PDF, and a "Safe, private, and yours" section on the landing page.
+- **42. Ready for the pilot:** fast search under row-level security, fewer queries, and accessibility checks in CI.
+- **43. The customer portal:** a customer's own page from a link, with Pay with M-Pesa onto their account.
+- **44. Credit control:** holds on accounts too long overdue, lifting a hold with a reason, and Monday reminders.
+- **45. Loss prevention:** each cashier against their own usual in the morning email, and reasons for opening the drawer.
+- **46. Stock held for confirmed orders:** warn or refuse at the till, and counted by the reorder list.
+- **47. The shelf-label queue:** products whose price or name changed wait for a new label.
+
+Also since then: a refreshed app menu (the shop's logo and name, bigger text, and the areas along the bottom on
+phones), a rectangular receipt stamp, and a shorter landing page.
+
