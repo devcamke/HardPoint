@@ -14,6 +14,9 @@
       <div class="field"><%= form.label :customer_payment_terms_days, "New customers on account pay within (days)", class: "label" %>
         <%= form.number_field :customer_payment_terms_days, min: 0, max: 365, class: "input w-32" %>
         <p class="hint mt-1">0 means on delivery. Each customer can have their own.</p></div>
+      <div class="field"><%= form.label :order_stock, "Stock promised to confirmed orders", class: "label" %>
+        <%= form.select :order_stock, [ [ "Warn the cashier, but let it be sold", "warn" ], [ "Hold it: the till won't sell it to anyone else", "hold" ] ], {}, class: "input" %>
+        <p class="hint mt-1">Held stock is still on the shelf; it's kept for the order until it's collected or cancelled. Reorder suggestions always count it.</p></div>
     </div>
     <fieldset class="field mt-2">
       <legend class="label">Payment buttons at the till</legend>

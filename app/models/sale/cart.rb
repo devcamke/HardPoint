@@ -29,13 +29,27 @@ module Sale::Cart
     line
   end
 
-  # What a sale wants of one product, more than the branch has. `record` notes it for the owner's morning email.
-  Shortfall = Data.define(:product, :branch, :needed, :on_hand) do
-    def message = Product.shortage_message(product, on_hand, branch)
+  # What a sale wants of one product, more than the branch has free: on hand, less what's held for other customers'
+  # orders (`held`, when the shop holds it). `record` notes it for the owner's morning email.
+  Shortfall = Data.define(:product, :branch, :needed, :on_hand, :held, :collecting) do
+    def initialize(product:, branch:, needed:, on_hand:, held: 0, collecting: nil) = super
+
+    def free = [ on_hand - held, 0 ].max
+
+    def message
+      return Product.shortage_message(product, on_hand, branch) unless held.positive? && needed <= on_hand
+
+      orders = product.orders_holding(branch, except: collecting).map(&:reference)
+      "Only #{quantity(free)} #{product.name} free at #{branch.name}: #{quantity(held)} #{held == 1 ? "is" : "are"} held for " \
+        "#{orders.size == 1 ? "order" : "orders"} #{orders.to_sentence}"
+    end
 
     def record
-      branch.account.stock_refusals.create!(branch: branch, product: product, user: Current.user, quantity: needed, on_hand: on_hand)
+      branch.account.stock_refusals.create!(branch: branch, product: product, user: Current.user, quantity: needed, on_hand: free)
     end
+
+    private
+      def quantity(value) = value.to_d.to_s("F").delete_suffix(".0")
   end
 
   # Stock can't be sold below zero: what a sale takes of each product (a kit counts as its parts, totalled over every
@@ -58,6 +72,13 @@ module Sale::Cart
     needed.each do |id, amount|
       on_hand = products[id].stock_at(branch)
       return Shortfall.new(products[id], branch, amount, on_hand) if amount > on_hand
+
+      # With the shop holding stock for orders, what's promised to other customers isn't free to sell; the order this
+      # sale is collecting takes its own.
+      next unless account.hold_order_stock?
+
+      held = products[id].reserved_at(branch, except: customer_order)
+      return Shortfall.new(products[id], branch, amount, on_hand, held, customer_order) if amount > on_hand - held
     end
     nil
   end

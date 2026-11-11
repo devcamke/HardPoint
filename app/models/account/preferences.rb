@@ -19,6 +19,8 @@ module Account::Preferences
     Preference.new(key: "quote_validity_days", type: :integer, default: 14, range: 1..365),
     Preference.new(key: "customer_payment_terms_days", type: :integer, default: 30, range: 0..365),
     Preference.new(key: "till_tenders", type: :list, default: TILL_TENDERS.keys),
+    # Stock promised to confirmed orders: the till warns before selling it to someone else, or holds it (refuses).
+    Preference.new(key: "order_stock", type: :choice, default: "warn", range: %w[ warn hold ]),
     # Credit control: an account with an invoice more than this many days overdue takes nothing more on account
     # without a manager's PIN (0: never held); and who's reminded each Monday of what's overdue.
     Preference.new(key: "credit_hold_after_days", type: :integer, default: 0, range: 0..365),
@@ -48,6 +50,8 @@ module Account::Preferences
 
   def quote_validity = quote_validity_days.days
   def expiry_warning = expiry_warning_days.days
+
+  def hold_order_stock? = order_stock == "hold"
 
   def till_tender?(tender) = tender.to_s == "cash" || tender.to_s.in?(till_tenders)
 

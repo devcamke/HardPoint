@@ -57,6 +57,13 @@ module Product::Stockable
     lines.left_joins(:product_unit).sum("GREATEST(customer_order_lines.quantity - customer_order_lines.collected_quantity, 0) * COALESCE(product_units.quantity, 1)")
   end
 
+  # The confirmed orders holding some of this product at a branch, oldest first.
+  def orders_holding(branch, except: nil)
+    lines = CustomerOrderLine.where(product_id: id).where("customer_order_lines.quantity > customer_order_lines.collected_quantity")
+    orders = CustomerOrder.where(branch_id: branch.id, status: %w[ ordered ready ], id: lines.select(:customer_order_id))
+    (except ? orders.where.not(id: except.id) : orders).order(:created_at, :id)
+  end
+
   # What can be sold or promised to a new customer at a branch: on hand, less what's promised already.
   def available_at(branch, except: nil)
     stock_at(branch) - reserved_at(branch, except: except)
