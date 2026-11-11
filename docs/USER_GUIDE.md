@@ -200,7 +200,7 @@ The page also shows your shop's web address. To change it, contact support. Pres
 
 #### Appearance: your colours and logo
 
-**Settings › Appearance** (owners) chooses the colour of the top bar, buttons and links for everyone at the shop, on every screen, the till, the phone and your online store: one of eight themes, or your own brand colour. A colour too light for white writing on it is refused, so screens stay readable. Upload your **logo** (PNG or JPEG, under 1 MB) for receipts, quotes, invoices, statements and the online store, and choose whether receipts print the round **stamp**.
+**Settings › Appearance** (owners) chooses the colour of the top bar, buttons and links for everyone at the shop, on every screen, the till, the phone and your online store: one of eight themes, or your own brand colour. A colour too light for white writing on it is refused, so screens stay readable. Upload your **logo** (PNG or JPEG, under 1 MB) for receipts, quotes, invoices, statements and the online store, and choose whether receipts print the **stamp** (the shop, PAID or ON ACCOUNT, the date and branch, in a box).
 
 #### Shop preferences
 
