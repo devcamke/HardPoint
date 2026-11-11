@@ -19,7 +19,8 @@ phase of the build added, see [docs/FEATURES.md](docs/FEATURES.md).
 ### At the till
 
 - A **full-screen till** built around a barcode scanner: scan, search or tap a quick-pick button; loose goods by the
-  metre or kilo; pack sizes; F2 scan · F8 park · F9 pay. Each computer remembers its till.
+  metre or kilo; pack sizes; F2 scan · F8 park · F9 pay. Each computer remembers its till. It **sells only what's on the
+  shelf**: stock can't go below zero, and what customers asked for but couldn't get is kept for the owner.
 - **Touch screens:** on a touch POS terminal, tablet or phone, staff tap through product categories, change quantities
   with + and −, and type amounts on an on-screen number pad. Buttons are finger-sized on touch screens, and phones show
   the products and the sale as two tabs.
@@ -27,12 +28,15 @@ phase of the build added, see [docs/FEATURES.md](docs/FEATURES.md).
   foreign notes, on account, or a mix. Gap-free receipt numbers per branch.
 - **Discounts** within the shop's limit; bigger ones, voids, returns and going over a credit limit need a manager's
   **approval PIN**, which approves that one thing and signs nobody in.
-- **Shifts** with an opening float, cash drops and payouts, an X report, a blind count at close and a Z report.
+- **Shifts** with an opening float, cash drops and payouts, an X report, a blind count at close and a Z report. Opening
+  the drawer without a sale asks why, and each opening is listed on the shift.
 - **Promotions** (percent off, buy 10 get 1 free, any 3 for a price) apply by themselves.
 - **Offline:** when HardPoint can't be reached, the till keeps selling from its own copy of the catalogue, customers
   and promotions, and sends the sales when it's back.
 - **Hardware:** 80 mm receipts from the browser or straight to the printer through QZ Tray (with the cash drawer),
-  and any keyboard-style scanner.
+  and any keyboard-style scanner. Receipts carry the shop's logo and a stamp (PAID, ON ACCOUNT, VOID).
+- **Sending documents:** receipts, quotes, invoices and credit notes as sharp pictures or PDFs to WhatsApp or any app,
+  and, with WhatsApp from HardPoint, sent from HardPoint's own number with delivery and read receipts.
 
 Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 [When the internet goes down](https://hardpoint.app/help/offline) ·
@@ -47,7 +51,16 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 ### Customers and orders
 
 - **Accounts** with credit limits, payment terms, price lists, statements and a **Who owes us** ageing list.
-- **Quotes → orders → collection** as one document, with deposits, collected at the till at the quoted price.
+- **Credit control:** accounts with invoices too long overdue go on hold (more on account needs a manager's PIN) until
+  they're paid or a manager lifts the hold for a while, and Monday reminders by SMS or WhatsApp to everyone overdue.
+- **A customer portal:** a link to a customer's own page, with what they owe, their invoices, quotes and statements,
+  and **Pay with M-Pesa** straight onto their account.
+- **Quotes → orders → collection** as one document, with deposits, collected at the till at the quoted price. A
+  confirmed order holds its stock, so the till can refuse to sell it to someone else.
+- **A material calculator** turns a wall, slab, plaster, roof, tiling or paint job into blocks, cement, sand, steel and
+  sheets at the shop's prices, and one press makes the quote.
+- **Fundi commissions:** masons, plumbers and electricians who bring customers earn a commission by category, paid by
+  M-Pesa or from the till, with a statement each.
 - **A4 tax invoices** and **delivery notes** with dispatch and proof of delivery.
 - **Jobs for contractors:** tag purchases to a project, track it against a budget, and print a cost summary or a
   marked-up bill for their client.
@@ -55,6 +68,10 @@ Guides: [Selling at the till](https://hardpoint.app/help/selling) ·
 
 Guides: [Customers](https://hardpoint.app/help/customers) ·
 [Customers on account](https://hardpoint.app/help/customer-accounts) ·
+[Credit control](https://hardpoint.app/help/credit-control) ·
+[The customer portal](https://hardpoint.app/help/customer-portal) ·
+[The material calculator](https://hardpoint.app/help/material-calculator) ·
+[Fundi commissions](https://hardpoint.app/help/fundis) ·
 [Jobs for contractors](https://hardpoint.app/help/contractor-jobs) ·
 [Online store](https://hardpoint.app/help/online-store) ·
 [Deliveries and transport](https://hardpoint.app/help/deliveries)
@@ -66,6 +83,11 @@ Guides: [Customers](https://hardpoint.app/help/customers) ·
 - **Stock per branch** kept as an append-only ledger: adjustments with reasons, transfers between branches, and stock
   takes (counted on a computer or a phone) approved by a manager.
 - **Batches and expiry dates** for goods that go off: first-expiring-first selling, write-offs and recall lists.
+- **Reorder suggestions that learn:** each branch's own demand (sales plus what the till turned away), the season, a
+  margin for busy days and how long each supplier really takes; stock promised to orders counts as gone, and a branch
+  that's short is told what another branch can spare first.
+- **Shelf labels:** A4 sheets or a label roll, and a queue of products whose price or name changed (or that are new)
+  waiting for a new label.
 - **Purchasing:** suppliers, purchase orders emailed as PDFs, reorder suggestions with one-click draft orders, goods
   received with transport and duty spread over the cost, supplier invoices, payments, **What we owe**, and returns to
   suppliers with debit notes.
@@ -90,8 +112,11 @@ Guides: [Products](https://hardpoint.app/help/products) ·
   KRA is down. **SMS** through Africa's Talking for receipts, order updates and reminders.
 - **Foreign currencies** at the till and with importers, with a daily market rate.
 - **A live owner's dashboard** and **reports** for any period and branch, on screen, as CSV or as PDF: sales and margin,
-  profit and loss, VAT, payments, discounts and voids, stock valuation, dead stock and shifts. A daily summary email,
-  and a **QuickBooks Online export**.
+  profit and loss, VAT, payments, discounts and voids, stock valuation, dead stock and shifts, and a **QuickBooks Online
+  export**.
+- **Emails to the owner** with charts: each morning (yesterday, and what's worth a look, including any cashier whose
+  voids, discounts, cash refunds or drawer openings were well above their own usual), each Monday (the week), and alerts
+  straight away for a till closing short, a big void or a costly stock count.
 
 Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://hardpoint.app/help/airtel-money) ·
 [KRA eTIMS](https://hardpoint.app/help/etims) · [Reports](https://hardpoint.app/help/reports) ·
@@ -101,6 +126,9 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://har
 
 - **Staff and roles** (owner, manager, cashier, stock clerk, accountant), PIN quick-switch at a shared till,
   two-factor sign-in, and an activity log of who changed what.
+- **Make it yours:** a colour theme (eight, or the shop's own brand colour) on every screen, the shop's logo on receipts
+  and documents, and preferences for quotes, payment buttons, stock warnings, credit control and what documents say. Features
+  the shop doesn't use are switched off in Settings.
 - **Self-service signup** with a 30-day trial and a **Set up your shop** checklist. Plans: Starter (KES 2,500 a month),
   Business (KES 6,500) and Enterprise (KES 15,000), with unlimited products on all three; an extra till or branch as a
   monthly add-on rather than a bigger plan; monthly or yearly billing (a year costs ten months); paid by M-Pesa or

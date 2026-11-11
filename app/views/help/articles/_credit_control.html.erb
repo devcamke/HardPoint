@@ -1,0 +1,32 @@
+<p>Credit control keeps a customer who is months behind from running up more on account, and reminds everyone who owes you, without anyone
+  having to watch every sale. Both are in <strong>Settings › Preferences › Credit control</strong>, and both are off until an owner turns them on.</p>
+
+<h2>Putting accounts on hold</h2>
+<p>Set <strong>Put an account on hold when an invoice is overdue by more than</strong> a number of days, say 30. From then on, a customer with
+  an invoice that late is on hold:</p>
+<ul>
+  <li>The till won't put anything more on their account without an owner's or manager's approval PIN. The customer's name shows
+    <strong>On hold</strong> at the till.</li>
+  <li>Their quotes can't be confirmed as orders without the same approval.</li>
+  <li>Their page in <strong>Customers</strong> says why: how much is late, and by how many days.</li>
+  <li>An approval to sell anyway is recorded on the sale and in <strong>Activity</strong>, with what was overdue.</li>
+</ul>
+<p>Paying the late invoices takes the hold off by itself; there's nothing to undo. Cash, M-Pesa and card sales are never affected. Set it to
+  <strong>0</strong> to never hold accounts.</p>
+
+<h2>Lifting a hold for a while</h2>
+<p>When a customer has agreed to pay (a cheque coming on Friday, a payment plan), an owner or manager can open the customer and use
+  <strong>Lift the hold</strong> for 7, 14 or 30 days, with the reason. The customer's page shows who lifted it, until when and why. When the
+  time runs out the hold comes back if the invoices are still late. <strong>Put it back on hold now</strong> ends the lift early.</p>
+
+<h2>Monday reminders</h2>
+<p>Choose <strong>Every Monday, remind customers with overdue invoices</strong>: by SMS, or on WhatsApp with their statement. At 9 in the
+  morning every customer with an overdue invoice, a phone number, and who hasn't asked not to be texted, gets a reminder of what they owe.</p>
+<ul>
+  <li><strong>By SMS:</strong> needs texting switched on (<strong>Settings › SMS</strong>). With the
+    <%= link_to "customer portal", help_article_path("customer-portal"), class: "link" %> on, the text links to their page, where they
+    can see their invoices and pay with M-Pesa. A customer gets at most one reminder a day, however many people press the button.</li>
+  <li><strong>On WhatsApp:</strong> needs WhatsApp from HardPoint switched on in <strong>Settings › Features</strong>. The statement for the
+    last three months goes with it.</li>
+</ul>
+<p>You can still remind one customer at any time with <strong>Text a reminder</strong> or the WhatsApp button on their page.</p>

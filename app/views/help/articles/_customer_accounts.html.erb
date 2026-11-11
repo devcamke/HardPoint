@@ -4,7 +4,8 @@
 <h2>Credit limits and terms</h2>
 <p>Open the customer, press <strong>Edit</strong>, and give them a credit limit and payment terms (30 days is the default). A price list
   (contractor, wholesale) gives them their own prices whenever they're chosen at the till. A sale that would take them past their limit
-  needs an owner's or manager's approval PIN.</p>
+  needs an owner's or manager's approval PIN. A shop can also hold accounts whose invoices are too long overdue: see
+  <%= link_to "Credit control", help_article_path("credit-control"), class: "link" %>.</p>
 
 <h2>Selling on account</h2>
 <p>At the till, choose the customer and pay <strong>On account</strong>. The sale is the invoice: it's due after their payment terms, and
@@ -16,12 +17,22 @@
     and send it as a PDF or by email. Quotes are valid for 14 days unless you change it.</li>
   <li>When the customer agrees, press <strong>Confirm order</strong>. For a customer who buys on account, an order worth more than the
     credit they have left needs an owner or manager, or a manager's approval PIN, as it would at the till. <strong>Take deposit</strong>
-    records money paid up front (cash, M-Pesa, card or bank).</li>
+    records money paid up front (cash, M-Pesa, card or bank). A confirmed order holds its goods for the customer (below).</li>
   <li>When the goods are in, press <strong>Mark ready to collect</strong> (with SMS on, the customer can be texted).</li>
   <li>When they come, press <strong>Collect at …</strong> on the order at the till: it's rung up at the quoted prices, with the deposit
     already counted. The sale, VAT and all, goes to KRA then, not when the deposit was taken (see
     <%= link_to "KRA eTIMS", help_article_path("etims"), class: "link" %>).</li>
 </ol>
+
+<h3>Stock held for orders</h3>
+<p>A confirmed order promises its goods until it's collected or cancelled; a quote promises nothing. The product page shows how much is held
+  at each branch and for which orders, and <strong>Stock › Reorder</strong> counts it as gone, so you reorder before the order's goods are sold.
+  What the till does with promised stock is set in <strong>Settings › Preferences</strong>, under <strong>Stock promised to confirmed orders</strong>:</p>
+<ul>
+  <li><strong>Warn the cashier</strong> (the usual setting): the till says how much is promised to orders, but sells it.</li>
+  <li><strong>Hold it</strong>: the till sells only what's free, and names the orders holding the rest ("Only 20 Bamburi cement free at Main:
+    30 are held for order MAIN-O00012"). Collecting the order itself uses its own stock.</li>
+</ul>
 
 <%= render "help/walkthrough", tour: HelpTour.find("quote") %>
 
@@ -33,6 +44,8 @@
   and it stays on the statement and in Activity.
   <strong>Statement</strong> prints or emails what's owed and how old it is at the end of the period, and balance reminders can go by SMS.
   <strong>Customers › Who owes us</strong> lists every customer's balance by how late it is.</p>
+<p>With the <%= link_to "customer portal", help_article_path("customer-portal"), class: "link" %> on, send a customer a link to their own page,
+  where they see their invoices and statements and pay with M-Pesa.</p>
 
 <h2>Deliveries</h2>
 <p>For goods going out on the lorry, press <strong>Deliver</strong> on the sale and print the delivery note with a signature line. Mark it dispatched with the driver
