@@ -31,7 +31,7 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".receipt", /TOTAL\s*KES 1,600.00/
     assert_select ".receipt", /Change\s*KES 400.00/
     assert_select ".receipt svg.stamp text", "PAID"
-    assert_select ".receipt svg.stamp textPath", /ACME/i
+    assert_select ".receipt svg.stamp text", /ACME/i
   end
 
   test "the number on an offline receipt finds the sale" do
