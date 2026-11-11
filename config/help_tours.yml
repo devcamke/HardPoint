@@ -110,7 +110,7 @@ products:
       text: The ⚙ has the list's other jobs. Import, Change prices, Export CSV and Print labels.
     - target: list-search
       title: Search
-      text: Type part of a name or SKU, or scan a barcode, and press Enter. Filters you choose show here as tags. Press × on a tag to remove it.
+      text: Type part of a name or SKU, or scan a barcode, and the list updates as you type. Filters you choose show here as tags. Press × on a tag to remove it.
     - target: list-filters
       title: Filters and Group By
       text: Narrow the list by category, brand or branch, or group it by category or brand to see how many and what they're worth. Long lists come 50 at a time, with ‹ and › on the right.

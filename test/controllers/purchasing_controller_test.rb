@@ -87,7 +87,7 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
 
     get purchase_orders_path(query: "Nairobi")
     assert_select "td a", reference
-    assert_select "form[role=search] span", text: "Search: Nairobi"
+    assert_select "form[role=search] input[name=query][value=Nairobi]"
 
     get purchase_orders_path(query: "Kentube")
     assert_select "td a", text: reference, count: 0

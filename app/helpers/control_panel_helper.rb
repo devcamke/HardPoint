@@ -43,14 +43,11 @@ module ControlPanelHelper
   end
 
   def search_facets(filters, query_param:)
-    facets = filters.filter_map do |filter|
+    # The typed search stays in the box (it's searched as it's typed); filters show as facets.
+    filters.filter_map do |filter|
       text = filter.facet_text
       [ text, search_url(filter.param => filter.clear) ] if text
     end
-    if query_param && (query = request.query_parameters[query_param.to_s]).present?
-      facets << [ "Search: #{query}", search_url(query_param => nil) ]
-    end
-    facets
   end
 
   # Odoo's pager: "51-100" between previous and next arrows.

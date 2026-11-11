@@ -31,7 +31,6 @@
       <% request.query_parameters.except("page", query_param, *date_params, *filters.flat_map(&:drops)).each do |key, value| %>
         <%= hidden_field_tag key, value unless value.is_a?(Hash) || value.is_a?(Array) %>
       <% end %>
-      <%= hidden_field_tag query_param, request.query_parameters[query_param], id: nil, data: { search_panel_target: "query" } if query_param %>
 
       <div class="flex min-h-9 items-stretch rounded border border-gray-300 bg-white focus-within:border-primary-500">
         <span class="flex items-center pl-2.5 text-gray-400" aria-hidden="true">
@@ -46,10 +45,12 @@
             </span>
           <% end %>
           <% if query_param %>
-            <input type="search" autocomplete="off" placeholder="<%= facets.empty? ? search[:placeholder] || "Search…" : "" %>"
+            <%# Searched as it's typed (search_panel_controller.js); Enter searches at once, as a barcode scanner does. %>
+            <input type="search" name="<%= query_param %>" value="<%= request.query_parameters[query_param] %>" autocomplete="off"
+                   placeholder="<%= facets.empty? ? search[:placeholder] || "Search…" : "" %>"
                    aria-label="<%= search[:placeholder] || "Search" %>" <%= "autofocus" if search[:autofocus] %>
                    class="min-w-32 flex-1 border-0 bg-transparent p-0.5 text-sm outline-none focus:ring-0"
-                   data-search-panel-target="input" data-action="keydown->search-panel#keydown">
+                   data-search-panel-target="input" data-action="keydown->search-panel#keydown input->search-panel#type">
           <% else %>
             <span class="flex-1 p-0.5 text-sm text-gray-400"><%= "Filter" if facets.empty? %></span>
           <% end %>
