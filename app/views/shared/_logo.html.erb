@@ -3,11 +3,11 @@
     shadow, like a sticker. On the teal bars (dark) the nut is white and the shadow a deeper teal. The wordmark is
     set in the landing page's headline face. %>
 <% ink = dark ? "#072D35" : "#0F2327" %>
-<span class="inline-flex items-center gap-2">
-  <svg viewBox="0 0 64 64" class="size-8 shrink-0" aria-hidden="true">
+<span class="inline-flex items-center gap-2.5">
+  <svg viewBox="0 0 64 64" class="size-[2.3rem] shrink-0" aria-hidden="true">
     <path d="M30 4 52 16.75v25.5L30 55 8 42.25v-25.5Z" transform="translate(4 4)" fill="<%= ink %>"/>
     <path d="M30 4 52 16.75v25.5L30 55 8 42.25v-25.5Z" fill="<%= dark ? "#FFFFFF" : "#0F5E6E" %>" stroke="<%= ink %>" stroke-width="3.5" stroke-linejoin="round"/>
     <circle cx="30" cy="29.5" r="9.5" fill="<%= dark ? "#0F5E6E" : "#FFFFFF" %>" stroke="<%= ink %>" stroke-width="3.5"/>
   </svg>
-  <span class="font-display text-2xl leading-none font-extrabold tracking-[-0.04em] <%= dark ? "text-white" : "text-[#0F2327]" %>">HardPoint</span>
+  <span class="font-display text-[1.7rem] leading-none font-extrabold tracking-[-0.04em] <%= dark ? "text-white" : "text-[#0F2327]" %>">HardPoint</span>
 </span>

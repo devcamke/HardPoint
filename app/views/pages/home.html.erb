@@ -285,7 +285,7 @@
     <%= link_to "Data processing terms", data_processing_path, class: "lp-link" %> · <%= link_to "Service level agreement", sla_path, class: "lp-link" %></p>
 </div></section>
 
-<%# The price, from Plan, so it can't drift from billing. The pricing page has the monthly/yearly switch and the rest. %>
+<%# The price, from Plan through pages/_plans (shared with the pricing page), so it can't drift from billing. %>
 <section class="lp-section lp-pricing" id="pricing"><div class="lp-wrap">
   <div class="lp-head lp-center">
     <p class="lp-kicker">Pricing</p>
@@ -293,30 +293,8 @@
     <p class="lp-lede">HardPoint takes nothing per sale or per receipt. Pay by M-Pesa or card, monthly or yearly; a year
       costs <%= Plan::YEARLY_MONTHS_CHARGED %> months, so <%= months_free %> are free.</p>
   </div>
-  <div class="lp-plans">
-    <% @plans.each do |plan| %>
-      <% recommended = plan.key == "business" %>
-      <div id="plan_<%= plan.key %>" class="lp-plan <%= "lp-plan-pick" if recommended %>">
-        <% if recommended %><p class="lp-plan-flag">Recommended</p><% end %>
-        <h3><%= plan.name %></h3>
-        <p class="lp-plan-for"><%= plan.blurb %></p>
-        <p class="lp-price"><%= shillings.(plan.price_cents) %> <small>/ month</small></p>
-        <p class="lp-price-year">or <%= shillings.(plan.yearly_price_cents) %> a year</p>
-        <ul>
-          <% Plan::RESOURCES.each do |resource| %>
-            <% limit = plan.limit(resource) %>
-            <li><%= tick %><span><%= limit ? Plan.allowance(limit, resource) : "Unlimited #{Plan::NOUNS[resource].pluralize}" %></span></li>
-          <% end %>
-          <li><%= tick %><span>Unlimited products</span></li>
-          <% if plan.api? %><li><%= tick %><span>API and webhooks for web shops and other apps</span></li><% end %>
-          <% if plan.add_ons? %><li><%= tick %><span>One more till <%= shillings.(plan.add_on_cents(:registers)) %>, a branch <%= shillings.(plan.add_on_cents(:branches)) %> a month</span></li><% end %>
-        </ul>
-        <%= link_to "Try #{plan.name} free", new_signup_path(plan: plan.key), class: "lp-btn #{"lp-btn-ghost" unless recommended}" %>
-      </div>
-    <% end %>
-  </div>
-  <p class="lp-price-foot">Every plan has every feature, M-Pesa, KRA eTIMS, the offline till and WhatsApp support.
-    Business and Enterprise come with a 99.9% uptime promise in the <%= link_to "service level agreement", sla_path, class: "lp-link" %>.
+  <%= render "pages/plans", plans: @plans %>
+  <p class="lp-price-foot">Business and Enterprise come with a 99.9% uptime promise in the <%= link_to "service level agreement", sla_path, class: "lp-link" %>.
     Texts to customers, if you switch them on, are billed by Africa’s Talking.
     <%= link_to "The full pricing", pricing_path, class: "lp-link" %>, with setup visits and till kits.</p>
 </div></section>
@@ -331,9 +309,7 @@
         on <%= link_to "WhatsApp", whatsapp_support_url, class: "lp-link", target: "_blank", rel: "noopener" %> for the rest.</p>
     </div>
     <div>
-      <% landing_faqs.each do |question, answer| %>
-        <details><summary><%= question %></summary><p><%= answer %></p></details>
-      <% end %>
+      <%= render "pages/faqs", faqs: landing_faqs %>
     </div>
   </div>
 </div></section>

@@ -1,12 +1,15 @@
 /*
- * The landing page (pages/home), written the way Basecamp, HEY and Fizzy write theirs: a plain white page that talks
- * like a person, one huge plainspoken headline, the real screens with notes in marker pen, a sticky note for the
- * price, sticky-note colours on the feature cards and two teal bands (the offline till and the door).
+ * The public site's look (the landing page, pricing, the solution pages, the help centre, the developer and legal
+ * pages, signup and finding your shop), written the way Basecamp, HEY and Fizzy write theirs: white pages that talk
+ * like a person, big plainspoken headlines, notes in marker pen, ink outlines with a hard offset shadow on the one
+ * thing in a section that should stand out, and the petrol teal for buttons and the full-width bands.
  *
- * Everything is scoped under .lp so nothing leaks into the rest of the site, and sized in px because the app's root
- * font size is 14px. Colours come from the theme (primary teal) plus a highlighter yellow and a sticky-note pink.
+ * Everything is scoped under .lp (put it on a page's outer element) and sized in px, because the app's root font
+ * size is 14px. It sits in the components layer and styles bare headings through :where(), so Tailwind utilities
+ * and the shared components (the help walkthroughs, tables) still win where a page uses them inside .lp.
  */
 
+@layer components {
 .lp {
   --lp-ink: #0f2327;
   --lp-muted: #4c6266;
@@ -31,7 +34,7 @@
   font-size: 17px;
   line-height: 1.55;
 }
-.lp :focus-visible { outline: 3px solid var(--lp-teal); outline-offset: 3px; border-radius: 6px; }
+.lp :where(:focus-visible) { outline: 3px solid var(--lp-teal); outline-offset: 3px; border-radius: 6px; }
 
 .lp-wrap { max-width: 1180px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
 .lp-section { padding-block: 96px; }
@@ -42,10 +45,10 @@
 /* Type */
 .lp-kicker { display: block; font-family: var(--lp-hand); font-weight: 700; font-size: 21px; letter-spacing: 0; line-height: 1.3; color: var(--lp-teal); margin: 0 0 12px; transform: rotate(-1.5deg); transform-origin: left; }
 .lp-center .lp-kicker { transform-origin: center; }
-.lp h1, .lp h2 { font-family: var(--lp-display); font-weight: 800; letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
-.lp h1 { font-size: clamp(46px, 7vw, 88px); line-height: 0.98; }
-.lp h2 { font-size: clamp(36px, 5vw, 64px); line-height: 1.02; }
-.lp h3 { font-family: var(--lp-display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; line-height: 1.15; margin: 0; text-wrap: balance; }
+.lp :where(h1, h2) { font-family: var(--lp-display); font-weight: 800; letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
+.lp :where(h1) { font-size: clamp(46px, 7vw, 88px); line-height: 0.98; }
+.lp :where(h2) { font-size: clamp(33px, 5vw, 64px); line-height: 1.02; }
+.lp :where(h3) { font-family: var(--lp-display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; line-height: 1.15; margin: 0; text-wrap: balance; }
 .lp-lede { font-size: clamp(18px, 1.6vw, 21px); line-height: 1.55; color: var(--lp-muted); max-width: 34em; margin: 24px 0 0; text-wrap: pretty; }
 .lp-lede strong { color: var(--lp-ink); font-weight: 500; }
 .lp-head { max-width: 760px; }
@@ -54,6 +57,11 @@
 .lp-head.lp-center .lp-lede { margin-left: auto; margin-right: auto; }
 .lp-hl { position: relative; white-space: nowrap; z-index: 0; }
 .lp-hl::before { content: ""; position: absolute; z-index: -1; left: -0.08em; right: -0.1em; top: 0.18em; bottom: 0.02em; background: var(--lp-marker); border-radius: 0.12em 0.4em 0.18em 0.5em; transform: rotate(-1.2deg) skewX(-6deg); }
+/* On the narrowest phones the highlighted words may need two lines: the marker becomes a background that follows them. */
+@media (max-width: 379px) {
+  .lp-hl { white-space: normal; padding: 0 0.06em; background: linear-gradient(transparent 20%, var(--lp-marker) 20%, var(--lp-marker) 96%, transparent 96%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .lp-hl::before { display: none; }
+}
 .lp-more { display: inline-flex; gap: 6px; margin-top: 18px; font-weight: 500; color: var(--lp-teal); text-decoration: none; }
 .lp-more:hover { text-decoration: underline; text-underline-offset: 4px; }
 .lp-link { font-weight: 500; color: var(--lp-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--lp-ink) 40%, transparent); }
@@ -164,8 +172,8 @@
 .lp-anno-left svg { right: -84px; width: 80px; height: 40px; }
 .lp-anno-right svg { left: -84px; width: 80px; height: 40px; }
 .lp-anno-list { display: none; }
-@media (min-width: 1200px) { .lp-shot-wrap { margin-left: 130px; margin-right: 130px; } }
-@media (max-width: 1199px) {
+@media (min-width: 1260px) { .lp-shot-wrap { margin-left: 130px; margin-right: 130px; } }
+@media (max-width: 1259px) {
   .lp-anno { display: none; }
   .lp-anno-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 28px; list-style: none; padding: 0; margin: 36px 0 0; font-family: var(--lp-hand); font-weight: 700; font-size: 19px; line-height: 1.25; color: var(--lp-teal); }
   .lp-anno-list li { padding-left: 22px; position: relative; }
@@ -255,19 +263,143 @@ a.lp-chip:hover { background: var(--lp-card); }
 /* Questions */
 .lp-faq { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 56px; }
 @media (max-width: 900px) { .lp-faq { grid-template-columns: minmax(0, 1fr); gap: 32px; } }
-.lp-faq details { border-bottom: 2px solid var(--lp-ink); }
-.lp-faq details:first-child { border-top: 2px solid var(--lp-ink); }
-.lp-faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; padding: 20px 0; font-family: var(--lp-display); font-weight: 700; font-size: 21px; letter-spacing: -0.01em; line-height: 1.25; }
-.lp-faq summary::-webkit-details-marker { display: none; }
-.lp-faq summary::after { content: "+"; flex-shrink: 0; font-family: var(--font-sans); font-weight: 400; font-size: 28px; line-height: 1; color: var(--lp-teal); transition: transform .2s; }
-.lp-faq details[open] summary::after { transform: rotate(45deg); }
-.lp-faq details p { margin: 0 0 22px; color: var(--lp-muted); max-width: 40em; }
+.lp-qa details { border-bottom: 2px solid var(--lp-ink); }
+.lp-qa details:first-child { border-top: 2px solid var(--lp-ink); }
+.lp-qa summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; padding: 20px 0; font-family: var(--lp-display); font-weight: 700; font-size: 21px; letter-spacing: -0.01em; line-height: 1.25; }
+.lp-qa summary::-webkit-details-marker { display: none; }
+.lp-qa summary::after { content: "+"; flex-shrink: 0; font-family: var(--font-sans); font-weight: 400; font-size: 28px; line-height: 1; color: var(--lp-teal); transition: transform .2s; }
+.lp-qa details[open] summary::after { transform: rotate(45deg); }
+.lp-qa details p { margin: 0 0 22px; color: var(--lp-muted); max-width: 40em; }
 
 @media (prefers-reduced-motion: no-preference) {
   .lp-hl::before { animation: lp-sweep .7s .35s cubic-bezier(.2,.7,.2,1) both; }
 }
 @keyframes lp-sweep { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @media (prefers-reduced-motion: reduce) {
-  .lp-btn, .lp-pill, .lp-paid dd, .lp-faq summary::after { transition: none; }
+  .lp-btn, .lp-pill, .lp-paid dd, .lp-qa summary::after { transition: none; }
   .lp-btn:hover { transform: none; }
 }
+
+/* ---- The kit the other public pages are built from ------------------------------------------------------------ */
+
+/* The top of an inner page (pages/_page_head): a handwritten kicker, a big headline and a line under it. */
+.lp-page-head { padding-block: 88px 56px; }
+.lp-page-head :where(h1) { font-size: clamp(42px, 6vw, 76px); line-height: 1; }
+.lp-page-head .lp-lede { margin-top: 20px; }
+.lp-page-head.lp-center .lp-lede { margin-left: auto; margin-right: auto; }
+.lp-page-head.lp-center .lp-kicker { transform-origin: center; }
+.lp-page-head .lp-cta { margin-top: 30px; }
+.lp-page-head.lp-center .lp-cta { justify-content: center; }
+.lp-crumb { display: inline-flex; gap: 8px; align-items: baseline; margin: 0 0 20px; font-size: 15px; color: var(--lp-muted); }
+.lp-crumb a { font-weight: 500; color: var(--lp-teal); text-decoration: none; }
+.lp-crumb a:hover { text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 700px) { .lp-page-head { padding-block: 56px 40px; } }
+
+/* Narrow column for reading. */
+.lp-narrow { max-width: 760px; margin-left: auto; margin-right: auto; }
+.lp-mid { max-width: 920px; margin-left: auto; margin-right: auto; }
+
+/* Long-form text: the help guides, the developer page and the legal pages, written as plain HTML. */
+.lp-doc { font-size: 17px; line-height: 1.65; color: var(--lp-ink); }
+.lp-doc > * + * { margin-top: 16px; }
+.lp-doc :where(h2) { font-family: var(--lp-display); font-weight: 800; font-size: 28px; line-height: 1.15; letter-spacing: -0.025em; margin-top: 48px; text-wrap: balance; }
+.lp-doc :where(h3) { font-family: var(--lp-display); font-weight: 700; font-size: 21px; line-height: 1.2; letter-spacing: -0.015em; margin-top: 32px; }
+.lp-doc :where(h2, h3) + * { margin-top: 12px; }
+.lp-doc > :where(h2):first-child { margin-top: 0; }
+.lp-doc :where(p, li) { color: #2a3f43; }
+.lp-doc :where(ul, ol) { padding-left: 24px; display: grid; gap: 6px; }
+.lp-doc :where(ul) { list-style: disc; }
+.lp-doc :where(ol) { list-style: decimal; }
+.lp-doc :where(li)::marker { color: var(--lp-teal); font-weight: 700; }
+.lp-doc :where(strong) { font-weight: 600; color: var(--lp-ink); }
+.lp-doc :where(code) { font-family: var(--lp-mono); font-size: 0.86em; background: var(--lp-card); border: 1px solid var(--lp-line); border-radius: 6px; padding: 1px 5px; }
+.lp-doc :where(table) { width: 100%; border-collapse: collapse; font-size: 15px; }
+.lp-doc :where(th) { text-align: left; font-weight: 700; padding: 10px 12px; border-bottom: 2px solid var(--lp-ink); }
+.lp-doc :where(td) { padding: 10px 12px; border-bottom: 1px solid var(--lp-line); vertical-align: top; }
+.lp-table-wrap { overflow-x: auto; border: 2px solid var(--lp-ink); border-radius: 14px; }
+.lp-table-wrap :where(table) { margin: 0; }
+.lp-table-wrap :where(tr:last-child td) { border-bottom: 0; }
+.lp-code { overflow-x: auto; margin: 0; border-radius: 14px; background: var(--lp-ink); color: #e8f1f2; padding: 18px 20px; font-family: var(--lp-mono); font-size: 13px; line-height: 1.6; }
+.lp-doc .lp-code code, .lp-code code { background: none; border: 0; padding: 0; color: inherit; }
+
+/* An ink-outlined panel with the hard shadow, for the one thing in a section that should stand out; the quiet one is
+   dashed on grey. */
+.lp-panel { background: #fff; border: 2px solid var(--lp-ink); border-radius: 18px; box-shadow: 8px 8px 0 var(--lp-ink); padding: 28px; }
+.lp-panel-quiet { background: var(--lp-card); border: 2px dashed var(--lp-ink); border-radius: 18px; padding: 28px; }
+.lp-panel > :first-child, .lp-panel-quiet > :first-child { margin-top: 0; }
+@media (max-width: 560px) { .lp-panel, .lp-panel-quiet { padding: 22px 20px; } }
+
+/* A card that's a link: outlined, and it lifts onto its shadow when pointed at. */
+.lp-tile { display: block; background: #fff; border: 2px solid var(--lp-ink); border-radius: 16px; padding: 18px 22px; color: var(--lp-ink); text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; }
+.lp-tile:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 var(--lp-ink); }
+.lp-tile-title { display: block; font-family: var(--lp-display); font-weight: 700; font-size: 19px; letter-spacing: -0.015em; line-height: 1.25; }
+.lp-tile-text { display: block; margin-top: 4px; font-size: 15px; line-height: 1.45; color: var(--lp-muted); }
+.lp-tile-eyebrow { display: block; margin-bottom: 4px; font-family: var(--lp-hand); font-weight: 700; font-size: 16px; color: var(--lp-teal); }
+.lp-tiles { display: grid; gap: 14px; }
+.lp-tiles-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lp-tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .lp-tiles-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .lp-tiles-2, .lp-tiles-3 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Search box and form fields. */
+.lp-search { position: relative; max-width: 620px; }
+.lp-center .lp-search, .lp-search.lp-center { margin-left: auto; margin-right: auto; }
+.lp-search input[type=search] { display: block; width: 100%; height: 60px; padding: 0 128px 0 52px; border: 2px solid var(--lp-ink); border-radius: 999px; background: #fff; font-size: 17px; color: var(--lp-ink); box-shadow: 6px 6px 0 var(--lp-ink); }
+.lp-search input[type=search]::placeholder { color: #6b7f83; }
+.lp-search input[type=search]:focus { outline: 3px solid var(--lp-marker); outline-offset: 2px; }
+.lp-search svg { position: absolute; left: 20px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%); color: var(--lp-muted); pointer-events: none; }
+.lp-search .lp-btn { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); padding: 12px 20px; font-size: 16px; }
+.lp-search .lp-btn:hover { transform: translateY(-50%); }
+@media (max-width: 480px) { .lp-search input[type=search] { padding-right: 20px; } .lp-search .lp-btn { position: static; transform: none; margin-top: 12px; width: 100%; } .lp-search .lp-btn:hover { transform: none; } }
+
+.lp-form { display: grid; gap: 20px; }
+.lp-form .lp-btn { width: 100%; }
+.lp-suffix { display: flex; align-items: center; gap: 10px; }
+.lp-suffix > span { font-size: 16px; color: var(--lp-muted); white-space: nowrap; }
+.lp-choice { display: flex; flex-direction: column; gap: 2px; cursor: pointer; padding: 12px 14px; border: 2px solid var(--lp-line); border-radius: 14px; background: #fff; font-size: 15px; }
+.lp-choice:has(:checked) { border-color: var(--lp-ink); box-shadow: 4px 4px 0 var(--lp-ink); }
+.lp-choice b { display: flex; align-items: center; gap: 8px; font-family: var(--lp-display); font-size: 17px; }
+.lp-choice span { color: var(--lp-muted); }
+.lp-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 520px) { .lp-choices { grid-template-columns: minmax(0, 1fr); } }
+
+@media (min-width: 901px) { .lp-cards-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.lp-fine a { text-decoration-color: var(--lp-teal); }
+.lp-solution-card ul { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 12px; font-size: 16px; line-height: 1.45; }
+.lp-solution-card li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; }
+.lp-solution-card li svg { width: 22px; height: 22px; margin-top: 1px; fill: none; stroke: var(--lp-ok); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The help walkthroughs, inside the public pages only (the app's guided tours keep their own look): outlined in ink
+   on their hard shadow, like everything else here that you're meant to use. */
+.lp .help-article .walkthrough { margin-inline: 0; }
+.lp .walkthrough-eyebrow { color: #a3460f; }
+.lp .walkthrough { border: 2px solid var(--lp-ink); border-radius: 18px; box-shadow: 8px 8px 0 var(--lp-ink); overflow: hidden; margin-block: 40px; }
+
+/* Monthly or yearly, on the plans: radios styled as a pill switch, the prices swapped by CSS alone. */
+.lp-billing { display: flex; width: fit-content; margin: 0 auto; padding: 4px; border: 2px solid var(--lp-ink); border-radius: 999px; background: #fff; }
+.lp-billing label { display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 999px; font-weight: 600; font-size: 15px; cursor: pointer; }
+.lp-billing label:has(:checked) { background: var(--lp-teal); color: #fff; }
+.lp-billing label:has(:focus-visible) { outline: 3px solid var(--lp-marker); outline-offset: 2px; }
+.lp-billing .lp-free { padding: 2px 8px; border-radius: 999px; background: var(--lp-marker); color: var(--lp-ink); font-size: 12px; font-weight: 700; }
+.lp-yearly { display: none; }
+.lp-plans-wrap:has([value=yearly]:checked) .lp-monthly { display: none; }
+.lp-plans-wrap:has([value=yearly]:checked) .lp-yearly { display: block; }
+.lp-plans-wrap .lp-plans { margin-top: 40px; }
+.lp-includes svg { fill: none; stroke: var(--lp-ok); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.lp-includes { margin: 28px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; max-width: 980px; }
+@media (prefers-reduced-motion: reduce) { .lp-tile { transition: none; } .lp-tile:hover { transform: none; } }
+
+}
+
+/* Outside the layer on purpose: these restyle the app's own utilities (input, label, field, hint, link) inside the
+   public pages, and a utility would otherwise win over anything in the components layer. */
+.lp-form .field { margin: 0; }
+.lp-form .label, .lp-form legend { display: block; margin-bottom: 8px; font-weight: 700; font-size: 15px; color: var(--lp-ink); }
+.lp-form .input { height: 50px; padding: 0 16px; border: 2px solid var(--lp-ink); border-radius: 12px; background: #fff; font-size: 17px; color: var(--lp-ink); box-shadow: none; }
+.lp-form .input:focus { border-color: var(--lp-teal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lp-teal) 25%, transparent); outline: none; }
+.lp-form .hint { margin-top: 6px; font-size: 14px; color: var(--lp-muted); }
+.lp-form .link { color: var(--lp-ink); font-weight: 500; text-decoration: underline; text-decoration-color: var(--lp-teal); text-underline-offset: 3px; }
+.lp .link { color: var(--lp-ink); font-weight: 500; text-decoration: underline; text-decoration-color: var(--lp-teal); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.lp-doc .hint { font-size: 15px; color: var(--lp-muted); }
+.lp-doc :where(a:not([class])), .lp-doc .link { color: var(--lp-ink); font-weight: 500; text-decoration: underline; text-decoration-color: var(--lp-teal); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.lp-doc :where(a:not([class])):hover, .lp-doc .link:hover { background: color-mix(in srgb, var(--lp-marker) 55%, transparent); }

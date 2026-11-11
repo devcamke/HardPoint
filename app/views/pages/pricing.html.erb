@@ -2,67 +2,74 @@
 <% content_for :description, "#{@plans.map { "#{_1.name} KES #{number_with_delimiter(_1.price_cents / 100)}" }.to_sentence} a month per shop, or pay yearly and get #{12 - Plan::YEARLY_MONTHS_CHARGED} months free. M-Pesa, KRA eTIMS and offline selling included. #{Plan::TRIAL.inspect.capitalize} free." %>
 <% faqs = marketing_faqs %>
 <% structured_data seo_software(@plans), seo_faq(faqs) %>
+<% trial = Plan::TRIAL.inspect %>
+<% tick = tag.svg(viewBox: "0 0 22 22", aria: { hidden: true }) { tag.path(d: "M4 11.5l4.5 4.5L18 6") } %>
+<%# The public site's look (landing.css): the plans as on the landing page, the setup visit and the till kit as two
+    outlined panels, every question, and the door in a teal band. %>
 
-<section class="bg-white">
-  <div class="mx-auto max-w-3xl px-4 pt-20 pb-12 text-center sm:pt-28">
-    <h1 class="text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">Pricing</h1>
-    <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600 text-balance sm:text-xl">Every plan has every feature and unlimited products. Pick one for the size of your shop,
-      and try it free for <%= Plan::TRIAL.inspect %>.</p>
-  </div>
-  <div class="mx-auto max-w-6xl px-4 pb-20 sm:pb-28">
+<div class="lp">
+  <%= render "pages/page_head", kicker: "Pricing", title: "One price for the whole shop.",
+        lede: "Every plan has every feature and unlimited products. HardPoint takes nothing per sale or per receipt. Pick one for the size of your shop, and try it free for #{trial}." %>
+
+  <section class="lp-wrap pb-[96px]">
     <%= render "pages/plans", plans: @plans %>
-  </div>
-</section>
+    <p class="lp-price-foot mt-[12px]">Business and Enterprise come with a 99.9% uptime promise in the
+      <%= link_to "service level agreement", sla_path, class: "lp-link" %>. Texts to customers, if you switch them on, are billed by Africa’s Talking.</p>
+  </section>
 
-<section id="setup" class="border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-    <div class="mx-auto max-w-3xl text-center">
-      <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Getting set up.</h2>
-      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Do it all yourself with the setup checklist and the help centre. Or we come to the shop and do it with you.</p>
+  <section id="setup" class="lp-section lp-rule"><div class="lp-wrap">
+    <div class="lp-head lp-center">
+      <p class="lp-kicker">Getting set up</p>
+      <h2>Do it yourself, or we’ll come round.</h2>
+      <p class="lp-lede">The setup checklist and the help centre walk you through it. Or we come to the shop and do it with you.</p>
     </div>
-    <div class="mt-14 grid gap-4 md:grid-cols-2">
-      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10">
-        <h3 class="text-2xl font-semibold tracking-tight text-gray-950">Setup and training visit</h3>
-        <p class="mt-3"><span class="text-3xl font-semibold tracking-tight tabular-nums">from <%= Money.format(Plan::SETUP_CENTS, currency: "KES") %></span></p>
-        <p class="mt-1 text-gray-500">One-off. Free with a year paid upfront.</p>
-        <ul class="mt-6 space-y-2.5 text-gray-700">
-          <li class="flex gap-2.5"><%= render "pages/check" %> Your product list imported from a spreadsheet or your old system, with prices, barcodes and stock</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> Tills, receipt printers, cash drawers and scanners connected</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> M-Pesa on your own Paybill or Till, and KRA eTIMS registered for each branch</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> Staff, roles and PINs set up, and an hour at the counter with your cashiers</li>
+    <div class="lp-ba">
+      <div class="lp-ba-col lp-ba-after">
+        <h3>Setup and training visit</h3>
+        <p class="lp-price text-[36px]">from <%= Money.format(Plan::SETUP_CENTS, currency: "KES") %></p>
+        <p class="lp-price-year">One-off. Free with a year paid upfront.</p>
+        <ul>
+          <% [ "Your product list imported from a spreadsheet or your old system, with prices, barcodes and stock",
+               "Tills, receipt printers, cash drawers and scanners connected",
+               "M-Pesa on your own Paybill or Till, and KRA eTIMS registered for each branch",
+               "Staff, roles and PINs set up, and an hour at the counter with your cashiers" ].each do |point| %>
+            <li><%= tick %><span><%= point %></span></li>
+          <% end %>
         </ul>
       </div>
-      <div class="rounded-3xl bg-gray-100 p-8 sm:p-10">
-        <h3 class="text-2xl font-semibold tracking-tight text-gray-950">Till kit</h3>
-        <p class="mt-3"><span class="text-3xl font-semibold tracking-tight">Quoted</span></p>
-        <p class="mt-1 text-gray-500">For your shop. Pay once or over 12 months.</p>
-        <ul class="mt-6 space-y-2.5 text-gray-700">
-          <li class="flex gap-2.5"><%= render "pages/check" %> 80 mm thermal receipt printer and cash drawer</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> USB barcode scanner</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> A touch screen or tablet for the till, if you want one</li>
-          <li class="flex gap-2.5"><%= render "pages/check" %> Delivered set up and tested with HardPoint</li>
+      <div class="lp-ba-col lp-ba-after">
+        <h3>Till kit</h3>
+        <p class="lp-price text-[36px]">Quoted</p>
+        <p class="lp-price-year">For your shop. Pay once or over 12 months.</p>
+        <ul>
+          <% [ "80 mm thermal receipt printer and cash drawer", "USB barcode scanner",
+               "A touch screen or tablet for the till, if you want one", "Delivered set up and tested with HardPoint" ].each do |point| %>
+            <li><%= tick %><span><%= point %></span></li>
+          <% end %>
         </ul>
       </div>
     </div>
-    <p class="mx-auto mt-8 max-w-2xl text-center text-gray-600">Both are invoiced in HardPoint and paid by M-Pesa, card or bank transfer. Ask about either from the message form in HardPoint, or
-      <%= link_to whatsapp_support_url("Hello HardPoint, I'd like to ask about setup or a till kit."), class: "font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>message us on WhatsApp <span aria-hidden="true">›</span><% end %></p>
-  </div>
-</section>
+    <p class="lp-price-foot">Both are invoiced in HardPoint and paid by M-Pesa, card or bank transfer. Ask about either from the message form in
+      HardPoint, or <%= link_to "message us on WhatsApp", whatsapp_support_url("Hello HardPoint, I'd like to ask about setup or a till kit."), class: "lp-link", target: "_blank", rel: "noopener" %>.</p>
+  </div></section>
 
-<section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-3xl px-4 py-20 sm:py-28">
-    <h2 class="text-center text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Questions.</h2>
-    <div class="mt-12"><%= render "pages/faqs", faqs: %></div>
-  </div>
-</section>
-
-<section class="border-t border-gray-200 bg-white">
-  <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
-    <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Try it free for <%= Plan::TRIAL.inspect %>.</h2>
-    <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">No card needed. Your data is yours to export at any time.</p>
-    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-      <%= link_to "Start free trial", new_signup_path, class: "btn-primary px-6 py-2.5 text-lg" %>
-      <%= link_to help_path, class: "text-lg font-medium text-accent-600 hover:underline" do %>Read the guides <span aria-hidden="true">›</span><% end %>
+  <section class="lp-section lp-rule" id="questions"><div class="lp-wrap">
+    <div class="lp-faq">
+      <div class="lp-head">
+        <p class="lp-kicker">Questions</p>
+        <h2>Everything people ask.</h2>
+        <p class="lp-lede">Anything else, ask a person on <%= link_to "WhatsApp", whatsapp_support_url, class: "lp-link", target: "_blank", rel: "noopener" %>.</p>
+      </div>
+      <%= render "pages/faqs", faqs: %>
     </div>
-  </div>
-</section>
+  </div></section>
+
+  <section class="lp-band lp-door"><div class="lp-wrap lp-section">
+    <p class="lp-kicker">Ready when you are</p>
+    <h2>Try it free for <%= trial %>.</h2>
+    <div class="lp-cta">
+      <%= link_to new_signup_path, class: "lp-btn lp-btn-marker" do %>Start free trial<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg><% end %>
+    </div>
+    <p class="lp-door-note">No card needed · your data is yours to export at any time · <%= link_to "read the guides", help_path %></p>
+  </div></section>
+</div>

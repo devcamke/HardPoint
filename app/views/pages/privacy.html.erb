@@ -1,10 +1,14 @@
 <% content_for :title, "Privacy and your data" %>
 <% content_for :description, "How HardPoint handles your hardware store's data, in plain language and in line with Kenya's Data Protection Act, 2019: whose it is, who handles it, and how to take it with you." %>
 
-<article class="bg-white">
- <div class="mx-auto max-w-3xl px-4 pt-20 pb-20 sm:pt-28 sm:pb-28">
-  <h1 class="text-center text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">Privacy and your data</h1>
-  <p class="mx-auto mt-5 max-w-2xl text-center text-lg text-gray-600 text-balance sm:text-xl">How HardPoint handles the data your shop keeps, in plain language, in line with Kenya's Data Protection Act, 2019.</p>
+<div class="lp">
+<article>
+  <%= render "pages/page_head", kicker: "Your data", title: "Privacy and your data", center: false do %>
+    <p class="lp-lede">How HardPoint handles the data your shop keeps, in plain language, in line with Kenya's Data Protection Act, 2019.</p>
+  <% end %>
+
+  <div class="lp-wrap pb-[96px]">
+  <div class="lp-doc max-w-[760px]">
 
   <% [
     [ "Whose data it is", "Your shop's products, sales, customers and staff belong to your shop. HardPoint processes them on your behalf, to run the service, and for nothing else. We don't sell data or show advertising." ],
@@ -19,10 +23,12 @@
     [ "Your customers' rights", "Your customers can ask you to see, correct or delete what you hold about them. You can edit or remove a customer in HardPoint; sales stay on record because they're needed for tax." ],
     [ "Contact", "Questions or requests about personal data: #{Rails.configuration.x.support[:email]}." ]
   ].each do |heading, body| %>
-    <h2 class="mt-12 text-2xl font-semibold tracking-tight text-gray-950"><%= heading %></h2>
-    <p class="mt-3 leading-relaxed text-gray-700"><%= body %></p>
+    <h2><%= heading %></h2>
+    <p><%= body %></p>
   <% end %>
 
-  <p class="mt-10 text-sm text-gray-500">See also: <%= link_to "data processing terms", data_processing_path, class: "link" %> · <%= link_to "terms of service", terms_path, class: "link" %>.</p>
- </div>
+  <p class="hint mt-[40px]">See also: <%= link_to "data processing terms", data_processing_path, class: "link" %> · <%= link_to "terms of service", terms_path, class: "link" %>.</p>
+  </div>
+  </div>
 </article>
+</div>

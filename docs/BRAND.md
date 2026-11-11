@@ -69,10 +69,11 @@ rounded square with an ink edge.
 Utilities in `app/assets/tailwind/application.css`: `btn-primary`, `btn-secondary`, `btn-danger`, `input`, `label`,
 `field`, `card`, `link`, `hint`, `badge`, and the `.table` component.
 
-## The landing page
+## The public site
 
-The public landing page (`app/views/pages/home.html.erb`) has its own voice and look, in the manner of Basecamp, HEY
-and Fizzy, and its own stylesheet, `app/assets/tailwind/landing.css`, with everything under `.lp`:
+The public site (the landing page, pricing, the solution pages, the help centre, the developer and legal pages,
+signup and finding your shop) has its own voice and look, in the manner of Basecamp, HEY and Fizzy, and its own
+stylesheet, `app/assets/tailwind/landing.css`, with everything under `.lp`. The app itself keeps the look above.
 
 - **Words:** plainspoken, written to the owner of a hardware shop. One huge headline, short sentences, no jargon.
   Every claim must be true of how HardPoint works today; the help guides are the source. Prices come from `Plan`.
@@ -84,3 +85,9 @@ and Fizzy, and its own stylesheet, `app/assets/tailwind/landing.css`, with every
 - **Shapes:** a 2 px ink outline and a hard offset shadow on the one thing in each section that should stand out.
 - **Real screens** carry handwritten notes in the margin on a wide window, and a list of the same notes under them
   on anything narrower.
+- **Built from one kit,** so every page matches: `pages/_page_head` (kicker, headline, line under it), `pages/_plans`
+  and `pages/_faqs` (shared by the landing and pricing pages), `.lp-doc` for long-form text (guides, the API, the
+  legal pages), `.lp-panel` and `.lp-tile` for outlined boxes and link cards, `.lp-form` for boxed fields, and
+  `.lp-search`. Inside the help guides the walkthroughs get the ink outline too; the app's guided tours don't.
+- **The public site's nav and footer** (`layouts/marketing`) follow it too: a pill-shaped trial button, and a white
+  footer under a 2 px ink rule with columns headed in the headline face and a handwritten line under the logo.

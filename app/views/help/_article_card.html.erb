@@ -1,5 +1,5 @@
-<%= link_to help_article_path(article), class: "block rounded-2xl bg-gray-100 px-6 py-5 transition-colors hover:bg-gray-200/70" do %>
-  <% if show_section %><p class="text-xs font-semibold tracking-wide text-gray-500 uppercase"><%= article.section %></p><% end %>
-  <p class="font-semibold text-gray-950"><%= article.title %></p>
-  <p class="mt-1 text-sm text-gray-500"><%= article.summary %></p>
+<%= link_to help_article_path(article), class: "lp-tile" do %>
+  <% if show_section %><span class="lp-tile-eyebrow"><%= article.section %></span><% end %>
+  <span class="lp-tile-title"><%= article.title %></span>
+  <span class="lp-tile-text"><%= article.summary %></span>
 <% end %>

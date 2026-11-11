@@ -147,22 +147,6 @@
     @apply whitespace-nowrap;
   }
 
-  /* Help centre articles, written as plain HTML. */
-  .help-article h2 {
-    @apply pt-4 text-lg font-semibold text-gray-900;
-  }
-  .help-article ul {
-    @apply list-disc space-y-1 pl-6;
-  }
-  .help-article ol {
-    @apply list-decimal space-y-1 pl-6;
-  }
-  .help-article strong {
-    @apply font-semibold text-gray-900;
-  }
-  .help-article code {
-    @apply rounded bg-gray-200 px-1 font-mono text-sm;
-  }
 }
 
 /* Multi-line text keeps a box; single-line fields stay underlined. */

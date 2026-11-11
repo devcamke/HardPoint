@@ -1,0 +1,12 @@
+<%# locals: (title:, kicker: nil, lede: nil, center: true, crumb: nil) %>
+<%# The top of an inner page on the public site: a handwritten kicker, a big headline and a line under it, with
+    whatever the page passes in a block (buttons, a search box) underneath. %>
+<header class="lp-wrap lp-page-head <%= "lp-center" if center %>">
+  <div class="<%= center ? "lp-head lp-center" : "lp-head" %>">
+    <% if crumb %><p class="lp-crumb"><%= crumb %></p><% end %>
+    <% if kicker %><p class="lp-kicker"><%= kicker %></p><% end %>
+    <h1><%= title %></h1>
+    <% if lede %><p class="lp-lede"><%= lede %></p><% end %>
+    <%= yield if block_given? %>
+  </div>
+</header>

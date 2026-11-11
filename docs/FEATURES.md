@@ -769,5 +769,5 @@ help centre.
 Also since then: a refreshed app menu (the shop's logo and name, bigger text, and the areas along the bottom on
 phones), a rectangular receipt stamp, and a shorter landing page, since rewritten in the manner of Basecamp, HEY and
 Fizzy: a plainspoken headline, an example till that shows what changes offline, the real screens with notes in marker
-pen, and the price on a sticky note (docs/BRAND.md, The landing page).
+pen, and the price on a sticky note (docs/BRAND.md, The public site).
 
