@@ -1,5 +1,5 @@
 class Account < ApplicationRecord
-  include CatalogueDefaults, DailySummary, WeeklySummary, OwnerAlerts, Preferences, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Monetary, Subscription, BillingCycle, Closure, QzSigning
+  include CatalogueDefaults, DailySummary, WeeklySummary, BalanceReminders, OwnerAlerts, Preferences, Eventable, Features, Isolation, LiveDashboard, LowStockDigest, Monetary, Subscription, BillingCycle, Closure, QzSigning
   # Creation is recorded by Signup, once the new account is current.
   tracks_lifecycle only: :update
 

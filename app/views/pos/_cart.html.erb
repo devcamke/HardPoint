@@ -6,6 +6,7 @@
       <p class="shrink-0 text-xs uppercase tracking-wide text-gray-500">Customer</p>
       <p class="truncate font-semibold"><%= sale.customer&.name || "Walk-in" %>
         <%= tag.span(sale.customer.price_list.name, class: "badge ml-1") if sale.customer&.price_list %>
+        <%= tag.span("On hold", class: "badge ml-1 bg-red-100 text-red-800", title: sale.customer.credit_hold.message(sale.customer.name)) if sale.customer&.buys_on_account? && Current.account.credit_hold_after_days.positive? && sale.customer.on_credit_hold? %>
         <%= tag.span("Order #{sale.customer_order.reference}", class: "badge ml-1") if sale.customer_order %></p>
     </div>
     <details class="relative<%= " hidden" if sale.customer_order %>">

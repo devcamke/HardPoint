@@ -958,6 +958,19 @@ in the counter's head is slow and loses sales to the shop that answers first.
   first), matched to its M-Pesa transaction. One prompt waits at a time per customer, and at most 5 are sent per
   link in 10 minutes. The Paybill and account number are also shown for paying from the M-Pesa menu.
 
+### Phase 44 — Credit control: holds for overdue accounts, and Monday reminders
+**Goal:** stop a credit shop's debts growing while a customer is months behind, without a manager watching every sale.
+- **Holds** (Settings › Preferences › Credit control): an account with an invoice more than N days overdue (0, the
+  default, never holds) is on hold. Nothing more goes on account at the till, and no order is confirmed, without an
+  owner's or manager's approval PIN; the approval is recorded with what was overdue. The hold is worked out from
+  what's owed each time, so paying the late invoices ends it by itself. The customer's page shows why the account is
+  held, and the till marks the customer "On hold".
+- **Lifting a hold:** an owner or manager lifts it for 7, 14 or 30 days with a reason (a payment plan, a cheque in
+  the post). The page shows who lifted it, until when and why, and it can be put back at once. Both are recorded.
+- **Monday reminders** at 9 (Nairobi), for shops that choose them: every customer with an overdue invoice, a phone
+  and no opt-out gets an SMS (linking to the customer portal when that's on), or a WhatsApp message with their
+  statement. SMS keeps its one-a-day-per-customer rule and the shop's daily limit.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -974,7 +987,7 @@ in the counter's head is slow and loses sales to the shop that answers first.
 **Features to consider next**, chosen for Kenyan hardware shops and ordered by likely value:
 1. ~~**Customer portal by link:**~~ Done (Phase 43). a signed link (WhatsApp or SMS) to a contractor's statement, open invoices and quotes,
    with "Pay with M-Pesa" (STK) for the balance. Speeds up collections, the biggest cash-flow pain for credit shops.
-2. **Credit control:** put an account on hold automatically past N days overdue or over the limit, with an owner's
+2. ~~**Credit control:**~~ Done (Phase 44). put an account on hold automatically past N days overdue or over the limit, with an owner's
    override, and a weekly reminder run by WhatsApp/SMS.
 3. **Loss prevention alerts:** partly done (Phase 34: give-aways per cashier, cash counts and instant alerts). Still
    to do: each cashier against their own usual, and no-sale drawer openings.

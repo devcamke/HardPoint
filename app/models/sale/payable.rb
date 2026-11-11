@@ -79,7 +79,7 @@ module Sale::Payable
     return payment if payment.errors.any?
 
     transaction(requires_new: true) do
-      approve_credit(payment, credit_approver) if payment.on_account? && over_credit_limit?(payment)
+      approve_credit(payment, credit_approver) if payment.on_account? && (over_credit_limit?(payment) || customer.on_credit_hold?)
       payment.save!
       payments.reset
       complete if balance_due_cents <= 0
@@ -154,6 +154,8 @@ module Sale::Payable
     def check_account_credit(payment, approver)
       if customer.nil?
         payment.errors.add :base, "Choose a customer to put this on account"
+      elsif customer.on_credit_hold? && approver.nil?
+        payment.errors.add :base, "#{customer.credit_hold.message(customer.name)}. Putting more on account needs a manager's approval PIN"
       elsif over_credit_limit?(payment) && approver.nil?
         payment.errors.add :base, "#{customer.name} has only #{Money.format(customer.available_credit_cents)} of credit left. " \
           "Going over needs a manager's approval PIN"
@@ -163,7 +165,7 @@ module Sale::Payable
     def approve_credit(payment, approver)
       update!(credit_approver: approver)
       track_event "credit_approved", approver: approver, customer: customer.name, amount: payment.amount_cents,
-        available: customer.available_credit_cents
+        available: customer.available_credit_cents, **(customer.on_credit_hold? ? { on_hold: customer.credit_hold.overdue_cents } : {})
     end
 
     def check_ready_to_complete(payment)

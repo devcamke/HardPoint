@@ -19,6 +19,10 @@ module Account::Preferences
     Preference.new(key: "quote_validity_days", type: :integer, default: 14, range: 1..365),
     Preference.new(key: "customer_payment_terms_days", type: :integer, default: 30, range: 0..365),
     Preference.new(key: "till_tenders", type: :list, default: TILL_TENDERS.keys),
+    # Credit control: an account with an invoice more than this many days overdue takes nothing more on account
+    # without a manager's PIN (0: never held); and who's reminded each Monday of what's overdue.
+    Preference.new(key: "credit_hold_after_days", type: :integer, default: 0, range: 0..365),
+    Preference.new(key: "weekly_reminders", type: :choice, default: "off", range: %w[ off sms whatsapp ]),
     # Stock
     Preference.new(key: "expiry_warning_days", type: :integer, default: 30, range: 1..365),
     Preference.new(key: "dead_stock_days", type: :integer, default: 90, range: 14..730),
@@ -56,6 +60,7 @@ module Account::Preferences
       when :integer then value.to_i
       when :boolean then ActiveModel::Type::Boolean.new.cast(value)
       when :list then Array(value) & TILL_TENDERS.keys
+      when :choice then value.to_s.in?(preference.range) ? value.to_s : preference.default
       else value
       end
     end
@@ -71,6 +76,7 @@ module Account::Preferences
       when :list then Array(value).map(&:to_s).compact_blank & TILL_TENDERS.keys
       when :color then Theme.normalize(value) || value.to_s
       when :text then value.to_s.strip.presence
+      when :choice then value.to_s
       end
     end
 
@@ -88,6 +94,8 @@ module Account::Preferences
           elsif !Theme.readable?(value)
             errors.add :theme_color, "is too light: white writing on it would be hard to read (contrast #{Theme.contrast_with_white(value)}:1, at least #{Theme::MIN_CONTRAST}:1 needed). Choose a darker shade"
           end
+        when :choice
+          errors.add preference.key, "must be one of #{preference.range.to_sentence(last_word_connector: " or ")}" unless value.in?(preference.range)
         when :text
           errors.add preference.key, "is too long (at most #{preference.range.max} characters)" if value.to_s.length > preference.range.max
         end

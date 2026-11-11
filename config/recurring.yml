@@ -29,6 +29,11 @@ production:
     class: WeeklySummaryJob
     schedule: every monday at 4:30am
 
+  # Credit control: customers with overdue invoices reminded, for shops that ask (06:00 UTC is 09:00 in Nairobi).
+  weekly_balance_reminders:
+    class: WeeklyBalanceRemindersJob
+    schedule: every monday at 6am
+
   # The platform's own checks (database, workers, stuck or failed jobs, eTIMS queues, backups, disk), alerting
   # the operators when one fails (docs/RUNBOOK.md, "Alerts").
   platform_health:

@@ -28,6 +28,8 @@
 
 <%= shared_links @customer if current_membership.can_manage_receivables? %>
 
+<%= render "customers/credit_hold", customer: @customer %>
+
 <div class="mb-6 grid gap-4 sm:grid-cols-4" data-tour="customer-account">
   <div class="card"><p class="hint">Prices</p><p class="mt-1 text-xl font-bold"><%= @customer.price_list&.name || "Retail" %></p></div>
   <div class="card"><p class="hint"><%= @customer.balance_cents.negative? ? "Credit on account" : "Owes on account" %></p><p class="mt-1 text-xl font-bold tabular-nums"><%= money(@customer.balance_cents.abs) %></p>
