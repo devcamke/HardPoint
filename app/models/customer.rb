@@ -1,5 +1,5 @@
 class Customer < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Receivables, PublishesWebhooks
+  include AccountOwned, Eventable, Monetary, Receivables, CreditHold, PublishesWebhooks
   tracks_lifecycle
   publishes_webhooks "customer"
 

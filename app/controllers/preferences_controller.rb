@@ -4,7 +4,7 @@ class PreferencesController < ApplicationController
   before_action :ensure_can_manage_account
 
   FIELDS = %w[ quote_validity_days customer_payment_terms_days expiry_warning_days dead_stock_days reorder_lookback_days
-               supplier_lead_time_days document_terms payment_details ].freeze
+               supplier_lead_time_days document_terms payment_details credit_hold_after_days weekly_reminders ].freeze
 
   def edit
     @account = Current.account

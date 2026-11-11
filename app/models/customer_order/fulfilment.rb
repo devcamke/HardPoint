@@ -12,6 +12,9 @@ module CustomerOrder::Fulfilment
     if expired?
       errors.add :base, "This quote expired on #{valid_until.to_fs(:long)}. Change its date to confirm it at the same prices"
       return false
+    elsif check_credit && customer.buys_on_account? && customer.on_credit_hold? && approver.nil?
+      errors.add :base, "#{customer.credit_hold.message(customer.name)}. Confirming this order needs a manager's approval PIN"
+      return false
     elsif check_credit && over_credit_limit? && approver.nil?
       errors.add :base, "#{customer.name} has only #{Money.format(customer.available_credit_cents)} of credit left. " \
         "Confirming this #{Money.format(balance_to_pay_cents)} order needs a manager's approval PIN"
@@ -19,7 +22,7 @@ module CustomerOrder::Fulfilment
     end
 
     transaction do
-      if check_credit && over_credit_limit?
+      if check_credit && (over_credit_limit? || (customer.buys_on_account? && customer.on_credit_hold?))
         track_event "credit_approved", approver: approver, customer: customer.name, amount: balance_to_pay_cents, available: customer.available_credit_cents
       end
       update(status: :ordered, ordered_at: Time.current).tap { |confirmed| track_event "confirmed", total: total_cents if confirmed }
