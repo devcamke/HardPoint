@@ -130,7 +130,7 @@ class ReportTest < ActiveSupport::TestCase
     voided.void(reason: "Rang up twice", by: users(:amina))
 
     by_cashier, voids, discounts = report("discounts_and_voids").sections
-    assert_equal [ "Carl Cashier", 1, 2000, 1, 1, 120000, 0, 0 ], by_cashier.rows.sole
+    assert_equal [ "Carl Cashier", 1, 2000, 1, 1, 120000, 0, 0, 0 ], by_cashier.rows.sole
     assert_equal voided.receipt_number, voids.rows.sole.first.text
     assert_equal 2000, discounts.rows.sole[4]
   end

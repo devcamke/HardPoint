@@ -19,7 +19,8 @@ class Report::DiscountsAndVoids < Report
 
     def cashier_columns
       [ Column.new("Cashier", :text), Column.new("Sales", :count), Column.new("Discounts given", :money), Column.new("Sales discounted", :count),
-        Column.new("Voids", :count), Column.new("Voided value", :money), Column.new("Returns", :count), Column.new("Returned value", :money) ]
+        Column.new("Voids", :count), Column.new("Voided value", :money), Column.new("Returns", :count), Column.new("Returned value", :money),
+        Column.new("Drawer opened, no sale", :count) ]
     end
 
     def cashier_figures
@@ -31,13 +32,21 @@ class Report::DiscountsAndVoids < Report
           Arel.sql("COUNT(DISTINCT sale_lines.sale_id) FILTER (WHERE sales.discount_cents = 0)")).to_h { |id, *figures| [ id, figures.map(&:to_i) ] }
         voids = voided_sales.group(:cashier_id).pluck(:cashier_id, Arel.sql("COUNT(*)"), Arel.sql("SUM(total_cents)")).to_h { [ _1, [ _2, _3.to_i ] ] }
         returned = returns.group(:creator_id).pluck(:creator_id, Arel.sql("COUNT(*)"), Arel.sql("SUM(total_cents)")).to_h { [ _1, [ _2, _3.to_i ] ] }
+        drawer = drawer_openings.group(:creator_id).count
 
-        account.users.where(id: sales.keys | voids.keys | returned.keys).sort_by(&:name).map do |user|
+        account.users.where(id: sales.keys | voids.keys | returned.keys | drawer.keys).sort_by(&:name).map do |user|
           count, discount, discounted = sales.fetch(user.id, [ 0, 0, 0 ])
           line_discount, discounted_on_lines = lines.fetch(user.id, [ 0, 0 ])
-          [ user.name, count, discount + line_discount, discounted + discounted_on_lines, *voids.fetch(user.id, [ 0, 0 ]), *returned.fetch(user.id, [ 0, 0 ]) ]
+          [ user.name, count, discount + line_discount, discounted + discounted_on_lines, *voids.fetch(user.id, [ 0, 0 ]), *returned.fetch(user.id, [ 0, 0 ]),
+            drawer.fetch(user.id, 0) ]
         end
       end
+    end
+
+    # The cash drawer opened from the till without a sale, by whoever opened it.
+    def drawer_openings
+      scope = Event.where(account: account, action: "drawer_opened", created_at: period.range)
+      branch ? scope.where(eventable_type: "Register", eventable_id: account.registers.where(branch: branch).select(:id)) : scope
     end
 
     def discounted_lines
@@ -47,7 +56,7 @@ class Report::DiscountsAndVoids < Report
     def cashier_rows = cashier_figures
 
     def cashier_totals
-      [ "Total", *(1..7).map { |index| cashier_figures.sum { _1[index] } } ]
+      [ "Total", *(1..8).map { |index| cashier_figures.sum { _1[index] } } ]
     end
 
     def void_columns

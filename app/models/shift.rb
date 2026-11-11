@@ -29,6 +29,12 @@ class Shift < ApplicationRecord
 
   scope :chronologically, -> { order(opened_at: :desc, id: :desc) }
 
+  # Times the drawer was opened without a sale while this shift was open at its till, oldest first.
+  def drawer_openings
+    Event.where(account_id: account_id, eventable: register, action: "drawer_opened", created_at: opened_at..(closed_at || Time.current))
+      .includes(:creator).order(:created_at)
+  end
+
   def name
     "#{register.name} · #{opened_at.to_date.to_fs(:long)}"
   end

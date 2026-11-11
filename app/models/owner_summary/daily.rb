@@ -59,6 +59,11 @@ class OwnerSummary::Daily
       .select { _1.given_away_cents.positive? }.sort_by { -_1.given_away_cents }
   end
 
+  # Cashiers whose day stood out against their own usual (CashierPatterns).
+  def unusual
+    @unusual ||= CashierPatterns.new(account, date).flags
+  end
+
   # Lines sold for less than they cost, ex tax: a price set too low, or a discount too deep.
   def below_cost
     @below_cost ||= SaleLine.joins(:sale).includes(:product, :sale)
@@ -131,7 +136,7 @@ class OwnerSummary::Daily
   def stock_worth_a_look? = out_of_stock.any? || refusals.any? || below_zero_count.positive? || write_offs.any? || moves.any?
 
   def money_worth_a_look?
-    shifts.any? { _1.variance_cents.nonzero? } || cashiers.any? || below_cost.any? || offline_flags.any? || shifts_left_open.any? ||
+    shifts.any? { _1.variance_cents.nonzero? } || cashiers.any? || unusual.any? || below_cost.any? || offline_flags.any? || shifts_left_open.any? ||
       unmatched_mobile_money[:count].positive?
   end
 

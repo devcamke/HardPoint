@@ -91,4 +91,10 @@
       <% end %>
     <% end %>
   <% end %>
+  <% if (openings = @shift.drawer_openings.to_a).any? %>
+    <p class="mt-3 border-b border-dashed border-gray-400 font-bold">Drawer opened without a sale: <%= openings.size %></p>
+    <% openings.each do |opening| %>
+      <%= row.("#{l(opening.created_at, format: "%H:%M")} #{opening.creator&.name}", opening.particulars["reason"].presence || "No sale") %>
+    <% end %>
+  <% end %>
 </div>

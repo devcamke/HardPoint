@@ -971,6 +971,18 @@ in the counter's head is slow and loses sales to the shop that answers first.
   and no opt-out gets an SMS (linking to the customer portal when that's on), or a WhatsApp message with their
   statement. SMS keeps its one-a-day-per-customer rule and the shop's daily limit.
 
+### Phase 45 — Loss prevention: each cashier against their own usual, and drawer openings
+**Goal:** catch the cashier whose day is out of character, without flagging the ones who always discount for regulars.
+- **`CashierPatterns`:** a day's voids, discounts (on the sale and its lines), cash refunds and drawer openings without
+  a sale, per cashier, beside the same cashier's working days over the previous eight weeks. Flagged only when it's
+  at least a floor (3 voids or openings, KES 1,000 of discounts or cash refunds), more than twice their usual, and
+  beyond their usual spread (mean + 2 standard deviations). Cashiers with fewer than ten working days have no usual
+  yet and aren't flagged. The morning email's "Money and staff" section lists them: "Carl voided 5 sales (usually
+  under one a day)".
+- **Drawer openings without a sale:** the till's Open drawer is now a menu of reasons (change for a customer, a cash
+  drop, checking the float, other), recorded with the shift. The shift's page lists each opening with who and why,
+  and the discounts and voids report counts them per cashier.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -989,7 +1001,7 @@ in the counter's head is slow and loses sales to the shop that answers first.
    with "Pay with M-Pesa" (STK) for the balance. Speeds up collections, the biggest cash-flow pain for credit shops.
 2. ~~**Credit control:**~~ Done (Phase 44). put an account on hold automatically past N days overdue or over the limit, with an owner's
    override, and a weekly reminder run by WhatsApp/SMS.
-3. **Loss prevention alerts:** partly done (Phase 34: give-aways per cashier, cash counts and instant alerts). Still
+3. ~~**Loss prevention alerts:**~~ Done (Phases 34 and 45). partly done (Phase 34: give-aways per cashier, cash counts and instant alerts). Still
    to do: each cashier against their own usual, and no-sale drawer openings.
 4. **Stock reserved for confirmed orders**, so a deposit-paid order's goods aren't sold to a walk-in (deferred "until
    shops ask"; pilot shops with yards are likely to).

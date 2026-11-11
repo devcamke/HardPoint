@@ -20,6 +20,7 @@ STOCK
 <% end %><% end %><% if s.money_worth_a_look? %>
 MONEY AND STAFF
 <% s.shifts.reject { _1.variance_cents.zero? }.each do |shift| %>- <%= shift.name %> (<%= shift.cashier %>): <%= shift.variance_cents.negative? ? "short" : "over" %> <%= money(shift.variance_cents.abs, currency: currency) %>
+<% end %><% s.unusual.each do |flag| %>- Unusual: <%= flag.cashier.name %> <%= flag.description(currency: currency) %>
 <% end %><% s.cashiers.each do |cashier| %>- <%= cashier.name %> gave away <%= money(cashier.given_away_cents, currency: currency) %> in discounts, voids and returns
 <% end %><% if s.below_cost.any? %>- <%= pluralize(s.below_cost.size, "line") %> sold below cost, <%= money(s.below_cost.sum(&:loss_cents), currency: currency) %> under
 <% end %><% if s.offline_flags.any? %>- <%= pluralize(s.offline_flags.size, "offline sale") %> to check
