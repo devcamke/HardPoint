@@ -84,3 +84,5 @@ and Fizzy, and its own stylesheet, `app/assets/tailwind/landing.css`, with every
 - **Shapes:** a 2 px ink outline and a hard offset shadow on the one thing in each section that should stand out.
 - **Real screens** carry handwritten notes in the margin on a wide window, and a list of the same notes under them
   on anything narrower.
+- **The public site's nav and footer** (`layouts/marketing`) follow it too: a pill-shaped trial button, and a white
+  footer under a 2 px ink rule with columns headed in the headline face and a handwritten line under the logo.
