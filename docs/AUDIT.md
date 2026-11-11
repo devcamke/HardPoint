@@ -1,302 +1,298 @@
-# Audit: the app, its screens and its processes (November 2026)
+# Audit: the app, its screens and its processes
 
-A review of HardPoint as it stands after Phase 41: what breaks, where people get stuck, where money or stock can
-go wrong, and where the screens fall short of [BRAND.md](BRAND.md). Each finding has a place in the code and a suggested
-fix, so it can go straight into the backlog in [PLAN.md](PLAN.md). The ten in [Fix first](#fix-first) and the broken pages
-have since been fixed: see [What's been fixed](#whats-been-fixed). Everything else is still open.
+A review of HardPoint after Phase 41: what breaks, where people get stuck, where money or stock can go wrong, and where
+the screens fall short of [BRAND.md](BRAND.md). Each finding has a place in the code and a suggested fix, so it can go
+straight into the backlog in [PLAN.md](PLAN.md).
 
-**Contents:** [How this was done](#how-this-was-done) · [Summary](#summary) · [Fix first](#fix-first) · [What's been fixed](#whats-been-fixed) ·
-[Broken pages](#broken-pages-found-by-the-crawl) · [At the till](#at-the-till) · [Stock and purchasing](#stock-and-purchasing) ·
+This is the second run, on 11 November 2026. The first run (10 November) found two crashing pages and ten things to fix
+first, and those were fixed on this branch. This run checks those fixes in the running app, re-checks every other finding
+against the code as it is now, and reviews the fixes themselves. They brought in four problems of their own, which come
+first below.
+
+**Contents:** [How this was done](#how-this-was-done) · [Summary](#summary) · [Fix first](#fix-first) ·
+[Problems the fixes brought in](#problems-the-fixes-brought-in) · [Fixed since the first run](#fixed-since-the-first-run) ·
+[At the till](#at-the-till) · [Stock and purchasing](#stock-and-purchasing) ·
 [Customers, orders and money](#customers-orders-and-money) · [Signing up, billing, staff and settings](#signing-up-billing-staff-and-settings) ·
-[Screens, accessibility and consistency](#screens-accessibility-and-consistency) · [Help text that disagrees with the app](#help-text-that-disagrees-with-the-app) ·
-[What's good](#whats-good)
+[Screens, accessibility and consistency](#screens-accessibility-and-consistency) ·
+[Help text that disagrees with the app](#help-text-that-disagrees-with-the-app) · [What's good](#whats-good)
 
 ## How this was done
 
-1. **The running app.** The demo data from `bin/setup` was loaded on Ruby 4.0.9 and PostgreSQL 18. A script signed in as
-   the owner, a cashier and a stock clerk, and opened every screen it could reach by following links (204, 86 and 127
-   screens), plus 50 public pages. On each screen it recorded:
-   - errors and slow pages;
-   - pages wider than a 390 px phone;
-   - inputs without labels;
-   - [axe-core](https://github.com/dequelabs/axe-core) WCAG 2.2 AA violations.
+1. **The running app.** The demo data was loaded fresh from `bin/setup`'s seeds on Ruby 4.0.9 and PostgreSQL 18, with
+   the demo manager bound to one branch (Moi Avenue) so branch limits could be seen. A script signed in as each role and
+   opened every screen it could reach by following links:
 
-   It also rang up a sale at the till and read the screenshots.
-2. **The code.** Five read-through reviews covered:
-   - the till, shifts and offline selling;
-   - stock and purchasing;
-   - customers, orders and money;
-   - the shop's lifecycle (signup, billing, staff, settings, admin);
-   - the screens as a whole against BRAND.md.
+   | Signed in as | Screens |
+   |---|---|
+   | Owner | 205 |
+   | Manager bound to Moi Avenue | 174 |
+   | Cashier | 85 |
+   | Stock clerk | 126 |
+   | Nobody (public site, help, online store) | 50 |
 
-   Every finding marked **High** was checked against the code a second time.
-3. **The tests.** `bin/rails test` was run on the same setup: everything passes (see [Summary](#summary)).
-
-The severity scale:
+   On each screen it recorded errors and slow pages, pages wider than a 390 px phone, inputs without labels, and
+   [axe-core](https://github.com/dequelabs/axe-core) WCAG 2.2 AA violations. A second script went through each flow fixed
+   since the first run in a real browser (11 checks, all passed).
+2. **The code.** Every finding left open by the first run was checked again at its place in the code, and marked still
+   open, fixed, or wrong. The eight commits that fixed the first run's findings (`161f75a`…`8eda4e3`) were reviewed for
+   problems they brought in.
+3. **The tests.** `bin/rails test` passes (953 runs, 0 failures, 0 errors), as do `bin/rubocop`, `bin/brakeman` and the
+   JavaScript tests. None of the four problems in [Problems the fixes brought in](#problems-the-fixes-brought-in) is
+   caught by a test.
 
 | Severity | Meaning |
 |---|---|
 | **High** | Loses or misstates money or stock, lets someone do what their role shouldn't, or stops a shop working. |
-| **Medium** | A dead end, a wrong number, or a screen that misleads. |
-| **Low** | Polish. |
+| Medium | A dead end, a wrong number, or a screen that misleads. |
+| Low | Polish. |
 
 "Unverified" marks findings worked out from the code but not seen happening.
 
 ## Summary
 
-HardPoint is in good shape for an app this broad. The till flow is fast and clear. Home's **Needs you today** list
-turns numbers into actions. Settings is easy to scan. The tenant isolation, receipt numbering and stock ledger are
-careful. Most screens pass the basics: labels on inputs, a skip link, error states with the right status.
+**Better than the first run.** No screen crashed or gave a 404 for any role, against two 500s and a 404 last time.
+Contrast failures fell from 190 of the owner's screens to 19, now that the top bar's Search is readable. The fixes hold in
+the browser: the online store's second page, the Activity log, Enter after a name at the till, the till picker's
+warning, **Close shift** away from the till, branch limits for a bound manager, and the import's stock default.
 
-The problems sit in four places:
+**Worse in four places**, all from the fixes:
+- a Paybill payment can crash its webhook;
+- offline M-Pesa sales without a code are refused after the first;
+- a late M-Pesa prompt payment can pay the wrong customer's sale;
+- every past void credited to an account now counts, and QuickBooks doesn't agree.
 
-1. **Money that's taken on trust.**
-   - A typed M-Pesa code is accepted without checking that it exists, is unused, or covers the amount.
-   - A void refunds the whole sale in cash, including the deposit and the on-account part.
-   - One manager approval lifts the discount ceiling for the whole sale.
-   - A customer order can skip the credit check.
-2. **Roles and branches that leak.**
-   - A manager bound to one branch can edit, delete and add branches and tills anywhere.
-   - Several purchasing screens ignore branch visibility.
-   - The sending branch can mark its own transfer as received.
-3. **Dead ends.**
-   - A cashier away from their till gets a 404 on **Close shift**.
-   - A shop with no receipt printer can never finish setup.
-   - A stuck M-Pesa billing payment hides the pay form for good.
-   - A submitted stock take can't be sent back.
-4. **Two pages that crash.**
-   - Page 2 of every online store.
-   - The demo shop's Activity log.
-
-**Tests:** `bin/rails test` (4 workers, Ruby 4.0.9, PostgreSQL 18.6) passes: 932 runs, 6,563 assertions, 0 failures,
-0 errors, in 75 seconds. It doesn't catch either crash above. Each fix in this audit wants a test of its own,
-starting with the online store's second page and an Activity log that includes every kind of event.
+**Still open: 104 findings**, 9 of them High:
+- **Money taken on trust:** a cash payment can be removed from a sale with one tap and no record, and a write-off can go
+  past the debt and be paid out.
+- **Stock that can be made up:** the sending branch can receive its own transfer, counting in Add mode makes phantom stock,
+  and overlapping stock takes post the same shortage twice.
+- **Dead ends:** a goods received note can't be corrected, a pending billing payment hides the pay form for good, and a
+  cancelled order comes back to life.
 
 ## Fix first
 
-The ten changes that matter most, roughly in order:
+Ten things, in order. The first four are problems the fixes brought in; the rest are the open Highs that cost the most.
 
 | # | What | Where | Fix |
 |---|---|---|---|
-| 1 | The online store's page 2 crashes (500) for every shop with more than 24 products | `app/views/store/products/index.html.erb:10` | `@category&.name`, or use the "Online store" heading |
-| 2 | A typed M-Pesa code is accepted if it's merely present: no check that it exists, is unused, or covers the payment. The same applies to customer payments and deposits, which never claim the transaction | `app/models/payment.rb:16,41`, `customer_payment.rb`, `deposit.rb` | Refuse codes already used; require the matched transaction to cover the amount; flag unmatched codes on the M-Pesa report |
-| 3 | Voiding with a cash refund takes the **whole** total out of expected cash, including deposit and on-account parts. M-Pesa is marked refunded however the money went back | `app/models/shift.rb:52`, `sale/voidable.rb:29-47` | Refund only `refundable_payments`; store the refund amount; set `refunded_at` only for M-Pesa refunds |
-| 4 | One discount approval becomes the ceiling for every line and the cart, and survives park and recall | `concerns/pos_sale.rb:31`, `sale/cart.rb:137` | Store the approved amount per line and per cart discount; ask again when either grows |
-| 5 | **Save as confirmed order** sets `ordered` directly and skips the credit check and PIN. Editing a confirmed order skips it too, and so does a deposit of KES 1 | `customer_orders_controller.rb:50`, `customer_order/fulfilment.rb:9` | Route through `confirm(approver:)`; recheck when the total rises; make a deposit cover the shortfall |
-| 6 | A branch-bound manager can rename, delete or add **any** branch and till | `branches_controller.rb:6,43`, `registers_controller.rb` | Scope to `visible_branches`; owners (or unbound managers) only for create and destroy |
-| 7 | Two devices on one till share one cart: scans land in another customer's sale. The till picker says "shift open" but not who | `shift.rb:36-37`, `pos/tills_controller.rb` | One open sale per device or user; show who's on a till and warn before joining it |
-| 8 | Changing the customer after an on-account payment moves or orphans the debt | `pos/customers_controller.rb`, `sale/cart.rb` | Refuse a customer change once payments exist (at least on-account ones) |
-| 9 | Importing a spreadsheet resets live stock to the file's numbers by default. Blank cells on existing products clear VAT, zero the cost and reactivate hidden products | `product_imports_controller.rb:9`, `product_import/row.rb:38` | Default to "ignore stock"; treat blank cells as "keep"; show stock changes in the check step |
-| 10 | Draft orders aren't counted as on order, so pressing **Draft purchase orders** twice makes duplicates | `reorder_suggestion.rb:99-101` | Count draft lines, or link to the existing draft |
+| 1 | A Paybill payment whose code a cashier typed in another case crashes the C2B webhook (500), and Safaricom's retry skips matching, so the money sits unmatched for good | `mpesa/transaction.rb:59,81`; `concerns/mobile_money_code.rb` | Compare codes the same way in `already_recorded` (upper-cased, trimmed), and store references upper-cased; use `create` and check `persisted?` |
+| 2 | Offline M-Pesa payments sent without a code all get the reference `"OFFLINE"`, so every one after the first is refused and the sale parked | `sale/offline.rb:150` | Skip the code check for that placeholder, or give each a unique one (e.g. `OFFLINE-<sale uuid>`) |
+| 3 | Money for an expired prompt is applied to whatever the sale holds when it arrives, which may be the next customer's goods | `mpesa/stk_request.rb` (`pending? \|\| expired?`) | For an expired prompt, record the money and mark the prompt paid, but leave it unmatched for the cashier to pick |
+| 4 | Every past void credited to an account counts as credit from the moment of deploy, with no notice; QuickBooks still reverses those voids to cash or M-Pesa, so the books and the app disagree | `customer/receivables.rb` (`void_credit_payments`); `quickbooks_export.rb:165` | Count only voids after the deploy (a cut-off date), tell owners about older ones, and credit accounts receivable in the QuickBooks void entry |
+| 5 | A payment can be removed from a sale with one tap: no confirmation, no PIN, no Activity entry. Cash taken can be removed and the sale finished on account | `pos/_payment.html.erb:9`, `pos/payments_controller.rb:19`, `sale/payable.rb:99` | Confirm; record `payment_removed`; need approval for cash and card |
+| 6 | A write-off has no limit, so writing off more than is owed makes credit, and **Refund credit** pays it out with no approval | `customer_payment.rb:25-34`, `customers/write_offs_controller.rb:13` | Cap at the balance; approval for cash refunds of credit |
+| 7 | The sending branch can press **Mark received** on its own transfer and write off the "short" stock at the other branch | `stock_transfers/receipts_controller.rb:5`, `stock_transfers/show.html.erb:10-12,44` | Receiving only at the to-branch or by an approver; cancelling only at the from-branch |
+| 8 | Counting in **Add** mode refreshes "expected" on each add but keeps the earlier counts, so sales between shelves make phantom stock; two open takes on the same products post the same shortage twice | `stock_count_line.rb:24-29`, `stock_count.rb:31-47` | Keep the variance per entry; refuse overlapping takes |
+| 9 | A cancelled order comes back to life when a till sale holding it completes | `customer_order/fulfilment.rb:39-48,180-196` | Block cancelling while a sale holds it; `mark_collected` only from open states |
+| 10 | While a billing M-Pesa payment is pending, Billing hides the pay form, and nothing expires it, so a lost callback leaves a read-only shop unable to pay | `billings/show.html.erb:29-33` | Expire after about 2 minutes with a status query; always offer **Try again** |
 
-## What's been fixed
+## Problems the fixes brought in
 
-Each fix has tests, and the guides that describe it were updated (and `docs/USER_GUIDE.md` regenerated). After them,
-`bin/rails test` passes: 953 runs, 0 failures, 0 errors. `bin/rubocop`, `bin/brakeman` and the JavaScript tests are clean too.
+From reviewing commits `161f75a`…`8eda4e3`. Items 1–4 are also in [Fix first](#fix-first).
 
-| Finding | Fix |
-|---|---|
-| Online store page 2 crashes | It reads "Everything" |
-| Activity crashes on a shift entry kept as text | `Shift#close` records the stored integer; `money()` reads text |
-| **Close shift** gives a 404 away from the till | The report says where to close it; the closing page sends them to Shifts with that message |
-| Enter after a name says "Nothing found" | One match is added; several say "tap the one you want". An all-digit code never adds a partial match |
-| Search label contrast | Full white |
-| Fix first 2: typed M-Pesa codes | `MobileMoneyCode` on sale payments, deposits and account payments: a code pays once, must cover the amount if Safaricom knows it, and claims the money. Also: the duplicate prompt transaction is renamed rather than recorded twice, and a late payment marks an expired prompt paid |
-| Fix first 3: voids refund the whole total | `Sale#void_refund_cents` is the money paid; expected cash and the screens use it; M-Pesa is marked refunded only for an M-Pesa reversal. **Found while fixing:** "Credit to the customer's account" on a void credited nothing. It now counts in the balance and ageing, and shows on statements as "Voided sale credited" |
-| Fix first 4: one approval lifts the ceiling | An approval records the money over the limit it covered (`sales.approved_discount_cents`); more asks again |
-| Fix first 5: **Save as confirmed order** skips credit | It confirms through `CustomerOrder#confirm`, or stays a quote saying why; raising a confirmed order past the credit needs a PIN |
-| Fix first 6: branch-bound managers edit every branch | Branches and Tills use the member's branches; adding and removing branches needs someone who sees them all |
-| Fix first 7: two devices share a cart unknowingly | The till picker says whose shift is open and asks before joining someone else's. (Separate carts per device would change shared tills and PIN switching; left as a decision for the team) |
-| Fix first 8: changing the customer after payment | Refused until the payments are removed |
-| Fix first 9: imports reset stock and wipe blank cells | Stock is ignored unless a branch is chosen (the form warns); blank cells keep the product's value; the branch is one the member sees |
-| Fix first 10: duplicate draft orders | Drafts count as on order, and Reorder lists the drafts still to send |
-| Guides | The import guide's required columns, units and "plan limits" were wrong; corrected along with the guides for each fix above |
-
-## Broken pages found by the crawl
-
-| Page | What happens | Cause | Severity |
+| Sev. | Problem | Where | Fix |
 |---|---|---|---|
-| `/store?page=2` | 500 for shoppers pressing Next | `@category.name` on nil, `store/products/index.html.erb:10` | **High** |
-| `/events` (Activity), demo shop | 500 | `db/seeds.rb:264` passes a decimal to `Shift#close`, so the event stores `"2173250.0"`; `money()` (`catalogue_helper.rb:5`) can't take a string, and one bad event breaks the whole log | Medium: fix the seed, and make `money` coerce with `.to_d` |
-| `/shifts/:id/closing/new` as a cashier or stock clerk on a device not set to that till | Bare 404 | **Close shift** (`shifts/show.html.erb:12`) and **End my shift** (`dashboards/show.html.erb:54`) are shown, but `closings_controller.rb:21-23` only finds the shift on the current till | Medium: hide the link off the till, or explain "Close it from the till it's on" |
-| `/suppliers/:id` on a phone | 733 px wide; the cost table and **Add a product** form run off screen | No overflow wrapper on the "Products they supply" form table | Medium |
-| Home on a phone | 462 px wide | The "Last 7 days" bar chart has fixed-width bars | Low |
+| **High** | Paybill webhook crash on a code typed in another case | `mpesa/transaction.rb:59,81` | Fix first, 1 |
+| **High** | Offline M-Pesa payments without a code refused after the first | `sale/offline.rb:150` | Fix first, 2 |
+| **High** | A late prompt payment lands on whatever the sale holds now. Related, and older: **Clear sale** is allowed with only an expired prompt, and deleting the sale deletes the prompt, so a late payment for it is never recorded | `mpesa/stk_request.rb`, `sale/voidable.rb` (`discard`), `sale.rb` (`dependent: :destroy`) | Fix first, 3; keep prompts when a sale is cleared |
+| **High** | Past voids credited to an account now count; QuickBooks disagrees | `customer/receivables.rb`, `quickbooks_export.rb:165` | Fix first, 4 |
+| Medium | The order credit check has gaps: moving a confirmed order to another on-account customer isn't checked; the API's `POST /orders` still creates confirmed orders with no check; the new-order form has no PIN field, so a cashier's **Save as confirmed order** over the limit always ends as a quote; an order saved straight as confirmed with a past date is refused as an "expired" quote | `customer_orders_controller.rb` (`update_within_credit`), `api/v1/orders_controller.rb:17`, `customer_orders/_form.html.erb:69` | Check on a customer change too; check in the API; a PIN field on the new form for on-account customers; skip the expiry check when confirming at once |
+| Medium | Closed shifts with a cash void of a deposit or on-account sale no longer add up on their page: the void line uses the new rule, the stored expected cash the old one | `shifts/show.html.erb:69`, `shift.rb` | Store the void refund amount on the sale at void time and show that |
+| Medium | The duplicate-code check scans every payment, deposit and account payment on each M-Pesa payment, inside the sale's lock at the till; there's no index on `reference` | `concerns/mobile_money_code.rb` | An index on `upper(trim(reference))` for each table, or store references upper-cased and index them |
+| Low | Re-picking the same customer no longer reprices the sale after their price list changes | `sale/cart.rb` (`change_customer`) | Return early only when nothing about the customer changed, or always reprice |
+| Low | The Settings **Tills** card counts every till, while a branch-bound manager now sees only their own | `settings_helper.rb:58` | Count `within_visible_branches` |
+| Low | `MobileMoneyCode`'s comment says typed codes the Paybill hasn't seen show on the M-Pesa report; only sale payments do | `report/mobile_money.rb` | List deposits and account payments too |
+| Low | Paying a sale whose discount grew in money (not in share) since approval is refused with a percentage message | `sale/payable.rb` (`check_ready_to_complete`) | Word it as the till does |
+| Low | "More than one product matches" at the till is styled as an error, though it's guidance | `pos/_message.html.erb` | Show it as a message |
+| Unverified | Voiding a sale and ringing it up again with the same M-Pesa code is now refused | `concerns/mobile_money_code.rb` | Decide; if allowed, skip payments on voided sales |
+| Unverified | An unknown Code 39/128 barcode containing letters can add the one product whose name or SKU contains it | `pos/lines_controller.rb` | Name search only when the code has a space or isn't barcode-shaped |
+| Unverified | `check_status` tests `pending?` before taking the lock, so a callback committing in between leaves an extra `STK…` transaction | `mpesa/stk_request.rb` | Check inside the lock |
 
-![Supplier page on a phone](audit/02-supplier-phone-overflow.png)
+## Fixed since the first run
+
+Each with tests, and the guides that describe it updated.
+
+| Finding | Fix | Seen working |
+|---|---|---|
+| Online store page 2 crashed | Reads "Everything" | Browser: 200 |
+| Activity crashed on an entry kept as text | `Shift#close` stores the integer; `money()` reads text | Browser: 200 |
+| **Close shift** gave a 404 away from the till | Says which till to close it from | Browser |
+| Enter after a name said "Nothing found" | One match is added; several ask for a tap | Browser ([screenshot](audit/01-till-several-match.png)) |
+| Search label contrast | Full white | axe: gone from every page |
+| Typed M-Pesa codes taken on trust | A code pays once, must cover the amount, and claims the money; the prompt's duplicate transaction is renamed | Tests (see the problems above) |
+| Voids refunded the whole total | Only money paid; "Credit to account" now credits | Tests (see the problems above) |
+| One approval lifted the discount ceiling | An approval covers the money it was given for | Tests |
+| **Save as confirmed order** skipped credit | Goes through `confirm`; raising a confirmed order needs a PIN | Tests (gaps above) |
+| Branch-bound managers edited every branch | Branches and Tills use the member's branches | Browser |
+| Two devices shared a cart unknowingly | The picker says whose shift is open and asks first | Browser ([screenshot](audit/05-till-picker.png)) |
+| Customer changed after payment | Refused until the payments are removed | Tests |
+| Imports reset stock and wiped blank cells | Stock ignored unless a branch is chosen; blank cells keep values | Browser, tests |
+| Duplicate draft orders | Drafts count as on order and are listed | Tests |
+| Guides: "isn't suggested twice", "Customers on account", importing | Now match the app | |
+
+![The till picker says whose shift is open](audit/05-till-picker.png)
 
 ## At the till
 
-![Pressing Enter after typing a name](audit/01-till-nothing-found.png)
-*Typing "cement" and pressing Enter says "Nothing found" above two cement results.*
-
 | Sev. | Finding | Where | Fix |
 |---|---|---|---|
-| **High** | Items 2, 3, 4, 7 and 8 in [Fix first](#fix-first) | | |
-| Medium | **Enter after typing a name says "Nothing found for 'cement'"** while the matches are on screen. Enter is always an exact barcode or SKU lookup. The offline till gets this right | `pos/lines_controller.rb:7`; compare `offline_till_controller.js:64` | When there's exactly one match, add it; otherwise say "2 match: tap one" and move focus to the results |
-| Medium | A discount or customer change that brings the total down to what's already paid leaves the sale stuck: payments are refused, Park is refused, and "nothing to pay" only appears at a total of 0 | `pos/discounts_controller.rb`, `pos/customers_controller.rb` don't call `keep_what_is_paid!` | Call it in both; add a **Complete sale** path when paid ≥ total |
-| Medium | A negative quantity sent to add-to-sale shrinks a line without the paid or discount guards (only `min=1` in the HTML stops it) | `pos/lines_controller.rb:9`, `sale/cart.rb` | Reject quantity ≤ 0 on the server |
-| Medium | The offline till keeps selling into a shift that's been closed. Those sales land in a closed shift, or are parked where nobody can recall them | `offline_sync_controller.js:69-83`, `sale/offline.rb` | Drop `shift_id` from the snapshot when the catalogue redirects; block offline selling with no live shift; let managers finish orphaned parked sales |
-| Medium | Offline sync fails silently (expired session, 422, 429): "3 sales sending" forever | `offline_sync_controller.js:89-95` | Show the error and a **Sign in again** link |
-| Medium | A sale can be parked while an M-Pesa or Airtel prompt is still waiting; if the customer pays, the money is left unmatched | `pos/parkings_controller.rb:6` | The same pending-prompt check that **Clear sale** has |
-| Medium | Removing a payment is one tap on ✕: no confirmation, no PIN, no Activity entry | `pos/_payment.html.erb:9`, `sale/payable.rb` | Confirm, record it, and need approval for cash or card |
-| Medium | A locked-out approval PIN reads as a wrong PIN, and 50 wrong guesses from any till lock approvals for the whole shop | `approval.rb:20,33` | A distinct "locked for 12 minutes" message; count per user, not per shop |
-| Medium | A manager can't close an abandoned shift from another device while it has open or parked sales; the error gives no way forward | `shift.rb`, `shifts/closings_controller.rb` | Let approvers park or discard those sales from the shift page |
-| Medium | The offline payload's unit price is trusted; a stale or tampered till can sell at KES 1 with only a warning | `sale/offline.rb:101,173` | Cap at the last catalogue price, or alert the owner above a threshold |
-| Medium | Two open sales can be created at once (`find_by \|\| create!` race); later scans go to either (unverified in practice) | `shift.rb:37` | A unique partial index on open sales per shift |
-| Low | Voided sales' M-Pesa overpayment and foreign-note change aren't taken off expected cash | `shift.rb` | Use the same statuses for both sums |
-| Low | Opening a shift twice at once raises an unrescued `RecordNotUnique` (500) | `shifts_controller.rb:28` | Rescue it and go to the till |
-| Low | Junk in the discount box ("abc") silently removes the discount | `pos/discounts_controller.rb:19` | Reject input that isn't a number |
-| Low | M-Pesa polling never gives up and ignores errors | `mpesa_poll_controller.js` | Stop after about 3 minutes; offer **Stop waiting** |
-| Low | Stock counts read "122 bag here", "24 len here", "2,279 pc here" | product tiles | Pluralise the unit, or "122 in stock" |
-| Low | The category chips are cut off ("Ro…") with no sign they scroll | `pos/show.html.erb` | A fade at the edge, or wrap to two rows |
-| Low | The shop announcement banner takes a row on the till screen | till layout | Don't show announcements on the till |
-| Low | Totals aren't in a live region; a missing serial number shows only as a red border | `pos/_cart.html.erb:84`, `pos/_line.html.erb:13` | `aria-live="polite"` on the totals; text for a missing serial |
-
-![Which till is this?](audit/05-choose-till.png)
-*The till picker shows "shift open" but not whose shift. Choosing it puts a second device into that cashier's sale (Fix first, 7).*
+| **High** | Removing a payment: Fix first, 5 | | |
+| Medium | A discount that brings the total down to what's already paid leaves the sale stuck (payments and Park refused; "nothing to pay" only at 0) | `pos/discounts_controller.rb:107-112`, `pos/_cart.html.erb:88` | Call `keep_what_is_paid!`; a **Complete sale** path when paid ≥ total |
+| Medium | A negative quantity sent to add-to-sale shrinks an existing line without the paid or discount guards | `pos/lines_controller.rb:9`, `sale/cart.rb:13` | Refuse quantity ≤ 0 on the server |
+| Medium | The offline till keeps selling into a closed shift; those sales land in it or are parked where nobody can recall them | `offline_sync_controller.js:69-83`, `sale/offline.rb:68,167,183` | Drop the stale `shift_id` when the catalogue redirects; no offline selling without a live shift |
+| Medium | Offline sync fails silently (expired session, 422, 429): "3 sales sending" for ever | `offline_sync_controller.js:88-95` | Show the error and **Sign in again** |
+| Medium | A sale can be parked while a payment prompt is waiting | `pos/parkings_controller.rb:6` | The same check **Clear sale** has |
+| Medium | A locked approval PIN reads as a wrong PIN, and 50 wrong guesses from any till lock approvals shop-wide | `approval.rb:19-34`, `concerns/authorization.rb:82-87` | A "locked for N minutes" message; count per approver |
+| Medium | A manager can't close an abandoned shift that has open or parked sales; the shift pages offer no way to clear them | `shift.rb:113-116` | Let approvers park or discard them from the shift page |
+| Medium | The offline unit price is trusted; only a warning | `sale/offline.rb:98-101,173` | Cap at the catalogue price, or alert the owner |
+| Medium | Two open sales can be created at once; no unique index (unverified in practice) | `shift.rb:37` | A unique partial index on open sales per shift |
+| Low | Voided sales' M-Pesa overpayment and foreign-note change aren't taken off expected cash | `shift.rb:43,71,81` | The same statuses in both sums |
+| Low | Opening a shift twice at once gives a 500 | `shifts_controller.rb:28` | Rescue `RecordNotUnique` |
+| Low | "abc" in the discount box removes the discount | `pos/discounts_controller.rb:119-121` | Refuse non-numbers |
+| Low | M-Pesa polling never stops and ignores errors (**Stop waiting** exists) | `mpesa_poll_controller.js:9-26` | Stop after about 3 minutes; show errors |
+| Low | "122 bag here", "24 len here" | `pos/products/index.html.erb:33` | Plural units |
+| Low | Category chips cut off with no sign they scroll | `pos/products/index.html.erb:5` | A fade, or two rows |
+| Low | The announcement banner takes a row on the till | `layouts/pos.html.erb:47` | Not on the till |
+| Low | Totals not in a live region; a missing serial shown only by a red border | `pos/_cart.html.erb:84`, `pos/_line.html.erb:13` | `aria-live`; text for the serial |
 
 ## Stock and purchasing
 
+![Batch page on a phone](audit/06-batch-phone.png)
+*New this run: the batch page's Write off form runs off the right edge on a phone.*
+
 | Sev. | Finding | Where | Fix |
 |---|---|---|---|
-| **High** | Items 9 and 10 in [Fix first](#fix-first) | | |
-| **High** | The **sending** branch can press **Mark received** on its own transfer, enter a short count and write off the "lost" stock at the other branch; it can also cancel after the goods arrived | `stock_transfers/show.html.erb`, `StockTransfers::ReceiptsController` | Receiving only at the to-branch (or by an approver); cancelling only at the from-branch |
-| **High** | Counting in **Add** mode refreshes "expected" to live stock on each add, but keeps earlier counts: sales between shelves create phantom stock | `stock_count_line.rb:26` | Store the variance per entry and add those up |
-| **High** | Stock adjustments post straight away for any stock clerk, with no approval or loss alert; −50 "stolen" needs nothing | `stock_adjustment.rb:18` | Approval for decreases above a threshold; the `count_loss` alert |
-| **High** | Two open stock takes on the same products post the same shortage twice | `stock_count.rb` (no guard) | Block overlapping takes, or recheck against the ledger on approval |
-| **High** | A goods received note can't be corrected or voided, and phone receiving never asks for transport or duty, though the phone help says they "can be added later" | `routes.rb` (no edit or void), `mobile/goods_receipts_controller.rb:8` | A void (reversal), and **Add landed cost** on a received note |
-| Medium | Branch-bound users can see and act on other branches' purchase orders, receipts and imports | `goods_receipts_controller.rb:13`, `purchase_orders_controller.rb:84,91`, `product_imports_controller.rb:17` | `within_visible_branches` / `visible_branches` |
-| Medium | Stock-take approval ignores **Require a second approver**: one manager can start, count, submit and approve | `stock_counts/approvals_controller.rb` | `approver_for_action` |
-| Medium | A submitted stock take can only be approved or cancelled; one wrong shelf means recounting everything | `stock_count.rb#submit` | **Return to counting** |
-| Medium | A product added mid-count, or an inactive product with stock, "isn't in this stock take" and can't be added | `stock_counts/scans_controller.rb:11` | **Add to this take** |
-| Medium | The desktop scanner *sets* the count while the phone *adds* to it; scanning the same item on two shelves keeps only the last number | `stock_counts/scans_controller.rb:20` | Default to add, with a **Set total** button, as on the phone |
-| Medium | Rebalancing suggests the same move again while the first transfer is in transit | `branch_rebalancing.rb:55` | Subtract stock in transit and on order |
-| Medium | Transfers and supplier returns can take stock that's promised to customer orders | `stock_transfer_line.rb:39`, `supplier_return_line.rb` | `available_at` instead of `stock_at` |
-| Medium | Bulk price changes can set prices to 0 (clamped, not refused), with no below-cost warning and no undo | `price_change.rb:60` | Refuse results ≤ 0 (or below cost); offer **Undo** |
-| Medium | Pack costs rounded to whole cents per unit: a box of 12 at 100.00 becomes 99.96 on the order | `concerns/bought_by_the_pack.rb:69` | Keep the pack cost for line totals |
-| Medium | Phone receiving keeps the checked-in list in the session, one order at a time; opening a second order silently drops the first | `concerns/mobile_receiving.rb:18` | Save the draft on the order |
-| Medium | Supplier returns reduce what we owe at once, even when the supplier only invoices what was accepted, so the balance can drop twice (partly unverified) | `supplier/payables.rb:49-50` | Apply returns against the delivery's invoice, or wait for the credit note |
-| Low | Stock checks on transfers, adjustments and returns aren't locked, so concurrent moves can go below zero | `stock_transfer_line.rb`, `stock_adjustment.rb` | `allow_negative: false` under a lock |
-| Low | Opening stock is costed at the product's current cost (often 0), so valuation reads KES 0 | `stock_adjustment.rb` | Ask for a cost with opening stock |
-| Low | Batch write-offs accept 2.5 bags | `stock_batch.rb#write_off` | `quantity_allowed?` |
-| Low | Phone: the tab says "Receive", the page "Deliveries expected", the breadcrumb "Deliveries". The stock take's "Expected" column changes after counting | mobile views, stock count view | One name; label the live column "System now" |
-| Low | **New product** only takes opening stock for one branch; in a two-branch shop the owner can't stock the other branch from the form | `products/_form.html.erb` | A row per visible branch, or say which branch and how to stock the others |
+| **High** | Sending branch receives its own transfer: Fix first, 7 | | |
+| **High** | Phantom stock in Add mode, and overlapping takes: Fix first, 8 | | |
+| **High** | A goods received note can't be corrected or voided, and the phone help sends you to Buy › Receiving to add transport later, which isn't possible | `config/routes.rb:387`, `mobile/goods_receipts_controller.rb:8`, `_stock_on_your_phone.html.erb:36` | A void (reversal) and **Add landed cost** |
+| Medium | Stock adjustments post at once for any stock clerk, with no approval or loss alert (lowered from High: within the role, a policy gap) | `stock_adjustment.rb:18` | Approval and an owner alert above a threshold |
+| Medium | Branch-bound users see other branches' purchase orders and goods received (creating them is now limited) | `goods_receipts_controller.rb:7,13`, `purchase_orders_controller.rb:11,84,91,98`, `product_imports_controller.rb:5,28` | `within_visible_branches` |
+| Medium | Stock-take approval ignores **Require a second approver** | `stock_counts/approvals_controller.rb:6` | `approver_for_action` |
+| Medium | A submitted take can't be sent back to counting | `stock_count.rb:27-29` | **Return to counting** |
+| Medium | A product not in the take can't be added to it | `stock_counts/scans_controller.rb:9-12` | **Add to this take** |
+| Medium | The desktop scanner sets the count; the phone adds to it | `stock_counts/scans_controller.rb:20` | Default to add, with **Set total** |
+| Medium | Rebalancing suggests a move again while it's in transit, for products turned away at the till | `branch_rebalancing.rb:53-56` | Subtract in transit and on order |
+| Medium | Transfers and supplier returns can take stock promised to orders | `stock_transfer_line.rb:39`, `supplier_return_line.rb:54` | `available_at` |
+| Medium | Bulk price changes can reach 0, with no undo | `price_change.rb:57-61` | Refuse ≤ 0 or below cost; **Undo** |
+| Medium | Pack costs rounded to whole cents per unit (a box of 12 at 100.00 becomes 99.96) | `concerns/bought_by_the_pack.rb:69` | Keep the pack cost for totals |
+| Medium | Phone receiving keeps one order's list in the session | `concerns/mobile_receiving.rb:16-32` | Save the draft on the order |
+| Medium | Supplier returns reduce what's owed at once, which may count twice if the supplier only invoices what was accepted (partly unverified) | `supplier/payables.rb:49-55` | Apply against that delivery's invoice |
+| Medium | The supplier page runs off a phone screen (733–747 px) | `suppliers/show.html.erb` | An overflow wrapper on the products table |
+| Medium | **New this run:** the batch page's Write off form runs off a phone screen (481 px) | `stock_batches/show.html.erb:23` | Single column below `sm` |
+| Low | Stock checks on transfers and adjustments aren't locked; `move_stock` allows negatives | `stock_transfer_line.rb:39`, `stock_adjustment.rb:35-38` | `allow_negative: false` under a lock |
+| Low | Opening stock costed at the product's current cost (often 0) | `stock_adjustment.rb:18` | Ask for a cost |
+| Low | Batch write-offs accept 2.5 bags | `stock_batch.rb:46-48` | `quantity_allowed?` |
+| Low | Phone: "Receive" / "Deliveries expected" / "Deliveries"; the stock take's live "Expected" column | `mobile/purchase_orders/*`, `stock_counts/show.html.erb:47` | One name; "System now" |
+| Low | **New product** takes opening stock for one branch only | `products/_form.html.erb:39-42` | A row per branch |
+
+![Supplier page on a phone](audit/02-supplier-phone-overflow.png)
 
 ## Customers, orders and money
 
 | Sev. | Finding | Where | Fix |
 |---|---|---|---|
-| **High** | Items 2 and 5 in [Fix first](#fix-first) | | |
-| **High** | An M-Pesa prompt resolved by a status query is recorded as `STK<checkout id>`; the real callback later creates a second transaction under the real receipt number, which can then be spent on another sale | `mpesa/stk_request.rb:189-211` | In `resolve`, rename the existing transaction instead of creating one |
-| **High** | A cancelled order comes back to life when a till sale that already held it completes | `customer_order/fulfilment.rb:39-48,180-196`, `sale/payable.rb:202` | Block cancelling while a sale holds the order; `mark_collected` only from open states |
-| Medium | Deposit money can get stuck: deposits aren't capped at the order total, and **Refund** only shows while the order takes deposits (not once it's cancelled or collected) | `fulfilment.rb:79,109`, `customer_orders/show.html.erb:77-80` | Show Refund whenever a deposit is held; cap deposits |
-| Medium | A deposit on an expired quote is saved but the quote isn't confirmed, so it can't be collected (Paybill auto-match can do this unseen) | `fulfilment.rb:116` | Refuse it, or extend and confirm |
-| Medium | A write-off can exceed the debt, creating credit that **Refund credit** pays out with no approval | `customer_payment.rb:25-34`, `customers/payments_controller.rb:6` | Cap at the balance; approval for cash credit refunds |
-| Medium | Online orders hold stock for ever, two shoppers can buy the last one, and Home only flags orders once they're *ready* | `storefront/checkout.rb:37-44`, `home_helper.rb:56` | Lock stock in the transaction; auto-cancel unpaid orders after N days; a **New online orders** row on Home |
-| Medium | Voided account sales vanish from statements, so last month's closing balance stops matching this month's opening | `customer/receivables.rb:79`, `customer/statement.rb:45` | Show the sale and a dated "Voided" credit |
-| Medium | Fundi commission and job bills ignore whole-cart discounts, so commission is overpaid | `fundi_entry.rb:75-80`, `job.rb:96` | Apply the same paid share the tax report uses |
-| Medium | Some figures ignore the chosen branch while their headings name it: the fundi commissions report, Home's owed-to and owed-by-us figures, eTIMS refused | `report/fundi_commissions.rb:95`, `dashboard.rb:71-88` | Filter by branch, or label them "whole shop" |
-| Medium | Receivables totals subtract customers in credit, and those customers appear on **Who owes us** | `receivables.rb:22` | Positive balances only; show credit separately |
-| Medium | Account payments can be back-dated freely, so they can miss a QuickBooks period already exported | `quickbooks_export.rb:201` | Limit back-dating, or export by entry date and flag late ones |
-| Medium | eTIMS submissions stuck *pending* (KRA down for days) never appear on Home; only refusals do | `home_helper.rb:12`, `etims/retry_job.rb` | A "not sent for over N hours" row; rescue per submission in the retry job |
-| Medium | A transport charge for a customer over their limit fails the delivery note with "needs a PIN", but the form has no PIN field | `delivery_note.rb:133` | `confirm(check_credit: false)` (the till checks), or a PIN field |
-| Low | A late M-Pesa callback is recorded, but the prompt stays "expired", so the cashier may ask the customer to pay again | `stk_request.rb:176-181` | Mark it paid, as Airtel does |
+| **High** | Write-off past the debt, paid out: Fix first, 6 (raised from Medium) | | |
+| **High** | Cancelled order revives: Fix first, 9 | | |
+| **High** | Fundi commission and job material lists ignore whole-cart discounts, so commission is overpaid on every such sale (raised from Medium) | `fundi_entry.rb:26-30`, `job.rb:100-104` | Apply the paid share the tax report uses |
+| Medium | Deposits aren't capped at the order total, and **Refund** hides once the order stops taking deposits | `customer_order/fulfilment.rb:109-112`, `customer_orders/show.html.erb:77-80` | Cap; show Refund while a deposit is held |
+| Medium | A deposit on an expired quote is saved but the quote stays unconfirmed | `fulfilment.rb:116` | Refuse it, or extend and confirm |
+| Medium | Online orders hold stock for ever and can both take the last one; Home flags only ready orders | `storefront/checkout.rb:37-44`, `home_helper.rb:56` | Lock in the transaction; auto-cancel unpaid; a Home row |
+| Medium | Voided account sales vanish from statements (the void credit now shows; the sale and its reversal don't) | `customer/receivables.rb:87`, `customer/statement.rb:44-47` | Show the sale and a dated reversal |
+| Medium | Figures that ignore the chosen branch: fundi commissions report, Home's owed-to and owed-by-us, eTIMS refused | `report/fundi_commissions.rb:10`, `dashboard.rb:71-88`, `home_helper.rb:12` | Filter, or label "whole shop" |
+| Medium | Receivables totals subtract customers in credit | `customer/receivables.rb:22`, `receivables/show.html.erb:29` | Positive balances only |
+| Medium | Back-dated account payments can miss an exported QuickBooks month | `quickbooks_export.rb:200`, `customer_payment.rb:27` | Limit back-dating, or export by entry date |
+| Medium | eTIMS submissions stuck pending never reach Home; the retry job rescues only two errors | `home_helper.rb:12`, `etims/retry_job.rb:9`, `etims/submission.rb:55-57` | A "not sent in N hours" row; rescue per submission |
+| Medium | A transport charge for a customer over their limit fails with "needs a PIN" and no PIN field | `delivery_note.rb:133` | `confirm(check_credit: false)` or a PIN field |
 | Low | **Who owes us** has the heading "Sales" | `receivables/show.html.erb:4` | "Who owes us" |
-| Low | **Cancel** is offered on an order with a deposit, then always fails | `customer_orders/show.html.erb:117` | Hide it; point to **Refund** or **Keep the deposit and cancel** |
-| Low | Voiding a sale leaves its delivery notes open | `sale/voidable.rb` | Cancel undelivered notes with the void |
-| Low | A phone number shared by two customers matches neither, so every online order makes another customer | `storefront/checkout.rb:72` | Pick the most recent, or ask |
+| Low | **Cancel** offered on an order with a deposit, then always fails | `customer_orders/show.html.erb:118-119` | Hide; point to Refund |
+| Low | Voiding a sale leaves its delivery notes open | `sale/voidable.rb` | Cancel undelivered notes |
+| Low | A phone number shared by two customers makes a new customer per online order | `storefront/checkout.rb:68-75`, `customer.rb:41-47` | Pick the latest, or ask |
 
 ## Signing up, billing, staff and settings
 
 ![Set up your shop](audit/04-onboarding.png)
-*"Print a test receipt" is required, so a shop without a printer stays at "2 of 4 done" for good. Three primary buttons compete for the next step.*
+*Still open: "Print a test receipt" is required, so a shop without a printer never finishes setup.*
 
 | Sev. | Finding | Where | Fix |
 |---|---|---|---|
-| **High** | Item 6 in [Fix first](#fix-first) | | |
-| **High** | While a billing M-Pesa payment is pending, the Billing page shows only "Waiting for … to enter their M-Pesa PIN" and hides the pay form. Nothing expires it, so a lost callback leaves a read-only shop with no way to pay (unless it has cards) | `billings/show.html.erb:29-39`, `billing/mpesa_shortcode.rb` | Expire after about 2 minutes with a status query; always show **Try again** |
-| **High** | Support, signed in as an owner, can turn off **two-factor for managers**, raise discount and payout limits, read and roll webhook secrets, and change the plan. SECURITY.md says support can't | `accounts_controller.rb:20`, `webhook_endpoints/show.html.erb:30`, billing plan controllers | `refuse_while_impersonated` on those actions |
-| **High** | The billing guide says the shop goes read-only "a week after it's due"; the code locks the day after the due date (which is a week after the invoice) | `help/articles/_billing.html.erb`, `billing_cycle.rb:31` | Correct the guide (or the code) |
-| Medium | **Print a test receipt** is a required setup step, so a shop with no printer can never finish setup; the card stays on Home for good | `onboarding.rb:22,35-40` | Make it optional, or add **We don't print receipts** |
-| Medium | New shops get a branch but no till; the first **Open till** lands on "This shop has no tills yet" | `signup.rb:37` | Make "Till 1" at signup |
-| Medium | Losing the two-factor phone is a dead end: recovery codes can't be regenerated, printed or copied, and the code page has no support link (support needs you signed in) | `my/recovery_codes/show.html.erb`, `sessions/two_factors/new.html.erb` | **Regenerate codes**, **Print / Copy**, and a WhatsApp support link on the code page |
-| Medium | The two-factor code box opens a number pad on phones, so a recovery code like `ab3cd-9xk2p` can't be typed | `sessions/two_factors/new.html.erb:11` | Drop `inputmode`, or a **Use a recovery code** toggle |
-| Medium | With neither M-Pesa nor cards available, an overdue invoice shows no way to pay at all | `billings/show.html.erb:33-42` | Always show bank-transfer details and a support contact |
-| Medium | **Require a second approver** can freeze a one-owner shop: nobody is left to approve | `accounts_controller.rb:20`, `membership.rb:133` | Need two approvers with PINs before it can be turned on |
-| Medium | Staff invitations expire in 3 days, and the staff list neither shows "invited" nor offers **Resend** | `user.rb:13`, `memberships/index.html.erb` | An "Invited" note and **Resend invitation** |
-| Medium | Managers see **Edit** on owners' rows and the role list includes Owner, but the server refuses both | `memberships/index.html.erb:18`, `_role_field.html.erb:26` | Hide what they can't change |
-| Medium | A read-only shop can't shrink to a cheaper plan, because removing staff or tills is blocked while read-only; **Switch to…** has no confirmation though an upgrade bills at once | `subscription_enforcement.rb:16`, `billings/show.html.erb:75` | Allow removals while read-only; confirm with the amount |
-| Medium | The shop's web address is hard to find again: the confirmation email doesn't spell it out, and opening a second shop sends no email | `users_mailer/email_confirmation`, `signups_controller.rb:19` | A welcome email with the address; **Email me my shops** on the lookup page |
-| Medium | Stock clerks can change tax rates, the default rate and eTIMS codes (unverified whether that's intended) | `catalogue_settings_controller.rb:5` | Owners and managers only for tax |
-| Low | Signup's web address field rejects capitals with the browser's generic message, though the server lower-cases it anyway | `signups/new.html.erb:22` | Accept and lower-case, or a hint |
-| Low | "Plan after the trial" is misleading: the trial already runs on that plan's limits | `signups/new.html.erb`, `signup.rb:32` | "Your plan (free for 30 days)" |
-| Low | Cashiers and accountants see Branches and Tills in Settings, but every action there gives a blank 403 | `navigation_helper.rb:68`, `authorization.rb` | Hide them, or a friendly "Ask the owner" page |
-| Low | Appearance, Shop preferences, Backups and Guided tours don't highlight Settings in the bar | `navigation_helper.rb:71-72` | Add them to the Settings paths |
-| Low | Five wrong PIN guesses on a colleague's name lock their PIN until they sign in with a password | `sessions/switches_controller.rb`, `membership.rb:192` | Lock the device, not the person |
-| Low | The Developers page and API keys don't check the **developers** feature switch | `developers_controller.rb`, `api_keys_controller.rb` | Check it, as the Settings card does |
-| Low | Shop announcements meant for owners ("Owners can download everything…") show to cashiers and stock clerks | announcements banner | An audience on announcements |
+| **High** | Pending billing payment hides the pay form: Fix first, 10 | | |
+| **High** | Support, signed in as an owner, can switch off two-factor for managers, raise limits, read and roll webhook secrets, and change the plan; SECURITY.md bars the first two | `accounts_controller.rb:20`, `webhook_endpoints/secrets_controller.rb`, `webhook_endpoints/show.html.erb:30`, billing plan controller | `refuse_while_impersonated` on those |
+| Medium | The billing guide says read-only "a week after it's due"; it's the day after (lowered from High: the guide misleads, the code is consistent) | `_billing.html.erb:19`, `account/billing_cycle.rb:31` | Correct the guide |
+| Medium | **Print a test receipt** is required, so a shop with no printer never finishes setup | `onboarding.rb:21` | Optional, or **We don't print receipts** |
+| Medium | New shops get no till | `signup.rb:37` | "Till 1" at signup |
+| Medium | Losing the two-factor phone is a dead end: no regenerating, printing or copying codes, and no support link on the code page | `my/recovery_codes/show.html.erb`, `sessions/two_factors/new.html.erb`, `routes.rb:108` | **Regenerate**, **Print/Copy**, a WhatsApp link |
+| Medium | The code box opens a number pad, so a recovery code can't be typed on a phone | `sessions/two_factors/new.html.erb:11` | Drop `inputmode` |
+| Medium | With neither M-Pesa nor cards, an overdue invoice has no way to pay | `billings/show.html.erb:33-42` | Bank details and a support contact |
+| Medium | **Require a second approver** can freeze a one-owner shop | `membership.rb:133-134` | Need two approvers with PINs first |
+| Medium | Invitations expire in 3 days with no "Invited" note or **Resend** | `user.rb:13`, `memberships/index.html.erb` | Both |
+| Medium | Managers see **Edit** on owners' rows, which the server refuses | `memberships/index.html.erb:18` | Hide it |
+| Medium | A read-only shop can't shrink its plan (removals are blocked); **Switch to…** has no confirmation | `subscription_enforcement.rb:17`, `billings/show.html.erb:75-76` | Allow removals; confirm with the amount |
+| Medium | The shop's web address is hard to find again | `users_mailer/email_confirmation.text.erb`, `signups_controller.rb:19` | A welcome email with it; **Email me my shops** |
+| Medium | Stock clerks can edit tax rates (unverified whether intended) | `tax_rates_controller.rb:4`, `membership.rb:92-93` | Owners and managers |
+| Low | The signup address field rejects capitals | `signups/new.html.erb:22` | Accept and lower-case |
+| Low | "Plan after the trial" is misleading | `signups/new.html.erb:43` | "Your plan (free for 30 days)" |
+| Low | Appearance, Preferences, Backups and Guided tours don't highlight Settings | `navigation_helper.rb:71-72` | Add the paths |
+| Low | Five wrong PINs on a colleague's name lock their PIN | `membership.rb:191-201` | Lock the device |
+| Low | Developers ignores its feature switch | `concerns/developer_settings.rb:5-7` | Check it |
+| Low | Owner announcements show to every role | `shared/_announcements.html.erb:1` | An audience |
+
+The first run's "cashiers get a blank 403 in Branches and Tills" was wrong: the buttons were already hidden from them,
+and only a typed address gives the 403.
 
 ## Screens, accessibility and consistency
 
 ![Home on a phone](audit/03-home-phone.png)
-*On a phone, the four number cards fill the first screen; **Needs you today**, the part that says what to do, starts below the fold.*
+*Still open: on a phone, the four number cards fill the first screen and push Needs you today below it.*
 
 | Sev. | Finding | Where | Fix |
 |---|---|---|---|
-| **High** | Validation messages use column names: "Price cents must be greater than or equal to 0", "Sku can't be blank". `en.yml` has 17 lines | `config/locales/en.yml`, `shared/_errors` | `activerecord.attributes` for every `*_cents`, `sku` and `etims_*` attribute |
-| **High** | Money fields never show their error: the form binds `price`, the error is on `price_cents`, so there's no red line and no `aria-invalid` | every `money_attribute` field | Copy `*_cents` errors onto the virtual attribute |
-| **High** | The **Search** label in the top bar fails contrast on every signed-in page (3.96:1 on the default teal; down to 2.8:1 on custom themes). axe flags it on 190 of 204 owner screens | `shared/_navigation.html.erb:16-18` | `text-white` for the label and the key hint |
-| **High** | Error pages (404, 422, 500) are Rails' defaults: no HardPoint look, no way back, and "If you're the application owner check the logs" | `public/*.html` | Branded pages with **Home** and **Open till** |
-| **High** | Admin's **Sign in as…** confirmation never shows: `turbo: false` with `turbo_confirm`, and there's no rails-ujs | `admin/accounts/show.html.erb:107` | Drop `turbo: false` and redirect with `:see_other` |
-| Medium | Themes only check white on the 500 shade. The focus ring (400) fails 3:1 on orange and custom colours; white at 70% on the till bar fails on red and orange | `theme.rb`, `pos.html.erb:40` | Check the 400 shade too, or ring with 600 |
-| Medium | The "Brick red" theme makes every primary button red, which BRAND.md keeps for danger. "Burnt orange" hides the orange **Open till** button (1.14:1 against the bar) | theme presets, `_navigation.html.erb:22` | Drop or adjust those presets; take **Open till** from a token |
-| Medium | **Open a shift and start selling** (white on `#e46f2f`) is 3.18:1; the line under it is 2.86:1 | `dashboards/show.html.erb:21-23`, `tours/index.html.erb:20` | `#c2561c` or darker, and document it in BRAND.md |
-| Medium | Inputs' only edge is a `gray-400` underline (about 2.6:1, under the 3:1 needed); 103 `text-gray-400` uses include real text | `application.css:74` | `gray-500` underline; `gray-500` for meaningful text |
-| Medium | Links inside sentences are told apart by colour alone (axe: 109 owner screens) | `.link` | Underline links in running text |
-| Medium | Dates come out three ways: "November 05, 2026" (`l :long`, 56 uses), "05 Nov 14:30" (`:short`, 69), "5 Nov 2026" (`strftime`, 37) | no `en.date.formats` | Define Kenyan/British formats; use `l` everywhere |
-| Medium | Only 8 of 32 delete buttons use `btn-danger`: **Revoke** API key, **Remove endpoint** and **Delete** backup look like ordinary buttons or links | `developers/show.html.erb:36`, `account_data/show.html.erb:72`, products sections | `btn-danger`, or a new `link-danger` for row actions |
-| Medium | 414 hints, 1 `aria-describedby`: screen readers don't hear the hints | form views | A helper that ties each hint to its field |
-| Medium | Online store product pictures are links with no name (24 per page) | `store/products/_product` | `aria-label` with the product name, or `alt` on the image |
-| Medium | The till's phone tabs don't say which is selected | `pos/_pane_tabs.html.erb` | `role=tab` with `aria-selected` |
-| Medium | Dropdowns close on Escape but leave focus on the hidden menu; Tab out doesn't close them | `dropdown_controller.js`, `search_panel_controller.js` | Return focus to the button; close on `focusout` |
-| Medium | The dashboard bars are only readable by hovering | `dashboards/_bars.html.erb` | Values in the label, or a hidden table |
-| Medium | Phone Home: four stacked number cards push **Needs you today** below the fold | `dashboards/_owner` | On phones, a 2×2 grid of numbers, or the to-do list first |
-| Low | Tables: no `scope`, 18 empty `<th>`; the Activity, currencies and appearance pages have inputs with no label | `sales/index.html.erb:14`, … | `sr-only` header text; labels |
-| Low | Page titles break the "Parent / Page" rule on about 80 screens (Activity, Branches); h1 spacing varies | many | A `page_header` helper |
-| Low | "New" vs "Add branch" vs "New API key", buttons left or right, two pager styles | `branches/index.html.erb`, `shared/_pagination` | Use the control panel everywhere |
-| Low | Tap targets under 44 px: the ⚙ list menu, phone area links, row **Remove** links, promotion category checkboxes | `_control_panel.html.erb:14`, `_navigation.html.erb:48` | `pointer-coarse:min-h-11` |
-| Low | Skip link only in the main layout; the account button's name ("Your account") hides its visible initials | `admin`, `mobile`, `store`, `pos` layouts | Skip link everywhere; "Your account (WK)" |
-| Low | `animate-pulse` without `motion-safe:`; progress bars without `role=progressbar`; "-" and "−" both used for minus; `hello_controller.js` left over | various | Tidy |
+| Medium | Validation messages use column names ("Price cents…", "Sku can't be blank") (lowered from High) | `config/locales/en.yml` | `activerecord.attributes` names |
+| Medium | Money fields never show their own error; the summary does (lowered from High) | `concerns/monetary.rb:7-17` | Copy `*_cents` errors to the field |
+| Medium | Error pages are Rails' defaults (lowered from High) | `public/400,404,422,500.html` | Branded pages with **Home** and **Open till** |
+| Medium | Admin **Sign in as…** confirmation never shows (lowered from High: staff-only, and recorded) | `admin/accounts/show.html.erb:106-107` | Drop `turbo: false` |
+| Medium | Themes check only the 500 shade; the till bar's 70% white fails on red and orange | `theme.rb:44`, `layouts/pos.html.erb:40` | Check the 400 shade |
+| Medium | "Brick red" makes primary buttons red; "Burnt orange" hides **Open till** | `theme.rb:12-13`, `_navigation.html.erb:22` | Adjust presets; theme the button |
+| Medium | **Start selling** orange fails contrast | `dashboards/show.html.erb:22-24`, `tours/index.html.erb:20` | A darker orange |
+| Medium | Input underlines are `gray-400`; the "Filter" placeholder is `gray-400` (axe flags it on 14 report and list screens) | `application.css:73-74`, `_control_panel.html.erb:54` | `gray-500` |
+| Medium | Links in sentences told apart by colour only (axe: 110 of the owner's screens) | `application.css:89-91` | Underline them |
+| Medium | Three date formats | `en.yml` | Define formats; use `l` |
+| Medium | **Revoke** API key and **Remove endpoint** aren't styled as danger | `developers/show.html.erb:36`, `webhook_endpoints/edit.html.erb:4` | `btn-danger` |
+| Medium | Hints aren't tied to their fields (414 hints, 1 `aria-describedby`) | form views | A helper |
+| Medium | Online store products with no picture are links with no name (62 on the owner's crawl) | `store/_product_card.html.erb:5-9` | An `aria-label` |
+| Medium | The till's phone tabs don't say which is selected | `pos/_pane_tabs.html.erb:4-7` | `aria-selected` |
+| Medium | Dropdowns leave focus on the hidden menu after Escape | `dropdown_controller.js`, `search_panel_controller.js` | Return focus |
+| Medium | Dashboard bars readable only by hovering | `dashboards/_bars.html.erb:3-5` | Values in the label |
+| Medium | Phone Home pushes **Needs you today** below the fold; it's also 402 px wide | `dashboards/_owner.html.erb:20,48` | 2×2 numbers, or the list first |
+| Low | Help pages' small labels and grey text fail contrast (axe: all 50 public pages) | `.walkthrough-eyebrow` in `application.css:174`, help cards | Darker text |
+| Low | Tables: no `scope`, empty `<th>` | `sales/index.html.erb:14` | `sr-only` text |
+| Low | Page titles break "Parent / Page" | `events/index.html.erb:3`, `branches/index.html.erb:4` | A `page_header` helper |
+| Low | "New" vs "Add branch" vs "New API key"; two pager styles | `branches/index.html.erb:6`, `developers/show.html.erb:23` | The control panel |
+| Low | Tap targets under 44 px; promotion category checkboxes and the transfer "lost" radio flagged by axe | `_control_panel.html.erb:14`, `_navigation.html.erb:48`, promotions form | `pointer-coarse:min-h-11` |
+| Low | Skip link only in the main layout; the account button's name hides its initials | layouts, `_navigation.html.erb:28` | Both |
+| Low | Tidy-ups: `animate-pulse` without `motion-safe`, progress bars without a role, `hello_controller.js` | various | |
 
 ## Help text that disagrees with the app
 
-The README says the guides name buttons "exactly as they appear". These don't match:
-
 | Guide | Says | The app |
 |---|---|---|
-| Billing | Read-only "a week after it's due" | The day after it's due |
-| Selling | "F9 takes payment" | F9 focuses **Cash received**, and nothing when another tender is showing |
-| Selling | Line discounts take a percentage | The line discount box takes an amount only |
-| Stock and stock takes | What's on order "isn't suggested twice" | Drafts are suggested again |
-| Stock on your phone | Transport costs can be added later in Buy › Receiving | There's no way to |
-| Customers on account | Confirming over the limit needs approval | **Save as confirmed order** doesn't ask |
-| Staff and roles | 10 wrong approval PINs lock the shop | 10 per till, 50 per shop |
-| Set up your shop | Everyone invited gets a till PIN | Managers can't have one |
-| Pricing | "Every plan includes every feature" | The API and webhooks are Business and up |
+| Billing (`_billing.html.erb:19`) | Read-only "a week after it's due" | The day after |
+| Selling (`_selling.html.erb:25`) | "F9 takes payment" | F9 focuses **Cash received** only |
+| Selling (`_selling.html.erb:19`) | Line discounts take a percentage | An amount only |
+| Stock on your phone (`:36`) | Transport costs are added in Buy › Receiving | There's no way to |
+| Staff and roles (`:30`) | 10 wrong approval PINs lock the shop | 10 per till, 50 per shop |
+| Set up your shop (`onboardings/show.html.erb:6`) | Everyone invited gets a till PIN | Managers can't have one |
+| Pricing (`pages/pricing.html.erb:9`) | Every plan includes every feature | The API is Business and up |
+
+Fixed since the first run: "isn't suggested twice", "Customers on account", and the importing guide.
 
 ## What's good
 
-Worth keeping as they are:
-
-- **Receipt numbering** is gap-free and locked.
-- **Payments** lock the sale.
-- **Return refunds** are capped at the money paid.
-- **Offline sales** are de-duplicated by UUID.
-- **Discount approval** is checked again at payment.
-- **Tenant isolation:** row-level security, plus a test that requests every route with another shop's record.
-- **Home's Needs you today list**, which turns each number into a button.
-- **The grouped Settings page** with search.
-- **The till's layout:** big tiles, quick picks, F-keys shown in the bar.
-- **Forms:** labels on almost every input, error states rendered with the right status, `submit-once` on non-Turbo forms, a skip link and `prefers-reduced-motion` guards.
-- **Money format:** "KES 1,234.00" everywhere through `money`.
-- **Status rule:** BRAND.md's no-coloured-capsules rule is kept.
+- **Receipt numbering** is gap-free and locked; **payments** lock the sale; **return refunds** are capped at money paid;
+  **offline sales** are de-duplicated; **discount approval** is checked again at payment.
+- **Tenant isolation:** row-level security, plus a test that requests every route with another shop's record. The
+  review of the fixes found no new query that escapes the shop.
+- **Home's Needs you today**, the grouped **Settings** page with search, and the **till's** big tiles and F-keys.
+- **Forms:** labels on almost every input, error states with the right status, `submit-once`, a skip link,
+  `prefers-reduced-motion` guards.
+- **No crashes** on any of 640 screens across five roles, and every page under 1.5 seconds bar one (Reorder for a
+  manager, 1.9 s once, 0.9 s on repeat).
