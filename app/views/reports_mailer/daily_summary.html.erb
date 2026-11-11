@@ -106,6 +106,12 @@
     <% end %>
   <% end %>
 
+  <% if s.unusual.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Unusual for the cashier</p>
+    <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">Well above what each did on their own working days over the last eight weeks.</p>
+    <%= mail_list [ "Cashier", "Yesterday" ], s.unusual.map { |flag| [ flag.cashier.name, mail_status(:warning, flag.description(currency: currency).upcase_first) ] } %>
+  <% end %>
+
   <% if s.cashiers.any? %>
     <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Given away, by cashier</p>
     <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">Discounts, voids and returns together.</p>

@@ -27,10 +27,16 @@ export default class extends Controller {
     }
   }
 
-  async openDrawer() {
+  // Opening the drawer without a sale says why (the menu's reasons), and is recorded.
+  async openDrawer(event) {
+    this.element.removeAttribute("open")
     try {
       await openDrawer(this.tillValue.printer_name)
-      await fetch(this.drawerUrlValue, { method: "POST", headers: { "X-CSRF-Token": document.querySelector("meta[name=csrf-token]")?.content } })
+      await fetch(this.drawerUrlValue, {
+        method: "POST",
+        headers: { "X-CSRF-Token": document.querySelector("meta[name=csrf-token]")?.content },
+        body: new URLSearchParams({ reason: event?.params?.reason || "" })
+      })
     } catch (error) {
       alert(`The cash drawer didn't open (${error.message}). Is QZ Tray running?`)
     }
