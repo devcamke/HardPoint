@@ -35,12 +35,16 @@ class Mpesa::StkRequest < ApplicationRecord
 
   def resolve(result_code:, description: nil, receipt_number: nil, amount_cents: nil, phone: nil, transacted_at: nil, payload: {})
     with_lock do
-      if result_code == "0"
+      # A status check that the callback overtook has nothing to add: the money is recorded under its receipt number.
+      if result_code == "0" && (receipt_number || pending?)
         transaction = rename_placeholder(receipt_number) || record_transaction(receipt_number, amount_cents || self.amount_cents, phone, transacted_at, payload)
-        # A payment that arrives after the till stopped waiting is still the customer's money for this prompt.
-        if pending? || expired?
+        if pending?
           update!(status: :paid, result_code: result_code, result_description: description, receipt_number: transaction.trans_id, resolved_at: Time.current)
           pay_sale(transaction)
+        elsif expired?
+          # Paid after the till stopped waiting. The sale may hold the next customer's goods by now, so the money
+          # isn't put on it: it waits in the till's list of payments received, for the cashier to pick.
+          update!(status: :paid, result_code: result_code, result_description: description, receipt_number: transaction.trans_id, resolved_at: Time.current)
         end
       elsif pending?
         update!(status: result_code == "1032" ? :cancelled : :failed, result_code: result_code, result_description: description, resolved_at: Time.current)

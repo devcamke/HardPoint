@@ -47,11 +47,11 @@ class Shift < ApplicationRecord
     sale_returns.where(refund_method: "cash").sum(:total_cents)
   end
 
-  # Voided sales whose money was handed back in cash, out of this drawer, whatever they were paid with. Only money
-  # paid goes back (Sale#void_refund_cents): not a deposit used on the sale, nor what was put on account.
+  # Voided sales whose money was handed back in cash, out of this drawer, whatever they were paid with: the money
+  # paid (Sale#void_refund_cents). Voids from before that was kept took the whole total, and still count that way,
+  # so a closed shift adds up as it did when it closed.
   def void_cash_refunds_cents
-    Payment.where(sale_id: sales.voided.where(void_refund_method: "cash").select(:id))
-      .where.not(tender: %w[ deposit points on_account ]).sum(:amount_cents)
+    sales.voided.where(void_refund_method: "cash").sum(Arel.sql("COALESCE(void_refund_cents, total_cents)"))
   end
 
   # Deposits on orders (less deposits refunded) and account payments, taken in cash.

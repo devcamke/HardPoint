@@ -56,8 +56,10 @@ class Mpesa::Transaction < ApplicationRecord
       deposit = order.take_deposit(amount_cents: amount_cents, tender: "mobile_money", reference: trans_id)
       match(deposit) if deposit.persisted?
     elsif (customer = account.customers.find_by_account_number(bill_reference))
-      match customer.customer_payments.create!(account: account, amount_cents: amount_cents, payment_method: "mobile_money", reference: trans_id,
+      # Refused (say the code was already used another way), the money stays on the list to be picked by hand.
+      payment = customer.customer_payments.create(account: account, amount_cents: amount_cents, payment_method: "mobile_money", reference: trans_id,
         paid_on: transacted_at.to_date, note: "Paid to #{shortcode.label}", creator: nil)
+      match(payment) if payment.persisted?
     end
   end
 
@@ -77,9 +79,11 @@ class Mpesa::Transaction < ApplicationRecord
   end
 
   private
+    # Codes are typed as they come (" qwe12abc"), so they're compared the way MobileMoneyCode compares them.
     def already_recorded
-      Payment.mobile_money.find_by(reference: trans_id) ||
-        account.deposits.find_by(tender: "mobile_money", reference: trans_id) ||
-        account.customer_payments.find_by(payment_method: "mobile_money", reference: trans_id)
+      matching = ->(scope) { scope.where("upper(trim(reference)) = ?", trans_id).first }
+      matching.(Payment.where(account: account).mobile_money) ||
+        matching.(account.deposits.where(tender: "mobile_money")) ||
+        matching.(account.customer_payments.where(payment_method: "mobile_money"))
     end
 end

@@ -65,18 +65,20 @@ module Customer::Receivables
       def credited_by_id(ids, account)
         returns = SaleReturn.joins(:sale).where(refund_method: "on_account", sales: { account_id: account.id })
         returns = returns.where(sales: { customer_id: ids }) if ids
-        voids = Customer::Receivables.void_credit_payments.where(sales: { account_id: account.id })
-        voids = voids.where(sales: { customer_id: ids }) if ids
+        voids = Customer::Receivables.void_credits.where(account_id: account.id)
+        voids = voids.where(customer_id: ids) if ids
         payments = account.customer_payments
         payments = payments.where(customer_id: ids) if ids
-        [ returns.group("sales.customer_id").sum(:total_cents), voids.group("sales.customer_id").sum(:amount_cents), payments.group(:customer_id).sum(:amount_cents) ]
+        [ returns.group("sales.customer_id").sum(:total_cents), voids.group(:customer_id).sum(:void_refund_cents), payments.group(:customer_id).sum(:amount_cents) ]
           .reduce { |totals, more| totals.merge(more) { |_, a, b| a + b } }
       end
   end
 
-  # The money paid on sales voided with the money credited to the customer's account (Sale#void_refund_cents).
-  def self.void_credit_payments
-    Payment.joins(:sale).where(sales: { status: "voided", void_refund_method: "on_account" }).where.not(tender: %w[ deposit points on_account ])
+  # Sales voided with the money paid credited to the customer's account. Only voids that kept what they handed back
+  # (Sale#void_refund_cents) count: before then, choosing the account credited nothing, and balances already sent
+  # to customers aren't changed after the fact.
+  def self.void_credits
+    Sale.voided.where(void_refund_method: "on_account").where.not(void_refund_cents: nil)
   end
 
   # Set when the balance was worked out for many customers at once (lists, the API), so it isn't asked again.
@@ -97,10 +99,9 @@ module Customer::Receivables
 
   # Sales voided with what was paid credited to the account, as [sale, amount credited]; up to the end of as_of when given.
   def account_void_credits(as_of: nil)
-    credits = Customer::Receivables.void_credit_payments.where(sales: { customer_id: id }).group(:sale_id).sum(:amount_cents)
-    voided = sales.where(id: credits.keys)
+    voided = Customer::Receivables.void_credits.where(customer_id: id)
     voided = voided.where(voided_at: ..end_of(as_of)) if as_of
-    voided.order(:voided_at, :id).map { [ _1, credits[_1.id] ] }
+    voided.order(:voided_at, :id).map { [ _1, _1.void_refund_cents ] }
   end
 
   def charged_cents

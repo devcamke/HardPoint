@@ -5,8 +5,17 @@ module Mpesa::Shortcode::Callbacks
 
   def receive_stk_callback(payload)
     callback = payload.dig("Body", "stkCallback") or return
-    request = stk_requests.find_by(checkout_request_id: callback["CheckoutRequestID"]) or return
     details = Array(callback.dig("CallbackMetadata", "Item")).to_h { [ _1["Name"], _1["Value"] ] }
+    request = stk_requests.find_by(checkout_request_id: callback["CheckoutRequestID"])
+    # The sale was cleared after its prompt stopped waiting, taking the prompt with it. The money still arrived,
+    # so it's recorded, for the cashier to pick at a till.
+    if request.nil?
+      if callback["ResultCode"].to_s == "0" && details["MpesaReceiptNumber"].present?
+        Mpesa::Transaction.record(self, source: "stk", trans_id: details["MpesaReceiptNumber"], amount_cents: Monetary.to_cents(details["Amount"]),
+          phone: details["PhoneNumber"]&.to_s, transacted_at: parse_time(details["TransactionDate"]), payload: payload)
+      end
+      return
+    end
 
     request.resolve(result_code: callback["ResultCode"].to_s, description: callback["ResultDesc"],
       receipt_number: details["MpesaReceiptNumber"], amount_cents: Monetary.to_cents(details["Amount"]),

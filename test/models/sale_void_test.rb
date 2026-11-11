@@ -45,6 +45,24 @@ class SaleVoidTest < ActiveSupport::TestCase
     assert_equal [ "Voided sale credited", 0, sale.total_cents ], [ entry.description, entry.charge_cents, entry.credit_cents ]
   end
 
+  test "voids from before the refund was kept count as they did then" do
+    sale = sale_for(@customer)
+    within { sale.pay(tender: "cash", tendered_cents: 2_000_00) }
+    balance = within { @customer.reload.balance_cents }
+    within { sale.void(reason: "Wrong items", by: users(:amina), refund_method: "on_account") }
+    within { sale.update_columns(void_refund_cents: nil) } # as a void made before the column was there
+
+    assert_equal balance, within { @customer.reload.balance_cents }, "no credit appears after the fact"
+    assert_equal sale.total_cents, within { sale.void_refunded_cents }
+
+    cash_void = sale_for
+    within { cash_void.pay(tender: "cash", tendered_cents: 2_000_00) }
+    expected = within { @shift.expected_cash_cents_now }
+    within { cash_void.void(reason: "Rang up twice", by: users(:amina), refund_method: "cash") }
+    within { cash_void.update_columns(void_refund_cents: nil) }
+    assert_equal expected - cash_void.total_cents, within { @shift.expected_cash_cents_now }, "an old cash void still took its whole total"
+  end
+
   test "M-Pesa handed back in cash stays money received on the M-Pesa report" do
     shortcode = within { @account.mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator") }
     within do

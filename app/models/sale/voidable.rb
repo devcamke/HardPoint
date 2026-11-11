@@ -29,7 +29,7 @@ module Sale::Voidable
       refund_method = refund_method.presence || default_void_refund_method
       errors.clear
       if refundable_payments.any? && !refund_method.in?(SaleReturn::REFUND_METHODS)
-        errors.add :base, "Say how the #{Money.format(void_refund_cents)} paid went back"
+        errors.add :base, "Say how the #{Money.format(money_paid_cents)} paid went back"
       elsif refund_method.in?(%w[ mobile_money airtel_money ]) && refund_reference.blank?
         errors.add :base, "Enter the #{refund_method == "mobile_money" ? "M-Pesa" : "Airtel Money"} reversal code"
       elsif refund_method == "on_account" && customer.nil?
@@ -39,7 +39,8 @@ module Sale::Voidable
 
       lines.each(&:restore_stock)
       update! status: :voided, voided_by: by, voided_at: Time.current, void_reason: reason,
-        void_refund_method: (refund_method if refundable_payments.any?), void_refund_reference: refund_reference.to_s.strip.upcase.presence
+        void_refund_method: (refund_method if refundable_payments.any?), void_refund_reference: refund_reference.to_s.strip.upcase.presence,
+        void_refund_cents: (money_paid_cents if refundable_payments.any?)
       # Only an M-Pesa reversal sends Safaricom's money back; M-Pesa refunded in cash is still money received.
       account.mpesa_transactions.where(matched: payments.select(&:mobile_money?)).update_all(refunded_at: Time.current) if void_refund_method == "mobile_money"
       customer_order&.reopen(self)
@@ -58,9 +59,15 @@ module Sale::Voidable
   end
 
   # The money that goes back on a void: what was paid in money. A deposit goes back to its order, and the part
-  # put on account stops counting towards what the customer owes, so neither is handed back.
-  def void_refund_cents
+  # put on account stops counting towards what the customer owes, so neither is handed back. The void keeps it
+  # (void_refund_cents).
+  def money_paid_cents
     refundable_payments.sum(&:amount_cents)
+  end
+
+  # What a void handed back. Voids from before it was kept handed back the sale's whole total.
+  def void_refunded_cents
+    void_refund_cents || total_cents
   end
 
   def void_refund_words

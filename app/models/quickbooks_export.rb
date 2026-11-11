@@ -141,8 +141,8 @@ class QuickbooksExport
         next if sound.empty?
 
         entry_lines = []
-        sound.flat_map(&:payments).group_by { [ TENDER_ACCOUNTS.fetch(_1.tender, "cash"), (_1.sale.customer&.name if _1.on_account?) ] }
-          .each { |(key, name), payments| entry_lines << debit(key, payments.sum(&:amount_cents), name:) }
+        sound.flat_map { tender_amounts(_1, sign) }.group_by { |key, name, _| [ key, name ] }
+          .each { |(key, name), amounts| entry_lines << debit(key, amounts.sum(&:last), name:) }
         net = sound.sum { _1.total_cents - _1.tax_cents }
         tax = sound.sum(&:tax_cents)
         cost = sound.sum { |sale| sale.lines.sum(&:cost_cents) }
@@ -155,6 +155,17 @@ class QuickbooksExport
         lines << Entry.new(date, "#{what} · #{branch.name} · #{sound.size} #{sound.size == 1 ? "receipt" : "receipts"}", entry_lines)
       end
       lines
+    end
+
+    # [account, customer name for receivables, cents] for each payment on a sale. A void reverses each payment to the
+    # tender it was paid with, except the money paid on a void that kept how it went back (Sale#void_refund_cents):
+    # that goes the way it was handed back, so a void credited to the customer's account credits receivables.
+    def tender_amounts(sale, sign)
+      sale.payments.map do |payment|
+        tender = payment.tender
+        tender = sale.void_refund_method if sign.negative? && sale.void_refund_cents && sale.void_refund_method && !tender.in?(%w[ deposit points on_account ])
+        [ TENDER_ACCOUNTS.fetch(tender, "cash"), (sale.customer&.name if tender == "on_account"), payment.amount_cents ]
+      end
     end
 
     def sales_scope

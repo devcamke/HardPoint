@@ -56,6 +56,16 @@ class QuickbooksExportTest < ActiveSupport::TestCase
     assert_includes lines_of(entries.find { _1.description == "Paying suppliers" }), [ "M-Pesa", 0, 11600_00, nil ]
   end
 
+  test "a cash sale voided with the money credited to the customer's account credits receivables, not cash" do
+    sale = sell(customer: customers(:acme_contractor))
+    assert sale.void(reason: "Wrong items", by: users(:amina), refund_method: "on_account")
+
+    entry = export.entries.find { _1.description.start_with?("Voided sales") }
+    assert entry.balanced?
+    assert_includes lines_of(entry), [ "Accounts Receivable (A/R)", 0, sale.total_cents, "Mwangi Builders Ltd" ]
+    assert_not lines_of(entry).any? { _1.first == "Cash on hand" }
+  end
+
   test "a refunded deposit is a credit to the money it went back out of, not a negative debit" do
     order = @account.customer_orders.create!(branch: branches(:acme_main), customer: customers(:acme_contractor),
       lines_attributes: [ { account: @account, product_code: "CEM-50", quantity: 1 } ]).tap(&:confirm)

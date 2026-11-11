@@ -3,6 +3,8 @@ class Payment < ApplicationRecord
 
   # "points": loyalty points, which HardPoint no longer has. Payments made with them are kept, as is their eTIMS code.
   TENDERS = %w[ cash card mobile_money airtel_money on_account deposit foreign_cash points ].freeze
+  # What an offline till's M-Pesa payment carries when the cashier typed no code (Sale::Offline): not a code.
+  NO_CODE = "OFFLINE"
 
   belongs_to :sale
 
@@ -38,7 +40,7 @@ class Payment < ApplicationRecord
   private
     # A code typed at the till (MobileMoneyCode): the customer must have sent at least what was tendered.
     def mobile_money_code?
-      mobile_money?
+      mobile_money? && mobile_money_code != NO_CODE
     end
 
     def mobile_money_cents

@@ -147,7 +147,7 @@ module Sale::Offline
         # drawer, and taking the whole of what was tendered would only put cash in the drawer that isn't there.
         cash_limit = [ intended, offline_expected_total_cents ].compact.min if tender == "cash"
         taken = pay(tender: tender, amount_cents: intended, tendered_cents: payment["tendered_cents"]&.to_i,
-          reference: payment["reference"].presence || (tender.in?(%w[ mobile_money airtel_money ]) ? "OFFLINE" : nil), cash_limit_cents: cash_limit)
+          reference: payment["reference"].presence || (tender.in?(%w[ mobile_money airtel_money ]) ? Payment::NO_CODE : nil), cash_limit_cents: cash_limit)
         if taken.errors.any?
           offline_warnings << "#{taken.label} payment not recorded: #{taken.errors.full_messages.to_sentence}"
         end

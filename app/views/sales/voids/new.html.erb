@@ -6,9 +6,9 @@
 <%= form_with url: sale_void_path(@sale), class: "card max-w-md" do |form| %>
   <% if flash.now[:alert] %><p id="alert" class="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-800"><%= flash.now[:alert] %></p><% end %>
   <div class="field"><%= form.label :reason, class: "label" %><%= form.text_field :reason, value: params[:reason], required: true, class: "input", placeholder: "e.g. Rang up twice" %></div>
-  <% if @sale.void_refund_cents.positive? %>
+  <% if @sale.money_paid_cents.positive? %>
     <fieldset class="field space-y-2">
-      <legend class="label">How the <%= money(@sale.void_refund_cents) %> paid goes back</legend>
+      <legend class="label">How the <%= money(@sale.money_paid_cents) %> paid goes back</legend>
       <p class="hint mb-1">Paid <%= @sale.payments.map { "#{_1.label} #{money(_1.amount_cents)}" }.to_sentence %>.</p>
       <% methods = [ [ "cash", "Cash, from this till's drawer" ], [ "mobile_money", "M-Pesa reversal" ], [ "airtel_money", "Airtel Money reversal" ], [ "card", "Refund to the card" ],
                      ([ "on_account", "Credit to #{@sale.customer.name}'s account" ] if @sale.customer) ].compact

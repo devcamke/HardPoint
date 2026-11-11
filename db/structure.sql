@@ -2603,7 +2603,8 @@ CREATE TABLE public.sales (
     void_refund_method character varying,
     void_refund_reference character varying,
     fundi_id bigint,
-    approved_discount_cents bigint
+    approved_discount_cents bigint,
+    void_refund_cents bigint
 );
 
 ALTER TABLE ONLY public.sales FORCE ROW LEVEL SECURITY;
@@ -5589,6 +5590,13 @@ CREATE INDEX index_customer_payment_allocations_on_sale_id ON public.customer_pa
 
 
 --
+-- Name: index_customer_payments_on_account_and_reference; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customer_payments_on_account_and_reference ON public.customer_payments USING btree (account_id, upper(TRIM(BOTH FROM reference))) WHERE (reference IS NOT NULL);
+
+
+--
 -- Name: index_customer_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5712,6 +5720,13 @@ CREATE INDEX index_delivery_notes_on_sale_id ON public.delivery_notes USING btre
 --
 
 CREATE INDEX index_delivery_notes_on_transport_order_id ON public.delivery_notes USING btree (transport_order_id) WHERE (transport_order_id IS NOT NULL);
+
+
+--
+-- Name: index_deposits_on_account_and_reference; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_deposits_on_account_and_reference ON public.deposits USING btree (account_id, upper(TRIM(BOTH FROM reference))) WHERE (reference IS NOT NULL);
 
 
 --
@@ -6181,6 +6196,13 @@ CREATE INDEX index_mpesa_transactions_on_matched ON public.mpesa_transactions US
 --
 
 CREATE INDEX index_mpesa_transactions_on_shortcode_id ON public.mpesa_transactions USING btree (shortcode_id);
+
+
+--
+-- Name: index_payments_on_account_and_reference; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payments_on_account_and_reference ON public.payments USING btree (account_id, upper(TRIM(BOTH FROM reference))) WHERE (reference IS NOT NULL);
 
 
 --
@@ -10310,6 +10332,8 @@ ALTER TABLE public.webhook_endpoints ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111125000'),
+('20261111124000'),
 ('20261111123000'),
 ('20261111122000'),
 ('20261111121000'),
