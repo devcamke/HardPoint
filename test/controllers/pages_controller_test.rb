@@ -183,6 +183,13 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".lp-works li", 8
   end
 
+  test "the public site follows the device's light or dark setting" do
+    get marketing_root_path
+    assert_select "meta[name=color-scheme][content=?]", "light dark"
+    assert_select "meta[name=theme-color][media*=dark]"
+    assert_select "body.lp-site"
+  end
+
   test "the landing page's prices come from the plans" do
     get marketing_root_path
     Plan.all.each do |plan|
