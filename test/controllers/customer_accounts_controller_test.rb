@@ -97,6 +97,23 @@ class CustomerAccountsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 100, without_isolation { line.reload.quantity }
   end
 
+  test "moving a confirmed order to a customer it takes past their credit needs a manager's PIN" do
+    order = create_quote
+    post customer_order_confirmation_path(order)
+    small = without_isolation { Current.set(account: accounts(:acme)) { accounts(:acme).customers.create!(name: "Small Builder", phone: "0700 111 222", credit_limit_cents: 1_000_00) } }
+
+    get new_customer_order_path
+    assert_select "input[name=approval_pin]", 1, "the new form takes a PIN for Save as confirmed order"
+
+    patch customer_order_path(order), params: { customer_order: { customer_id: small.id } }
+    assert_response :unprocessable_entity
+    assert_equal customers(:acme_contractor), without_isolation { order.reload.customer }
+
+    patch customer_order_path(order), params: { approval_pin: "2468", customer_order: { customer_id: small.id } }
+    assert_redirected_to customer_order_path(order)
+    assert_equal small, without_isolation { order.reload.customer }
+  end
+
   test "a cashier needs a manager's PIN to go over a customer's credit limit" do
     post pos_lines_path, params: { code: "CEM-50", quantity: "70" }, as: :turbo_stream # 70 × 760.00 = 53,200.00 > 50,000.00
     patch pos_customer_path, params: { customer_id: customers(:acme_contractor).id }, as: :turbo_stream

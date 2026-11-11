@@ -1,7 +1,7 @@
 # An M-Pesa code typed by hand, on a sale's payment, a deposit or a payment on account. A code is money
 # once: one already used, or one Safaricom says was for less than is being paid, is refused. A code
 # for money that already arrived on the Paybill claims it, so it can't be picked again at a till.
-# A code Safaricom hasn't told us about (yet) is taken on trust, and the M-Pesa report lists it
+# A code Safaricom hasn't told us about (yet) is taken on trust; on a sale, the M-Pesa report lists it
 # as unconfirmed.
 module MobileMoneyCode
   extend ActiveSupport::Concern

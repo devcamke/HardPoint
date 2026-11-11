@@ -77,19 +77,21 @@ class CustomerOrdersController < ApplicationController
   end
 
   private
-    # Raising a confirmed order past the customer's credit needs a manager, as confirming it would have.
+    # Raising a confirmed order past the customer's credit, or moving it to a customer it takes past theirs, needs a
+    # manager, as confirming it would have.
     def update_within_credit
-      total_before = @customer_order.total_cents
+      total_before, customer_before = @customer_order.total_cents, @customer_order.customer_id
       saved = false
       CustomerOrder.transaction do
         @customer_order.update(customer_order_params) or raise ActiveRecord::Rollback
-        if @customer_order.ordered? && @customer_order.total_cents > total_before && @customer_order.over_credit_limit?
+        grew = @customer_order.total_cents > total_before || @customer_order.customer_id != customer_before
+        if @customer_order.ordered? && grew && @customer_order.over_credit_limit?
           if (approver = approver_for_action)
             @customer_order.track_event "credit_approved", approver: approver, customer: @customer_order.customer.name,
               amount: @customer_order.balance_to_pay_cents, available: @customer_order.customer.available_credit_cents
           else
             @customer_order.errors.add :base, "#{@customer_order.customer.name} has only #{Money.format(@customer_order.customer.available_credit_cents)} " \
-              "of credit left. Raising this order to #{Money.format(@customer_order.balance_to_pay_cents)} needs a manager's approval PIN"
+              "of credit left. An order of #{Money.format(@customer_order.balance_to_pay_cents)} for them needs a manager's approval PIN"
             raise ActiveRecord::Rollback
           end
         end
