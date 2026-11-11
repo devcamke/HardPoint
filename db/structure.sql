@@ -1161,7 +1161,10 @@ CREATE TABLE public.customers (
     updated_at timestamp(6) without time zone NOT NULL,
     payment_terms_days integer DEFAULT 30 NOT NULL,
     address character varying,
-    sms_opt_out boolean DEFAULT false NOT NULL
+    sms_opt_out boolean DEFAULT false NOT NULL,
+    credit_hold_lifted_until date,
+    credit_hold_lifted_by_id bigint,
+    credit_hold_lift_reason character varying
 );
 
 ALTER TABLE ONLY public.customers FORCE ROW LEVEL SECURITY;
@@ -10717,6 +10720,7 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111126000'),
 ('20261111125100'),
 ('20261111125000'),
 ('20261111124000'),
