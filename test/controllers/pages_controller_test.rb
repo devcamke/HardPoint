@@ -154,4 +154,34 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{help_article_path("fundis")}']"
     assert_select "a[href='#{help_article_path("material-calculator")}']"
   end
+
+  test "the landing page's example till can show what changes offline, in words true of the offline till" do
+    get marketing_root_path
+    assert_select "[data-controller=offline-demo]" do
+      # Hidden until the controller connects, so it never sits there doing nothing.
+      assert_select "button[hidden][data-action='offline-demo#toggle']", /Pull the plug/
+      assert_select "[data-offline-text*='M-Pesa code typed in']"
+      assert_select "[data-offline-text*='-OFF1-']"
+    end
+    assert_select "dialog [data-controller=walkthrough], dialog .walkthrough", minimum: 1
+  end
+
+  test "every guide the landing page links to exists, and the nav's Features link has somewhere to land" do
+    get marketing_root_path
+    assert_select "#features"
+    slugs = css_select("a[href^='/help/']").map { _1["href"].delete_prefix("/help/") }.uniq
+    assert_operator slugs.size, :>=, 15
+    slugs.each { |slug| assert HelpArticle.find(slug), "No help article #{slug}" }
+  end
+
+  test "the landing page's prices come from the plans" do
+    get marketing_root_path
+    Plan.all.each do |plan|
+      assert_select "#plan_#{plan.key}", /KES #{ActiveSupport::NumberHelper.number_to_delimited(plan.price_cents / 100)}/
+      assert_select "#plan_#{plan.key} a[href=?]", new_signup_path(plan: plan.key)
+    end
+    assert_select ".lp-sticky", /KES 2,500/
+    assert_select "#plan_business", /Recommended/
+    assert_select "#plan_enterprise", /Unlimited branches/
+  end
 end

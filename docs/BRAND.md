@@ -65,3 +65,19 @@ A hex nut next to the wordmark **HardPoint**, rendered by `app/views/shared/_log
 
 Utilities in `app/assets/tailwind/application.css`: `btn-primary`, `btn-secondary`, `btn-danger`, `input`, `label`,
 `field`, `card`, `link`, `hint`, `badge`, and the `.table` component.
+
+## The landing page
+
+The public landing page (`app/views/pages/home.html.erb`) has its own voice and look, in the manner of Basecamp, HEY
+and Fizzy, and its own stylesheet, `app/assets/tailwind/landing.css`, with everything under `.lp`:
+
+- **Words:** plainspoken, written to the owner of a hardware shop. One huge headline, short sentences, no jargon.
+  Every claim must be true of how HardPoint works today; the help guides are the source. Prices come from `Plan`.
+- **Type:** headlines in Bricolage Grotesque 700–800 and notes in Kalam Bold (both SIL Open Font Licence, served
+  from `app/assets/fonts`); body text in the app's Roboto stack.
+- **Colour:** white, ink `#0F2327`, the petrol teal for buttons and the two full-width bands (the offline till and
+  the closing call), a highlighter yellow `#FFDF4F` behind the words that matter, and sticky-note pastels on the
+  feature cards only.
+- **Shapes:** a 2 px ink outline and a hard offset shadow on the one thing in each section that should stand out.
+- **Real screens** carry handwritten notes in the margin on a wide window, and a list of the same notes under them
+  on anything narrower.
