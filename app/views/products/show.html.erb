@@ -63,7 +63,12 @@
           <% stock = @product.kit? ? @product.stock_at(branch) : (level&.quantity || 0) %>
           <tr>
             <td><%= branch.name %></td>
-            <td class="text-right tabular-nums"><%= quantity(stock, @product.unit) %></td>
+            <% held = @product.track_stock? && !@product.kit? ? @product.reserved_at(branch) : 0 %>
+            <td class="text-right tabular-nums"><%= quantity(stock, @product.unit) %>
+              <% if held.positive? %>
+                <span class="block text-xs text-gray-600"><%= quantity(held) %> held for
+                  <%= safe_join(@product.orders_holding(branch).map { link_to(_1.reference, customer_order_path(_1), class: "link") }, ", ") %></span>
+              <% end %></td>
             <td class="text-right"><%= stock_badge(@product, stock, branch, reorder_level: level&.reorder_level || @product.reorder_level) %></td>
             <% if own_levels %>
               <td class="text-right">
