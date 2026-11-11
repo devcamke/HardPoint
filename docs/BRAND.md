@@ -91,5 +91,10 @@ stylesheet, `app/assets/tailwind/landing.css`, with everything under `.lp`. The 
   and `pages/_faqs` (shared by the landing and pricing pages), `.lp-doc` for long-form text (guides, the API, the
   legal pages), `.lp-panel` and `.lp-tile` for outlined boxes and link cards, `.lp-form` for boxed fields, and
   `.lp-search`. Inside the help guides the walkthroughs get the ink outline too; the app's guided tours don't.
+- **Dark mode:** the public site follows the device's light or dark setting, with no toggle; the app and emails stay
+  light. Every colour is a token on `.lp` and `.lp-site` (the marketing layout's body) in `landing.css`, with a dark set
+  under `prefers-color-scheme: dark`: a near-black teal page, light text and outlines, a teal hard shadow, and the same
+  highlighter, sticky note and teal. Use the tokens (`var(--lp-ink)`, or Tailwind's `text-(--lp-ink)`), never a literal
+  colour, on public pages. Screenshots of the app, the help walkthroughs and the "Watch a sale" dialog stay light.
 - **The public site's nav and footer** (`layouts/marketing`) follow it too: a pill-shaped trial button, and a white
   footer under a 2 px ink rule with columns headed in the headline face and a handwritten line under the logo.

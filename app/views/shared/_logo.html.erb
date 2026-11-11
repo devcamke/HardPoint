@@ -3,12 +3,19 @@
     things that matter, with an ink outline and a hard offset shadow, like a sticker. On the teal bars (dark) the nut
     is white, the H teal and the shadow a deeper teal. The wordmark is set in the site's headline face.
     The same mark is public/icon.svg (icon.png is rendered from it) and the fallback in shared/_navigation. %>
-<% ink = dark ? "#072D35" : "#0F2327" %>
+<%# Outside dark: the light colours are CSS variables with today's colours as fallbacks, so on the public site
+    (.lp-site, landing.css) the mark turns white with a teal shadow when the device is in dark mode, and everywhere
+    else it stays as it is. %>
+<% if dark %>
+  <% body, cut, ink, shadow, word = "#FFFFFF", "#0F5E6E", "#072D35", "#072D35", "text-white" %>
+<% else %>
+  <% body, cut, ink, shadow, word = "var(--lp-logo-body, #0F5E6E)", "var(--lp-logo-cut, #FFFFFF)", "var(--lp-logo-ink, #0F2327)", "var(--lp-logo-shadow, #0F2327)", "text-[var(--lp-ink,#0F2327)]" %>
+<% end %>
 <span class="inline-flex items-center gap-2.5">
   <svg viewBox="0 0 64 64" class="size-[2.3rem] shrink-0" aria-hidden="true">
-    <path d="M30 3 54 17v28L30 59 6 45V17Z" transform="translate(4 4)" fill="<%= ink %>"/>
-    <path d="M30 3 54 17v28L30 59 6 45V17Z" fill="<%= dark ? "#FFFFFF" : "#0F5E6E" %>" stroke="<%= ink %>" stroke-width="3.5" stroke-linejoin="round"/>
-    <path d="M19 18.5h7.5v9h7v-9H41v24h-7.5v-9h-7v9H19Z" fill="<%= dark ? "#0F5E6E" : "#FFFFFF" %>" stroke="<%= ink %>" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M30 3 54 17v28L30 59 6 45V17Z" transform="translate(4 4)" style="fill: <%= shadow %>"/>
+    <path d="M30 3 54 17v28L30 59 6 45V17Z" style="fill: <%= body %>; stroke: <%= ink %>" stroke-width="3.5" stroke-linejoin="round"/>
+    <path d="M19 18.5h7.5v9h7v-9H41v24h-7.5v-9h-7v9H19Z" style="fill: <%= cut %>; stroke: <%= ink %>" stroke-width="2.6" stroke-linejoin="round"/>
   </svg>
-  <span class="font-display text-[1.7rem] leading-none font-extrabold tracking-[-0.04em] <%= dark ? "text-white" : "text-[#0F2327]" %>">HardPoint</span>
+  <span class="font-display text-[1.7rem] leading-none font-extrabold tracking-[-0.04em] <%= word %>">HardPoint</span>
 </span>

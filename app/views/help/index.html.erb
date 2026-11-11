@@ -41,9 +41,9 @@
     <div class="lp-tiles lp-tiles-3 mt-[26px]">
       <% HelpTour.all.sort_by { HelpArticle::SECTIONS.index(_1.section) }.each do |tour| %>
         <%= link_to help_article_path(tour.article, anchor: "walkthrough-#{tour.id}"), class: "lp-tile p-[0] overflow-hidden" do %>
-          <span class="relative block border-b-2 border-[#0f2327]">
+          <span class="relative block border-b-2 border-(--lp-edge)">
             <%= image_tag tour.image, alt: "", width: tour.image_size[0], height: tour.image_size[1], loading: "lazy", class: "block aspect-[16/10] w-full object-cover object-top" %>
-            <span class="absolute right-2 bottom-2 rounded-full bg-[#0f2327] px-2.5 py-0.5 text-xs font-semibold text-white"><%= pluralize(tour.placed_steps.size, "step") %></span>
+            <span class="absolute right-2 bottom-2 rounded-full bg-(--lp-deep) px-2.5 py-0.5 text-xs font-semibold text-white"><%= pluralize(tour.placed_steps.size, "step") %></span>
           </span>
           <span class="block p-[14px_18px_16px]">
             <span class="lp-tile-title"><%= tour.title %></span>
@@ -65,7 +65,7 @@
 
   <div class="lp-panel-quiet mt-[72px]">
     <h2 class="text-[28px]">Still stuck?</h2>
-    <p class="mt-[10px] mx-0 mb-[0] text-[#4c6266]">Signed in to your shop, open your name in the top right and choose <strong class="text-[#0f2327]">Contact support</strong>: we’ll see which page you were on.</p>
+    <p class="mt-[10px] mx-0 mb-[0] text-(--lp-muted)">Signed in to your shop, open your name in the top right and choose <strong class="text-(--lp-ink)">Contact support</strong>: we’ll see which page you were on.</p>
     <%= link_to whatsapp_support_url, class: "lp-btn lp-btn-ghost lp-btn-small mt-[18px]", target: "_blank", rel: "noopener" do %>Chat with us on WhatsApp<% end %>
   </div>
   </div>
