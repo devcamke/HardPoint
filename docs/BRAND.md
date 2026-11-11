@@ -58,10 +58,29 @@ White text on `primary-500` is 7.4:1, `accent-600` on white is 9.0:1 and `gray-5
 
 ## Logo
 
-A hex nut next to the wordmark **HardPoint**, rendered by `app/views/shared/_logo.html.erb`. The app icon
-(`public/icon.svg`, `icon.png`) is a white nut on a petrol rounded square.
+A hex nut next to the wordmark **HardPoint**, rendered by `app/views/shared/_logo.html.erb`, drawn like the landing
+page: the nut in petrol with an ink (`#0F2327`) outline and a hard offset shadow, and the wordmark in Bricolage
+Grotesque ExtraBold, tightly spaced. On the teal bars (`dark: true`) the nut is white and the shadow a deeper teal.
+The app icon (`public/icon.svg`, and `icon.png` rendered from it at 512 px) is the same nut on a highlighter-yellow
+rounded square with an ink edge.
 
 ## Components
 
 Utilities in `app/assets/tailwind/application.css`: `btn-primary`, `btn-secondary`, `btn-danger`, `input`, `label`,
 `field`, `card`, `link`, `hint`, `badge`, and the `.table` component.
+
+## The landing page
+
+The public landing page (`app/views/pages/home.html.erb`) has its own voice and look, in the manner of Basecamp, HEY
+and Fizzy, and its own stylesheet, `app/assets/tailwind/landing.css`, with everything under `.lp`:
+
+- **Words:** plainspoken, written to the owner of a hardware shop. One huge headline, short sentences, no jargon.
+  Every claim must be true of how HardPoint works today; the help guides are the source. Prices come from `Plan`.
+- **Type:** headlines in Bricolage Grotesque 700–800 and notes in Kalam Bold (both SIL Open Font Licence, served
+  from `app/assets/fonts`); body text in the app's Roboto stack.
+- **Colour:** white, ink `#0F2327`, the petrol teal for buttons and the two full-width bands (the offline till and
+  the closing call), a highlighter yellow `#FFDF4F` behind the words that matter, and sticky-note pastels on the
+  feature cards only.
+- **Shapes:** a 2 px ink outline and a hard offset shadow on the one thing in each section that should stand out.
+- **Real screens** carry handwritten notes in the margin on a wide window, and a list of the same notes under them
+  on anything narrower.
