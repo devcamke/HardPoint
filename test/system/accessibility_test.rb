@@ -22,6 +22,15 @@ class AccessibilityTest < ApplicationSystemTestCase
     assert_accessible "landing page"
     visit_shop accounts(:acme), "/session/new"
     assert_accessible "sign in"
+
+    link = Account.without_isolation do
+      Current.set(account: accounts(:acme)) do
+        accounts(:acme).update!(features: accounts(:acme).features + [ "customer_portal" ])
+        PortalLink.for(customers(:acme_contractor))
+      end
+    end
+    visit_shop accounts(:acme), "/portal/#{link.token}"
+    assert_accessible "customer portal"
   end
 
   test "the screens a shop uses every day" do

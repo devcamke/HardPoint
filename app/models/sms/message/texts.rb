@@ -22,13 +22,21 @@ module Sms::Message::Texts
               "#{order.branch.name}. We'll text you when it's ready. #{order.tracking_url}"
     end
 
+    # With the customer portal on, the link stands in for the Paybill details (the portal shows them, and prompts the
+    # payment), so the text still fits one SMS.
     def balance_reminder(customer)
-      paybill = customer.account.mpesa_shortcodes.for_branch(nil)
+      account = customer.account
+      paybill = account.mpesa_shortcodes.for_branch(nil)
       overdue = customer.overdue_cents
+      how_to_pay =
+        if account.feature?(:customer_portal)
+          "See your invoices and pay: #{PortalLink.for(customer).url}"
+        else
+          "#{"Pay to #{paybill.label}, account #{PhoneNumber.display(customer.phone).delete(" ")}. " if paybill}Thank you."
+        end
       compose to: customer.phone, purpose: "balance_reminder", source: customer,
-        body: "#{customer.account.name}: your account balance is #{Money.format(customer.balance_cents)}" \
-              "#{", #{Money.format(overdue)} overdue" if overdue.positive?}. " \
-              "#{"Pay to #{paybill.label}, account #{PhoneNumber.display(customer.phone).delete(" ")}. " if paybill}Thank you."
+        body: "#{account.name}: your account balance is #{Money.format(customer.balance_cents)}" \
+              "#{", #{Money.format(overdue)} overdue" if overdue.positive?}. #{how_to_pay}"
     end
   end
 end

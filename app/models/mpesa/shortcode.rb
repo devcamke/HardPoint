@@ -68,6 +68,12 @@ class Mpesa::Shortcode < ApplicationRecord
     stk_requests.create!(account: account, sale: sale, phone: PhoneNumber.normalize(phone) || phone.to_s, amount_cents: amount_cents).tap(&:send_prompt)
   end
 
+  # Sends a prompt to pay what a customer owes on account (from the customer portal).
+  def request_account_payment(customer:, phone:, amount_cents:, portal_link: nil)
+    stk_requests.create!(account: account, customer: customer, portal_link: portal_link, phone: PhoneNumber.normalize(phone) || phone.to_s,
+      amount_cents: amount_cents).tap(&:send_prompt)
+  end
+
   def callback_url(kind)
     helpers = Rails.application.routes.url_helpers
     options = Rails.configuration.x.webhook_url_options

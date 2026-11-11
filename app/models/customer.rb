@@ -7,6 +7,8 @@ class Customer < ApplicationRecord
   has_many :sales, dependent: :restrict_with_error
   has_many :customer_orders, dependent: :restrict_with_error
   has_many :jobs, dependent: :restrict_with_error
+  has_many :portal_links, dependent: :delete_all
+  has_many :stk_requests, class_name: "Mpesa::StkRequest", dependent: :restrict_with_error
 
   money_attribute :credit_limit
   # New customers get the shop's usual terms (Settings › Shop preferences).

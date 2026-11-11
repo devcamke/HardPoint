@@ -1,0 +1,19 @@
+<% content_for :title, "Paying with M-Pesa" %>
+<% if @stk_request.pending? %>
+  <% content_for :head, tag.meta("http-equiv": "refresh", content: "4") %>
+<% end %>
+
+<section class="card" role="status">
+  <% case @stk_request.status %>
+  <% when "pending" %>
+    <h1 class="text-lg font-semibold">Check your phone</h1>
+    <p class="mt-2 text-gray-700">We've sent an M-Pesa prompt for <strong><%= money(@stk_request.whole_shillings * 100) %></strong> to <%= PhoneNumber.display(@stk_request.phone) %>. Enter your PIN there. This page updates by itself.</p>
+  <% when "paid" %>
+    <h1 class="text-lg font-semibold text-primary-800">Paid, thank you</h1>
+    <p class="mt-2 text-gray-700"><%= money(@stk_request.customer_payment&.amount_cents || @stk_request.whole_shillings * 100) %> received, M-Pesa <span class="font-mono"><%= @stk_request.receipt_number %></span>. It's on your account.</p>
+  <% else %>
+    <h1 class="text-lg font-semibold">Not paid</h1>
+    <p class="mt-2 text-gray-700"><%= @stk_request.cancelled? ? "The prompt was cancelled." : (@stk_request.result_description.presence || "The prompt wasn't answered.") %> Nothing was taken from your M-Pesa.</p>
+  <% end %>
+  <p class="mt-4"><%= link_to "Back to your account", portal_path(@link.token), class: "btn-secondary" %></p>
+</section>

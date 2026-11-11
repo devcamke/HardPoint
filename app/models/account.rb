@@ -60,6 +60,7 @@ class Account < ApplicationRecord
   has_many :sms_messages, class_name: "Sms::Message", dependent: :delete_all
   has_many :support_requests, dependent: :delete_all
   has_many :document_shares, dependent: :delete_all
+  has_many :portal_links, dependent: :delete_all
   has_many :usage_counts, dependent: :delete_all
   has_one :storefront, dependent: :destroy
   has_many :jobs, dependent: :destroy
@@ -78,6 +79,14 @@ class Account < ApplicationRecord
   def forget_running_promotions
     @running_promotions = nil
   end
+
+  # The Paybill or Till the customer portal's "Pay with M-Pesa" prompts pay into: the shop-wide one, else the
+  # first a branch has.
+  def portal_shortcode
+    mpesa_shortcodes.active.order(Arel.sql("branch_id IS NOT NULL"), :id).first
+  end
+
+  def portal_payments? = portal_shortcode.present?
   has_many :api_keys, dependent: :destroy
   has_many :webhook_endpoints, dependent: :destroy
   has_many :webhook_deliveries, dependent: :delete_all

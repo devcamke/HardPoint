@@ -941,6 +941,23 @@ in the counter's head is slow and loses sales to the shop that answers first.
 - **Stale assets in development:** `bin/dev` removes a `public/assets` left by a production build. The test suite was
   checked and doesn't write it.
 
+### Phase 43 — Customer portal: a contractor's account, and paying it, from a link
+**Goal:** faster collections for shops that sell on credit. A contractor sees what they owe and pays from site.
+- **Settings › Features › Customer portal.** A `PortalLink` per customer: a random 32-character token, valid 90 days,
+  revocable, with an open count. The same link is reused while it has a week left. Staff who handle accounts send it
+  from the customer's page (Send on WhatsApp, or copy it) and can stop it. With the portal on, the balance-reminder
+  SMS carries the link in place of the Paybill details, so it still fits one text.
+- **The page** (`/portal/:token` on the shop's subdomain, no sign-in, built for phones, in the shop's colours and
+  logo): the balance, what's overdue and the credit left; unpaid invoices with how late each is, each opening as its
+  tax invoice PDF; open quotes and orders as PDFs; statements for this month, last month, the last 3 months or this
+  year; and recent payments. Only this customer's documents open, only at this shop. The page is kept out of search
+  engines, caches and referrers.
+- **Pay with M-Pesa.** The customer picks the amount (the balance by default) and a Safaricom number. The STK prompt
+  goes through the shop-wide Paybill or Till, and a page waits for the PIN. `Mpesa::StkRequest` now pays either a
+  sale or a customer's account: a paid prompt becomes a mobile-money payment on account (settling the oldest invoices
+  first), matched to its M-Pesa transaction. One prompt waits at a time per customer, and at most 5 are sent per
+  link in 10 minutes. The Paybill and account number are also shown for paying from the M-Pesa menu.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -955,7 +972,7 @@ in the counter's head is slow and loses sales to the shop that answers first.
 7. ~~**Accessibility checks in CI.**~~ Done (Phase 42): axe over the main screens in the system tests.
 
 **Features to consider next**, chosen for Kenyan hardware shops and ordered by likely value:
-1. **Customer portal by link:** a signed link (WhatsApp or SMS) to a contractor's statement, open invoices and quotes,
+1. ~~**Customer portal by link:**~~ Done (Phase 43). a signed link (WhatsApp or SMS) to a contractor's statement, open invoices and quotes,
    with "Pay with M-Pesa" (STK) for the balance. Speeds up collections, the biggest cash-flow pain for credit shops.
 2. **Credit control:** put an account on hold automatically past N days overdue or over the limit, with an owner's
    override, and a weekly reminder run by WhatsApp/SMS.

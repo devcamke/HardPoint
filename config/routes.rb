@@ -130,6 +130,14 @@ Rails.application.routes.draw do
     resource :quickbooks_export, path: "reports/quickbooks", only: %i[ show update ]
     # Documents sent by WhatsApp, opened without signing in (DocumentShare).
     get "share/:token", to: "shares#show", as: :share
+    # A customer's own page (PortalLink), opened without signing in, and paying from it with M-Pesa.
+    scope "portal/:token", as: :portal do
+      get "/", to: "portals#show", as: ""
+      get "statement", to: "portals#statement", as: :statement
+      get "invoices/:id", to: "portals#invoice", as: :invoice
+      get "quotes/:id", to: "portals#quote", as: :quote
+      resources :payments, only: %i[ create show ], controller: "portal_payments"
+    end
     resources :whatsapp_messages, only: %i[ index create ]
     resources :shares, only: %i[ create destroy ], as: :document_shares # links made by the WhatsApp buttons, and taking one back
     resources :support_requests, only: %i[ new create ]
@@ -267,6 +275,7 @@ Rails.application.routes.draw do
         resource :statement, only: :show
         resource :statement_email, only: :create
         resource :balance_reminder, only: :create
+        resource :portal_link, only: %i[ create destroy ]
       end
     end
     # The stock app for phones.
