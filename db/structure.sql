@@ -24,6 +24,28 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 --
+-- Name: queue_shelf_label(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.queue_shelf_label() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    NEW.label_due_at := COALESCE(NEW.label_due_at, now());
+  ELSIF NEW.price_cents IS DISTINCT FROM OLD.price_cents OR NEW.name IS DISTINCT FROM OLD.name THEN
+    -- The shelf shows the price from before the first change since the last label.
+    IF OLD.label_due_at IS NULL THEN
+      NEW.label_old_price_cents := OLD.price_cents;
+    END IF;
+    NEW.label_due_at := now();
+  END IF;
+  RETURN NEW;
+END
+$$;
+
+
+--
 -- Name: refresh_search_terms(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2344,7 +2366,9 @@ CREATE TABLE public.products (
     updated_at timestamp(6) without time zone NOT NULL,
     quick_pick boolean DEFAULT false NOT NULL,
     online boolean DEFAULT true NOT NULL,
-    tracks_batches boolean DEFAULT false NOT NULL
+    tracks_batches boolean DEFAULT false NOT NULL,
+    label_due_at timestamp(6) without time zone,
+    label_old_price_cents bigint
 );
 
 ALTER TABLE ONLY public.products FORCE ROW LEVEL SECURITY;
@@ -6506,6 +6530,13 @@ CREATE INDEX index_product_units_on_unit_id ON public.product_units USING btree 
 
 
 --
+-- Name: index_products_on_account_id_and_label_due_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_products_on_account_id_and_label_due_at ON public.products USING btree (account_id, label_due_at) WHERE (label_due_at IS NOT NULL);
+
+
+--
 -- Name: index_products_on_account_id_and_sku; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7560,6 +7591,13 @@ CREATE TRIGGER search_terms_written AFTER INSERT OR DELETE ON public.customers F
 --
 
 CREATE TRIGGER search_terms_written AFTER INSERT OR DELETE ON public.products FOR EACH ROW EXECUTE FUNCTION public.refresh_search_terms();
+
+
+--
+-- Name: products shelf_label_due; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER shelf_label_due BEFORE INSERT OR UPDATE OF price_cents, name ON public.products FOR EACH ROW EXECUTE FUNCTION public.queue_shelf_label();
 
 
 --
@@ -10720,6 +10758,7 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261111127000'),
 ('20261111126000'),
 ('20261111125100'),
 ('20261111125000'),

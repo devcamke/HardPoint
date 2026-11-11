@@ -193,6 +193,7 @@ Rails.application.routes.draw do
       resource :run, only: :create, module: :product_imports
     end
     resource :labels, only: %i[ new show ]
+    resource :label_queue, path: "labels/queue", only: %i[ show update ]
 
     resource :stock, only: :show, controller: :stock
     resources :stock_adjustments, only: %i[ new create ]

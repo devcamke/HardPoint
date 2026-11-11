@@ -1,0 +1,55 @@
+<% content_for :title, "Labels to print" %>
+
+<h1 class="text-xl font-medium">Labels to print</h1>
+<p class="hint mb-6">New products, and products whose price or name changed since their shelf label was printed. Print them, put them on the shelf, then mark them done, so the shelf and the till agree.</p>
+
+<% if @products.any? %>
+  <%= form_with url: label_queue_path, method: :patch, class: "grid gap-6 lg:grid-cols-3" do |form| %>
+    <div class="card lg:col-span-2">
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead><tr><th>Product</th><th>Why</th><th class="text-right">Price</th><th class="text-right">Copies</th></tr></thead>
+          <tbody>
+            <% @products.each do |product| %>
+              <tr>
+                <td><%= link_to product.name, product, class: "hover:text-primary-700" %>
+                  <span class="block font-mono text-xs text-gray-600"><%= product.primary_barcode %></span>
+                  <%= hidden_field_tag "product_ids[]", product.id, id: nil %></td>
+                <td class="text-sm">
+                  <% if product.shelf_price_wrong? %>
+                    <span class="font-medium text-red-700">Shelf shows <%= money(product.label_old_price_cents) %></span>
+                  <% elsif product.label_old_price_cents %>
+                    Name changed
+                  <% else %>
+                    New product
+                  <% end %>
+                  <span class="block text-xs text-gray-600"><%= time_ago_in_words(product.label_due_at) %> ago</span></td>
+                <td class="text-right tabular-nums font-semibold"><%= money(product.price_cents) %></td>
+                <td class="text-right"><%= number_field_tag "copies[#{product.id}]", 1, min: 0, max: 500, id: "copies_#{product.id}", class: "input w-20 py-1 text-right", "aria-label": "Copies of #{product.name}" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      <% if @waiting > @products.size %><p class="hint mt-2">Showing the oldest <%= @products.size %> of <%= @waiting %>. Mark these done to see the rest.</p><% end %>
+    </div>
+
+    <div class="card self-start">
+      <p class="label">1. Print</p>
+      <% LabelsController::FORMATS.each do |value, description| %>
+        <label class="mb-2 flex items-center gap-2 text-sm"><%= radio_button_tag :format, value, value == "a4", class: "accent-primary-500" %> <%= description %></label>
+      <% end %>
+      <%= form.button "Open print view", type: "submit", formaction: labels_path, formmethod: "get", formtarget: "_blank", class: "btn-secondary mt-1 w-full", data: { turbo: false } %>
+      <p class="hint mt-2">Opens in a new tab. Print at 100% scale with margins set to “None”.</p>
+      <% if current_membership.can_manage_stock? %>
+        <p class="label mt-5">2. Once they're on the shelf</p>
+        <%= form.submit "Mark #{pluralize(@products.size, "label")} done", class: "btn-primary w-full" %>
+      <% end %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="card">
+    <p class="font-medium">Every shelf label is up to date.</p>
+    <p class="hint mt-1">When a price or name changes, or a product is added, it waits here for a new label. To print any label, use <%= link_to "Print labels", new_labels_path, class: "link" %>.</p>
+  </div>
+<% end %>
