@@ -983,7 +983,10 @@ in the counter's head is slow and loses sales to the shop that answers first.
 5. **Cutting and weighing:** sell by length or weight from a bulk item with offcut tracking, and Web Serial scales.
 6. ~~**Branch rebalancing**~~: planned as Phase 37.
 7. **Supplier invoices from eTIMS:** pull purchase invoices KRA already holds, to receive and pay without retyping.
-8. **Shelf-label queue:** products whose price changed (bulk changes, receiving) wait in a print queue for new labels.
+8. ~~**Shelf-label queue:**~~ Done (Phase 47): a database trigger queues a product for a new shelf label when it's
+   added or its price or name changes (edits, bulk price changes and imports alike), keeping the price the shelf still
+   shows. Stock › Labels lists them, oldest first ("Shelf shows KES 850.00"), prints them on the usual A4 sheets or
+   roll, and marks them done.
 9. **Kiswahili** throughout the till and receipts (the screens are English-only today).
 10. **Custom roles:** choose what a role can do (e.g. a cashier who can take customer payments but not returns).
 11. **Live accounting sync** (QuickBooks Online / Xero API) replacing the monthly CSV journal export.
