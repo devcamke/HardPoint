@@ -147,7 +147,7 @@ If you used HardPoint before the six areas: Products, Inventory and the stock si
 
 Lists such as Products, Sales, Orders & quotes and Purchase orders have a search bar at the top.
 
-- Type a few letters of a name, SKU, receipt or order number and press Enter. A barcode scanner works in the search bar too.
+- Type a few letters of a name, SKU, receipt or order number: the list updates as you type. A barcode scanner works in the search bar too.
 - For products and customers, each word you type matches the start of a word in the name or SKU, in any order: **pvc elb** finds "PVC elbow 1/2 inch", and **CEM-5** finds CEM-50. If nothing starts that way, it looks for the letters anywhere. Customers are found by phone number too, however it's written (0722… or +254 722…).
 - The small arrow at the end of the bar opens **Filters**: a branch, a status, a date and so on. Each filter you choose shows in the bar as a tag; press its **×** to remove it.
 - Long lists are split into pages; use **‹** and **›** on the right.
@@ -1021,7 +1021,7 @@ Everything you sell lives in **Stock › Products**. Owners, managers and stock 
 1. **The area's own menu.** Each area has its pages along here. In Stock, that's Products, Stock levels, Reorder, Stock takes, Transfers and Expiry.
 2. **Add one.** New opens a blank product. To add hundreds at once, use Import from the ⚙ menu instead.
 3. **Everything else.** The ⚙ has the list's other jobs. Import, Change prices, Export CSV and Print labels.
-4. **Search.** Type part of a name or SKU, or scan a barcode, and press Enter. Filters you choose show here as tags. Press × on a tag to remove it.
+4. **Search.** Type part of a name or SKU, or scan a barcode, and the list updates as you type. Filters you choose show here as tags. Press × on a tag to remove it.
 5. **Filters and Group By.** Narrow the list by category, brand or branch, or group it by category or brand to see how many and what they're worth. Long lists come 50 at a time, with ‹ and › on the right.
 
 #### Adding a product

@@ -20,9 +20,8 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "form[role=search]" do
       assert_select "span", text: "Category: Plumbing"
-      assert_select "span", text: "Search: pvc"
+      assert_select "input[type=search][name=query][value=pvc][data-action*='search-panel#type']", 1, "the search stays in the box, searched as it's typed"
       assert_select "a[aria-label='Remove Category: Plumbing'][href=?]", products_path(query: "pvc")
-      assert_select "a[aria-label='Remove Search: pvc'][href=?]", products_path(category_id: plumbing.id)
       assert_select "a[aria-current=true]", text: /Plumbing/
     end
     assert_select "td a", "PVC pipe 2 inch 6m"
