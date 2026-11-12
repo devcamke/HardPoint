@@ -9,23 +9,23 @@
     <%= render "pages/page_head", title: @article.title, lede: @article.summary, center: false,
           crumb: safe_join([ link_to(safe_join([ tag.span("‹", aria: { hidden: true }), " Help centre" ]), help_path), tag.span("·", aria: { hidden: true }), @article.section ], " ") %>
 
-    <div class="lp-wrap pb-[96px]">
+    <div class="lp-wrap pb-[64px]">
       <div class="lp-head max-w-[760px]">
         <div class="help-article lp-doc">
           <%= render @article.partial %>
         </div>
 
         <% if (next_article = @article.next_article) %>
-          <%= link_to help_article_path(next_article), class: "lp-tile mt-[64px] p-[26px_28px]" do %>
+          <%= link_to help_article_path(next_article), class: "lp-tile mt-[44px] p-[20px_22px]" do %>
             <span class="lp-tile-eyebrow">Next in <%= @article.section %></span>
-            <span class="lp-tile-title text-[26px]"><%= next_article.title %> ›</span>
+            <span class="lp-tile-title text-[20px]"><%= next_article.title %> ›</span>
             <span class="lp-tile-text"><%= next_article.summary %></span>
           <% end %>
         <% end %>
 
         <% related = @article.related_articles - [ next_article ] %>
         <% if related.any? %>
-          <h2 class="mt-[48px] mx-0 mb-[16px] text-[26px]">Related guides</h2>
+          <h2 class="mt-[36px] mx-0 mb-[14px] text-[22px]">Related guides</h2>
           <div class="lp-tiles">
             <%= render partial: "help/article_card", collection: related, as: :article, locals: { show_section: false } %>
           </div>
