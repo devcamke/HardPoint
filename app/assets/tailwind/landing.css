@@ -319,8 +319,11 @@ a.lp-chip:hover { background: var(--lp-card); }
 
 @media (prefers-reduced-motion: no-preference) {
   .lp-hl::before { animation: lp-sweep .7s .35s cubic-bezier(.2,.7,.2,1) both; }
+  /* Until the marker has swept under them, the words keep the page's ink: on a dark page the marker's own ink would hide them. */
+  .lp-hl { animation: lp-hl-ink .7s .35s cubic-bezier(.2,.7,.2,1) both; }
 }
 @keyframes lp-sweep { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes lp-hl-ink { from { color: var(--lp-ink); } }
 @media (prefers-reduced-motion: reduce) {
   .lp-btn, .lp-pill, .lp-paid dd, .lp-qa summary::after { transition: none; }
   .lp-btn:hover { transform: none; }
@@ -482,6 +485,7 @@ a.lp-chip:hover { background: var(--lp-card); }
 .lp-plans-wrap:has([value=yearly]:checked) .lp-monthly { display: none; }
 .lp-plans-wrap:has([value=yearly]:checked) .lp-yearly { display: block; }
 .lp-plans-wrap .lp-plans { margin-top: 32px; }
+.lp-head + .lp-plans-wrap { margin-top: 28px; }
 .lp-includes svg { fill: none; stroke: var(--lp-ok); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .lp-includes { margin: 24px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; max-width: 980px; }
 @media (prefers-reduced-motion: reduce) { .lp-tile { transition: none; } .lp-tile:hover { transform: none; } }
