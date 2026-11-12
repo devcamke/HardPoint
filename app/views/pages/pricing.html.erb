@@ -11,7 +11,7 @@
   <%= render "pages/page_head", kicker: "Pricing", title: "One price for the whole shop.",
         lede: "Every plan has every feature and unlimited products. HardPoint takes nothing per sale or per receipt. Pick one for the size of your shop, and try it free for #{trial}." %>
 
-  <section class="lp-wrap pb-[96px]">
+  <section class="lp-wrap pb-[64px]">
     <%= render "pages/plans", plans: @plans %>
     <p class="lp-price-foot mt-[12px]">Business and Enterprise come with a 99.9% uptime promise in the
       <%= link_to "service level agreement", sla_path, class: "lp-link" %>. Texts to customers, if you switch them on, are billed by Africa’s Talking.</p>
@@ -26,7 +26,7 @@
     <div class="lp-ba">
       <div class="lp-ba-col lp-ba-after">
         <h3>Setup and training visit</h3>
-        <p class="lp-price text-[36px]">from <%= Money.format(Plan::SETUP_CENTS, currency: "KES") %></p>
+        <p class="lp-price text-[28px]">from <%= Money.format(Plan::SETUP_CENTS, currency: "KES") %></p>
         <p class="lp-price-year">One-off. Free with a year paid upfront.</p>
         <ul>
           <% [ "Your product list imported from a spreadsheet or your old system, with prices, barcodes and stock",
@@ -39,7 +39,7 @@
       </div>
       <div class="lp-ba-col lp-ba-after">
         <h3>Till kit</h3>
-        <p class="lp-price text-[36px]">Quoted</p>
+        <p class="lp-price text-[28px]">Quoted</p>
         <p class="lp-price-year">For your shop. Pay once or over 12 months.</p>
         <ul>
           <% [ "80 mm thermal receipt printer and cash drawer", "USB barcode scanner",

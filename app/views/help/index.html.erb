@@ -14,7 +14,7 @@
     <% end %>
   <% end %>
 
-  <div class="lp-wrap lp-mid pb-[96px]">
+  <div class="lp-wrap lp-mid pb-[64px]">
   <% if @query.present? %>
     <p class="lp-fine mb-[18px]">
       <%= @articles.empty? ? "No guides mention \"#{@query}\"." : "#{pluralize(@articles.size, "guide")} #{@articles.one? ? "mentions" : "mention"} \"#{@query}\"." %>
@@ -29,14 +29,14 @@
   <% else %>
     <div class="lp-panel">
       <p class="lp-kicker mb-[6px]">New to HardPoint?</p>
-      <p class="m-0 text-[18px] leading-[1.55]">
+      <p class="m-0 text-[16px] leading-[1.55]">
         Start with <%= link_to "Setting up your shop", help_article_path("getting-started"), class: "lp-link" %>, then
         <%= link_to "Finding your way around", help_article_path("getting-around"), class: "lp-link" %> and
         <%= link_to "Selling at the till", help_article_path("selling"), class: "lp-link" %>. Each guide ends with what to read next.
       </p>
     </div>
 
-    <h2 class="mt-[72px] text-[clamp(30px,_4vw,_44px)]">Show me how.</h2>
+    <h2 class="mt-[48px] text-[clamp(24px,_2.8vw,_32px)]">Show me how.</h2>
     <p class="lp-lede mt-[10px]">Walkthroughs of real screens: press a number on the picture to see what that button does.</p>
     <div class="lp-tiles lp-tiles-3 mt-[26px]">
       <% HelpTour.all.sort_by { HelpArticle::SECTIONS.index(_1.section) }.each do |tour| %>
@@ -56,15 +56,15 @@
     <% HelpArticle::SECTIONS.each do |section| %>
       <% articles = @articles.select { _1.section == section } %>
       <% next if articles.empty? %>
-      <h2 class="mt-[72px] mx-0 mb-[22px] text-[clamp(30px,_4vw,_44px)]"><%= section %>.</h2>
+      <h2 class="mt-[48px] mx-0 mb-[16px] text-[clamp(24px,_2.8vw,_32px)]"><%= section %>.</h2>
       <div class="lp-tiles lp-tiles-2">
         <%= render partial: "help/article_card", collection: articles, as: :article, locals: { show_section: false } %>
       </div>
     <% end %>
   <% end %>
 
-  <div class="lp-panel-quiet mt-[72px]">
-    <h2 class="text-[28px]">Still stuck?</h2>
+  <div class="lp-panel-quiet mt-[48px]">
+    <h2 class="text-[23px]">Still stuck?</h2>
     <p class="mt-[10px] mx-0 mb-[0] text-(--lp-muted)">Signed in to your shop, open your name in the top right and choose <strong class="text-(--lp-ink)">Contact support</strong>: we’ll see which page you were on.</p>
     <%= link_to whatsapp_support_url, class: "lp-btn lp-btn-ghost lp-btn-small mt-[18px]", target: "_blank", rel: "noopener" do %>Chat with us on WhatsApp<% end %>
   </div>

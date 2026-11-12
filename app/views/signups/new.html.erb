@@ -6,7 +6,7 @@
   <%= render "pages/page_head", kicker: "#{Plan::TRIAL.inspect.capitalize} free, no card needed", title: "Open your shop",
         lede: "Your own web address, till, stock and M-Pesa in minutes. Your shop’s data is private to your shop." %>
 
-  <div class="lp-wrap pb-[96px]">
+  <div class="lp-wrap pb-[64px]">
     <div class="lp-panel max-w-[600px] mx-auto">
       <%# Turbo can't follow the redirect to the new shop's subdomain (another origin), so submit normally. %>
       <%= form_with model: @signup, url: signup_path, class: "lp-form", data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>

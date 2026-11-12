@@ -6,7 +6,7 @@
   <%= render "pages/page_head", kicker: "Welcome back", title: "Sign in to your shop",
         lede: safe_join([ "Every shop has its own web address, like ", tag.span("yourshop.#{request.host}", class: "font-mono text-base text-(--lp-ink)"), "." ]) %>
 
-  <div class="lp-wrap pb-[96px]">
+  <div class="lp-wrap pb-[64px]">
     <div class="lp-panel max-w-[520px] mx-auto">
       <%= form_with url: shop_lookup_path, class: "lp-form", data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
         <div class="field">

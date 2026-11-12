@@ -15,11 +15,11 @@
     </div>
   <% end %>
 
-  <section class="lp-wrap pb-[96px]">
+  <section class="lp-wrap pb-[64px]">
     <div class="lp-cards mt-0 <%= "lp-cards-2" if @page.sections.size == 2 %>">
       <% @page.sections.each do |section| %>
         <article class="lp-card lp-solution-card">
-          <h2 class="text-[26px] leading-[1.15] tracking-[-0.02em]"><%= section.heading %></h2>
+          <h2 class="text-[22px] leading-[1.2] tracking-[-0.02em]"><%= section.heading %></h2>
           <ul>
             <% section.points.each do |point| %><li><%= tick %><span><%= point %></span></li><% end %>
           </ul>
@@ -47,7 +47,7 @@
       <%= render "pages/faqs", faqs: @page.faqs %>
     </div>
 
-    <div class="lp-also mt-[64px]">
+    <div class="lp-also mt-[44px]">
       <span class="lp-also-label">More of what HardPoint does:</span>
       <% SolutionPage.all.excluding(@page).each do |other| %>
         <%= link_to other.title, solution_path(other), class: "lp-chip" %>
