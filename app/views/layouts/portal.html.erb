@@ -8,7 +8,7 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
-    <link rel="icon" href="/icon.png" type="image/png">
+    <%= render "shared/favicon" %>
     <%= stylesheet_link_tag :app %>
     <%= render "shared/theme" %>
   </head>
