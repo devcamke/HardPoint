@@ -2,14 +2,10 @@
 <% content_for :description, "The terms on which HardPoint provides point of sale and stock control to hardware stores as a service: the trial, payment, read-only mode, your data, what we promise and what we don't." %>
 <%# Plain-language terms, written to match how HardPoint actually works. Have a Kenyan lawyer review them before launch (docs/LAUNCH.md). %>
 
-<div class="lp">
-<article>
-  <%= render "pages/page_head", kicker: "The fine print", title: "Terms of service", center: false do %>
-    <p class="lp-lede">The agreement between your shop and <%= @company[:name] %> ("HardPoint", "we") when you use HardPoint. Last changed <%= l(Date.new(2026, 11, 8), format: :long) %>.</p>
-  <% end %>
-
-  <div class="lp-wrap pb-[64px]">
-  <div class="lp-doc max-w-[760px]">
+<article class="bg-white">
+ <div class="mx-auto max-w-3xl px-4 pt-20 pb-20 sm:pt-28 sm:pb-28">
+  <h1 class="text-center text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">Terms of service</h1>
+  <p class="mx-auto mt-5 max-w-2xl text-center text-lg text-gray-600 text-balance sm:text-xl">The agreement between your shop and <%= @company[:name] %> ("HardPoint", "we") when you use HardPoint. Last changed <%= l(Date.new(2026, 11, 8), format: :long) %>.</p>
 
   <% [
     [ "The service", "HardPoint is point of sale and stock control for hardware stores, provided over the internet at your shop's own web address. We run it, keep it up to date and back it up; you use it from your own computers, tablets and phones. Your use of M-Pesa, Airtel Money, KRA eTIMS, text messages, card payments and WhatsApp through HardPoint is also subject to those providers' own terms." ],
@@ -25,12 +21,10 @@
     [ "Law and disputes", "These terms are governed by the laws of Kenya. If something goes wrong, tell us first at #{Rails.configuration.x.support[:email]} and we'll try to put it right; failing that, the courts of Kenya have jurisdiction." ],
     [ "Who we are", "#{@company[:name]}, #{@company[:address]}#{", KRA PIN #{@company[:tax_pin]}" if @company[:tax_pin].present?}. Billing questions: #{@company[:email]}. Support: #{Rails.configuration.x.support[:email]}." ]
   ].each do |heading, body| %>
-    <h2><%= heading %></h2>
-    <p><%= body %></p>
+    <h2 class="mt-12 text-2xl font-semibold tracking-tight text-gray-950"><%= heading %></h2>
+    <p class="mt-3 leading-relaxed text-gray-700"><%= body %></p>
   <% end %>
 
-  <p class="hint mt-[40px]">See also: <%= link_to "data processing terms", data_processing_path, class: "link" %> · <%= link_to "privacy and your data", privacy_path, class: "link" %> · <%= link_to "service level agreement", sla_path, class: "link" %>.</p>
-  </div>
-  </div>
+  <p class="mt-10 text-sm text-gray-500">See also: <%= link_to "data processing terms", data_processing_path, class: "link" %> · <%= link_to "privacy and your data", privacy_path, class: "link" %> · <%= link_to "service level agreement", sla_path, class: "link" %>.</p>
+ </div>
 </article>
-</div>

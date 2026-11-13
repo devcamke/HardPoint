@@ -36,7 +36,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
 
   test "pricing and privacy" do
     get pricing_path
-    assert_select "h1", "One price for the whole shop."
+    assert_select "h1", "Pricing"
     assert_select "#plan_business", /10 staff logins/
     assert_select "#plan_starter", /Unlimited products/
     assert_select "#plan_starter", /KES 25,000 a year/
@@ -156,49 +156,12 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{help_article_path("material-calculator")}']"
   end
 
-  test "the landing page's example till can show what changes offline, in words true of the offline till" do
-    get marketing_root_path
-    assert_select "[data-controller=offline-demo]" do
-      # Hidden until the controller connects, so it never sits there doing nothing.
-      assert_select "button[hidden][data-action='offline-demo#toggle']", /Pull the plug/
-      assert_select "[data-offline-text*='M-Pesa code typed in']"
-      assert_select "[data-offline-text*='-OFF1-']"
-    end
-    assert_select "dialog [data-controller=walkthrough], dialog .walkthrough", minimum: 1
-  end
-
-  test "every guide the landing page links to exists, and the nav's Features link has somewhere to land" do
-    get marketing_root_path
-    assert_select "#features"
-    slugs = css_select("a[href^='/help/']").map { _1["href"].delete_prefix("/help/") }.uniq
-    assert_operator slugs.size, :>=, 15
-    slugs.each { |slug| assert HelpArticle.find(slug), "No help article #{slug}" }
-  end
-
   test "the landing page shows how the counter is watched, and HardPoint on staff's and customers' phones" do
     get marketing_root_path
     assert_select "#counter li", minimum: 6
-    assert_select "#counter .lp-mail", /voided 7 sales \(usually about 1 a day\)/
+    assert_select "#counter figure", /voided 7 sales \(usually about 1 a day\)/
     assert_select "#phones img[src*='phone-stock-count']"
     assert_select "#phones img[src*='phone-customer-portal']"
-    assert_select ".lp-works li", 8
-  end
-
-  test "the public site follows the device's light or dark setting" do
-    get marketing_root_path
-    assert_select "meta[name=color-scheme][content=?]", "light dark"
-    assert_select "meta[name=theme-color][media*=dark]"
-    assert_select "body.lp-site"
-  end
-
-  test "the landing page's prices come from the plans" do
-    get marketing_root_path
-    Plan.all.each do |plan|
-      assert_select "#plan_#{plan.key}", /KES #{ActiveSupport::NumberHelper.number_to_delimited(plan.price_cents / 100)}/
-      assert_select "#plan_#{plan.key} a[href=?]", new_signup_path(plan: plan.key)
-    end
-    assert_select ".lp-sticky", /KES 1,500/
-    assert_select "#plan_business", /Recommended/
-    assert_select "#plan_unlimited", /Unlimited branches/
+    assert_select "#nots-title + ul li", 4
   end
 end

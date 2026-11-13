@@ -2,67 +2,67 @@
 <% content_for :description, @page.description %>
 <% structured_data seo_software(@plans), seo_faq(@page.faqs), seo_breadcrumbs([ @page.title, solution_url(@page) ]) %>
 <% from_price = "KES #{number_with_delimiter(@plans.map(&:price_cents).min / 100)}" %>
-<% trial = Plan::TRIAL.inspect %>
-<% tick = tag.svg(viewBox: "0 0 22 22", aria: { hidden: true }) { tag.path(d: "M4 11.5l4.5 4.5L18 6") } %>
-<%# One job or one market, said plainly, in the public site's look (landing.css): the promise, what it does in two or
-    three outlined cards, the questions people ask about it, the guides with the detail, and the door. %>
+<%# One job or one market, said plainly: the promise, what it does in three groups, the questions people ask about
+    it, the guides with the detail, and the door. Same white page and teal as the home page. %>
 
-<div class="lp">
-  <%= render "pages/page_head", kicker: @page.title, title: @page.heading, lede: @page.intro do %>
-    <div class="lp-cta">
-      <%= link_to new_signup_path, class: "lp-btn" do %>Try it free for <%= trial %><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg><% end %>
-      <%= link_to "From #{from_price} a month", pricing_path, class: "lp-btn lp-btn-ghost" %>
+<section class="bg-white">
+  <div class="mx-auto max-w-3xl px-4 pt-20 pb-12 text-center sm:pt-28">
+    <p class="text-sm font-semibold uppercase tracking-wide text-primary-600"><%= @page.title %></p>
+    <h1 class="mt-4 text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl"><%= @page.heading %></h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg text-gray-600 text-balance sm:text-xl"><%= @page.intro %></p>
+    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary px-6 py-2.5 text-lg" %>
+      <%= link_to pricing_path, class: "text-lg font-medium text-accent-600 hover:underline" do %>From <%= from_price %> a month <span aria-hidden="true">›</span><% end %>
     </div>
-  <% end %>
+  </div>
+</section>
 
-  <section class="lp-wrap pb-[64px]">
-    <div class="lp-cards mt-0 <%= "lp-cards-2" if @page.sections.size == 2 %>">
-      <% @page.sections.each do |section| %>
-        <article class="lp-card lp-solution-card">
-          <h2 class="text-[22px] leading-[1.2] tracking-[-0.02em]"><%= section.heading %></h2>
-          <ul>
-            <% section.points.each do |point| %><li><%= tick %><span><%= point %></span></li><% end %>
-          </ul>
-        </article>
-      <% end %>
-    </div>
-  </section>
-
-  <section class="lp-section lp-rule"><div class="lp-wrap">
-    <div class="lp-faq">
-      <div class="lp-head">
-        <p class="lp-kicker">Questions</p>
-        <h2>What people ask about it.</h2>
-        <% if @page.help_articles.any? %>
-          <p class="lp-lede">The detail is in the help centre:</p>
-          <div class="lp-tiles mt-[18px]">
-            <% @page.help_articles.each do |article| %>
-              <%= link_to help_article_path(article.slug), class: "lp-tile" do %>
-                <span class="lp-tile-title"><%= article.title %> ›</span><span class="lp-tile-text"><%= article.summary %></span>
-              <% end %>
-            <% end %>
-          </div>
-        <% end %>
+<section class="border-t border-gray-200 bg-white">
+  <div class="mx-auto grid max-w-6xl gap-4 px-4 py-16 sm:py-20 <%= @page.sections.size == 2 ? "md:grid-cols-2" : "md:grid-cols-3" %>">
+    <% @page.sections.each do |section| %>
+      <div class="rounded-3xl bg-gray-100 p-8">
+        <h2 class="text-2xl font-semibold tracking-tight text-gray-950"><%= section.heading %></h2>
+        <ul class="mt-5 space-y-3 text-gray-700">
+          <% section.points.each do |point| %>
+            <li class="flex gap-2.5"><%= render "pages/check" %> <span><%= point %></span></li>
+          <% end %>
+        </ul>
       </div>
-      <%= render "pages/faqs", faqs: @page.faqs %>
-    </div>
+    <% end %>
+  </div>
+</section>
 
-    <div class="lp-also mt-[44px]">
-      <span class="lp-also-label">More of what HardPoint does:</span>
+<section class="border-t border-gray-200 bg-white">
+  <div class="mx-auto max-w-3xl px-4 py-16 sm:py-20">
+    <h2 class="text-center text-4xl font-semibold tracking-tight text-gray-950 text-balance">Questions.</h2>
+    <div class="mt-10"><%= render "pages/faqs", faqs: @page.faqs %></div>
+
+    <% if @page.help_articles.any? %>
+      <h2 class="mt-16 text-xl font-semibold text-gray-950">The detail, in the help centre</h2>
+      <ul class="mt-4 space-y-3">
+        <% @page.help_articles.each do |article| %>
+          <li><%= link_to article.title, help_article_path(article.slug), class: "font-medium text-accent-600 hover:underline" %>
+            <span class="text-gray-500"> · <%= article.summary %></span></li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <h2 class="mt-12 text-xl font-semibold text-gray-950">More of what HardPoint does</h2>
+    <ul class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
       <% SolutionPage.all.excluding(@page).each do |other| %>
-        <%= link_to other.title, solution_path(other), class: "lp-chip" %>
+        <li><%= link_to other.title, solution_path(other), class: "font-medium text-accent-600 hover:underline" %></li>
       <% end %>
-      <%= link_to "Pricing", pricing_path, class: "lp-chip" %>
-    </div>
-  </div></section>
+    </ul>
+  </div>
+</section>
 
-  <section class="lp-band lp-door"><div class="lp-wrap lp-section">
-    <p class="lp-kicker">Ready when you are</p>
-    <h2>Try it free for <%= trial %>.</h2>
-    <div class="lp-cta">
-      <%= link_to new_signup_path, class: "lp-btn lp-btn-marker" do %>Start now, it’s free<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg><% end %>
+<section class="border-t border-gray-200 bg-white">
+  <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:py-28">
+    <h2 class="text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl">Try it free for <%= Plan::TRIAL.inspect %>.</h2>
+    <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">No card needed. Your data is yours to export at any time.</p>
+    <div class="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+      <%= link_to "Start now, it's free", new_signup_path, class: "btn-primary px-6 py-2.5 text-lg" %>
+      <%= link_to whatsapp_support_url("Hello HardPoint, I'd like to know more about #{@page.title}."), class: "text-lg font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>Ask us on WhatsApp <span aria-hidden="true">›</span><% end %>
     </div>
-    <p class="lp-door-note">No card needed · your data is yours to export at any time ·
-      <%= link_to "ask us on WhatsApp", whatsapp_support_url("Hello HardPoint, I'd like to know more about #{@page.title}."), target: "_blank", rel: "noopener" %></p>
-  </div></section>
-</div>
+  </div>
+</section>
