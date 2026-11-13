@@ -5,6 +5,13 @@
 <p>Add each supplier in <strong>Buy › Suppliers</strong> with their contacts, payment terms and, if they invoice in dollars, their
   currency. On the supplier's page you can list the products they supply, with their code, price, lead time and minimum order, and mark
   them as the preferred supplier.</p>
+<p>Moving from another system? The owner can bring every supplier in at once from a spreadsheet, with what you owe each one today:
+  on <strong>Suppliers</strong>, open the <strong>⚙</strong> menu and choose <strong>Import suppliers</strong>, fill in the
+  <a href="/supplier-import-template.csv" class="link">template</a> (only <code>name</code> is needed) and upload it as CSV. HardPoint checks
+  the whole file first, and imports nothing if any line has a problem. A <code>balance</code> goes on as an invoice called
+  <strong>OPENING BALANCE</strong>, dated <code>balance_date</code> (today if left out) and due after the supplier's payment terms; your
+  payments settle it like any other invoice. It isn't a purchase, so it stays out of the VAT report. A balance is only set for a supplier
+  with no orders, invoices or payments yet, so importing the same file twice can't double what you owe.</p>
 
 <h2>Ordering</h2>
 <ol>

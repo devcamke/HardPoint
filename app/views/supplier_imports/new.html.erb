@@ -1,0 +1,19 @@
+<% content_for :title, "Import suppliers" %>
+
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Suppliers", suppliers_path, class: "link" %> <span class="text-gray-400">/</span> Import suppliers</h1>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="lg:col-span-2"><%= render "shared/import_form", import: @import, url: supplier_import_path, scope: :supplier_import, noun: "suppliers" %></div>
+
+  <div class="card self-start text-sm">
+    <h2 class="mb-2 font-semibold">Columns</h2>
+    <p class="mb-2"><strong>name</strong> is required. Optional: contact_name, phone, email, kra_pin, address, payment_terms_days, balance, balance_date, notes.</p>
+    <ul class="mb-3 list-disc space-y-1 pl-5 text-gray-500">
+      <li><strong class="text-gray-700">balance</strong> is what you owe the supplier today, from your old records, in the currency they invoice in. It goes on as an invoice called OPENING BALANCE, and your payments settle it first.</li>
+      <li><strong class="text-gray-700">balance_date</strong> is the day the debt is from, like <%= Date.current.strftime("%d/%m/%Y") %>. Left out, it's today. It's due after the supplier's payment terms.</li>
+      <li>A line whose name matches a supplier already here updates that supplier.</li>
+      <li>A balance is only set for a supplier with no orders, invoices or payments yet, so importing the same file twice doesn't double what you owe.</li>
+    </ul>
+    <%= link_to "Download a template", "/supplier-import-template.csv", class: "link", download: true %>
+  </div>
+</div>

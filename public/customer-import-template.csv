@@ -1,0 +1,5 @@
+name,phone,email,kra_pin,address,credit_limit,payment_terms_days,balance,balance_date,notes
+Mwangi Builders Ltd,0722 000 111,accounts@mwangibuilders.example,P051234567X,"Kenyatta Road, Thika",200000,30,45500,01/11/2026,Pays by cheque
+Achieng Otieno,0733 555 010,,,,50000,14,12000,,
+Kamau Hardware Agents,0700 888 999,,,,,,-2500,,In credit with us: a minus in front
+Baraka Plumbing,0711 222 333,,,,,,,,No balance: nothing owed today

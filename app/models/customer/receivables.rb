@@ -1,5 +1,6 @@
 # What a customer owes on account. A sale put (partly) on account is the invoice, due after the
-# customer's payment terms. Payments, write-offs and returns credited to the account settle the oldest
+# customer's payment terms; so is an opening balance, what they owed when the shop moved to HardPoint,
+# which has no sale behind it. Payments, write-offs and returns credited to the account settle the oldest
 # invoices first (FIFO), except where a payment was put against particular sales (its allocations),
 # which settle those sales and only those; the ageing report and statements are based on this.
 # The balance itself is always the whole ledger: charges less credits.
@@ -9,6 +10,9 @@ module Customer::Receivables
 
   OpenInvoice = Data.define(:sale, :amount_cents, :due_date, :outstanding_cents) do
     def days_overdue(as_of = Date.current) = (as_of - due_date).to_i
+    # An opening balance has no sale.
+    def opening_balance? = sale.nil?
+    def reference = sale ? sale.receipt_number : "Opening balance"
   end
 
   included do
@@ -42,14 +46,20 @@ module Customer::Receivables
       charges = Payment.on_account.joins(:sale).where(sales: { account_id: account.id, customer_id: ids, status: "completed" })
         .group("sales.customer_id", "sales.id", "sales.completed_at").order("sales.completed_at", "sales.id").sum(:amount_cents)
         .group_by { |(customer_id, *), _| customer_id }
+      # Opening balances are charges too: [ date, sale id (none), amount ], ahead of that day's sales.
+      openings = account.customer_payments.opening_balances.where(customer_id: ids, amount_cents: ...0).pluck(:customer_id, :paid_on, :amount_cents)
+        .group_by(&:first).transform_values { |rows| rows.map { |_, paid_on, cents| [ paid_on, nil, cents.abs ] } }
 
       customers.to_h do |customer|
-        unapplied = [ credited[customer.id].to_i - allocated_by_customer[customer.id], 0 ].max
-        open = (charges[customer.id] || []).filter_map do |(_, sale_id, completed_at), amount|
-          outstanding = amount - allocated.fetch([ customer.id, sale_id ], 0)
+        opening = openings[customer.id] || []
+        sold = (charges[customer.id] || []).map { |(_, sale_id, completed_at), amount| [ completed_at.in_time_zone.to_date, sale_id, amount ] }
+        # The credits were summed with the opening balance in them as a negative; put it back.
+        unapplied = [ credited[customer.id].to_i + opening.sum(&:last) - allocated_by_customer[customer.id], 0 ].max
+        open = (opening + sold).sort_by.with_index { |(date, sale_id, _), index| [ date, sale_id ? 1 : 0, index ] }.filter_map do |date, sale_id, amount|
+          outstanding = amount - (sale_id ? allocated.fetch([ customer.id, sale_id ], 0) : 0)
           applied = [ unapplied, outstanding ].min
           unapplied -= applied
-          OpenInvoice.new(nil, amount, completed_at.in_time_zone.to_date + customer.payment_terms_days, outstanding - applied) if applied < outstanding
+          OpenInvoice.new(nil, amount, date + customer.payment_terms_days, outstanding - applied) if applied < outstanding
         end
         [ customer.id, Ageing.buckets_for(open, as_of: as_of) ]
       end
@@ -96,6 +106,13 @@ module Customer::Receivables
     account_returns(as_of: as_of).sum(:total_cents) + payments.sum(:amount_cents)
   end
 
+  # What the customer owed when the shop moved to HardPoint, if that was brought across: the entry, or nil.
+  # (Credit brought across isn't a debt; it settles invoices like any payment.)
+  def opening_debt(as_of: nil)
+    entries = customer_payments.opening_balances.where(amount_cents: ...0)
+    (as_of ? entries.where(paid_on: ..as_of) : entries).first
+  end
+
   def balance_cents
     @balance_cents || (charged_cents - credited_cents)
   end
@@ -109,19 +126,23 @@ module Customer::Receivables
     sale.completed_at.to_date + payment_terms_days
   end
 
-  # What's still owed on each account sale, as of a day (today unless told otherwise). Credits put against
-  # particular sales come off those; everything else comes off the oldest first.
+  # What's still owed on each account sale and on the opening balance, as of a day (today unless told
+  # otherwise). Credits put against particular sales come off those; everything else comes off the oldest first.
   def open_invoices(as_of: nil)
     allocated = CustomerPaymentAllocation.joins(:customer_payment).where(customer_payments: { customer_id: id })
     allocated = allocated.where(customer_payments: { paid_on: ..as_of }) if as_of
     allocated = allocated.group(:sale_id).sum(:amount_cents)
-    unapplied = [ credited_cents(as_of: as_of) - allocated.values.sum, 0 ].max
+    opening = opening_debt(as_of: as_of)
+    # The credits were summed with the opening balance in them as a negative; put it back.
+    unapplied = [ credited_cents(as_of: as_of) + opening&.amount_cents.to_i.abs - allocated.values.sum, 0 ].max
 
-    account_sales(as_of: as_of).filter_map do |sale, amount|
-      outstanding = amount - allocated.fetch(sale.id, 0)
+    charges = account_sales(as_of: as_of).map { |sale, amount| [ due_date_for(sale) - payment_terms_days, sale, amount ] }
+    charges.unshift [ opening.paid_on, nil, opening.amount_cents.abs ] if opening
+    charges.sort_by.with_index { |(date, sale, _), index| [ date, sale ? 1 : 0, index ] }.filter_map do |date, sale, amount|
+      outstanding = amount - (sale ? allocated.fetch(sale.id, 0) : 0)
       applied = [ unapplied, outstanding ].min
       unapplied -= applied
-      OpenInvoice.new(sale, amount, due_date_for(sale), outstanding - applied) if applied < outstanding
+      OpenInvoice.new(sale, amount, date + payment_terms_days, outstanding - applied) if applied < outstanding
     end
   end
 

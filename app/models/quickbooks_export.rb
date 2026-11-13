@@ -24,6 +24,7 @@ class QuickbooksExport
     "cost_of_sales" => [ "Cost of what was sold", "Cost of Goods Sold" ],
     "inventory" => [ "Stock", "Inventory Asset" ],
     "bad_debt" => [ "Customer debts written off", "Bad Debts" ],
+    "opening_balances" => [ "What customers owed, and what the shop owed suppliers, when it moved to HardPoint", "Opening Balance Equity" ],
     "stock_adjustments" => [ "Stock gains and losses (damaged, stolen, stock takes, lost in transit)", "Inventory Shrinkage" ],
     "landed_costs" => [ "Transport and duty paid on deliveries, until the bill for them is entered", "Transport and Duty Clearing" ],
     "points" => [ "Old loyalty-points payments", "Loyalty Points Redeemed" ]
@@ -196,7 +197,7 @@ class QuickbooksExport
     end
 
     # A payment moves money in against what's owed; a refund of credit (a negative payment) moves it back out;
-    # a write-off is the debt given up, an expense.
+    # a write-off is the debt given up, an expense; an opening balance is a debt brought across from before.
     def customer_payment_entries
       account.customer_payments.where(paid_on: month..month.end_of_month).includes(:customer).to_a.group_by(&:paid_on).map do |date, payments|
         lines = payments.flat_map do |payment|
@@ -204,6 +205,10 @@ class QuickbooksExport
           if payment.write_off?
             description = "Written off: #{payment.reason}"
             [ debit("bad_debt", payment.amount_cents, name:, description:), credit("receivable", payment.amount_cents, name:, description:) ]
+          elsif payment.opening_balance?
+            description = payment.description
+            owed, brought = payment.opening_debt? ? %w[ receivable opening_balances ] : %w[ opening_balances receivable ]
+            [ debit(owed, payment.amount_cents.abs, name:, description:), credit(brought, payment.amount_cents.abs, name:, description:) ]
           elsif payment.refund?
             description = [ "Credit refunded", payment.reference ].compact.join(" ")
             [ debit("receivable", payment.amount_cents.abs, name:, description:),
@@ -224,6 +229,8 @@ class QuickbooksExport
           rate = invoice.supplier.foreign? ? invoice.exchange_rate.to_d : 1
           total, tax = (invoice.total_cents * rate).round, (invoice.tax_cents * rate).round
           description = "Bill #{invoice.number}"
+          # A debt brought across from before isn't stock bought this month.
+          next [ debit("opening_balances", total, description: "Opening balance"), credit("payable", total, name: invoice.supplier.name, description: "Opening balance") ] if invoice.opening_balance?
           [ debit("inventory", total - tax, description:), (debit("vat_input", tax, description:) if tax.positive?),
             credit("payable", total, name: invoice.supplier.name, description:) ].compact
         end

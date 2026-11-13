@@ -1,0 +1,21 @@
+<%# locals: (import:, new_label:, owed_words:, passed_over_hint:) %>
+<%# What a SpreadsheetImport brought in; the block is the buttons underneath. %>
+<div class="card max-w-3xl">
+  <h2 class="text-lg font-semibold text-green-800">Imported<%= " #{import.filename}" if import.filename.present? %></h2>
+  <dl class="mt-4 grid gap-4 sm:grid-cols-3">
+    <div><dt class="hint"><%= new_label %></dt><dd class="text-2xl font-bold tabular-nums"><%= number_with_delimiter import.created_count %></dd></div>
+    <div><dt class="hint">Updated</dt><dd class="text-2xl font-bold tabular-nums"><%= number_with_delimiter import.updated_count %></dd></div>
+    <div><dt class="hint">Opening balances</dt><dd class="text-2xl font-bold tabular-nums"><%= number_with_delimiter import.balances_count %></dd>
+      <% if import.balances_count.positive? %><dd class="hint"><%= money(import.balances_cents) %> <%= owed_words %></dd><% end %></div>
+  </dl>
+
+  <% if import.passed_over.any? %>
+    <h3 class="mt-6 mb-1 font-semibold">Balances left as they were</h3>
+    <p class="hint mb-2"><%= passed_over_hint %></p>
+    <ul class="list-disc space-y-1 pl-5 text-sm">
+      <% import.passed_over.each do |note| %><li>Line <%= note.line %>: <%= note.messages.to_sentence %></li><% end %>
+    </ul>
+  <% end %>
+
+  <p class="mt-6 flex flex-wrap gap-3"><%= yield %></p>
+</div>

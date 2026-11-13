@@ -49,8 +49,13 @@
       <% @open_invoices.each do |open| %>
         <li class="flex items-start justify-between gap-4 py-3">
           <div>
-            <%= link_to open.sale.receipt_number, portal_invoice_path(@link.token, open.sale), class: "link font-mono", target: "_blank", rel: "noopener" %>
-            <p class="hint"><%= l(open.sale.completed_at.to_date, format: :long) %> · due <%= l(open.due_date, format: :long) %></p>
+            <% if open.opening_balance? %>
+              <p class="font-medium">Opening balance</p>
+              <p class="hint">Owed from before · due <%= l(open.due_date, format: :long) %></p>
+            <% else %>
+              <%= link_to open.reference, portal_invoice_path(@link.token, open.sale), class: "link font-mono", target: "_blank", rel: "noopener" %>
+              <p class="hint"><%= l(open.sale.completed_at.to_date, format: :long) %> · due <%= l(open.due_date, format: :long) %></p>
+            <% end %>
             <% if open.days_overdue.positive? %><p class="text-sm font-semibold text-red-700"><%= pluralize(open.days_overdue, "day") %> overdue</p><% end %>
           </div>
           <div class="text-right">

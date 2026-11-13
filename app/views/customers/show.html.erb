@@ -48,7 +48,7 @@
         <tbody>
           <% @open_invoices.each do |open| %>
             <tr>
-              <td><%= link_to open.sale.receipt_number, open.sale, class: "link font-mono" %></td>
+              <td><%= open.opening_balance? ? "Opening balance" : link_to(open.reference, open.sale, class: "link font-mono") %></td>
               <td class="<%= "font-semibold text-red-700" if open.days_overdue.positive? %>"><%= tag.span(l(open.due_date, format: :long), class: "whitespace-nowrap") %><%= tag.span(" · #{pluralize(open.days_overdue, "day")} late", class: "whitespace-nowrap") if open.days_overdue.positive? %></td>
               <td class="text-right tabular-nums"><%= money(open.amount_cents) %></td>
               <td class="text-right tabular-nums"><%= money(open.outstanding_cents) %></td>
@@ -69,7 +69,7 @@
           <% @payments.each do |payment| %>
             <tr><td class="whitespace-nowrap"><%= l(payment.paid_on, format: :long) %></td><td><%= payment.description %><%= " · #{payment.reference}" if payment.reference.present? %></td>
               <td class="text-gray-500"><%= payment.write_off? ? "approved by #{payment.approver&.name}" : payment.creator&.name %></td>
-              <td class="text-right tabular-nums <%= "text-red-700" if payment.refund? %>"><%= money(payment.amount_cents) %></td></tr>
+              <td class="text-right tabular-nums <%= "text-red-700" if payment.refund? %>"><%= money(payment.opening_balance? ? payment.amount_cents.abs : payment.amount_cents) %><%= tag.span(payment.opening_debt? ? " owed" : " in credit", class: "text-gray-500") if payment.opening_balance? %></td></tr>
           <% end %>
         </tbody>
       </table>

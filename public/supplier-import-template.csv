@@ -1,0 +1,4 @@
+name,contact_name,phone,email,kra_pin,address,payment_terms_days,balance,balance_date,notes
+Bamburi Cement Depot,Joseph Kariuki,0722 111 222,orders@bamburidepot.example,P051234567X,"Mombasa Road, Nairobi",30,185000,01/11/2026,Delivers on Tuesdays
+Steel Masters Ltd,,0733 444 555,,,,14,62500,,
+Rift Valley Paints,,,,,,,,,Nothing owed today

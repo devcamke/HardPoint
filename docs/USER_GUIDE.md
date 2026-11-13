@@ -280,7 +280,7 @@ To raise or lower many prices at once, choose **Change prices** from the ⚙ men
 
 For price changes that don't follow a rule, press **Export CSV** on the Products list, edit the price column and import the file again. Only the columns in the file are changed.
 
-Your plan sets how many active products you can have. An import that would go over it is held back, with a note to upgrade on the Billing page.
+Every plan takes as many products as you stock, so an import is never held back for its size.
 
 <a id="staff-and-roles"></a>
 
@@ -682,6 +682,23 @@ You don't need a customer for every sale: most go through as **Walk-in**. Add th
 5. Press **Add customer**.
 
 To change any of it later, open the customer and press **Edit**. The customer's KRA PIN appears on their tax invoices, quotes and statements, and goes to KRA with the sale when eTIMS is connected.
+
+#### Bringing your customers across from a spreadsheet
+
+If you're moving to HardPoint from a debtors' book, Excel or another system, the owner can bring every customer in at once, with what each one owes today.
+
+1. On **Customers**, open the **⚙** menu and choose **Import customers**.
+2. Download the [template](https://hardpoint.app/customer-import-template.csv) and fill it in, one customer a line. Only `name` is needed. `phone`, `email`, `kra_pin`, `address`, `credit_limit`, `payment_terms_days` and `notes` are there if you have them.
+3. Put what a customer owes you in `balance`, and the day the debt is from in `balance_date`, written like 13/11/2026. Leave the date out and it's today.
+4. Save the spreadsheet as CSV, choose the file and press **Check and import**.
+
+HardPoint checks the whole file first. If any line has a problem (an amount that isn't a number, a date it can't read, the same customer twice) nothing is imported, and it lists the problems by line so you can fix the file and upload it again.
+
+The balance goes on the customer's account as an **opening balance**. It shows on their page, their statement and **Who owes what** like an unpaid sale, it's due after their payment terms counted from its date, and their payments settle it first. It isn't a sale: it doesn't appear in your takings, your VAT or KRA eTIMS.
+
+- A line whose phone number matches a customer you already have updates that customer. With no phone, the name is matched.
+- A balance is only set on an account with no sales or payments on it yet, so importing the same file twice can't double anyone's debt.
+- For a customer who is in credit with you, put a minus in front of the balance, like -2500. The credit comes off what they buy next, or you can refund it from their page.
 
 #### Contractor and wholesale prices
 
@@ -1189,6 +1206,8 @@ The **Buy** area handles everything from ordering to paying: suppliers, purchase
 #### Suppliers
 
 Add each supplier in **Buy › Suppliers** with their contacts, payment terms and, if they invoice in dollars, their currency. On the supplier's page you can list the products they supply, with their code, price, lead time and minimum order, and mark them as the preferred supplier.
+
+Moving from another system? The owner can bring every supplier in at once from a spreadsheet, with what you owe each one today: on **Suppliers**, open the **⚙** menu and choose **Import suppliers**, fill in the [template](https://hardpoint.app/supplier-import-template.csv) (only `name` is needed) and upload it as CSV. HardPoint checks the whole file first, and imports nothing if any line has a problem. A `balance` goes on as an invoice called **OPENING BALANCE**, dated `balance_date` (today if left out) and due after the supplier's payment terms; your payments settle it like any other invoice. It isn't a purchase, so it stays out of the VAT report. A balance is only set for a supplier with no orders, invoices or payments yet, so importing the same file twice can't double what you owe.
 
 #### Ordering
 

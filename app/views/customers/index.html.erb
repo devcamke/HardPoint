@@ -3,6 +3,7 @@
 <%= render "shared/control_panel",
       title: "Customers",
       new_button: ([ "New", new_customer_path ] if current_membership.can_sell?),
+      actions: [ ([ "Import customers", new_customer_import_path ] if current_membership.can_manage_account?) ].compact,
       search: { placeholder: "Name or phone" },
       records: @customers %>
 

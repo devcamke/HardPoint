@@ -1,0 +1,10 @@
+<% content_for :title, "Suppliers imported" %>
+
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Suppliers", suppliers_path, class: "link" %> <span class="text-gray-400">/</span> Import suppliers</h1>
+
+<%= render "shared/import_result", import: @import, new_label: "New suppliers", owed_words: "owed by you in all",
+      passed_over_hint: "These suppliers already had orders, invoices or payments, so the balance in the file wasn't added on top." do %>
+  <%= link_to "See the suppliers", suppliers_path, class: "btn-primary" %>
+  <%= link_to "What we owe", payables_path, class: "btn-secondary" if @import.balances_count.positive? && current_membership.can_manage_payables? %>
+  <%= link_to "Import another file", new_supplier_import_path, class: "btn-secondary" %>
+<% end %>

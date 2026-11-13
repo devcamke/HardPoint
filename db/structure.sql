@@ -3348,7 +3348,8 @@ CREATE TABLE public.supplier_invoices (
     note character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    exchange_rate numeric(18,8)
+    exchange_rate numeric(18,8),
+    opening_balance boolean DEFAULT false NOT NULL
 );
 
 ALTER TABLE ONLY public.supplier_invoices FORCE ROW LEVEL SECURITY;
@@ -10758,6 +10759,7 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261113120000'),
 ('20261113090000'),
 ('20261111127000'),
 ('20261111126000'),

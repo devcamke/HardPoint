@@ -1,0 +1,20 @@
+<% content_for :title, "Import customers" %>
+
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Customers", customers_path, class: "link" %> <span class="text-gray-400">/</span> Import customers</h1>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="lg:col-span-2"><%= render "shared/import_form", import: @import, url: customer_import_path, scope: :customer_import, noun: "customers" %></div>
+
+  <div class="card self-start text-sm">
+    <h2 class="mb-2 font-semibold">Columns</h2>
+    <p class="mb-2"><strong>name</strong> is required. Optional: phone, email, kra_pin, address, credit_limit, payment_terms_days, balance, balance_date, notes.</p>
+    <ul class="mb-3 list-disc space-y-1 pl-5 text-gray-500">
+      <li><strong class="text-gray-700">balance</strong> is what the customer owes you today, from your old records. It goes on their account as an opening balance, and their payments settle it first.</li>
+      <li><strong class="text-gray-700">balance_date</strong> is the day the debt is from, like <%= Date.current.strftime("%d/%m/%Y") %>. Left out, it's today. It's due after the customer's payment terms, so an old date shows as overdue.</li>
+      <li>A customer who is in credit with you: put a minus in front, like -2500.</li>
+      <li>A line whose phone number matches a customer already here updates that customer. With no phone, the name is matched.</li>
+      <li>A balance is only set on an account with nothing on it yet, so importing the same file twice doesn't double anyone's debt.</li>
+    </ul>
+    <%= link_to "Download a template", "/customer-import-template.csv", class: "link", download: true %>
+  </div>
+</div>
