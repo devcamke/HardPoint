@@ -25,22 +25,22 @@ class BillingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "switching plan, and a smaller plan that doesn't fit is refused" do
-    patch billing_plan_path, params: { plan: "enterprise" }
-    assert_equal "enterprise", Account.without_isolation { @account.reload.plan }
+    patch billing_plan_path, params: { plan: "unlimited" }
+    assert_equal "unlimited", Account.without_isolation { @account.reload.plan }
 
     patch billing_plan_path, params: { plan: "starter" }
     assert_match "Starter allows", flash[:alert]
-    assert_equal "enterprise", Account.without_isolation { @account.reload.plan }
+    assert_equal "unlimited", Account.without_isolation { @account.reload.plan }
   end
 
   test "buying an extra till and choosing yearly billing" do
     patch billing_add_ons_path, params: { account: { extra_registers: 1, extra_branches: 0, billing_interval: "yearly" } }
     assert_redirected_to billing_path
-    assert_match "KES 70,000.00 for a year", flash[:notice]
+    assert_match "KES 38,000.00 for a year", flash[:notice]
     assert_equal [ 1, "yearly" ], Account.without_isolation { @account.reload.values_at(:extra_registers, :billing_interval) }
 
     get billing_path
-    assert_select "#add_ons", /Your next invoice: KES 70,000.00 for a year/
+    assert_select "#add_ons", /Your next invoice: KES 38,000.00 for a year/
     assert_select "#add_ons input[name='account[extra_registers]'][value='1']"
   end
 
@@ -88,7 +88,7 @@ class BillingsControllerTest < ActionDispatch::IntegrationTest
     Account.without_isolation { @account.update!(extra_registers: 2, billing_interval: "yearly") }
     post billing_subscription_start_path
     invoice = Account.without_isolation { @account.billing_invoices.subscription.last }
-    assert_equal 6_500_00 * 10 + 500_00 * 2 * 10, invoice.amount_cents
+    assert_equal 3_500_00 * 10 + 300_00 * 2 * 10, invoice.amount_cents
     get billing_invoice_path(invoice)
     assert_equal "application/pdf", response.media_type
 
@@ -112,8 +112,8 @@ class BillingsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_match "read-only until the HardPoint invoice is paid", flash[:alert]
 
-    patch billing_plan_path, params: { plan: "enterprise" }
-    assert_equal "enterprise", Account.without_isolation { @account.reload.plan }
+    patch billing_plan_path, params: { plan: "unlimited" }
+    assert_equal "unlimited", Account.without_isolation { @account.reload.plan }
   end
 
   test "a read-only shop answers the till's JSON with 402, but still takes offline sales" do

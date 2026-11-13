@@ -70,7 +70,7 @@ class DevelopersControllerTest < ActionDispatch::IntegrationTest
   test "the Starter plan is told the API needs a bigger plan" do
     Account.without_isolation { @account.update!(plan: "starter") }
     get developers_path
-    assert_match "Business and Enterprise", response.body
+    assert_match "Business and Unlimited", response.body
     post api_keys_path, params: { api_key: { name: "Nope", scope: "read" } }
     assert_response :unprocessable_entity
   end

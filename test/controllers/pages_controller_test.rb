@@ -8,7 +8,8 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", /Point of sale and stock control for hardware stores/
     assert_select "#plan_starter", /KES 2,500/
-    assert_select "a[href=?]", new_signup_path(plan: "enterprise")
+    assert_select "#plan_solo", /KES 1,500/
+    assert_select "a[href=?]", new_signup_path(plan: "unlimited")
   end
 
   test "each public page tells search engines and link previews what it is" do
@@ -21,7 +22,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal %w[ Organization SoftwareApplication FAQPage ], types
 
     get pricing_path
-    assert_select "meta[name=description][content^=?]", "Starter KES 2,500, Business KES 6,500, and Enterprise KES 15,000 a month"
+    assert_select "meta[name=description][content^=?]", "Solo KES 1,500, Starter KES 2,500, Business KES 3,500, and Unlimited KES 5,000 a month"
     faq = css_select("script[type='application/ld+json']").flat_map { JSON.parse(_1.text) }.find { _1["@type"] == "FAQPage" }
     assert_equal "What happens after the free trial?", faq["mainEntity"].first["name"]
 
@@ -36,11 +37,11 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   test "pricing and privacy" do
     get pricing_path
     assert_select "h1", "One price for the whole shop."
-    assert_select "#plan_business", /15 staff logins/
+    assert_select "#plan_business", /10 staff logins/
     assert_select "#plan_starter", /Unlimited products/
     assert_select "#plan_starter", /KES 25,000 a year/
-    assert_select "#plan_starter", /A till is KES 750 and a branch KES 2,000/
-    assert_select "#plan_enterprise", { text: /Need one more/, count: 0 }
+    assert_select "#plan_starter", /A till is KES 300 and a branch KES 750/
+    assert_select "#plan_unlimited", { text: /Need one more/, count: 0 }
     assert_select "#plan_business", /Recommended/
     assert_select "input[type=radio][name=billing][value=yearly]"
     assert_select "#setup", /from KES 15,000.00/
@@ -196,8 +197,8 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
       assert_select "#plan_#{plan.key}", /KES #{ActiveSupport::NumberHelper.number_to_delimited(plan.price_cents / 100)}/
       assert_select "#plan_#{plan.key} a[href=?]", new_signup_path(plan: plan.key)
     end
-    assert_select ".lp-sticky", /KES 2,500/
+    assert_select ".lp-sticky", /KES 1,500/
     assert_select "#plan_business", /Recommended/
-    assert_select "#plan_enterprise", /Unlimited branches/
+    assert_select "#plan_unlimited", /Unlimited branches/
   end
 end

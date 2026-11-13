@@ -1,10 +1,10 @@
 <% content_for :title, "Service level agreement" %>
-<% content_for :description, "What HardPoint commits to for shops on the Business and Enterprise plans: 99.9% monthly uptime, service credits when we miss it, and how fast we answer when a till can't sell." %>
+<% content_for :description, "What HardPoint commits to for shops on the Business and Unlimited plans: 99.9% monthly uptime, service credits when we miss it, and how fast we answer when a till can't sell." %>
 
 <div class="lp">
 <article>
   <%= render "pages/page_head", kicker: "Our promise", title: "Service level agreement", center: false do %>
-    <p class="lp-lede">What HardPoint commits to for shops on the <strong>Business</strong> and <strong>Enterprise</strong> plans, as part of the <%= link_to "terms of service", terms_path, class: "link" %>. Starter shops get the same service without the commitments below. Last changed <%= l(Date.new(2026, 11, 8), format: :long) %>.</p>
+    <p class="lp-lede">What HardPoint commits to for shops on the <strong>Business</strong> and <strong>Unlimited</strong> plans, as part of the <%= link_to "terms of service", terms_path, class: "link" %>. Starter shops get the same service without the commitments below. Last changed <%= l(Date.new(2026, 11, 8), format: :long) %>.</p>
   <% end %>
 
   <div class="lp-wrap pb-[64px]">
@@ -22,7 +22,7 @@
   <h2>Support</h2>
   <div class="lp-table-wrap" tabindex="0" role="region" aria-label="Support by plan">
     <table>
-      <thead><tr><th></th><th>Starter</th><th>Business</th><th>Enterprise</th></tr></thead>
+      <thead><tr><th></th><th>Solo and Starter</th><th>Business</th><th>Unlimited</th></tr></thead>
       <tbody>
         <tr><td class="font-medium">How</td><td>WhatsApp, email, the help centre</td><td>WhatsApp, email, phone</td><td>WhatsApp, email, phone, a named contact</td></tr>
         <tr><td class="font-medium">Hours</td><td>09:00–18:00 Mon–Sat</td><td>09:00–18:00 Mon–Sat</td><td>07:00–20:00 every day</td></tr>
@@ -35,7 +35,7 @@
   <p>"A till can't sell" means no till in the shop can record a sale, online or offline. A report that's wrong or a feature that's missing is "anything else". Response times are within the support hours of your plan.</p>
 
   <h2>If we miss it</h2>
-  <p>If availability in a month falls below 99.9% for a Business or Enterprise shop, we credit <strong>10% of that month's subscription for every full hour</strong> below the commitment, up to 50% of the month, against your next invoice. Ask within 30 days of the end of the month from the Billing page or by email. Credits are the whole remedy for missing the uptime commitment, and apply to the subscription, not to setup, training or hardware.</p>
+  <p>If availability in a month falls below 99.9% for a Business or Unlimited shop, we credit <strong>10% of that month's subscription for every full hour</strong> below the commitment, up to 50% of the month, against your next invoice. Ask within 30 days of the end of the month from the Billing page or by email. Credits are the whole remedy for missing the uptime commitment, and apply to the subscription, not to setup, training or hardware.</p>
 
   <h2>Telling you what's happening</h2>
   <p>During an incident we post what we know in HardPoint's announcements and on our status page, and we email every affected shop's owners afterwards with what happened and what we've changed.</p>

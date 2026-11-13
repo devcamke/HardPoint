@@ -7,6 +7,7 @@ class EventTest < ActiveSupport::TestCase
   end
 
   test "creating, changing and removing records is recorded with who did it" do
+    accounts(:acme).update!(plan: "unlimited") # room for a third branch
     branch = accounts(:acme).branches.create!(name: "Westlands")
     branch.update!(name: "Westlands Mall")
     branch.destroy!

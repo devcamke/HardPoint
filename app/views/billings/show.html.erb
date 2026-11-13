@@ -52,7 +52,7 @@
 <% end %>
 
 <h2 class="mb-3 text-lg font-semibold">Plans</h2>
-<div class="mb-8 grid gap-4 md:grid-cols-3">
+<div class="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
   <% Plan.all.each do |option| %>
     <% current = option == plan %>
     <section class="card flex flex-col <%= "border-2 border-primary-500" if current %>">

@@ -57,7 +57,7 @@ class Api::V1::BaseController < ActionController::API
     end
 
     def require_api_plan
-      render_error :forbidden, "plan", "The API is on the Business and Enterprise plans." unless Current.account.subscription_plan.api?
+      render_error :forbidden, "plan", "The API is on the Business and Unlimited plans." unless Current.account.subscription_plan.api?
     end
 
     def require_write_access

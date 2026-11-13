@@ -143,7 +143,7 @@ class WebhookTest < ActiveSupport::TestCase
 
     @account.update!(plan: "starter")
     endpoint = @account.webhook_endpoints.create(url: "https://hooks.example.com/z", event_types: %w[ sale.completed ])
-    assert_match "Business and Enterprise", endpoint.errors.full_messages.to_sentence
+    assert_match "Business and Unlimited", endpoint.errors.full_messages.to_sentence
   end
 
   test "the secret is encrypted and can be rolled" do

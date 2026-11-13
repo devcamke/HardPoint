@@ -1690,7 +1690,7 @@ A week after it's due, the shop becomes **read-only**: everyone can still sign i
 
 _API keys and webhooks, for the developer who connects your web shop or accounts._
 
-On the Business and Enterprise plans, other apps can work with your shop's products, stock, customers, sales and orders: a web shop that shows your stock and takes click-and-collect orders, your bookkeeper's software, or a spreadsheet that updates itself.
+On the Business and Unlimited plans, other apps can work with your shop's products, stock, customers, sales and orders: a web shop that shows your stock and takes click-and-collect orders, your bookkeeper's software, or a spreadsheet that updates itself.
 
 Don't see it? It's one of the optional features: the owner switches on **API and webhooks** in **Settings › Features**.
 

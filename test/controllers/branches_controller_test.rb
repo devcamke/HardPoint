@@ -12,6 +12,7 @@ class BranchesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "create" do
+    Account.without_isolation { accounts(:acme).update!(plan: "unlimited") } # Business stops at the two branches Acme has
     assert_difference -> { Account.without_isolation { accounts(:acme).branches.count } } do
       post branches_path, params: { branch: { name: "Westlands", address: "Waiyaki Way" } }
     end

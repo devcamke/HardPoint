@@ -29,8 +29,8 @@ class Admin::PlatformToolsTest < ActionDispatch::IntegrationTest
   end
 
   test "changing plan, extending the trial, suspending and restoring are all on the shop's record" do
-    patch admin_account_plan_path(@account), params: { plan: "enterprise" }
-    assert_equal "enterprise", acme.plan
+    patch admin_account_plan_path(@account), params: { plan: "unlimited" }
+    assert_equal "unlimited", acme.plan
 
     trial_ended = acme.trial_ends_at
     post admin_account_trial_extension_path(@account), params: { days: 14 }
@@ -69,11 +69,11 @@ class Admin::PlatformToolsTest < ActionDispatch::IntegrationTest
   test "setting a shop's add-ons and yearly billing from the admin" do
     patch admin_account_add_ons_path(@account), params: { account: { extra_registers: 2, extra_branches: 1, billing_interval: "yearly" } }
     assert_equal [ 2, 1, "yearly" ], acme.values_at(:extra_registers, :extra_branches, :billing_interval)
-    assert_match "KES 90,000.00 a year", flash[:notice]
+    assert_match "KES 48,500.00 a year", flash[:notice]
     assert_equal [ users(:ada).email_address ], acme_events("add_ons_changed").map { _1.particulars["administrator"] }
 
     get admin_account_path(@account)
-    assert_select "#subscription", /KES 90,000.00 a year, with 1 branch and 2 tills extra/
+    assert_select "#subscription", /KES 48,500.00 a year, with 1 branch and 2 tills extra/
   end
 
   test "recording a bank payment pays the open invoice" do

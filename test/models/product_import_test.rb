@@ -88,7 +88,7 @@ class ProductImportTest < ActiveSupport::TestCase
   end
 
   test "20,000 rows import in a reasonable time" do
-    accounts(:acme).update!(plan: "enterprise")
+    accounts(:acme).update!(plan: "unlimited")
     csv = +"sku,name,category,unit,price,cost,stock\n"
     20_000.times { |i| csv << "BULK-#{i},Bulk item #{i},Bulk #{i % 50},Piece,#{100 + i % 900},#{50 + i % 400},#{i % 30}\n" }
 

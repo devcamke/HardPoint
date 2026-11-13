@@ -25,7 +25,7 @@ class BillingTest < ActiveSupport::TestCase
     product = Product.create(name: "Yet another screw", sku: "SCR-9999", unit: units(:acme_piece), price_cents: 100)
     assert product.persisted?, product.errors.full_messages.to_sentence
 
-    @account.update!(plan: "enterprise")
+    @account.update!(plan: "unlimited")
     third = Branch.create(name: "Third branch")
     assert third.persisted?, third.errors.full_messages.to_sentence
   end
@@ -38,7 +38,7 @@ class BillingTest < ActiveSupport::TestCase
     assert_equal 3, @account.limit(:registers)
     till = Register.create(branch: branches(:acme_main), name: "Back office")
     assert till.persisted?, till.errors.full_messages.to_sentence
-    assert_equal 2_500_00 + 750_00, @account.monthly_price_cents
+    assert_equal 2_500_00 + 300_00, @account.monthly_price_cents
     assert_equal "add_ons_changed", @account.events.last.action
 
     assert_not @account.change_add_ons(extra_registers: 0), "the extra till is in use"
@@ -46,12 +46,12 @@ class BillingTest < ActiveSupport::TestCase
     assert_equal 1, @account.reload.extra_registers
 
     invoice = @account.start_subscription_now
-    assert_equal [ 3_250_00, 1, "monthly" ], [ invoice.amount_cents, invoice.extra_registers, invoice.interval ]
-    assert_equal [ [ "HardPoint Starter plan", 1, 2_500_00 ], [ "Extra till × 1", 1, 750_00 ] ], invoice.lines
+    assert_equal [ 2_800_00, 1, "monthly" ], [ invoice.amount_cents, invoice.extra_registers, invoice.interval ]
+    assert_equal [ [ "HardPoint Starter plan", 1, 2_500_00 ], [ "Extra till × 1", 1, 300_00 ] ], invoice.lines
     assert_match "Starter plan and add-ons, a month from", invoice.description
   end
 
-  test "a smaller plan only if what's in use fits it, counting add-ons; Enterprise drops them" do
+  test "a smaller plan only if what's in use fits it, counting add-ons; Unlimited drops them" do
     assert_not @account.change_plan("starter")
     assert_match "Starter allows 1 branch;", @account.errors.full_messages.to_sentence
 
@@ -59,7 +59,7 @@ class BillingTest < ActiveSupport::TestCase
     assert @account.change_plan("starter"), @account.errors.full_messages.to_sentence
     assert_equal "plan_changed", @account.events.last.action
 
-    assert @account.change_plan("enterprise")
+    assert @account.change_plan("unlimited")
     assert_equal 0, @account.extra_branches
     assert_not @account.change_add_ons(extra_registers: 1)
     assert_match "no limits", @account.errors.full_messages.to_sentence
@@ -72,8 +72,8 @@ class BillingTest < ActiveSupport::TestCase
     travel_to 11.days.from_now do
       @account.bill
       invoice = @account.open_invoice
-      assert_equal [ 65_000_00, "yearly", invoice.period_start + 1.year ], [ invoice.amount_cents, invoice.interval, invoice.period_end ]
-      assert_equal [ [ "HardPoint Business plan", 12, 65_000_00 ] ], invoice.lines
+      assert_equal [ 35_000_00, "yearly", invoice.period_start + 1.year ], [ invoice.amount_cents, invoice.interval, invoice.period_end ]
+      assert_equal [ [ "HardPoint Business plan", 12, 35_000_00 ] ], invoice.lines
       assert_match "a year from", invoice.description
 
       invoice.payments.create!(account: @account, provider: "manual", amount_cents: invoice.amount_cents, reference: "EFT-Y").succeed(receipt: "EFT-Y")
@@ -101,7 +101,7 @@ class BillingTest < ActiveSupport::TestCase
       assert @account.change_add_ons(extra_registers: 3)
       extra = @account.open_invoice
       assert extra.one_off?
-      assert_equal (3 * 500_00 * 10 * left / days.to_r).round, extra.amount_cents
+      assert_equal (3 * 300_00 * 10 * left / days.to_r).round, extra.amount_cents
       assert_equal Date.current + 7, extra.due_on
       assert_match "3 extra tills", extra.description
       assert @account.reload.payment_due?
@@ -112,10 +112,10 @@ class BillingTest < ActiveSupport::TestCase
       assert_nil @account.open_invoice, "giving add-ons back applies from the next period"
       assert_equal 1, @account.billing_invoices.one_off.count
 
-      assert @account.change_plan("enterprise")
+      assert @account.change_plan("unlimited")
       upgrade = @account.open_invoice
-      assert_equal ((15_000_00 - 6_500_00 - 500_00) * 10 * left / days.to_r).round, upgrade.amount_cents
-      assert_match "Enterprise", upgrade.description
+      assert_equal ((5_000_00 - 3_500_00 - 300_00) * 10 * left / days.to_r).round, upgrade.amount_cents
+      assert_match "Unlimited", upgrade.description
       assert_equal upgrade.number, @account.events.where(action: "plan_changed").last.particulars["invoice"]
 
       @account.billing_invoices.one_off.open.each { _1.update!(status: "void") }
@@ -142,7 +142,7 @@ class BillingTest < ActiveSupport::TestCase
 
     travel_to 11.days.from_now do
       @account.bill
-      assert_equal 6_500_00, @account.open_invoice.amount_cents, "the trial still ends with a normal first invoice"
+      assert_equal 3_500_00, @account.open_invoice.amount_cents, "the trial still ends with a normal first invoice"
     end
   end
 
@@ -158,7 +158,7 @@ class BillingTest < ActiveSupport::TestCase
       @account.bill
       invoice = @account.open_invoice
       assert_match(/\AHP-\d{4}-\d{6}\z/, invoice.number)
-      assert_equal [ 6_500_00, "business", Date.current + 7 ], [ invoice.amount_cents, invoice.plan, invoice.due_on ]
+      assert_equal [ 3_500_00, "business", Date.current + 7 ], [ invoice.amount_cents, invoice.plan, invoice.due_on ]
       assert @account.reload.payment_due?
     end
 
@@ -236,11 +236,11 @@ class BillingTest < ActiveSupport::TestCase
     invoice = @account.start_subscription_now
     payment = Billing::MpesaShortcode.new.request_payment(invoice: invoice, phone: "254722000111")
     assert_equal "ws_CO_BILL", payment.reference
-    assert_equal [ 6500, invoice.number.delete("-") ], daraja.last("/mpesa/stkpush/v1/processrequest").json.values_at(:Amount, :AccountReference)
+    assert_equal [ 3500, invoice.number.delete("-") ], daraja.last("/mpesa/stkpush/v1/processrequest").json.values_at(:Amount, :AccountReference)
 
     Current.reset
     Billing::MpesaShortcode.new.receive_stk_callback("Body" => { "stkCallback" => { "CheckoutRequestID" => "ws_CO_BILL", "ResultCode" => 0,
-      "CallbackMetadata" => { "Item" => [ { "Name" => "Amount", "Value" => 6500 }, { "Name" => "MpesaReceiptNumber", "Value" => "SKB1234567" } ] } } })
+      "CallbackMetadata" => { "Item" => [ { "Name" => "Amount", "Value" => 3500 }, { "Name" => "MpesaReceiptNumber", "Value" => "SKB1234567" } ] } } })
 
     Account.without_isolation do
       assert invoice.reload.paid?
@@ -254,15 +254,15 @@ class BillingTest < ActiveSupport::TestCase
     Rails.configuration.x.paystack_secret_key = "sk_test_123"
     paystack = fake_transport(Billing::Paystack,
       "/transaction/initialize" => { status: true, data: { authorization_url: "https://checkout.paystack.com/abc" } },
-      "/transaction/verify/HP-REF" => { status: true, data: { status: "success", amount: 6_500_00, currency: "KES" } })
+      "/transaction/verify/HP-REF" => { status: true, data: { status: "success", amount: 3_500_00, currency: "KES" } })
 
     invoice = @account.start_subscription_now
     payment = invoice.payments.create!(account: @account, provider: "paystack", amount_cents: invoice.amount_cents, reference: "HP-REF")
 
     assert_equal "https://checkout.paystack.com/abc", Billing::Paystack.new.checkout_url(payment, email: "a@b.c", callback_url: "https://x/return")
     assert_equal "Bearer sk_test_123", paystack.requests.first.headers["Authorization"]
-    assert_equal [ 6_500_00, "KES" ], paystack.requests.first.json.values_at(:amount, :currency)
-    assert_equal [ "success", 6_500_00, "KES" ], Billing::Paystack.new.verify("HP-REF")
+    assert_equal [ 3_500_00, "KES" ], paystack.requests.first.json.values_at(:amount, :currency)
+    assert_equal [ "success", 3_500_00, "KES" ], Billing::Paystack.new.verify("HP-REF")
   ensure
     Rails.configuration.x.paystack_secret_key = nil
   end

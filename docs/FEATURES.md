@@ -201,8 +201,8 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 - **Self-service signup** with a choice of plan, then a **Set up your shop** checklist on the owner's dashboard:
   branches and tills, tax rates, products, staff, a **test receipt** to check the printer, and optionally M-Pesa and
   eTIMS. Steps tick themselves off from what the shop has actually done
-- **Plans and limits:** Starter (KES 2,500/month: 1 branch, 2 tills, 3 staff, 2,000 products), Business (KES 6,500:
-  3, 8, 15, 20,000) and Enterprise (KES 15,000, no limits). Every new shop gets **30 days free** on its chosen plan.
+- **Plans and limits:** Solo (KES 1,500/month: 1 branch, 1 till, 2 staff), Starter (KES 2,500: 1, 2, 5),
+  Business (KES 3,500: 2, 4, 10) and Unlimited (KES 5,000, no limits). Products are never limited. Every new shop gets **30 days free** on its chosen plan.
   Going past a limit (adding a branch, a till, a person, a product or an import) is refused with a pointer to Billing
 - **Billing:** at the trial's end HardPoint emails an invoice (PDF, numbered `HP-2026-000123`) due a week later,
   payable from **Settings › Billing** by an **M-Pesa prompt** to HardPoint's own Paybill or **by card through Paystack**.
@@ -250,7 +250,7 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 - **API keys** made by the owner in **Settings › Developers**: read only or read and write, shown once and stored
   only as a digest, revocable, last use recorded; changes made with a key show in Activity as that key. Business and
-  Enterprise plans
+  Unlimited plans
 - **REST API** at `https://api.hardpoint.app/v1`: the shop and branches, products (with barcodes, prices and stock per
   branch; create and update), stock levels, customers (create and update), sales and orders, including placing a
   **click-and-collect order** that lands in the shop's open orders. Cursor paging, `updated_since` for syncing,
@@ -554,7 +554,7 @@ A full year for a busy shop (60,000 sales, 180,000 lines) reports in under a sec
 
 - **Packaging for sale:** products no longer count towards any plan (a hardware shop carries thousands of lines).
   A shop that needs one more till or branch than its plan allows buys it as an **add-on** on the Billing page
-  (Starter: a till KES 750, a branch KES 2,000 a month; Business: 500 and 1,500) instead of moving up a plan, and can
+  (a till KES 300, a branch KES 750 a month) instead of moving up a plan, and can
   choose **yearly billing** at ten months' price for twelve. The pricing page sells a **setup and training visit**
   (from KES 15,000, free with a year paid upfront) and a quoted **till kit**; platform staff bill those from the admin
   as one-off invoices, paid like any other
