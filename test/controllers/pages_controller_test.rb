@@ -164,4 +164,11 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#phones img[src*='phone-customer-portal']"
     assert_select "#nots-title + ul li", 4
   end
+
+  test "the landing page says how to switch, puts the price in a day's terms and keeps WhatsApp one tap away" do
+    get marketing_root_path
+    assert_select "#switching a[href=?]", help_article_path("importing-products")
+    assert_select "#pricing", /KES 1,500 a month is KES 50 a day/
+    assert_select "body > a[href^='https://wa.me/']", /Chat/
+  end
 end

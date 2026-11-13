@@ -169,7 +169,7 @@
       <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">Big buttons, the shop’s own categories and the stock left on every one. Loose goods by the kilo
         or the metre. Works with the scanner and receipt printer you already have, on a computer, a touch screen or a phone.</p>
     </div>
-    <%= image_tag "marketing/till.png", alt: "The HardPoint till: quick-pick buttons with prices and stock left, 2.5 kg of wire nails being added to a sale of cement and steel, and the payment buttons", class: "mx-auto mt-12 w-full max-w-5xl rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800, loading: "lazy" %>
+    <%= image_tag "marketing/till.png", alt: "The HardPoint till: quick-pick buttons with prices and stock left, a sale of cement, steel and 2.5 kg of wire nails, and the payment buttons", class: "mx-auto mt-12 w-full max-w-5xl rounded-2xl shadow-2xl shadow-gray-950/15 ring-1 ring-gray-200", width: 1280, height: 800, loading: "lazy" %>
     <ul class="mx-auto mt-8 flex max-w-4xl flex-wrap justify-center gap-x-8 gap-y-2 text-gray-700">
       <% [ "Tap the shop’s own categories", "Stock left, on every button", "Cash, M-Pesa, card, on account or foreign notes" ].each do |note| %>
         <li class="flex items-center gap-1.5"><%= render "pages/check" %><%= note %></li>
@@ -517,6 +517,31 @@
   </div>
 </section>
 
+<%# For the shop that already has something: how what it has comes across. Every line is what the product import
+    and the setup visit do today (help/importing-products, the pricing page). %>
+<section id="switching" class="scroll-mt-20 bg-white">
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">Switching</p>
+      <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Already using something? Bring it with you.</h2>
+      <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">You don’t start from an empty screen. Your price list comes across as a spreadsheet, and you can keep the old way going beside HardPoint until you trust it.</p>
+    </div>
+    <div class="mt-12 grid gap-5 md:grid-cols-3">
+      <% [ [ :import, "From a receipt book or Excel", "Save your price list as a spreadsheet. HardPoint imports the products, prices, barcodes and the stock on the shelf, thousands in seconds. It checks the whole file first and lists any problem by line.", "Importing products", help_article_path("importing-products") ],
+           [ :etims, "From another till or an ETR", "Export your products from the old system as a spreadsheet and import them the same way. KRA eTIMS is built in, so every receipt carries KRA’s QR code without a separate machine.", "How eTIMS works", help_article_path("etims") ],
+           [ :staff, "Or we do it with you", "On a setup visit we import your product list from a spreadsheet or your old system, connect the printers, M-Pesa and eTIMS, and train your staff at the counter. Free with a year paid upfront.", "The setup visit", pricing_path(anchor: "setup") ] ].each do |icon, title, body, link_text, href| %>
+        <div class="flex flex-col rounded-3xl border border-gray-200 p-7">
+          <span class="flex size-12 items-center justify-center rounded-xl bg-primary-100 text-primary-700"><%= render "pages/icon", name: icon, classes: "size-6" %></span>
+          <h3 class="mt-5 text-xl font-bold tracking-tight text-gray-950 text-balance"><%= title %></h3>
+          <p class="mt-3 text-sm text-gray-600"><%= body %></p>
+          <%= link_to href, class: "mt-auto pt-5 inline-block font-medium text-accent-600 hover:underline" do %><%= link_text %> <span aria-hidden="true">›</span><% end %>
+        </div>
+      <% end %>
+    </div>
+    <p class="mt-8 text-center text-gray-600">And it works the other way: export everything as spreadsheets whenever you like.</p>
+  </div>
+</section>
+
 <%# Owners hand over their whole business: say plainly how it's kept, every line true of how HardPoint works
     (docs/SECURITY.md, the privacy page and the data processing terms say the same, in more detail). %>
 <section id="security" class="scroll-mt-20 border-y border-primary-100 bg-primary-50/60">
@@ -555,6 +580,7 @@
       <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">One price for the shop. That’s it.</h2>
       <p class="mt-5 text-lg text-gray-600 text-balance sm:text-xl">HardPoint takes nothing per sale or per receipt. Pay by M-Pesa or card, monthly or yearly; a year
         costs <%= Plan::YEARLY_MONTHS_CHARGED %> months, so <%= 12 - Plan::YEARLY_MONTHS_CHARGED %> are free.</p>
+      <p class="mt-3 font-semibold text-primary-700"><%= from_price %> a month is KES <%= number_with_delimiter((@plans.map(&:price_cents).min / 100 / 30.0).round) %> a day for the whole shop.</p>
     </div>
     <%= render "pages/plans", plans: @plans %>
     <p class="mx-auto mt-6 max-w-3xl text-center text-sm text-gray-500">Business and Unlimited come with a 99.9% uptime promise in the <%= link_to "service level agreement", sla_path, class: "link" %>.

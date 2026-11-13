@@ -45,7 +45,7 @@
         <% Plan.all.each do |plan| %>
           <label class="flex cursor-pointer flex-col rounded-2xl border border-transparent bg-white p-3 text-sm has-[:checked]:border-primary-500 has-[:checked]:ring-1 has-[:checked]:ring-primary-500">
             <span class="flex items-center gap-2 font-semibold"><%= form.radio_button :plan, plan.key %> <%= plan.name %></span>
-            <span class="text-gray-500"><%= plan.price %>/month</span>
+            <span class="text-gray-500">KES <%= number_with_delimiter(plan.price_cents / 100) %> a month</span>
           </label>
         <% end %>
       </div>
