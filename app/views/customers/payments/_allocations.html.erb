@@ -1,5 +1,6 @@
 <%# Which unpaid sales this entry is put against. Leaving every box blank settles the oldest first. %>
-<% open_invoices = customer.open_invoices %>
+<%# An opening balance has no sale to put anything against; it's settled with the oldest, by whatever is left blank. %>
+<% open_invoices = customer.open_invoices.reject(&:opening_balance?) %>
 <% if open_invoices.any? %>
   <fieldset class="field">
     <legend class="label">Put against particular sales (optional)</legend>

@@ -269,6 +269,7 @@ Rails.application.routes.draw do
     resources :returns, only: %i[ index show ], controller: :sale_returns
 
     # Customers, orders and accounts
+    resource :customer_import, only: %i[ new create ]
     resources :customers, except: :destroy do
       scope module: :customers do
         resources :payments, only: %i[ new create ]
@@ -387,6 +388,7 @@ Rails.application.routes.draw do
     end
 
     # Purchasing
+    resource :supplier_import, only: %i[ new create ]
     resources :suppliers, except: :destroy do
       scope module: :suppliers do
         resources :products, only: %i[ create update destroy ]

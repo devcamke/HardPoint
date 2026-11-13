@@ -1025,6 +1025,10 @@ in the counter's head is slow and loses sales to the shop that answers first.
    shows. Stock › Labels lists them, oldest first ("Shelf shows KES 850.00"), prints them on the usual A4 sheets or
    roll, and marks them done.
 9. **Kiswahili** throughout the till and receipts (the screens are English-only today).
+9a. ~~**Customers and suppliers from a spreadsheet, with opening balances**~~ Done (Phase 48): `CustomerImport` and
+   `SupplierImport` (sharing `SpreadsheetImport`) check a whole CSV and save all of it or none. A customer's balance is
+   a `CustomerPayment` of kind `opening_balance` (negative for a debt, which `Customer::Receivables` treats as the
+   oldest invoice; positive for credit); a supplier's is a `SupplierInvoice` flagged `opening_balance`. Owner only.
 10. **Custom roles:** choose what a role can do (e.g. a cashier who can take customer payments but not returns).
 11. **Live accounting sync** (QuickBooks Online / Xero API) replacing the monthly CSV journal export.
 12. **FIFO costing**, passkeys for owners and managers, XLSX exports, and returns on the offline till.

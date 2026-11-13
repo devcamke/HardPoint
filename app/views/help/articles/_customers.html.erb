@@ -15,6 +15,30 @@
 <p>To change any of it later, open the customer and press <strong>Edit</strong>. The customer's KRA PIN appears on their tax invoices,
   quotes and statements, and goes to KRA with the sale when eTIMS is connected.</p>
 
+<h2>Bringing your customers across from a spreadsheet</h2>
+<p>If you're moving to HardPoint from a debtors' book, Excel or another system, the owner can bring every customer in at once, with what
+  each one owes today.</p>
+<ol>
+  <li>On <strong>Customers</strong>, open the <strong>⚙</strong> menu and choose <strong>Import customers</strong>.</li>
+  <li>Download the <a href="/customer-import-template.csv" class="link">template</a> and fill it in, one customer a line. Only
+    <code>name</code> is needed. <code>phone</code>, <code>email</code>, <code>kra_pin</code>, <code>address</code>, <code>credit_limit</code>,
+    <code>payment_terms_days</code> and <code>notes</code> are there if you have them.</li>
+  <li>Put what a customer owes you in <code>balance</code>, and the day the debt is from in <code>balance_date</code>, written like
+    13/11/2026. Leave the date out and it's today.</li>
+  <li>Save the spreadsheet as CSV, choose the file and press <strong>Check and import</strong>.</li>
+</ol>
+<p>HardPoint checks the whole file first. If any line has a problem (an amount that isn't a number, a date it can't read, the same customer
+  twice) nothing is imported, and it lists the problems by line so you can fix the file and upload it again.</p>
+<p>The balance goes on the customer's account as an <strong>opening balance</strong>. It shows on their page, their statement and
+  <strong>Who owes what</strong> like an unpaid sale, it's due after their payment terms counted from its date, and their payments settle it
+  first. It isn't a sale: it doesn't appear in your takings, your VAT or KRA eTIMS.</p>
+<ul>
+  <li>A line whose phone number matches a customer you already have updates that customer. With no phone, the name is matched.</li>
+  <li>A balance is only set on an account with no sales or payments on it yet, so importing the same file twice can't double anyone's debt.</li>
+  <li>For a customer who is in credit with you, put a minus in front of the balance, like -2500. The credit comes off what they buy next,
+    or you can refund it from their page.</li>
+</ul>
+
 <h2>Contractor and wholesale prices</h2>
 <p>Make a price list, such as Contractor, in <strong>Settings › Price lists</strong>, and give products their price on it under
   <strong>Special prices</strong> on each product page (see <%= link_to "Products and the catalogue", help_article_path("products"), class: "link" %>).

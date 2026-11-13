@@ -1,0 +1,16 @@
+<%# locals: (import:) %>
+<%# The lines of a spreadsheet that stopped an import (SpreadsheetImport#problems). %>
+<% if import.problems.any? %>
+  <div class="card mt-6" role="alert">
+    <h2 class="mb-1 font-semibold text-red-800">Nothing was imported: <%= pluralize(import.problems.size, "line") %><%= " or more" if import.more_problems? %> to fix</h2>
+    <p class="hint mb-3">Fix these in the spreadsheet, save it as CSV again and upload it. Line 1 is the row of column names.</p>
+    <table class="table">
+      <thead><tr><th class="w-20">Line</th><th>Problem</th></tr></thead>
+      <tbody>
+        <% import.problems.each do |problem| %>
+          <tr><td class="tabular-nums"><%= problem.line %></td><td><%= problem.messages.to_sentence.upcase_first %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

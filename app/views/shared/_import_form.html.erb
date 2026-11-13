@@ -1,0 +1,15 @@
+<%# locals: (import:, url:, scope:, noun:) %>
+<%# The upload form of a SpreadsheetImport, with the problems of the last try under it. %>
+<%= form_with model: import, url: url, scope: scope, class: "card", data: { turbo: false, controller: "submit-once", action: "submit->submit-once#submit" } do |form| %>
+  <%= render "shared/errors", model: import %>
+
+  <div class="field">
+    <%= form.label :file, "Spreadsheet (CSV)", class: "label" %>
+    <%= form.file_field :file, required: true, accept: ".csv,text/csv", class: "text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-gray-200 file:bg-white file:px-3 file:py-1.5 file:font-semibold file:text-gray-800 hover:file:bg-gray-50" %>
+    <p class="hint mt-1">In Excel or Google Sheets use File → Save as / Download → CSV. Up to <%= number_with_delimiter SpreadsheetImport::MAX_ROWS %> <%= noun %> in a file.</p>
+  </div>
+
+  <%= form.submit "Check and import", class: "btn-primary" %>
+  <p class="hint mt-2">The whole file is checked first. If any line has a problem, nothing is imported and you get the list to fix.</p>
+<% end %>
+<%= render "shared/import_problems", import: import %>

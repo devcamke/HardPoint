@@ -3,6 +3,7 @@
 <%= render "shared/control_panel",
       title: "Suppliers",
       new_button: ([ "New", new_supplier_path ] if current_membership.can_purchase?),
+      actions: [ ([ "Import suppliers", new_supplier_import_path ] if current_membership.can_manage_account?) ].compact,
       search: { placeholder: "Supplier name" },
       records: @suppliers %>
 

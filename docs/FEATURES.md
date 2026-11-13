@@ -765,6 +765,13 @@ help centre.
 - **45. Loss prevention:** each cashier against their own usual in the morning email, and reasons for opening the drawer.
 - **46. Stock held for confirmed orders:** warn or refuse at the till, and counted by the reorder list.
 - **47. The shelf-label queue:** products whose price or name changed wait for a new label.
+- **48. Bringing the books across:** the owner imports customers and suppliers from spreadsheets (Customers and
+  Suppliers › ⚙ › Import), with what each customer owes and what the shop owes each supplier. The whole file is checked
+  first and nothing is saved if any line has a problem. A customer's balance is an opening balance on their account
+  (a minus is credit they had); a supplier's is an invoice called OPENING BALANCE. Both age, show on statements and
+  are settled by payments like any other debt, and neither is a sale or a purchase: they stay out of takings, VAT and
+  eTIMS, and go to QuickBooks against Opening Balance Equity. A balance is only set on an account with nothing on it,
+  so a file imported twice can't double a debt.
 
 Also since then: a refreshed app menu (the shop's logo and name, bigger text, and the areas along the bottom on
 phones), a rectangular receipt stamp, and a shorter landing page in the manner of odoo.com (docs/BRAND.md, The

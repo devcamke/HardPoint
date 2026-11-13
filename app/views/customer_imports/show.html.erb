@@ -1,0 +1,10 @@
+<% content_for :title, "Customers imported" %>
+
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Customers", customers_path, class: "link" %> <span class="text-gray-400">/</span> Import customers</h1>
+
+<%= render "shared/import_result", import: @import, new_label: "New customers", owed_words: "owed to you in all",
+      passed_over_hint: "These customers already had sales or payments on their account, so the balance in the file wasn't added on top." do %>
+  <%= link_to "See the customers", customers_path, class: "btn-primary" %>
+  <%= link_to "Who owes what", receivables_path, class: "btn-secondary" if @import.balances_count.positive? && current_membership.can_view_reports? %>
+  <%= link_to "Import another file", new_customer_import_path, class: "btn-secondary" %>
+<% end %>

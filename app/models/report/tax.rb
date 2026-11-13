@@ -80,6 +80,6 @@ class Report::Tax < Report
     end
 
     def input_invoices
-      account.supplier_invoices.where(invoice_date: period.dates)
+      account.supplier_invoices.where(invoice_date: period.dates, opening_balance: false)
     end
 end
