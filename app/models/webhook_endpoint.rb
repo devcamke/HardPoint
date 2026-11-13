@@ -26,7 +26,7 @@ class WebhookEndpoint < ApplicationRecord
   validate :url_is_public_https
   validate { errors.add :event_types, "choose at least one" if event_types.blank? }
   validate { errors.add :event_types, "include unknown ones: #{(event_types - EVENTS.keys).join(", ")}" if (Array(event_types) - EVENTS.keys).any? }
-  validate(on: :create) { errors.add :base, "Webhooks are on the Business and Enterprise plans" unless account&.subscription_plan&.api? }
+  validate(on: :create) { errors.add :base, "Webhooks are on the Business and Unlimited plans" unless account&.subscription_plan&.api? }
 
   before_validation(on: :create) { self.secret ||= generate_secret }
   before_validation { self.event_types = Array(event_types).compact_blank.uniq }

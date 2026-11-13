@@ -5,6 +5,8 @@
 # A shop that needs one more branch or till than its plan allows buys it as an add-on
 # (extra_branch_cents / extra_register_cents a month each) rather than jumping a whole plan.
 # Paying a year at a time costs YEARLY_MONTHS_CHARGED months: two months free.
+#
+# These are the launch prices. An add-on always costs less than the step up to the next plan.
 class Plan < Data.define(:key, :name, :price_cents, :branches, :registers, :users, :extra_branch_cents, :extra_register_cents, :api, :blurb)
   TRIAL = 30.days
   GRACE = 7.days
@@ -19,9 +21,10 @@ class Plan < Data.define(:key, :name, :price_cents, :branches, :registers, :user
 
   def self.all
     [
-      new("starter", "Starter", 2_500_00, 1, 2, 3, 2_000_00, 750_00, false, "One shop, a couple of tills"),
-      new("business", "Business", 6_500_00, 3, 8, 15, 1_500_00, 500_00, true, "A growing shop with a yard or second branch"),
-      new("enterprise", "Enterprise", 15_000_00, nil, nil, nil, nil, nil, true, "Many branches, no limits")
+      new("solo", "Solo", 1_500_00, 1, 1, 2, 750_00, 300_00, false, "One counter, one till"),
+      new("starter", "Starter", 2_500_00, 1, 2, 5, 750_00, 300_00, false, "One shop, a couple of tills"),
+      new("business", "Business", 3_500_00, 2, 4, 10, 750_00, 300_00, true, "A growing shop with a yard or second branch"),
+      new("unlimited", "Unlimited", 5_000_00, nil, nil, nil, nil, nil, true, "Many branches, no limits")
     ]
   end
 

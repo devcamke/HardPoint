@@ -55,6 +55,7 @@ class StockTransfersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "staff bound to a branch receive or cancel only transfers to or from it" do
+    Account.without_isolation { accounts(:acme).update!(plan: "unlimited") } # room for a third branch
     westlands = Account.without_isolation { Current.set(account: accounts(:acme)) { accounts(:acme).branches.create!(name: "Westlands", code: "WST") } }
     post stock_transfers_path, params: { stock_transfer: { from_branch_id: branches(:acme_main).id, to_branch_id: westlands.id,
       lines_attributes: { "0" => { product_code: "CEM-50", quantity: "5" } } } }

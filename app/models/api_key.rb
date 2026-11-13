@@ -15,7 +15,7 @@ class ApiKey < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 60 }
   validates :scope, inclusion: { in: SCOPES }
-  validate(on: :create) { errors.add :base, "The API is on the Business and Enterprise plans" unless account&.subscription_plan&.api? }
+  validate(on: :create) { errors.add :base, "The API is on the Business and Unlimited plans" unless account&.subscription_plan&.api? }
 
   before_validation :generate_token, on: :create
   after_create { track_event "created", scope: scope }

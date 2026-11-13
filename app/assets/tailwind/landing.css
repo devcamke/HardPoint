@@ -290,14 +290,16 @@ a.lp-chip:hover { background: var(--lp-card); }
 
 /* Pricing */
 .lp-pricing { background: var(--lp-card); }
-.lp-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 40px; align-items: start; }
-@media (max-width: 900px) { .lp-plans { grid-template-columns: minmax(0, 1fr); max-width: 520px; margin-left: auto; margin-right: auto; } }
-.lp-plan { position: relative; display: flex; flex-direction: column; background: var(--lp-surface); border: 2px solid var(--lp-edge); border-radius: 18px; padding: 22px 22px; }
+.lp-plans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 40px; align-items: start; }
+/* Four across is too tight for the price below this: two by two, then one column. */
+@media (max-width: 1100px) { .lp-plans { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 760px; margin-left: auto; margin-right: auto; } }
+@media (max-width: 640px) { .lp-plans { grid-template-columns: minmax(0, 1fr); max-width: 520px; } }
+.lp-plan { position: relative; display: flex; flex-direction: column; background: var(--lp-surface); border: 2px solid var(--lp-edge); border-radius: 18px; padding: 22px 20px; }
 .lp-plan-pick { box-shadow: 10px 10px 0 var(--lp-shadow); }
 .lp-plan-flag { position: absolute; top: -15px; right: 18px; margin: 0; padding: 2px 10px; font-family: var(--lp-hand); font-weight: 700; font-size: 15px; background: var(--lp-marker); color: var(--lp-marker-ink); transform: rotate(4deg); }
 .lp-plan h3 { font-size: 21px; }
 .lp-plan-for { color: var(--lp-muted); margin: 4px 0 0; font-size: 15px; }
-.lp-price { margin: 16px 0 0; font-family: var(--lp-display); font-weight: 800; font-size: 34px; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.lp-price { margin: 16px 0 0; font-family: var(--lp-display); font-weight: 800; font-size: 30px; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
 .lp-price small { font-family: var(--font-sans); font-weight: 400; font-size: 15px; letter-spacing: 0; color: var(--lp-muted); }
 .lp-price-year { margin: 6px 0 0; font-size: 14px; color: var(--lp-muted); font-variant-numeric: tabular-nums; }
 .lp-plan ul { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 8px; font-size: 15px; }
@@ -455,7 +457,7 @@ a.lp-chip:hover { background: var(--lp-card); }
 .lp-choice:has(:checked) { border-color: var(--lp-edge); box-shadow: 4px 4px 0 var(--lp-shadow); }
 .lp-choice b { display: flex; align-items: center; gap: 8px; font-family: var(--lp-display); font-size: 16px; }
 .lp-choice span { color: var(--lp-muted); }
-.lp-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.lp-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 520px) { .lp-choices { grid-template-columns: minmax(0, 1fr); } }
 
 @media (min-width: 901px) { .lp-cards-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

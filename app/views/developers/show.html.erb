@@ -10,7 +10,7 @@
 
 <% unless Current.account.subscription_plan.api? %>
   <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
-    The API and webhooks are on the Business and Enterprise plans. <%= link_to "Change plan", billing_path, class: "link font-semibold" %>
+    The API and webhooks are on the Business and Unlimited plans. <%= link_to "Change plan", billing_path, class: "link font-semibold" %>
   </div>
 <% end %>
 

@@ -129,12 +129,12 @@ Guides: [M-Pesa](https://hardpoint.app/help/mpesa) · [Airtel Money](https://har
 - **Make it yours:** a colour theme (eight, or the shop's own brand colour) on every screen, the shop's logo on receipts
   and documents, and preferences for quotes, payment buttons, stock warnings, credit control and what documents say. Features
   the shop doesn't use are switched off in Settings.
-- **Self-service signup** with a 30-day trial and a **Set up your shop** checklist. Plans: Starter (KES 2,500 a month),
-  Business (KES 6,500) and Enterprise (KES 15,000), with unlimited products on all three; an extra till or branch as a
+- **Self-service signup** with a 30-day trial and a **Set up your shop** checklist. Plans: Solo (KES 1,500 a month),
+  Starter (KES 2,500), Business (KES 3,500) and Unlimited (KES 5,000), with unlimited products on all four; an extra till or branch as a
   monthly add-on rather than a bigger plan; monthly or yearly billing (a year costs ten months); paid by M-Pesa or
   card. Setup visits and till kits are billed as one-off invoices from the admin. A shop with an overdue invoice becomes
   read-only until it pays.
-- **A public API and webhooks** for web shops and accounting software (Business and Enterprise), documented at
+- **A public API and webhooks** for web shops and accounting software (Business and Unlimited), documented at
   `/developers`.
 - **Backups:** every night (or weekly or monthly) and at the press of **Back up now**: a verified copy of all
   the shop's records and files, kept for owners to download, with every owner emailed when one is ready or fails.

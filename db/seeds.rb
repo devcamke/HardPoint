@@ -405,7 +405,7 @@ if Rails.env.development? && !Account.exists?(subdomain: "demo")
   end
 
   # Two more shops for the platform admin's list: one on trial, one read-only for an unpaid invoice.
-  { "coast" => [ "Coast Tools & Paint", "Fatma Ali", "owner@coast.test", "starter" ],
+  { "coast" => [ "Coast Tools & Paint", "Fatma Ali", "owner@coast.test", "solo" ],
     "lakeside" => [ "Lakeside Hardware", "Ochieng Oduor", "owner@lakeside.test", "business" ] }.each do |subdomain, (shop, name, email, plan)|
     Signup.new(terms_accepted: true, shop_name: shop, subdomain: subdomain, owner_name: name, email_address: email, password: "hardpoint-demo").save!
     shop_account = Account.find_by!(subdomain: subdomain)

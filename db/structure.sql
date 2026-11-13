@@ -10758,6 +10758,7 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261113090000'),
 ('20261111127000'),
 ('20261111126000'),
 ('20261111125100'),
