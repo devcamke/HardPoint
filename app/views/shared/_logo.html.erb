@@ -1,18 +1,14 @@
 <%# locals: (dark: false) %>
-<%# The HardPoint mark: a hex nut with the H of HardPoint cut through it, drawn with an ink outline and a hard offset shadow, like a sticker. On the teal bars (dark) the nut
-    is white, the H teal and the shadow a deeper teal. The wordmark is set in the site's headline face.
-    The same mark is public/icon.svg (icon.png is rendered from it) and the fallback in shared/_navigation. %>
-<%# Outside dark, the colours can be overridden with the --lp-logo-* variables; nothing sets them today. %>
-<% if dark %>
-  <% body, cut, ink, shadow, word = "#FFFFFF", "#0F5E6E", "#072D35", "#072D35", "text-white" %>
-<% else %>
-  <% body, cut, ink, shadow, word = "var(--lp-logo-body, #0F5E6E)", "var(--lp-logo-cut, #FFFFFF)", "var(--lp-logo-ink, #0F2327)", "var(--lp-logo-shadow, #0F2327)", "text-[var(--lp-ink,#0F2327)]" %>
-<% end %>
+<%# The HardPoint mark: a hex nut, flat, with "H." set into it: the H of HardPoint and, after it, the point, in the
+    orange of the till's Pay button. On the teal bars (dark) the nut is white and the H teal. The wordmark is Bricolage
+    Grotesque ExtraBold. The same mark is public/icon.svg (icon.png is rendered from it) and, with the H in the shop's
+    theme colour, the fallback in shared/_navigation. %>
+<% nut, letter, word = dark ? %w[ #FFFFFF #0F5E6E text-white ] : %w[ #0F5E6E #FFFFFF text-gray-950 ] %>
 <span class="inline-flex items-center gap-2.5">
-  <svg viewBox="0 0 64 64" class="size-[2.3rem] shrink-0" aria-hidden="true">
-    <path d="M30 3 54 17v28L30 59 6 45V17Z" transform="translate(4 4)" style="fill: <%= shadow %>"/>
-    <path d="M30 3 54 17v28L30 59 6 45V17Z" style="fill: <%= body %>; stroke: <%= ink %>" stroke-width="3.5" stroke-linejoin="round"/>
-    <path d="M19 18.5h7.5v9h7v-9H41v24h-7.5v-9h-7v9H19Z" style="fill: <%= cut %>; stroke: <%= ink %>" stroke-width="2.6" stroke-linejoin="round"/>
+  <svg viewBox="0 0 64 64" class="size-9 shrink-0" aria-hidden="true">
+    <path d="M32 6 54.5 19v26L32 58 9.5 45V19Z" fill="<%= nut %>" stroke="<%= nut %>" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M17 20h6.5v9h6.5v-9h6.5v24H30v-9h-6.5v9H17Z" fill="<%= letter %>"/>
+    <circle cx="43.4" cy="40.4" r="3.6" fill="#E46F2F"/>
   </svg>
-  <span class="font-display text-[1.7rem] leading-none font-extrabold tracking-[-0.04em] <%= word %>">HardPoint</span>
+  <span class="font-display text-[1.6rem] leading-none font-extrabold tracking-[-0.03em] <%= word %>">HardPoint</span>
 </span>

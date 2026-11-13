@@ -13,7 +13,7 @@
           <%= image_tag Current.account.logo.variant(resize_to_limit: [ 160, 64 ]), alt: "", class: "h-8 w-auto max-w-28 rounded bg-white object-contain p-0.5" %>
         <% else %>
           <%# The HardPoint mark (shared/_logo), flat like the rest of the app, the H in the shop's own theme colour. %>
-          <svg viewBox="0 0 64 64" class="size-8 shrink-0" aria-hidden="true"><path d="M32 4 56 18v28L32 60 8 46V18Z" fill="#FFFFFF"/><path d="M21 19.5h7.5v9h7v-9H43v24h-7.5v-9h-7v9H21Z" class="fill-primary-500"/></svg>
+          <svg viewBox="0 0 64 64" class="size-8 shrink-0" aria-hidden="true"><path d="M32 6 54.5 19v26L32 58 9.5 45V19Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"/><path d="M17 20h6.5v9h6.5v-9h6.5v24H30v-9h-6.5v9H17Z" class="fill-primary-500"/><circle cx="43.4" cy="40.4" r="3.6" fill="#E46F2F"/></svg>
         <% end %>
         <span class="max-w-36 truncate text-base font-semibold md:hidden xl:inline xl:max-w-48"><%= Current.account.name %></span>
       <% end %>

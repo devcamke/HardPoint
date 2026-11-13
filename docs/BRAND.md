@@ -58,13 +58,14 @@ White text on `primary-500` is 7.4:1, `accent-600` on white is 9.0:1 and `gray-5
 
 ## Logo
 
-A hex nut with the **H** of HardPoint cut through it, next to the wordmark **HardPoint**, rendered by
-`app/views/shared/_logo.html.erb`. It's drawn like the public site: the nut in petrol with an ink (`#0F2327`) outline
-and a hard offset shadow, the H in white, and the wordmark in Bricolage Grotesque ExtraBold, tightly spaced. On the
-teal bars (`dark: true`) the nut is white, the H teal and the shadow a deeper teal. Inside the app, a shop without its
-own logo gets the same mark flat (white nut, H in the shop's theme colour) in `shared/_navigation`. The app icon
-(`public/icon.svg`, and `icon.png` rendered from it at 512 px) is the mark on a highlighter-yellow rounded square with
-an ink edge.
+A flat hex nut with **H.** set into it, next to the wordmark **HardPoint**, rendered by
+`app/views/shared/_logo.html.erb`. The H is HardPoint's; the full stop after it is the point, in the orange of the
+till's Pay button (`#E46F2F`), and the only orange in the mark. The nut is petrol (`#0F5E6E`) with softened corners
+and the H white; on the teal bars (`dark: true`) the nut is white and the H teal. No outline and no shadow. The
+wordmark is Bricolage Grotesque ExtraBold, tightly spaced. Inside the app, a shop without its own logo gets the same
+mark with the H in the shop's theme colour, in `shared/_navigation`. The app icon is the white nut on petrol:
+`public/icon.svg` on a rounded square for browser tabs, and `icon.png` (512 px) on a full square with the nut inside
+the safe zone, so phones can mask it to their own shape.
 
 ## Components
 
