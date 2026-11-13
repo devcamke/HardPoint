@@ -74,27 +74,17 @@ Utilities in `app/assets/tailwind/application.css`: `btn-primary`, `btn-secondar
 ## The public site
 
 The public site (the landing page, pricing, the solution pages, the help centre, the developer and legal pages,
-signup and finding your shop) has its own voice and look, in the manner of Basecamp, HEY and Fizzy, and its own
-stylesheet, `app/assets/tailwind/landing.css`, with everything under `.lp`. The app itself keeps the look above.
+signup and finding your shop) is drawn in the manner of odoo.com, with Tailwind utilities in the views themselves
+and no stylesheet of its own. The Basecamp-style look that replaced it for a while (`landing.css`, everything under
+`.lp`) was taken out again in November 2026; its wording and its newer sections were kept.
 
-- **Words:** plainspoken, written to the owner of a hardware shop. One huge headline, short sentences, no jargon.
-  Every claim must be true of how HardPoint works today; the help guides are the source. Prices come from `Plan`.
-- **Type:** headlines in Bricolage Grotesque 700–800 and notes in Kalam Bold (both SIL Open Font Licence, served
-  from `app/assets/fonts`); body text in the app's Roboto stack.
-- **Colour:** white, ink `#0F2327`, the petrol teal for buttons and the two full-width bands (the offline till and
-  the closing call), a highlighter yellow `#FFDF4F` behind the words that matter, and sticky-note pastels on the
-  feature cards only.
-- **Shapes:** a 2 px ink outline and a hard offset shadow on the one thing in each section that should stand out.
-- **Real screens** carry handwritten notes in the margin on a wide window, and a list of the same notes under them
-  on anything narrower.
-- **Built from one kit,** so every page matches: `pages/_page_head` (kicker, headline, line under it), `pages/_plans`
-  and `pages/_faqs` (shared by the landing and pricing pages), `.lp-doc` for long-form text (guides, the API, the
-  legal pages), `.lp-panel` and `.lp-tile` for outlined boxes and link cards, `.lp-form` for boxed fields, and
-  `.lp-search`. Inside the help guides the walkthroughs get the ink outline too; the app's guided tours don't.
-- **Dark mode:** the public site follows the device's light or dark setting, with no toggle; the app and emails stay
-  light. Every colour is a token on `.lp` and `.lp-site` (the marketing layout's body) in `landing.css`, with a dark set
-  under `prefers-color-scheme: dark`: a near-black teal page, light text and outlines, a teal hard shadow, and the same
-  highlighter, sticky note and teal. Use the tokens (`var(--lp-ink)`, or Tailwind's `text-(--lp-ink)`), never a literal
-  colour, on public pages. Screenshots of the app, the help walkthroughs and the "Watch a sale" dialog stay light.
-- **The public site's nav and footer** (`layouts/marketing`) follow it too: a pill-shaped trial button, and a white
-  footer under a 2 px ink rule with columns headed in the headline face and a handwritten line under the logo.
+- **Words:** plainspoken, written to the owner of a hardware shop. Short sentences, no jargon. Every claim must be
+  true of how HardPoint works today; the help guides are the source. Prices come from `Plan`.
+- **Sections** alternate white, light grey and a pale tint of the theme colour, each opening the same way: a small
+  uppercase label in teal, a bold headline and a line under it. Two full-colour teal bands (the offline till and the
+  closing call) anchor the page.
+- **Type:** the app's own sans for everything, bold and tightly tracked in headlines. Kalam Bold, the marker pen, is
+  kept for the landing page's headline, the price note beside it and the "Imagine without HardPoint" labels only.
+- **Shapes:** rounded cards with a hairline border or a pale teal fill, soft shadows under screenshots, and the app's
+  own buttons (`btn-primary`, `btn-secondary`).
+- **Light only:** the public site doesn't follow the device's dark setting.

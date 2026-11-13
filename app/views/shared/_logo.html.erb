@@ -1,11 +1,8 @@
 <%# locals: (dark: false) %>
-<%# The HardPoint mark: a hex nut with the H of HardPoint cut through it, drawn the way the public site draws the
-    things that matter, with an ink outline and a hard offset shadow, like a sticker. On the teal bars (dark) the nut
+<%# The HardPoint mark: a hex nut with the H of HardPoint cut through it, drawn with an ink outline and a hard offset shadow, like a sticker. On the teal bars (dark) the nut
     is white, the H teal and the shadow a deeper teal. The wordmark is set in the site's headline face.
     The same mark is public/icon.svg (icon.png is rendered from it) and the fallback in shared/_navigation. %>
-<%# Outside dark: the light colours are CSS variables with today's colours as fallbacks, so on the public site
-    (.lp-site, landing.css) the mark turns white with a teal shadow when the device is in dark mode, and everywhere
-    else it stays as it is. %>
+<%# Outside dark, the colours can be overridden with the --lp-logo-* variables; nothing sets them today. %>
 <% if dark %>
   <% body, cut, ink, shadow, word = "#FFFFFF", "#0F5E6E", "#072D35", "#072D35", "text-white" %>
 <% else %>

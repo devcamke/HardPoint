@@ -1,53 +1,54 @@
 <% content_for :title, "Help centre" %>
 <% content_for :description, "Guides to running a hardware store on HardPoint: selling at the till, M-Pesa, KRA eTIMS, stock takes, buying from suppliers, customer accounts, reports and more." %>
 <% content_for :noindex, true if @query.present? %>
-<%# The help centre in the public site's look (landing.css): a big search box on its shadow, the walkthroughs as
-    picture tiles, then every guide by section as outlined tiles that lift when pointed at. %>
 
-<div class="lp">
-  <%= render "pages/page_head", kicker: "Help centre", title: "How can we help?",
-        lede: "Guides to setting up and running your shop on HardPoint, written for the counter." do %>
-    <%= form_with url: help_path, method: :get, class: "lp-search mt-[32px]" do |form| %>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <%= form.search_field :q, value: @query, placeholder: "Printer, M-Pesa, import…", aria: { label: "Search the help centre" } %>
-      <%= form.submit "Search", class: "lp-btn", name: nil %>
+<section class="bg-white">
+  <div class="mx-auto max-w-3xl px-4 pt-20 pb-12 text-center sm:pt-28">
+    <h1 class="text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">Help centre</h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600 text-balance sm:text-xl">Guides to setting up and running your shop on HardPoint.</p>
+    <%= form_with url: help_path, method: :get, class: "relative mx-auto mt-8 max-w-xl" do |form| %>
+      <svg class="pointer-events-none absolute top-1/2 left-5 size-5 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <%= form.search_field :q, value: @query, placeholder: "Search the guides: printer, M-Pesa, import", class: "block w-full rounded-full border border-gray-300 bg-white py-3 pr-28 pl-12 text-base text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none", aria: { label: "Search the help centre" } %>
+      <%= form.submit "Search", class: "btn-primary absolute top-1/2 right-1.5 -translate-y-1/2 rounded-full px-4 py-2", name: nil %>
     <% end %>
-  <% end %>
+  </div>
+</section>
 
-  <div class="lp-wrap lp-mid pb-[64px]">
+<section class="bg-white">
+  <div class="mx-auto max-w-3xl px-4 pb-20 sm:pb-28">
   <% if @query.present? %>
-    <p class="lp-fine mb-[18px]">
+    <p class="mb-4 text-sm text-gray-500">
       <%= @articles.empty? ? "No guides mention \"#{@query}\"." : "#{pluralize(@articles.size, "guide")} #{@articles.one? ? "mentions" : "mention"} \"#{@query}\"." %>
-      <%= link_to "Show all guides", help_path %>
+      <%= link_to "Show all guides", help_path, class: "link" %>
     </p>
     <% if @articles.empty? %>
-      <p class="lp-lede mt-[0]">Try a shorter word (printer, M-Pesa, import, VAT), or <%= link_to "ask us on WhatsApp", whatsapp_support_url("Hello HardPoint, I need help with: #{@query}"), class: "lp-link", target: "_blank", rel: "noopener" %>.</p>
+      <p class="text-gray-700">Try a shorter word (printer, M-Pesa, import, VAT), or <%= link_to "ask us on WhatsApp", whatsapp_support_url("Hello HardPoint, I need help with: #{@query}"), class: "link", target: "_blank", rel: "noopener" %>.</p>
     <% end %>
-    <div class="lp-tiles lp-tiles-2">
+    <div class="space-y-3">
       <%= render partial: "help/article_card", collection: @articles, as: :article, locals: { show_section: true } %>
     </div>
   <% else %>
-    <div class="lp-panel">
-      <p class="lp-kicker mb-[6px]">New to HardPoint?</p>
-      <p class="m-0 text-[16px] leading-[1.55]">
-        Start with <%= link_to "Setting up your shop", help_article_path("getting-started"), class: "lp-link" %>, then
-        <%= link_to "Finding your way around", help_article_path("getting-around"), class: "lp-link" %> and
-        <%= link_to "Selling at the till", help_article_path("selling"), class: "lp-link" %>. Each guide ends with what to read next.
+    <div class="rounded-3xl bg-gray-100 p-8">
+      <p class="text-2xl font-semibold tracking-tight text-gray-950">New to HardPoint?</p>
+      <p class="mt-2 text-gray-600">
+        Start with <%= link_to "Setting up your shop", help_article_path("getting-started"), class: "link" %>, then
+        <%= link_to "Finding your way around", help_article_path("getting-around"), class: "link" %> and
+        <%= link_to "Selling at the till", help_article_path("selling"), class: "link" %>. Each guide ends with what to read next.
       </p>
     </div>
 
-    <h2 class="mt-[48px] text-[clamp(24px,_2.8vw,_32px)]">Show me how.</h2>
-    <p class="lp-lede mt-[10px]">Walkthroughs of real screens: press a number on the picture to see what that button does.</p>
-    <div class="lp-tiles lp-tiles-3 mt-[26px]">
+    <h2 class="mt-14 text-2xl font-semibold tracking-tight text-gray-950">Show me how.</h2>
+    <p class="mt-1 mb-5 text-gray-600">Walkthroughs of real screens: press a number on the picture to see what that button does.</p>
+    <div class="grid gap-4 sm:grid-cols-3">
       <% HelpTour.all.sort_by { HelpArticle::SECTIONS.index(_1.section) }.each do |tour| %>
-        <%= link_to help_article_path(tour.article, anchor: "walkthrough-#{tour.id}"), class: "lp-tile p-[0] overflow-hidden" do %>
-          <span class="relative block border-b-2 border-(--lp-edge)">
+        <%= link_to help_article_path(tour.article, anchor: "walkthrough-#{tour.id}"), class: "group block overflow-hidden rounded-2xl bg-gray-100 transition-colors hover:bg-gray-200/70" do %>
+          <span class="relative block">
             <%= image_tag tour.image, alt: "", width: tour.image_size[0], height: tour.image_size[1], loading: "lazy", class: "block aspect-[16/10] w-full object-cover object-top" %>
-            <span class="absolute right-2 bottom-2 rounded-full bg-(--lp-deep) px-2.5 py-0.5 text-xs font-semibold text-white"><%= pluralize(tour.placed_steps.size, "step") %></span>
+            <span class="absolute right-2 bottom-2 rounded-full bg-gray-950/80 px-2 py-0.5 text-xs font-semibold text-white"><%= pluralize(tour.placed_steps.size, "step") %></span>
           </span>
-          <span class="block p-[14px_18px_16px]">
-            <span class="lp-tile-title"><%= tour.title %></span>
-            <span class="lp-tile-text"><%= tour.summary %></span>
+          <span class="block p-4">
+            <span class="block font-semibold text-gray-950"><%= tour.title %></span>
+            <span class="mt-0.5 block text-sm text-gray-500"><%= tour.summary %></span>
           </span>
         <% end %>
       <% end %>
@@ -56,17 +57,17 @@
     <% HelpArticle::SECTIONS.each do |section| %>
       <% articles = @articles.select { _1.section == section } %>
       <% next if articles.empty? %>
-      <h2 class="mt-[48px] mx-0 mb-[16px] text-[clamp(24px,_2.8vw,_32px)]"><%= section %>.</h2>
-      <div class="lp-tiles lp-tiles-2">
+      <h2 class="mt-14 mb-5 text-2xl font-semibold tracking-tight text-gray-950"><%= section %>.</h2>
+      <div class="space-y-3">
         <%= render partial: "help/article_card", collection: articles, as: :article, locals: { show_section: false } %>
       </div>
     <% end %>
   <% end %>
 
-  <div class="lp-panel-quiet mt-[48px]">
-    <h2 class="text-[23px]">Still stuck?</h2>
-    <p class="mt-[10px] mx-0 mb-[0] text-(--lp-muted)">Signed in to your shop, open your name in the top right and choose <strong class="text-(--lp-ink)">Contact support</strong>: we’ll see which page you were on.</p>
-    <%= link_to whatsapp_support_url, class: "lp-btn lp-btn-ghost lp-btn-small mt-[18px]", target: "_blank", rel: "noopener" do %>Chat with us on WhatsApp<% end %>
+  <div class="mt-14 rounded-3xl bg-gray-100 p-8">
+    <p class="text-2xl font-semibold tracking-tight text-gray-950">Still stuck?</p>
+    <p class="mt-2 text-gray-600">Signed in to your shop, open your name in the top right and choose <strong class="font-semibold text-gray-900">Contact support</strong>: we'll see which page you were on.</p>
+    <%= link_to whatsapp_support_url, class: "mt-4 inline-block font-medium text-accent-600 hover:underline", target: "_blank", rel: "noopener" do %>Chat with us on WhatsApp <span aria-hidden="true">›</span><% end %>
   </div>
   </div>
-</div>
+</section>

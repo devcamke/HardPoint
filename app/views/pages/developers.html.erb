@@ -1,16 +1,18 @@
 <% content_for :title, "API and webhooks" %>
 <% content_for :description, "HardPoint's REST API and webhooks: connect a web shop, accounting software or your own tools to your hardware store's products, stock, customers, sales and orders." %>
 <% base = "#{request.protocol}#{@api_host}/v1" %>
-<% code = ->(text) { tag.pre(text.strip_heredoc.strip, class: "lp-code", tabindex: 0, aria: { label: "Code example" }) } %>
+<% code = ->(text) { tag.pre(text.strip_heredoc.strip, class: "mt-2 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100") } %>
 
-<div class="lp">
-  <%= render "pages/page_head", kicker: "For developers", title: "API and webhooks", center: false do %>
-    <p class="lp-lede">Connect a web shop, your accounting software or your own scripts to your shop: read and update products,
+<section class="bg-white">
+  <div class="mx-auto max-w-3xl px-4 pt-20 pb-12 text-center sm:pt-28">
+    <h1 class="text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">API and webhooks</h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600 text-balance sm:text-xl">Connect a web shop, your accounting software or your own scripts to your shop: read and update products,
       stock, customers, sales and orders, and hear about changes as they happen. On the Business and Unlimited plans.</p>
-  <% end %>
+  </div>
+</section>
 
-  <div class="lp-wrap pb-[64px]">
-<article class="help-article lp-doc max-w-[760px]">
+<section class="bg-white">
+<article class="help-article mx-auto max-w-3xl space-y-4 px-4 pb-20 leading-relaxed text-gray-700 sm:pb-28">
   <h2>Getting a key</h2>
   <p>In your shop, the owner goes to <strong>Settings › Developers › New API key</strong>, names it after the app that will use it and
     chooses <strong>read only</strong> or <strong>read and write</strong>. The key (<code>hp_…</code>) is shown once. Revoke it there at any
@@ -35,8 +37,8 @@
     Most lists take <code>?updated_since=2026-09-24T08:00:00Z</code> to fetch only what changed, which is how to keep a copy in sync.</p>
 
   <h2>Resources</h2>
-  <div class="lp-table-wrap" tabindex="0" role="region" aria-label="API requests">
-    <table>
+  <div class="overflow-x-auto">
+    <table class="table">
       <thead><tr><th>Request</th><th>What it does</th></tr></thead>
       <tbody>
         <% [
@@ -134,5 +136,4 @@
   <p>This is version 1. Fields may be added to answers and events at any time, so ignore ones you don't know; anything that would break an
     existing integration comes as a new version, announced in advance.</p>
 </article>
-  </div>
-</div>
+</section>

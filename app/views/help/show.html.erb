@@ -1,41 +1,40 @@
 <% content_for :title, "#{@article.title} · Help centre" %>
 <% content_for :description, @article.summary %>
 <% structured_data(*seo_help_article(@article)) %>
-<%# One guide in the public site's look (landing.css): the article in .lp-doc's reading type, then what to read next
-    as an outlined panel, related guides as tiles, and a person to ask. %>
 
-<div class="lp">
-  <article>
-    <%= render "pages/page_head", title: @article.title, lede: @article.summary, center: false,
-          crumb: safe_join([ link_to(safe_join([ tag.span("‹", aria: { hidden: true }), " Help centre" ]), help_path), tag.span("·", aria: { hidden: true }), @article.section ], " ") %>
+<article class="bg-white">
+ <div class="mx-auto max-w-3xl px-4 pt-16 pb-20 sm:pt-20 sm:pb-28">
+  <p class="text-sm"><%= link_to help_path, class: "font-medium text-accent-600 hover:underline" do %><span aria-hidden="true">‹</span> Help centre<% end %> <span class="text-gray-400">·</span> <span class="text-gray-500"><%= @article.section %></span></p>
+  <h1 class="mt-4 text-4xl font-semibold tracking-tight text-gray-950 text-balance sm:text-5xl"><%= @article.title %></h1>
+  <p class="mt-4 text-lg text-gray-600 text-balance sm:text-xl"><%= @article.summary %></p>
 
-    <div class="lp-wrap pb-[64px]">
-      <div class="lp-head max-w-[760px]">
-        <div class="help-article lp-doc">
-          <%= render @article.partial %>
-        </div>
+  <div class="help-article mt-10 space-y-4 leading-relaxed text-gray-700">
+    <%= render @article.partial %>
+  </div>
 
-        <% if (next_article = @article.next_article) %>
-          <%= link_to help_article_path(next_article), class: "lp-tile mt-[44px] p-[20px_22px]" do %>
-            <span class="lp-tile-eyebrow">Next in <%= @article.section %></span>
-            <span class="lp-tile-title text-[20px]"><%= next_article.title %> ›</span>
-            <span class="lp-tile-text"><%= next_article.summary %></span>
-          <% end %>
+  <% if (next_article = @article.next_article) %>
+    <%= link_to help_article_path(next_article), class: "mt-14 block rounded-3xl bg-gray-100 p-8 transition-colors hover:bg-gray-200/70" do %>
+      <p class="text-xs font-semibold tracking-wide text-gray-500 uppercase">Next in <%= @article.section %></p>
+      <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-950"><%= next_article.title %> <span aria-hidden="true">›</span></p>
+      <p class="mt-1 text-gray-600"><%= next_article.summary %></p>
+    <% end %>
+  <% end %>
+
+  <% related = @article.related_articles - [ next_article ] %>
+  <% if related.any? %>
+    <div class="mt-10">
+      <h2 class="text-xs font-semibold tracking-wide text-gray-500 uppercase">Related guides</h2>
+      <ul class="mt-3 space-y-2">
+        <% related.each do |article| %>
+          <li><%= link_to article.title, help_article_path(article), class: "font-medium text-accent-600 hover:underline" %> <span class="text-sm text-gray-500">· <%= article.summary %></span></li>
         <% end %>
-
-        <% related = @article.related_articles - [ next_article ] %>
-        <% if related.any? %>
-          <h2 class="mt-[36px] mx-0 mb-[14px] text-[22px]">Related guides</h2>
-          <div class="lp-tiles">
-            <%= render partial: "help/article_card", collection: related, as: :article, locals: { show_section: false } %>
-          </div>
-        <% end %>
-
-        <p class="lp-fine mt-[48px] pt-[20px] border-t-2 border-(--lp-edge)">
-          Didn’t answer your question? <%= link_to "Chat with us on WhatsApp", whatsapp_support_url("Hello HardPoint, about \"#{@article.title}\": "), target: "_blank", rel: "noopener" %>,
-          or, signed in to your shop, choose <strong>Contact support</strong> under your name in the top right.
-        </p>
-      </div>
+      </ul>
     </div>
-  </article>
-</div>
+  <% end %>
+
+  <div class="mt-14 border-t border-gray-200 pt-6 text-sm text-gray-500">
+    Didn't answer your question? <%= link_to "Chat with us on WhatsApp", whatsapp_support_url("Hello HardPoint, about \"#{@article.title}\": "), class: "link", target: "_blank", rel: "noopener" %>,
+    or, signed in to your shop, choose <strong>Contact support</strong> under your name in the top right.
+  </div>
+ </div>
+</article>

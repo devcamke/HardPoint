@@ -1,54 +1,72 @@
 <%# locals: (plans:) %>
-<%# The plans, from Plan, on the landing and pricing pages. Whole shillings: every plan is a round amount, and
-    "KES 2,500.00" reads like an invoice. The monthly/yearly switch is CSS only (:has on the radios), so it works
-    with nothing loaded. %>
+<%# Whole shillings here: every plan is a round amount, and "KES 2,500.00" reads like an invoice.
+    The monthly/yearly switch is CSS only (group-has on the radios), so it works with nothing loaded.
+    Its class names are written out in full: Tailwind only finds classes it can read in the source. %>
 <% shillings = ->(cents) { "KES #{number_with_delimiter(cents / 100)}" }
-   months_free = 12 - Plan::YEARLY_MONTHS_CHARGED
-   tick = tag.svg(viewBox: "0 0 20 20", aria: { hidden: true }) { tag.path(d: "M3.5 10.5l4 4L16.5 5.5") } %>
+   months_free = 12 - Plan::YEARLY_MONTHS_CHARGED %>
 
-<div class="lp-plans-wrap lp-calm">
-  <fieldset class="lp-billing">
+<div class="group/billing">
+  <fieldset class="mx-auto mb-8 flex w-fit rounded-full border border-gray-200 bg-white p-1 text-sm font-medium">
     <legend class="sr-only">Pay monthly or yearly</legend>
-    <label><input type="radio" name="billing" value="monthly" class="sr-only" checked>Monthly</label>
-    <label><input type="radio" name="billing" value="yearly" class="sr-only">Yearly <span class="lp-free"><%= months_free %> months free</span></label>
+    <% [ [ "monthly", "Monthly", nil ], [ "yearly", "Yearly", "#{months_free} months free" ] ].each do |value, label, note| %>
+      <label class="flex cursor-pointer items-center gap-2 rounded-full px-4 py-1.5 text-gray-600 transition-colors select-none hover:text-gray-900 has-checked:bg-primary-500 has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary-400">
+        <input type="radio" name="billing" value="<%= value %>" class="sr-only" <%= "checked" if value == "monthly" %>><%= label %>
+        <% if note %><span class="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-semibold text-primary-700 group-has-[[value=yearly]:checked]/billing:bg-white/20 group-has-[[value=yearly]:checked]/billing:text-white"><%= note %></span><% end %>
+      </label>
+    <% end %>
   </fieldset>
 
-  <div class="lp-plans">
+  <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
     <% plans.each do |plan| %>
       <% recommended = plan.key == "business" %>
-      <div id="plan_<%= plan.key %>" class="lp-plan <%= "lp-plan-pick" if recommended %>">
-        <% if recommended %><p class="lp-plan-flag">Recommended</p><% end %>
-        <h3><%= plan.name %></h3>
-        <p class="lp-plan-for"><%= plan.blurb %></p>
-        <div class="lp-monthly">
-          <p class="lp-price"><%= shillings.(plan.price_cents) %> <small>/ month</small></p>
-          <p class="lp-price-year">or <%= shillings.(plan.yearly_price_cents) %> a year, <%= months_free %> months free</p>
+      <div id="plan_<%= plan.key %>" class="relative flex flex-col rounded-2xl border bg-white p-6 <%= recommended ? "border-primary-500 shadow-lg shadow-primary-900/10" : "border-gray-200" %>">
+        <% if recommended %>
+          <p class="absolute -top-3 left-6 rounded-full bg-primary-500 px-3 py-0.5 text-xs font-semibold text-white">Recommended</p>
+        <% end %>
+        <h3 class="text-lg font-semibold"><%= plan.name %></h3>
+        <p class="mt-0.5 text-sm text-gray-500"><%= plan.blurb %></p>
+
+        <div class="mt-5 group-has-[[value=yearly]:checked]/billing:hidden">
+          <p><span class="text-3xl font-semibold tracking-tight whitespace-nowrap tabular-nums"><%= shillings.(plan.price_cents) %></span> <span class="text-sm whitespace-nowrap text-gray-500">/ month</span></p>
+          <p class="mt-1 text-sm text-gray-500">or <span class="tabular-nums"><%= shillings.(plan.yearly_price_cents) %></span> a year, <%= months_free %> months free</p>
         </div>
-        <div class="lp-yearly">
-          <p class="lp-price"><%= shillings.(plan.yearly_price_cents) %> <small>/ year</small></p>
-          <p class="lp-price-year"><%= months_free %> months free, and the setup visit is included</p>
+        <div class="mt-5 hidden group-has-[[value=yearly]:checked]/billing:block">
+          <p><span class="text-3xl font-semibold tracking-tight whitespace-nowrap tabular-nums"><%= shillings.(plan.yearly_price_cents) %></span> <span class="text-sm whitespace-nowrap text-gray-500">/ year</span></p>
+          <p class="mt-1 text-sm text-gray-500"><%= months_free %> months free, and the setup visit is included</p>
         </div>
-        <ul>
+
+        <ul class="mt-6 space-y-2.5 text-sm">
           <% Plan::RESOURCES.each do |resource| %>
-            <% limit = plan.limit(resource) %>
-            <li><%= tick %><span><%= limit ? Plan.allowance(limit, resource) : "Unlimited #{Plan::NOUNS[resource].pluralize}" %></span></li>
+            <li class="flex gap-2.5"><%= render "pages/check" %>
+              <% if (limit = plan.limit(resource)) %>
+                <span><strong class="font-semibold tabular-nums"><%= number_with_delimiter(limit) %></strong> <%= Plan::NOUNS[resource].pluralize(limit) %></span>
+              <% else %>
+                <span><strong class="font-semibold">Unlimited</strong> <%= Plan::NOUNS[resource].pluralize %></span>
+              <% end %>
+            </li>
           <% end %>
-          <li><%= tick %><span>Unlimited products</span></li>
-          <% if plan.api? %><li><%= tick %><span>API and webhooks for web shops and other apps</span></li><% end %>
+          <li class="flex gap-2.5"><%= render "pages/check" %><span><strong class="font-semibold">Unlimited</strong> products</span></li>
+          <% if plan.api? %>
+            <li class="flex gap-2.5"><%= render "pages/check" %><span>API and webhooks for web shops and other apps</span></li>
+          <% end %>
         </ul>
         <% if plan.add_ons? %>
-          <p class="lp-price-year mt-[16px]">Need one more? A till is <%= shillings.(plan.add_on_cents(:registers)) %> and a branch <%= shillings.(plan.add_on_cents(:branches)) %> a month.</p>
+          <p class="mt-4 text-sm text-gray-500">Need one more? A till is <%= shillings.(plan.add_on_cents(:registers)) %> and a branch <%= shillings.(plan.add_on_cents(:branches)) %> a month.</p>
         <% end %>
-        <%= link_to "Try #{plan.name} free", new_signup_path(plan: plan.key), class: "lp-btn #{"lp-btn-ghost" unless recommended}" %>
+
+        <div class="mt-auto pt-6"><%= link_to "Start free trial", new_signup_path(plan: plan.key), class: "#{recommended ? "btn-primary" : "btn-secondary"} w-full py-2.5 text-base" %></div>
       </div>
     <% end %>
   </div>
 
-  <div class="lp-includes" aria-label="Every plan includes">
-    <% [ "Every feature", "M-Pesa and Airtel Money", "KRA eTIMS", "The till keeps selling offline", "Tablets, touch screens and phones",
-         "Your data as spreadsheets, any time", "WhatsApp support" ].each do |item| %>
-      <span class="lp-chip"><%= tick %><%= item %></span>
-    <% end %>
+  <div class="mt-6 flex flex-col gap-x-8 gap-y-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm sm:flex-row sm:items-baseline">
+    <p class="shrink-0 font-semibold">Every plan includes</p>
+    <ul class="flex flex-wrap gap-x-5 gap-y-1.5 text-gray-700">
+      <% [ "Every feature", "M-Pesa and Airtel Money", "KRA eTIMS", "The till keeps selling offline", "Tablets, touch screens and phones",
+           "Your data as spreadsheets, any time", "WhatsApp support" ].each do |item| %>
+        <li class="flex items-center gap-1.5"><%= render "pages/check" %><%= item %></li>
+      <% end %>
+    </ul>
   </div>
-  <p class="lp-price-foot">Prices in Kenya shillings, per shop. <%= Plan::TRIAL.inspect.capitalize %> free, no card needed. Pay by M-Pesa or card.</p>
+  <p class="mt-4 text-center text-sm text-gray-500">Prices in Kenya shillings, per shop. <%= Plan::TRIAL.inspect.capitalize %> free, no card needed. Pay by M-Pesa or card.</p>
 </div>
