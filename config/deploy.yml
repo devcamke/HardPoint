@@ -4,13 +4,19 @@ service: hardpoint
 # Name of the container image (use your-user/app-name on external registries).
 image: hardpoint
 
+# The server's address stays out of the repository (it's public). It comes from HARDPOINT_HOST, or from the
+# first line of .kamal/host, which git ignores: echo 203.0.113.10 > .kamal/host
+<% host = ENV["HARDPOINT_HOST"].to_s.strip
+   host = File.read(".kamal/host").lines.first.to_s.strip if host.empty? && File.exist?(".kamal/host")
+   abort "Set HARDPOINT_HOST, or put the server's address in .kamal/host" if host.empty? %>
+
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1 # Your Contabo VPS IP
+    - <%= host %> # A Contabo VPS, shared for now with other apps
   # job:
   #   hosts:
-  #     - 192.168.0.1
+  #     - <%= host %>
   #   cmd: bin/jobs
 
 # Every shop is a subdomain, so the proxy answers for the bare domain and a wildcard.
@@ -63,8 +69,9 @@ env:
     # Set number of processes dedicated to Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
 
-    # One Puma worker per core, 3 threads each (see the connection budget in config/postgres/postgresql.conf).
-    WEB_CONCURRENCY: 6
+    # Two Puma workers, 3 threads each, while the VPS (4 vCPU, 8 GB) is shared with other apps.
+    # On a dedicated Cloud VPS 20, go back to one worker per core (6); see config/postgres/postgresql.conf.
+    WEB_CONCURRENCY: 2
     RAILS_MAX_THREADS: 3
 
     # Match this to any external database server to configure Active Record correctly
@@ -114,9 +121,11 @@ builder:
 accessories:
   db:
     image: postgres:18
-    host: 192.168.0.1 # Same VPS to start with; move to its own server when load demands it.
+    host: <%= host %> # Same VPS to start with; move to its own server when load demands it.
     # Only reachable from the server itself (and the app over the kamal Docker network).
-    port: "127.0.0.1:5432:5432"
+    # Published on 5434 because other apps' databases on this VPS already hold 5432 and 5433;
+    # the app connects to hardpoint-db:5432 over the Docker network, so only host-side tools see 5434.
+    port: "127.0.0.1:5434:5432"
     env:
       clear:
         POSTGRES_USER: postgres

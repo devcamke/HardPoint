@@ -299,6 +299,9 @@ Load testing (k6) is in [perf/README.md](perf/README.md); backups, restores and 
 Kamal deploys to a single Contabo VPS (see `config/deploy.yml`); [docs/RUNBOOK.md](docs/RUNBOOK.md) section 6 covers
 scaling out to separate database, replica, web and job servers with `config/deploy.scaled.yml`.
 
+The server's address isn't in the repository. Put it in `.kamal/host` (git ignores it) or set `HARDPOINT_HOST`
+before running Kamal: `echo 203.0.113.10 > .kamal/host`.
+
 ```sh
 bin/kamal setup    # first time
 bin/kamal deploy

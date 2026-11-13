@@ -36,3 +36,6 @@ perf/loadtest.json
 # Editor tooling the Impeccable design skill installs per machine (Cursor and Grok hooks).
 /.cursor
 /.grok
+
+# The production server's address, read by config/deploy.yml.
+/.kamal/host
