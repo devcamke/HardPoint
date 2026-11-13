@@ -63,8 +63,9 @@
     <%# A film of a real sale, once there is one (MarketingHelper#sale_video), with the walkthrough to click through under it. %>
     <div class="max-h-[75vh] overflow-y-auto p-3 sm:p-5 [&_.walkthrough]:my-0">
       <% if (film = sale_video) %>
-        <%= video_tag film[:src], controls: true, preload: "none", playsinline: true, poster: film[:poster], class: "mb-5 aspect-video w-full rounded-xl bg-gray-950", aria: { label: "A sale at a hardware shop's counter, from the first scan to the receipt" } %>
-        <p class="mb-3 text-sm font-semibold text-gray-950">Or click through it yourself:</p>
+        <%= video_tag film[:src], controls: true, preload: "none", playsinline: true, poster: film[:poster], class: "aspect-video w-full rounded-xl bg-gray-950 ring-1 ring-gray-200", aria: { label: "A sale from the first search to the receipt" } %>
+        <% if film[:recording] %><p class="mt-2 text-sm text-gray-500">Recorded on the real screen, in HardPoint’s demo shop. M-Pesa is simulated there. No sound.</p><% end %>
+        <p class="mt-5 mb-3 text-sm font-semibold text-gray-950">Or click through it yourself:</p>
       <% end %>
       <%= render "help/walkthrough", tour: HelpTour.find("till"), compact: true %>
     </div>

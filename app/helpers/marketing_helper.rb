@@ -30,12 +30,14 @@ module MarketingHelper
     end
   end
 
-  # A film of a real sale at a real counter, for the landing page's "Watch a sale": app/assets/images/marketing/sale.mp4,
-  # with an optional still beside it, sale-poster.jpg. Until the file is there the dialog shows the walkthrough alone.
+  # The film behind the landing page's "Watch a sale": app/assets/images/marketing/sale.mp4, or sale.webm, with an
+  # optional still beside it, sale-poster.jpg. Today it's a screen recording of a sale in the demo shop, made by
+  # script/sale_video.mjs; a film of a real counter saved as sale.mp4 takes its place. With no file the dialog shows
+  # the walkthrough alone.
   def sale_video
     directory = Rails.root.join("app/assets/images/marketing")
-    return unless directory.join("sale.mp4").exist?
-    { src: "marketing/sale.mp4", poster: ("marketing/sale-poster.jpg" if directory.join("sale-poster.jpg").exist?) }
+    file = %w[ sale.mp4 sale.webm ].find { directory.join(_1).exist? } or return
+    { src: "marketing/#{file}", recording: file.end_with?(".webm"), poster: ("marketing/sale-poster.jpg" if directory.join("sale-poster.jpg").exist?) }
   end
 
   def landing_faqs
