@@ -100,3 +100,35 @@ Found by reading the code before the external test, and fixed (Phase 32 in docs/
 | Low | Sessions didn't expire | Sessions end after 14 days unused and 90 days in all; My profile lists every signed-in device with sign-out per device and "everywhere else"; expired sessions are purged nightly |
 | Low | Airtel callbacks weren't limited to Airtel's addresses | Every "paid" callback is confirmed with Airtel's status API before a sale is paid, and `AIRTEL_CALLBACK_IPS` restricts the source addresses when Airtel publishes them |
 | Low | Share links couldn't be revoked, and a statement link showed the period of the day it was opened | Each link is a `DocumentShare` row the shop can take back from the document's page (recorded in Activity); statements are fixed to the period they were sent with; opens are counted |
+
+## Security assessment, November 2026
+
+An internal (self-assessment) penetration test of a running instance, following the brief above. This is
+**not** the external third-party test, which is still to be booked; it is the in-house pass that precedes it.
+
+**Method.** Ran the automated security suite (132 tests: the tenant route sweep, the API-key sweep, RLS
+isolation, security headers and CSP, webhook signatures and tokens, sign-in and approval-PIN rate limits,
+offline-sale tampering, account closure and read-only locks) — all green. Then probed the running app
+by hand: a logged-in shop requesting another shop's record over HTTP, session reuse across subdomains,
+response headers, the admin sign-in, `security.txt`, the direct-upload route, and the database's
+row-level-security behaviour as the app role (this last came out of the restore drill, RUNBOOK §3).
+
+**Confirmed working (no finding):** a demo-shop session requesting another shop's product got `404`, no
+data leaked; a demo-shop cookie on another shop's subdomain is treated as logged-out; the CSP is strict
+(`default-src 'self'`, nonce scripts, `object-src 'none'`, `frame-ancestors 'none'`, `form-action`
+restricted); the Active Storage direct-upload route is closed (`404`); admin sign-in is on its own
+subdomain and demands a password (and two-factor); API keys are stored as SHA-256 digests with a
+read-only scope and idempotency keys; integration secrets are encrypted with Active Record Encryption;
+`force_ssl` and HSTS-with-subdomains are set in production. No SQL-injection sink was found (the raw-SQL
+sites all use bound parameters or app-defined constants; Brakeman is clean). `/health` returning 503 on a
+single-VPS dev box is expected — in production, with the replica resolving to the primary's own host, the
+replica check reports OK.
+
+| Severity | Finding | Status / fix |
+|---|---|---|
+| Medium (defence-in-depth) | The row-level-security safety net can be switched off by the application's **own** database role, so a future SQL-injection would not be confined to one shop. Three ways: `SET app.bypass_rls = 'on'` (an ordinary, non-restricted session GUC); `SELECT set_config('app.bypass_rls','on',false)` (callable inside a plain `SELECT`, so reachable through a stacked/second-statement injection with no DDL); and, because the runtime role `hardpoint` **owns** all 83 tenant tables, `ALTER TABLE … NO FORCE ROW LEVEL SECURITY` / `DISABLE ROW LEVEL SECURITY` / `DROP POLICY account_isolation`. Each turns one-shop exposure into all-shops. Precondition: a SQL-injection or raw-SQL foothold as the app role — **none was found** in this review, so it is not currently exploitable, but it weakens the stated "enforced even for the table owner" guarantee. | **Open.** Recommended: (1) own the schema with a separate role (e.g. `hardpoint_owner`) and grant the runtime role only `SELECT/INSERT/UPDATE/DELETE`, so it can no longer `NO FORCE`/`DISABLE`/`DROP POLICY`; (2) replace the freely-settable `app.bypass_rls` GUC with a privilege-gated bypass (the policy's bypass branch checks membership in a dedicated bypass role; the export/deletion paths `SET ROLE` into it) so an injection cannot grant itself the bypass. Both need migration + restore-script changes and should be verified on PostgreSQL 18. |
+| Low | Browser feature restrictions are sent under the **deprecated `Feature-Policy`** header, not `Permissions-Policy`. The directives in `config/initializers/permissions_policy.rb` (microphone/geolocation/payment/USB/etc. off) are therefore ignored by current browsers, which only read `Permissions-Policy`. The headers test accepts either name, so it did not catch this. CSP and `frame-ancestors` are unaffected and still enforced. | **Open.** Emit a `Permissions-Policy` header (modern syntax, e.g. `geolocation=(), camera=(self)`) and tighten the test to assert that exact header name. |
+
+The two open findings above are defence-in-depth hardening; neither is a directly reachable cross-tenant
+breach in the code as it stands. They should be fixed before the external test, and the external test
+booked regardless (`https://*.hardpoint.app` staging, per the brief).
