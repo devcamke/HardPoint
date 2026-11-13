@@ -8,6 +8,8 @@
     <h1 class="text-5xl font-semibold tracking-tight text-gray-950 text-balance sm:text-6xl">Pricing</h1>
     <p class="mx-auto mt-5 max-w-2xl text-lg text-gray-600 text-balance sm:text-xl">Every plan has every feature and unlimited products. Pick one for the size of your shop,
       and try it free for <%= Plan::TRIAL.inspect %>.</p>
+    <% cheapest = @plans.min_by(&:price_cents) %>
+    <p class="mt-3 font-semibold text-primary-700"><%= cheapest.name %>, at KES <%= number_with_delimiter(cheapest.price_cents / 100) %> a month, is KES <%= number_with_delimiter((cheapest.price_cents / 100 / 30.0).round) %> a day for the whole shop.</p>
   </div>
   <div class="mx-auto max-w-6xl px-4 pb-20 sm:pb-28">
     <%= render "pages/plans", plans: @plans %>
