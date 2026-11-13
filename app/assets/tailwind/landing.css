@@ -131,7 +131,7 @@
 @media (max-width: 960px) { .lp-hero { grid-template-columns: minmax(0, 1fr); gap: 40px; padding-block: 28px 44px; } }
 
 /* The example till in the hero, with "Pull the plug" (offline_demo_controller.js) */
-.lp-stage { position: relative; padding: 132px 0 10px; }
+.lp-stage { position: relative; padding: 36px 0 10px; }
 .lp-till { position: relative; z-index: 1; background: var(--lp-surface); border: 2px solid var(--lp-edge); border-radius: 18px; box-shadow: 10px 10px 0 var(--lp-shadow); max-width: 380px; margin-left: auto; overflow: hidden; }
 .lp-till-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 18px; border-bottom: 2px solid var(--lp-edge); font-size: 14px; }
 .lp-pill { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: var(--lp-teal-soft); color: var(--lp-ok); white-space: nowrap; transition: background-color .25s, color .25s; }
@@ -153,11 +153,11 @@
 
 .lp-note { position: absolute; z-index: 2; font-family: var(--lp-hand); font-weight: 700; font-size: 16px; line-height: 1.15; color: var(--lp-teal); width: 118px; margin: 0; }
 .lp-note svg, .lp-anno svg { position: absolute; overflow: visible; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.lp-note-weigh { left: -6px; top: 200px; transform: rotate(-4deg); }
+.lp-note-weigh { left: -6px; top: 160px; transform: rotate(-4deg); }
 .lp-note-weigh svg { right: -40px; top: 30px; width: 44px; height: 26px; }
 .lp-note-etims { left: -6px; bottom: 96px; transform: rotate(3deg); }
 .lp-note-etims svg { right: -40px; top: -10px; width: 44px; height: 26px; }
-.lp-sticky { position: absolute; z-index: 3; right: -18px; top: 0; width: 150px; padding: 13px 14px 15px; background: var(--lp-sticky); color: var(--lp-sticky-ink); font-family: var(--lp-hand); font-weight: 700; font-size: 16px; line-height: 1.15; transform: rotate(5deg); box-shadow: 0 10px 18px -10px rgb(0 0 0 / 0.45); margin: 0; }
+.lp-sticky { position: absolute; z-index: 3; left: 4px; top: 0; width: 150px; padding: 13px 14px 15px; background: var(--lp-sticky); color: var(--lp-sticky-ink); font-family: var(--lp-hand); font-weight: 700; font-size: 16px; line-height: 1.15; transform: rotate(-4deg); box-shadow: 0 10px 18px -10px rgb(0 0 0 / 0.45); margin: 0; }
 .lp-sticky b { display: block; font-size: 25px; line-height: 1; margin-bottom: 4px; }
 /* Narrower than this, the notes would sit on the till: they go under it, and the sticky note above it. */
 @media (max-width: 1179px) {
