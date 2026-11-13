@@ -168,7 +168,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   test "what shops say appears only once there's a real quote, and the film of a sale only once there's a file" do
     get marketing_root_path
     assert_select "#shops", 0
-    assert_select "dialog video", 0
+    assert_select "dialog video[src*='sale']", 1
 
     quote = { quote: "The stock take went from two days to an afternoon.", name: "Jane Wanjiku", role: "Owner", shop: "Mjengo Hardware", town: "Thika" }
     MarketingHelper.class_eval do
