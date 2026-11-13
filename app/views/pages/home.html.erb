@@ -60,7 +60,12 @@
       </div>
       <button type="button" class="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-2xl leading-none text-gray-500 hover:bg-gray-100 hover:text-gray-900" data-action="dialog#close" aria-label="Close">×</button>
     </div>
-    <div class="p-3 sm:p-5 [&_.walkthrough]:my-0">
+    <%# A film of a real sale, once there is one (MarketingHelper#sale_video), with the walkthrough to click through under it. %>
+    <div class="max-h-[75vh] overflow-y-auto p-3 sm:p-5 [&_.walkthrough]:my-0">
+      <% if (film = sale_video) %>
+        <%= video_tag film[:src], controls: true, preload: "none", playsinline: true, poster: film[:poster], class: "mb-5 aspect-video w-full rounded-xl bg-gray-950", aria: { label: "A sale at a hardware shop's counter, from the first scan to the receipt" } %>
+        <p class="mb-3 text-sm font-semibold text-gray-950">Or click through it yourself:</p>
+      <% end %>
       <%= render "help/walkthrough", tour: HelpTour.find("till"), compact: true %>
     </div>
     <p class="border-t border-gray-200 bg-gray-50 px-5 py-3 text-center text-sm text-gray-600">Liked it? <%= link_to "Start now, it's free", new_signup_path, class: "font-medium text-accent-600 hover:underline" %> · Every screen has a guide like this one in the <%= link_to "help centre", help_path, class: "link" %>.</p>
@@ -572,6 +577,32 @@
       <%= link_to "Data processing terms", data_processing_path, class: "link" %> · <%= link_to "Service level agreement", sla_path, class: "link" %></p>
   </div>
 </section>
+
+<%# What real shops say (config/testimonials.yml). Nothing is drawn until there's a real one to show. %>
+<% if (shops = testimonials).any? %>
+  <section id="shops" class="scroll-mt-20 border-b border-gray-200 bg-gray-50">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+      <div class="mx-auto max-w-3xl text-center">
+        <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">From the counter</p>
+        <h2 class="mt-3 text-4xl font-bold tracking-tight text-gray-950 text-balance sm:text-5xl">Shops already selling on HardPoint.</h2>
+      </div>
+      <div class="mx-auto mt-12 grid gap-5 <%= { 1 => "max-w-2xl", 2 => "max-w-4xl md:grid-cols-2" }.fetch(shops.size, "md:grid-cols-2 lg:grid-cols-3") %>">
+        <% shops.each do |shop| %>
+          <figure class="flex flex-col rounded-3xl border border-gray-200 bg-white p-7">
+            <blockquote class="text-lg text-gray-800 text-pretty">“<%= shop[:quote] %>”</blockquote>
+            <figcaption class="mt-auto flex items-center gap-4 pt-6">
+              <% if shop[:photo] %>
+                <%= image_tag "marketing/shops/#{shop[:photo]}", alt: "", class: "size-12 shrink-0 rounded-full object-cover", loading: "lazy" %>
+              <% end %>
+              <span class="text-sm"><span class="block font-semibold text-gray-950"><%= safe_join([ shop[:name], shop[:role] ].compact_blank, ", ") %></span>
+                <span class="text-gray-600"><%= shop[:shop] %>, <%= shop[:town] %></span></span>
+            </figcaption>
+          </figure>
+        <% end %>
+      </div>
+    </div>
+  </section>
+<% end %>
 
 <section id="pricing" class="scroll-mt-20 bg-white">
   <div class="mx-auto max-w-6xl px-4 py-16 sm:py-20">

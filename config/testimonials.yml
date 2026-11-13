@@ -1,0 +1,12 @@
+# What shop owners say about HardPoint, shown on the landing page above the prices. The section only appears once
+# there's at least one entry here, so the page never shows a made-up quote.
+#
+# Each entry is a real shop that has agreed to be named:
+#
+#   - quote: The stock take went from two days to an afternoon.   # the owner's own words, one or two sentences
+#     name: Jane Wanjiku                                           # who said it
+#     role: Owner                                                  # optional
+#     shop: Mjengo Hardware                                        # the shop's name
+#     town: Thika                                                  # where it is
+#     photo: mjengo.jpg                                            # optional, a file in app/assets/images/marketing/shops/
+[]

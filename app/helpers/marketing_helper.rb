@@ -19,6 +19,25 @@ module MarketingHelper
   end
 
   # The questions a visitor has before clicking Start, for the landing page.
+  # What real shops say, from config/testimonials.yml: quote, name, shop and town, with an optional role and photo.
+  # Entries missing any of the four are left out rather than shown half-filled.
+  def testimonials
+    path = Rails.root.join("config/testimonials.yml")
+    entries = path.exist? ? YAML.safe_load_file(path) : nil
+    Array(entries).filter_map do |entry|
+      entry = entry.to_h.symbolize_keys.slice(:quote, :name, :role, :shop, :town, :photo)
+      entry if entry.values_at(:quote, :name, :shop, :town).all?(&:present?)
+    end
+  end
+
+  # A film of a real sale at a real counter, for the landing page's "Watch a sale": app/assets/images/marketing/sale.mp4,
+  # with an optional still beside it, sale-poster.jpg. Until the file is there the dialog shows the walkthrough alone.
+  def sale_video
+    directory = Rails.root.join("app/assets/images/marketing")
+    return unless directory.join("sale.mp4").exist?
+    { src: "marketing/sale.mp4", poster: ("marketing/sale-poster.jpg" if directory.join("sale-poster.jpg").exist?) }
+  end
+
   def landing_faqs
     wanted = [ "What happens after the free trial?", "Do I need special hardware?", "Can you set the shop up for us?",
                "What if I need one more till or branch?", "Is my shop's data safe?", "Can I take my data with me?" ]
