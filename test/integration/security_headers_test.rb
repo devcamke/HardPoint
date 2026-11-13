@@ -14,7 +14,11 @@ class SecurityHeadersTest < ActionDispatch::IntegrationTest
     nonce = policy[/'nonce-([^']+)'/, 1]
     assert_select "script[type=importmap][nonce=?]", nonce
     assert_select "[onclick]", count: 0
-    assert_match "camera 'self'", response.headers["Permissions-Policy"] || response.headers["Feature-Policy"].to_s
+    # Modern Permissions-Policy header (browsers ignore the deprecated Feature-Policy Rails still emits).
+    permissions = response.headers["Permissions-Policy"].to_s
+    assert_match "camera=(self)", permissions
+    assert_match "microphone=()", permissions
+    assert_match "payment=()", permissions
   end
 
   test "receipts print without inline handlers" do

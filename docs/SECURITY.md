@@ -126,9 +126,31 @@ replica check reports OK.
 
 | Severity | Finding | Status / fix |
 |---|---|---|
-| Medium (defence-in-depth) | The row-level-security safety net can be switched off by the application's **own** database role, so a future SQL-injection would not be confined to one shop. Three ways: `SET app.bypass_rls = 'on'` (an ordinary, non-restricted session GUC); `SELECT set_config('app.bypass_rls','on',false)` (callable inside a plain `SELECT`, so reachable through a stacked/second-statement injection with no DDL); and, because the runtime role `hardpoint` **owns** all 83 tenant tables, `ALTER TABLE … NO FORCE ROW LEVEL SECURITY` / `DISABLE ROW LEVEL SECURITY` / `DROP POLICY account_isolation`. Each turns one-shop exposure into all-shops. Precondition: a SQL-injection or raw-SQL foothold as the app role — **none was found** in this review, so it is not currently exploitable, but it weakens the stated "enforced even for the table owner" guarantee. | **Open.** Recommended: (1) own the schema with a separate role (e.g. `hardpoint_owner`) and grant the runtime role only `SELECT/INSERT/UPDATE/DELETE`, so it can no longer `NO FORCE`/`DISABLE`/`DROP POLICY`; (2) replace the freely-settable `app.bypass_rls` GUC with a privilege-gated bypass (the policy's bypass branch checks membership in a dedicated bypass role; the export/deletion paths `SET ROLE` into it) so an injection cannot grant itself the bypass. Both need migration + restore-script changes and should be verified on PostgreSQL 18. |
-| Low | Browser feature restrictions are sent under the **deprecated `Feature-Policy`** header, not `Permissions-Policy`. The directives in `config/initializers/permissions_policy.rb` (microphone/geolocation/payment/USB/etc. off) are therefore ignored by current browsers, which only read `Permissions-Policy`. The headers test accepts either name, so it did not catch this. CSP and `frame-ancestors` are unaffected and still enforced. | **Open.** Emit a `Permissions-Policy` header (modern syntax, e.g. `geolocation=(), camera=(self)`) and tighten the test to assert that exact header name. |
+| Medium (defence-in-depth) | The row-level-security safety net can be switched off by the application's **own** database role, so a future SQL-injection would not be confined to one shop. Three ways: `SET app.bypass_rls = 'on'` (an ordinary, non-restricted session GUC); `SELECT set_config('app.bypass_rls','on',false)` (callable inside a plain `SELECT`, so reachable through a stacked/second-statement injection with no DDL); and, because the runtime role `hardpoint` **owns** all 83 tenant tables, `ALTER TABLE … NO FORCE ROW LEVEL SECURITY` / `DISABLE ROW LEVEL SECURITY` / `DROP POLICY account_isolation`. Each turns one-shop exposure into all-shops. Precondition: a SQL-injection or raw-SQL foothold as the app role — **none was found** in this review, so it is not currently exploitable, but it weakens the stated "enforced even for the table owner" guarantee. | **Open — fix designed, deliberately not yet applied** (see plan below). Not landed unverified because it is architectural: it changes the database role model and the migration/deploy wiring, and the bypass half has a transactional-consistency trap. It needs the real Kamal/PostgreSQL 18 path and the full suite, plus team review, before merging. |
+| Low | Browser feature restrictions were sent under the **deprecated `Feature-Policy`** header, not `Permissions-Policy`. The directives in `config/initializers/permissions_policy.rb` (microphone/geolocation/payment/USB/etc. off) were therefore ignored by current browsers, which only read `Permissions-Policy`. The headers test accepted either name, so it did not catch this. CSP and `frame-ancestors` were unaffected. | **Fixed (2026-11-13).** `config/initializers/permissions_policy.rb` now also emits a modern `Permissions-Policy` header (e.g. `camera=(self), microphone=(), payment=()`) from the same directive map via a small Rack middleware; the deprecated `Feature-Policy` header is kept for old browsers. `test/integration/security_headers_test.rb` now asserts the `Permissions-Policy` header by name. |
 
-The two open findings above are defence-in-depth hardening; neither is a directly reachable cross-tenant
-breach in the code as it stands. They should be fixed before the external test, and the external test
-booked regardless (`https://*.hardpoint.app` staging, per the brief).
+Both findings are defence-in-depth; neither is a directly reachable cross-tenant breach in the code as it
+stands. The external test should still be booked (`https://*.hardpoint.app` staging, per the brief).
+
+### Remediation plan for the RLS-bypass finding
+
+To be done on a branch, tested on the real PostgreSQL 18 / Kamal path and against the full suite, and
+reviewed before merge — **not** auto-applied, for the reasons in the table.
+
+1. **Privilege split (closes the DDL vector).** Own the schema with a new role `hardpoint_owner` that the
+   runtime role is *not* a member of; grant `hardpoint` only `SELECT/INSERT/UPDATE/DELETE` on all tables
+   and `USAGE` on sequences, with matching `ALTER DEFAULT PRIVILEGES` for future objects. Run migrations
+   as `hardpoint_owner` (not `hardpoint`). Touches `config/postgres/create_app_role.sh`,
+   `.kamal/hooks/pre-deploy` (migrate as the owner), `config/backup/restore.sh` (`OWNER`/`--role`), and
+   `bin/setup`. After this, the runtime role can no longer `NO FORCE` / `DISABLE` / `DROP POLICY`.
+2. **Gated bypass (closes the GUC vector).** Remove the `app.bypass_rls` branch from the `account_isolation`
+   policies (an `ALTER POLICY` over all 83 tables) and route `Account.without_isolation` / the replica
+   propagation in `Account::Isolation` through a dedicated `BYPASSRLS` role instead of a session GUC.
+   **Caveat that makes this non-trivial:** `without_isolation` is used mid-request and inside transactions
+   (e.g. `PlatformHealth`, `ApiKey.authenticate`, cross-account user records). It must keep seeing the
+   current transaction's uncommitted rows, so it cannot simply hop to a second pooled connection. Options
+   to evaluate: `SET LOCAL ROLE hardpoint_bypass` on the *same* connection (requires `hardpoint` to be a
+   member of `hardpoint_bypass`, which re-opens a weaker version of the hole — so pair it with keeping the
+   GUC removed and accept `SET ROLE` as the only lever), or a `SECURITY DEFINER` surface for the few
+   genuinely cross-account reads. Decide with the team; verify isolation tests and the export/deletion and
+   account-closure paths still pass.
