@@ -63,8 +63,10 @@ A flat hex nut with **H.** set into it, next to the wordmark **HardPoint**, rend
 till's Pay button (`#E46F2F`), and the only orange in the mark. The nut is petrol (`#0F5E6E`) with softened corners
 and the H white; on the teal bars (`dark: true`) the nut is white and the H teal. No outline and no shadow. The
 wordmark is Bricolage Grotesque ExtraBold, tightly spaced. Inside the app, a shop without its own logo gets the same
-mark with the H in the shop's theme colour, in `shared/_navigation`. The app icon is the white nut on petrol:
-`public/icon.svg` on a rounded square for browser tabs, and `icon.png` (512 px) on a full square with the nut inside
+mark with the H in the shop's theme colour, in `shared/_navigation`. Browser tabs get the nut on its own,
+with a heavier H so it reads at 16 px (`public/favicon.svg`, white on a dark tab bar, and `favicon.ico`), linked from
+every layout by `shared/_favicon`. The app icon is the white nut on petrol: `public/icon.svg` on a rounded square for
+installed apps, and `icon.png` (512 px) on a full square with the nut inside
 the safe zone, so phones can mask it to their own shape.
 
 ## Components
