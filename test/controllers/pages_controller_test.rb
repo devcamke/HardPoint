@@ -165,6 +165,24 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#nots-title + ul li", 4
   end
 
+  test "what shops say appears only once there's a real quote, and the film of a sale only once there's a file" do
+    get marketing_root_path
+    assert_select "#shops", 0
+    assert_select "dialog video", 0
+
+    quote = { quote: "The stock take went from two days to an afternoon.", name: "Jane Wanjiku", role: "Owner", shop: "Mjengo Hardware", town: "Thika" }
+    MarketingHelper.class_eval do
+      alias_method :real_testimonials, :testimonials
+      define_method(:testimonials) { [ quote ] }
+    end
+    get marketing_root_path
+    assert_select "#shops figure", 1
+    assert_select "#shops blockquote", /two days to an afternoon/
+    assert_select "#shops figcaption", /Jane Wanjiku, Owner\s+Mjengo Hardware, Thika/
+  ensure
+    MarketingHelper.class_eval { alias_method :testimonials, :real_testimonials if method_defined?(:real_testimonials) }
+  end
+
   test "the landing page says how to switch, puts the price in a day's terms and keeps WhatsApp one tap away" do
     get marketing_root_path
     assert_select "#switching a[href=?]", help_article_path("importing-products")
