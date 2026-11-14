@@ -100,3 +100,57 @@ Found by reading the code before the external test, and fixed (Phase 32 in docs/
 | Low | Sessions didn't expire | Sessions end after 14 days unused and 90 days in all; My profile lists every signed-in device with sign-out per device and "everywhere else"; expired sessions are purged nightly |
 | Low | Airtel callbacks weren't limited to Airtel's addresses | Every "paid" callback is confirmed with Airtel's status API before a sale is paid, and `AIRTEL_CALLBACK_IPS` restricts the source addresses when Airtel publishes them |
 | Low | Share links couldn't be revoked, and a statement link showed the period of the day it was opened | Each link is a `DocumentShare` row the shop can take back from the document's page (recorded in Activity); statements are fixed to the period they were sent with; opens are counted |
+
+## Security assessment, November 2026
+
+An internal (self-assessment) penetration test of a running instance, following the brief above. This is
+**not** the external third-party test, which is still to be booked; it is the in-house pass that precedes it.
+
+**Method.** Ran the automated security suite (132 tests: the tenant route sweep, the API-key sweep, RLS
+isolation, security headers and CSP, webhook signatures and tokens, sign-in and approval-PIN rate limits,
+offline-sale tampering, account closure and read-only locks) — all green. Then probed the running app
+by hand: a logged-in shop requesting another shop's record over HTTP, session reuse across subdomains,
+response headers, the admin sign-in, `security.txt`, the direct-upload route, and the database's
+row-level-security behaviour as the app role (this last came out of the restore drill, RUNBOOK §3).
+
+**Confirmed working (no finding):** a demo-shop session requesting another shop's product got `404`, no
+data leaked; a demo-shop cookie on another shop's subdomain is treated as logged-out; the CSP is strict
+(`default-src 'self'`, nonce scripts, `object-src 'none'`, `frame-ancestors 'none'`, `form-action`
+restricted); the Active Storage direct-upload route is closed (`404`); admin sign-in is on its own
+subdomain and demands a password (and two-factor); API keys are stored as SHA-256 digests with a
+read-only scope and idempotency keys; integration secrets are encrypted with Active Record Encryption;
+`force_ssl` and HSTS-with-subdomains are set in production. No SQL-injection sink was found (the raw-SQL
+sites all use bound parameters or app-defined constants; Brakeman is clean). `/health` returning 503 on a
+single-VPS dev box is expected — in production, with the replica resolving to the primary's own host, the
+replica check reports OK.
+
+| Severity | Finding | Status / fix |
+|---|---|---|
+| Medium (defence-in-depth) | The row-level-security safety net can be switched off by the application's **own** database role, so a future SQL-injection would not be confined to one shop. Three ways: `SET app.bypass_rls = 'on'` (an ordinary, non-restricted session GUC); `SELECT set_config('app.bypass_rls','on',false)` (callable inside a plain `SELECT`, so reachable through a stacked/second-statement injection with no DDL); and, because the runtime role `hardpoint` **owns** all 83 tenant tables, `ALTER TABLE … NO FORCE ROW LEVEL SECURITY` / `DISABLE ROW LEVEL SECURITY` / `DROP POLICY account_isolation`. Each turns one-shop exposure into all-shops. Precondition: a SQL-injection or raw-SQL foothold as the app role — **none was found** in this review, so it is not currently exploitable, but it weakens the stated "enforced even for the table owner" guarantee. | **Open — fix designed, deliberately not yet applied** (see plan below). Not landed unverified because it is architectural: it changes the database role model and the migration/deploy wiring, and the bypass half has a transactional-consistency trap. It needs the real Kamal/PostgreSQL 18 path and the full suite, plus team review, before merging. **Guarded in the meantime (2026-11-14):** `test/models/account/isolation_test.rb` already fails CI if the app role gains superuser/BYPASSRLS or any tenant table loses `FORCE ROW LEVEL SECURITY`; a new test now also fails if any tenant table loses its `account_isolation` policy — so the current protections can't be weakened unnoticed before the architectural fix lands. |
+| Low | Browser feature restrictions were sent under the **deprecated `Feature-Policy`** header, not `Permissions-Policy`. The directives in `config/initializers/permissions_policy.rb` (microphone/geolocation/payment/USB/etc. off) were therefore ignored by current browsers, which only read `Permissions-Policy`. The headers test accepted either name, so it did not catch this. CSP and `frame-ancestors` were unaffected. | **Fixed (2026-11-13).** `config/initializers/permissions_policy.rb` now also emits a modern `Permissions-Policy` header (e.g. `camera=(self), microphone=(), payment=()`) from the same directive map via a small Rack middleware; the deprecated `Feature-Policy` header is kept for old browsers. `test/integration/security_headers_test.rb` now asserts the `Permissions-Policy` header by name. |
+
+Both findings are defence-in-depth; neither is a directly reachable cross-tenant breach in the code as it
+stands. The external test should still be booked (`https://*.hardpoint.app` staging, per the brief).
+
+### Remediation plan for the RLS-bypass finding
+
+To be done on a branch, tested on the real PostgreSQL 18 / Kamal path and against the full suite, and
+reviewed before merge — **not** auto-applied, for the reasons in the table.
+
+1. **Privilege split (closes the DDL vector).** Own the schema with a new role `hardpoint_owner` that the
+   runtime role is *not* a member of; grant `hardpoint` only `SELECT/INSERT/UPDATE/DELETE` on all tables
+   and `USAGE` on sequences, with matching `ALTER DEFAULT PRIVILEGES` for future objects. Run migrations
+   as `hardpoint_owner` (not `hardpoint`). Touches `config/postgres/create_app_role.sh`,
+   `.kamal/hooks/pre-deploy` (migrate as the owner), `config/backup/restore.sh` (`OWNER`/`--role`), and
+   `bin/setup`. After this, the runtime role can no longer `NO FORCE` / `DISABLE` / `DROP POLICY`.
+2. **Gated bypass (closes the GUC vector).** Remove the `app.bypass_rls` branch from the `account_isolation`
+   policies (an `ALTER POLICY` over all 83 tables) and route `Account.without_isolation` / the replica
+   propagation in `Account::Isolation` through a dedicated `BYPASSRLS` role instead of a session GUC.
+   **Caveat that makes this non-trivial:** `without_isolation` is used mid-request and inside transactions
+   (e.g. `PlatformHealth`, `ApiKey.authenticate`, cross-account user records). It must keep seeing the
+   current transaction's uncommitted rows, so it cannot simply hop to a second pooled connection. Options
+   to evaluate: `SET LOCAL ROLE hardpoint_bypass` on the *same* connection (requires `hardpoint` to be a
+   member of `hardpoint_bypass`, which re-opens a weaker version of the hole — so pair it with keeping the
+   GUC removed and accept `SET ROLE` as the only lever), or a `SECURITY DEFINER` surface for the few
+   genuinely cross-account reads. Decide with the team; verify isolation tests and the export/deletion and
+   account-closure paths still pass.

@@ -164,6 +164,7 @@ Without one:
 | Date | Where | Backup | Restore | Checks |
 |---|---|---|---|---|
 | 2026-09-24 | Local container, PostgreSQL 16, 25 MB database | 0.4 s | 0.9 s | Row counts of all 66 tables identical; RLS enabled and forced on 56 tables with 56 policies; all tables owned by the app role; 273 indexes; as the app role one shop sees its 310 sales and no shop sees none; the app boots against the copy and runs reports |
+| 2026-11-13 | Local container, PostgreSQL 16, seed database (1.1 MB dump), `backup.sh db` → `restore.sh TARGET_SUFFIX=_drill` | 0.48 s | 1.03 s | Checksum verified; row counts of all 95 tables identical; RLS enabled and forced on all 83 tenant tables with 83 policies; all 95 tables owned by the app role; 417 indexes match; as the app role the demo shop sees its 315 sales and 0 belonging to other shops, and 0 with no `app.current_account_id` set (fail-closed). Dump-path drill (`restore.sh`); the WAL/base `restore_pitr.sh` path needs the Kamal `hardpoint-db` container and the off-site bucket and is still to be run on the real server |
 
 Restoring grows roughly with the database size (about a minute per gigabyte on NVMe is a fair first
 guess); time it on the real server at the first drill and adjust the RTO if needed.
