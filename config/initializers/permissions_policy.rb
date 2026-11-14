@@ -18,7 +18,7 @@ module PermissionsPolicy
     microphone:    :none,
     payment:       :none,
     serial:        :self,
-    usb:           :none,
+    usb:           :none
   }.freeze
 
   # Permissions-Policy syntax: `feature=(self)` or `feature=()` (empty allowlist = off).

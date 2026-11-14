@@ -22,7 +22,7 @@ class Api::V1::OrdersController < Api::V1::BaseController
 
   private
     def order_params
-      params.expect(order: [ :branch_id, :customer_id, :needed_by, :note, customer: %i[ name phone email ], lines: [ %i[ product_id sku barcode quantity ] ] ])
+      params.expect(order: [ :branch_id, :customer_id, :needed_by, :note, customer: %i[ name phone email ], lines: [ %i[ product_id sku barcode quantity cut_length ] ] ])
     end
 
     def branch
@@ -43,7 +43,7 @@ class Api::V1::OrdersController < Api::V1::BaseController
     def lines_attributes
       Array(order_params[:lines]).map do |line|
         product = Current.account.products.find_by(id: line[:product_id]) if line[:product_id].present?
-        { account: Current.account, product_code: product&.sku || line[:barcode].presence || line[:sku], quantity: line[:quantity] }
+        { account: Current.account, product_code: product&.sku || line[:barcode].presence || line[:sku], quantity: line[:quantity], cut_length: line[:cut_length] }
       end
     end
 end

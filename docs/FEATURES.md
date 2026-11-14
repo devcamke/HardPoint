@@ -776,7 +776,8 @@ help centre.
   lengths and offcuts). The till then asks for pieces and a length each, shows the full lengths and offcuts on the rack,
   refuses a piece longer than anything there, and lists what to cut each piece from once the sale is paid. Offcuts are
   kept per branch on the product's page (add, scrap, take off the list); a remainder under the product's scrap length
-  is written off as cutting waste. And a till with a weighing scale on its serial port has a **Weigh** button for
+  is written off as cutting waste. Quotes and orders say how a line is cut, the offline till asks the same way, transfers
+  carry offcuts with them, and product spreadsheets have the length a product comes in. And a till with a weighing scale on its serial port has a **Weigh** button for
   anything sold by the kilogram or gram (Settings › Tills; Chrome or Edge).
 
 Also since then: a refreshed app menu (the shop's logo and name, bigger text, and the areas along the bottom on

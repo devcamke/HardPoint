@@ -133,4 +133,23 @@ class CuttingAndWeighingTest < ActionDispatch::IntegrationTest
     post pos_lines_path, params: { code: "nail-3" }, as: :turbo_stream
     assert_select "button[data-action='scale#read']", count: 0
   end
+
+  test "the quote form takes how a line is cut, and the quote shows it" do
+    sign_in_as users(:amina)
+    get new_customer_order_path
+    assert_select "th", "Cut into pieces of"
+
+    post customer_orders_path, params: { customer_order: { customer_id: customers(:acme_contractor).id, branch_id: branches(:acme_main).id,
+      lines_attributes: { "0" => { product_code: "Y12", quantity: "10", cut_length: "2.5" } } } }
+    order = acme { accounts(:acme).customer_orders.order(:id).last }
+    assert_redirected_to order
+    follow_redirect!
+    assert_select "td", /Y12 steel bar · 4 × 2.5 m/
+  end
+
+  test "the offline till's page loads with cut lengths in its catalogue" do
+    at_the_till
+    get pos_catalogue_path, as: :json
+    assert_equal 6.0, response.parsed_body["products"].find { _1["sku"] == "Y12" }["stock_length"]
+  end
 end

@@ -1012,7 +1012,8 @@ CREATE TABLE public.customer_order_lines (
     updated_at timestamp(6) without time zone NOT NULL,
     detail character varying,
     promotion_id bigint,
-    collected_quantity numeric(14,3) DEFAULT 0.0 NOT NULL
+    collected_quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
+    cut_length numeric(12,3)
 );
 
 ALTER TABLE ONLY public.customer_order_lines FORCE ROW LEVEL SECURITY;
@@ -3266,7 +3267,8 @@ CREATE TABLE public.stock_transfer_lines (
     quantity numeric(14,3) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    received_quantity numeric(14,3)
+    received_quantity numeric(14,3),
+    offcut_lengths numeric(12,3)[] DEFAULT '{}'::numeric[] NOT NULL
 );
 
 ALTER TABLE ONLY public.stock_transfer_lines FORCE ROW LEVEL SECURITY;
@@ -10875,6 +10877,7 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261114110000'),
 ('20261114100000'),
 ('20261113120000'),
 ('20261113090000'),

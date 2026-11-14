@@ -58,7 +58,7 @@ class StockTransfer < ApplicationRecord
       lines.each do |line|
         line.save!
         arriving = self.shortfall == "lost" ? line.quantity : line.received_quantity
-        line.product.move_stock(branch: to_branch, quantity: arriving, reason: "transfer_in", source: self, creator: user, reverses: { taken_by: self }) if arriving.positive?
+        line.product.move_stock(branch: to_branch, quantity: arriving, reason: "transfer_in", source: self, creator: user, reverses: { taken_by: self }, pieces: line.offcut_lengths.presence) if arriving.positive?
         next unless line.short_quantity.positive?
 
         if self.shortfall == "lost"
@@ -88,7 +88,7 @@ class StockTransfer < ApplicationRecord
     with_lock do
       return false unless in_transit?
 
-      lines.each { |line| line.product.move_stock(branch: from_branch, quantity: line.quantity, reason: "transfer_returned", source: self, creator: user, reverses: { taken_by: self }) }
+      lines.each { |line| line.product.move_stock(branch: from_branch, quantity: line.quantity, reason: "transfer_returned", source: self, creator: user, reverses: { taken_by: self }, pieces: line.offcut_lengths.presence) }
       update! status: :cancelled
       track_event "cancelled"
     end
@@ -113,7 +113,13 @@ class StockTransfer < ApplicationRecord
     end
 
     def send_stock
-      lines.each { |line| line.product.move_stock(branch: from_branch, quantity: -line.quantity, reason: "transfer_out", source: self, creator: sender) }
+      lines.each do |line|
+        # Offcuts that no longer fit in what's left have gone on the lorry: the line remembers them, to list where they arrive.
+        before = line.product.cut_to_length? ? line.product.offcuts.where(branch: from_branch).pluck(:length) : []
+        line.product.move_stock(branch: from_branch, quantity: -line.quantity, reason: "transfer_out", source: self, creator: sender)
+        gone = before.any? ? before.tally.merge(line.product.offcuts.where(branch: from_branch).pluck(:length).tally) { |_, was, is| was - is }.flat_map { |length, count| [ length ] * count } : []
+        line.update_columns(offcut_lengths: gone.sort) if gone.any?
+      end
       track_event "sent"
     end
 end

@@ -37,11 +37,21 @@
 </ul>
 <p>Cutting waste appears in the stock history and in the profit and loss report with the other stock write-offs.</p>
 
-<h2>Returns, transfers and stock takes</h2>
-<p>A cut piece that comes back (a return, or a sale voided) goes on the rack as an offcut of the length it was cut to. Transfers and
-  stock takes work in metres as before; if they leave less stock than the offcuts add up to, the shortest offcuts are dropped from the
-  list.</p>
+<h2>Quotes and orders</h2>
+<p>On a quote or order, enter the total as the quantity and the length of each piece under <strong>Cut into pieces of</strong>: 7.5 cut
+  into pieces of 2.5 is three pieces. The quote shows "3 × 2.5 m", and when the order is collected it arrives at the till cut that way.
+  Leave it blank to sell by the metre.</p>
 
-<h2>What doesn't know about cuts yet</h2>
-<p>The offline till, quotes and orders, and the online store sell these products by the metre without asking how they're cut. Their
-  sales are taken as full lengths and one last piece.</p>
+<h2>When the internet is down</h2>
+<p>The offline till asks for pieces and a length in the same way, and sends the cut with the sale when it's back online. It can't
+  see the rack, so it doesn't check that a piece is long enough; the sale is recorded as rung up.</p>
+
+<h2>Returns, transfers and stock takes</h2>
+<p>A cut piece that comes back (a return, or a sale voided) goes on the rack as an offcut of the length it was cut to. A transfer
+  sends full lengths first; offcuts that no longer fit in what's left behind go with it and are listed at the branch that receives
+  them. Stock takes work in metres as before; if a count leaves less stock than the offcuts add up to, the shortest offcuts are
+  dropped from the list.</p>
+
+<h2>Spreadsheets and the online store</h2>
+<p>The product spreadsheet has <strong>stock_length</strong> and <strong>scrap_below</strong> columns, so a whole steel list can be set up
+  by import. The online store sells these products by the metre; set the cut on the order when the customer says how they want it.</p>

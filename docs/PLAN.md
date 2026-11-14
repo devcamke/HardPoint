@@ -1021,9 +1021,17 @@ nails are weighed, not typed.
   quantity popup and beside a line's quantity, reads it over Web Serial (`app/javascript/scale`: a parser and settling
   rule tested in Node, and a reader that opens the port for each reading) and fills in kilograms or grams. The
   Permissions-Policy header allows `serial` for the shop's own pages only.
-- **Later:** cut lengths on quotes, orders and the offline till (they sell by the metre and are taken as full lengths
-  and a remainder); offcuts moving with a transfer; products imported with their stock length; scales proven on real
-  hardware, and ones that speak only a binary protocol.
+- **Quotes, orders and the offline till** take the cut too. A quote's line says what to cut it into ("7.5 cut into
+  pieces of 2.5") and arrives at the till cut that way (`CutLine`, shared by sale and order lines); the API reads and
+  writes `cut_length` on order lines and reads it on sale lines, and a product's `stock_length`. The offline till has
+  the same pieces × length boxes from the snapshot's `stock_length` and sends the cut with the sale; a cut that no
+  longer makes sense when it arrives is sold by the metre rather than refused.
+- **Transfers** carry the offcuts that no longer fit in what's left behind: the transfer's line remembers their
+  lengths and they're listed again where it's received, or back at the sender if it's cancelled.
+- **Product spreadsheets** have `stock_length` and `scrap_below` columns, in the export and (optionally) the import.
+- **Later:** the online store sells by the metre (staff set the cut on the order); a product can't be both cut to
+  length and tracked by batch or serial number; scales proven on real hardware, and ones that speak only a binary
+  protocol.
 
 ### Roadmap from here
 

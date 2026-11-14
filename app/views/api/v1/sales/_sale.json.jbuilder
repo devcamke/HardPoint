@@ -7,6 +7,7 @@ json.lines sale.lines do |line|
   json.sku line.product.sku
   json.description line.description
   json.quantity line.quantity.to_s("F")
+  json.cut_length line.cut_length&.to_s("F")
   json.tax_rate line.tax_rate.to_s("F")
   json.extract! line, :unit_price_cents, :discount_cents, :promotion_id, :promotion_discount_cents, :total_cents, :tax_cents, :serial_number
 end

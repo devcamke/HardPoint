@@ -1,7 +1,7 @@
 # The product spreadsheet format, shared by export and import so a shop can export, edit in
 # Excel or Google Sheets, and import again.
 class ProductCsv
-  HEADERS = %w[ sku name barcode category brand unit price cost tax_rate reorder_level stock active ].freeze
+  HEADERS = %w[ sku name barcode category brand unit price cost tax_rate reorder_level stock active stock_length scrap_below ].freeze
 
   def initialize(products, branch:, include_costs: true)
     @products, @branch, @include_costs = products, branch, include_costs
@@ -21,7 +21,8 @@ class ProductCsv
     def row_for(product, stock)
       [ product.sku, product.name, product.primary_barcode, product.category&.name, product.brand&.name, product.unit.name,
         format_money(product.price_cents), (format_money(product.cost_cents) if @include_costs), product.tax_rate&.name,
-        format_quantity(product.reorder_level), (format_quantity(stock || 0) if product.track_stock?), product.active? ? "yes" : "no" ]
+        format_quantity(product.reorder_level), (format_quantity(stock || 0) if product.track_stock?), product.active? ? "yes" : "no",
+        (format_quantity(product.stock_length) if product.stock_length), (format_quantity(product.scrap_below) if product.cut_to_length? && product.scrap_below.positive?) ]
     end
 
     def format_money(cents)

@@ -1383,13 +1383,21 @@ The product's page has **Lengths and offcuts**: for each branch, how many full l
 
 Cutting waste appears in the stock history and in the profit and loss report with the other stock write-offs.
 
+#### Quotes and orders
+
+On a quote or order, enter the total as the quantity and the length of each piece under **Cut into pieces of**: 7.5 cut into pieces of 2.5 is three pieces. The quote shows "3 × 2.5 m", and when the order is collected it arrives at the till cut that way. Leave it blank to sell by the metre.
+
+#### When the internet is down
+
+The offline till asks for pieces and a length in the same way, and sends the cut with the sale when it's back online. It can't see the rack, so it doesn't check that a piece is long enough; the sale is recorded as rung up.
+
 #### Returns, transfers and stock takes
 
-A cut piece that comes back (a return, or a sale voided) goes on the rack as an offcut of the length it was cut to. Transfers and stock takes work in metres as before; if they leave less stock than the offcuts add up to, the shortest offcuts are dropped from the list.
+A cut piece that comes back (a return, or a sale voided) goes on the rack as an offcut of the length it was cut to. A transfer sends full lengths first; offcuts that no longer fit in what's left behind go with it and are listed at the branch that receives them. Stock takes work in metres as before; if a count leaves less stock than the offcuts add up to, the shortest offcuts are dropped from the list.
 
-#### What doesn't know about cuts yet
+#### Spreadsheets and the online store
 
-The offline till, quotes and orders, and the online store sell these products by the metre without asking how they're cut. Their sales are taken as full lengths and one last piece.
+The product spreadsheet has **stock_length** and **scrap_below** columns, so a whole steel list can be set up by import. The online store sells these products by the metre; set the cut on the order when the customer says how they want it.
 
 <a id="supplier-returns"></a>
 

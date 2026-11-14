@@ -182,4 +182,101 @@ class Product::CuttingTest < ActiveSupport::TestCase
     assert_match "A product is sold cut from lengths", account.errors.full_messages.to_sentence
     assert_includes account.features_in_use, "cutting"
   end
+
+  test "a quote says how it's cut, and the order arrives at the till cut the same way" do
+    order = accounts(:acme).customer_orders.create!(branch: @main, customer: customers(:acme_contractor),
+      lines_attributes: [ { account: accounts(:acme), product_code: "Y12", quantity: 7.5, cut_length: 2.5 } ])
+    assert_equal "Y12 steel bar · 3 × 2.5 m", order.lines.sole.description
+
+    bad = accounts(:acme).customer_orders.new(branch: @main, customer: customers(:acme_contractor),
+      lines_attributes: [ { account: accounts(:acme), product_code: "Y12", quantity: 7, cut_length: 2.5 } ])
+    assert_not bad.valid?
+    assert_match "7 m of Y12 steel bar isn't a whole number of 2.5 m pieces", bad.errors.full_messages.to_sentence
+
+    assert order.confirm
+    assert order.load_into(@sale)
+    line = @sale.reload.lines.sole
+    assert_equal [ 7.5, 2.5, 3 ], [ line.quantity.to_f, line.cut_length.to_f, line.pieces ]
+
+    @sale.pay(tender: "cash", tendered_cents: 200_000)
+    assert @sale.reload.completed?
+    assert_equal [ 3, 0.0, [ 1.0, 3.5 ] ], rack
+    assert order.reload.collected?
+  end
+
+  test "an offline till's sale keeps how it was cut; a cut that makes no sense is sold by the metre" do
+    sale = lambda do |quantity, cut_length|
+      Sale.record_offline({ uuid: SecureRandom.uuid, receipt_number: "MAIN-OFF1-0001", happened_at: 2.minutes.ago.iso8601, shift_id: shifts(:acme_front_open).id,
+        cashier_id: users(:amina).id, total_cents: (quantity * 20000).to_i, payments: [ { tender: "cash", tendered_cents: 500_000 } ],
+        lines: [ { product_id: @bar.id, quantity: quantity.to_s, cut_length: cut_length&.to_s, unit_price_cents: 20000 } ] }, register: registers(:acme_front))
+    end
+
+    result = sale.(5, 2.5)
+    assert_equal "recorded", result.status
+    assert_equal [ 2, 2.5 ], result.sale.lines.sole.then { [ _1.pieces, _1.cut_length.to_f ] }
+    assert_equal [ 4, 0.0, [ 1.0 ] ], rack
+
+    assert_nil sale.(5, 9).sale.lines.sole.cut_length, "longer than it comes"
+    assert_nil sale.(5, 2).sale.lines.sole.cut_length, "not a whole number of pieces"
+    assert_equal 15, @bar.stock_at(@main)
+  end
+
+  test "the offline catalogue says what length a product comes in" do
+    catalogue = PosCatalogue.new(shift: shifts(:acme_front_open), user: users(:amina)).as_json
+    assert_equal 6.0, catalogue[:products].find { _1[:sku] == "Y12" }[:stock_length]
+    assert_nil catalogue[:products].find { _1[:sku] == "CEM-50" }[:stock_length]
+  end
+
+  test "offcuts that no longer fit travel with a transfer, and are listed where it arrives or comes back" do
+    sell 2
+    sell 4.5
+    assert_equal [ 1.5, 4.0 ], offcuts
+
+    transfer = accounts(:acme).stock_transfers.create!(from_branch: @main, to_branch: @yard, lines_attributes: [ { product_code: "Y12", quantity: 22 } ])
+    assert_equal 1.5, @bar.stock_at(@main).to_f
+
+    gone = transfer.lines.sole.offcut_lengths.map(&:to_f)
+    assert_equal [ 1.5, 4.0 ] - offcuts, gone
+    assert gone.any?
+
+    assert transfer.receive
+    assert_equal gone, offcuts(@yard)
+    assert_equal 22, @bar.stock_at(@yard)
+  end
+
+  test "a cancelled transfer puts its offcuts back" do
+    sell 2
+    transfer = accounts(:acme).stock_transfers.create!(from_branch: @main, to_branch: @yard, lines_attributes: [ { product_code: "Y12", quantity: 26 } ])
+    assert_empty offcuts
+    assert transfer.cancel
+    assert_equal [ 4.0 ], offcuts
+    assert_equal 28, @bar.stock_at(@main)
+  end
+
+  test "products are imported and exported with the length they come in" do
+    result = accounts(:acme).product_imports.create!(branch: @main, filename: "steel.csv", csv: <<~CSV).tap(&:check)
+      sku,name,price,unit,stock_length,scrap_below
+      Y16,Y16 steel bar,300,Metre,12,0.5
+      Y12,Y12 steel bar,200,Metre,5.8,
+      BAD-1,Hinge,150,Piece,6,
+      BAD-2,Flat bar,150,Metre,6,7
+    CSV
+    problems = result.problems.to_h { [ _1["line"], _1["messages"].to_sentence ] }
+    assert_match "stock_length is for products sold by a measured unit", problems[4]
+    assert_match "scrap_below must be shorter than stock_length", problems[5]
+
+    result = accounts(:acme).product_imports.create!(branch: @main, filename: "steel.csv", csv: <<~CSV).tap(&:check)
+      sku,name,price,unit,stock_length,scrap_below
+      Y16,Y16 steel bar,300,Metre,12,0.5
+      Y12,Y12 steel bar,200,Metre,5.8,
+    CSV
+    assert result.ready?, result.problems.inspect
+    result.update!(status: :importing)
+    result.run
+    assert_equal [ 12, 0.5 ], accounts(:acme).products.find_by!(sku: "Y16").then { [ _1.stock_length.to_f, _1.scrap_below.to_f ] }
+    assert_equal [ 5.8, 0 ], @bar.reload.then { [ _1.stock_length.to_f, _1.scrap_below.to_f ] }
+
+    csv = CSV.parse(ProductCsv.new(accounts(:acme).products.where(sku: "Y16"), branch: @main).to_csv, headers: true)
+    assert_equal [ "12", "0.5" ], csv.first.values_at("stock_length", "scrap_below")
+  end
 end

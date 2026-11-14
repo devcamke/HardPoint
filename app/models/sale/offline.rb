@@ -63,6 +63,13 @@ module Sale::Offline
         Rails.error.report(failure, handled: true, context: { offline_uuid: uuid })
       end
 
+      # How the till said the line was cut, when that makes sense for the product as it is now; otherwise the sale
+      # still records, as full lengths and a last piece.
+      def offline_cut_length(product, line)
+        length = line["cut_length"].to_s.to_d
+        length if product.cut_to_length? && line["product_unit_id"].blank? && length.positive? && length <= product.stock_length && (line["quantity"].to_s.to_d % length).zero?
+      end
+
       def build_offline(data, register:)
         account = Current.account
         shift = (register ? account.shifts.where(register: register) : account.shifts).find_by(id: data["shift_id"])
@@ -98,7 +105,7 @@ module Sale::Offline
           raise ArgumentError, "A price can't be negative" if line["unit_price_cents"].to_i.negative? || line["promotion_discount_cents"].to_i.negative?
           product = account.products.find(line["product_id"])
           sale.lines.create!(account: account, product: product, product_unit: (product.product_units.find(line["product_unit_id"]) if line["product_unit_id"].present?),
-            quantity: line["quantity"], unit_price_cents: line["unit_price_cents"].to_i, discount_cents: 0,
+            quantity: line["quantity"], cut_length: offline_cut_length(product, line), unit_price_cents: line["unit_price_cents"].to_i, discount_cents: 0,
             promotion: (account.promotions.find_by(id: line["promotion_id"]) if line["promotion_id"].present?),
             promotion_discount_cents: line["promotion_id"].present? ? line["promotion_discount_cents"].to_i : 0,
             serial_number: line["serial_number"].presence)

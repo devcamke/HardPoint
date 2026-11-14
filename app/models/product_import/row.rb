@@ -27,6 +27,12 @@ class ProductImport::Row
       tax_rate = lookup(:tax_rate, @lookups.tax_rates)
       reorder_level = decimal(:reorder_level) || 0
       @stock = decimal(:stock)
+      # Sold cut from lengths (Product::CutToLength): how long it comes, and the shortest offcut worth keeping.
+      stock_length = decimal(:stock_length)
+      scrap_below = decimal(:scrap_below) || 0
+      problems << "stock_length must be more than nothing" if stock_length && !stock_length.positive?
+      problems << "stock_length is for products sold by a measured unit; #{unit.name.downcase.pluralize} are whole" if stock_length && unit && !unit.fractional?
+      problems << "scrap_below must be shorter than stock_length" if scrap_below.negative? || (stock_length&.positive? && scrap_below >= stock_length)
       @category_name = value(:category).presence
       @brand_name = value(:brand).presence
       @barcode = value(:barcode).presence&.delete(" ")
@@ -35,7 +41,8 @@ class ProductImport::Row
       problems << "stock can't be negative" if @stock&.negative?
 
       @attributes = { sku: value(:sku).presence&.upcase, name: name&.squish, price_cents: price, cost_cents: cost || 0,
-                      unit_id: unit&.id, tax_rate_id: tax_rate&.id, reorder_level: reorder_level, active: active? }
+                      unit_id: unit&.id, tax_rate_id: tax_rate&.id, reorder_level: reorder_level, active: active?,
+                      stock_length: stock_length, scrap_below: stock_length ? scrap_below : 0 }
     end
 
     def value(column)

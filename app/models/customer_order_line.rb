@@ -1,5 +1,5 @@
 class CustomerOrderLine < ApplicationRecord
-  include AccountOwned, Monetary
+  include AccountOwned, Monetary, CutLine
 
   belongs_to :customer_order, inverse_of: :lines
   belongs_to :product
@@ -30,7 +30,7 @@ class CustomerOrderLine < ApplicationRecord
 
   def description
     name = product_unit ? "#{product.name} (#{product_unit})" : product.name
-    detail.present? ? "#{name} · #{detail}" : name
+    [ name, detail.presence, cut_words ].compact.join(" · ")
   end
 
   def unit

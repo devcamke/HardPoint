@@ -17,6 +17,8 @@ class Pos::LinesController < ApplicationController
   def update
     line = @sale.lines.find(params[:id])
     line.assign_attributes(line_params)
+    # A plain change of quantity (an order's line) that no longer makes whole pieces is sold by the metre.
+    line.cut_length = nil if line.cut_length && !line.cut_length_changed? && line.pieces.nil?
     line.reprice if line.quantity_changed? || line.product_unit_id_changed?
     if (takes_more_stock?(line) || line.cut_length_changed?) && (shortage = @sale.stock_shortfall(@sale.lines.map { _1.id == line.id ? line : _1 }, only: line))
       shortage.record
