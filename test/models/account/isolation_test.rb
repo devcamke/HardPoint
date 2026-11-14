@@ -24,6 +24,25 @@ class Account::IsolationTest < ActiveSupport::TestCase
     assert_empty unprotected, "Add enable_row_level_security to the migration for: #{unprotected.join(", ")}"
   end
 
+  test "every table with an account_id carries the account_isolation policy" do
+    # FORCE ROW LEVEL SECURITY with no policy denies everything; a dropped or renamed policy would
+    # slip past the "enforces row-level security" check above but break isolation. Pin the policy too.
+    without_policy = ActiveRecord::Base.connection.select_values(<<~SQL)
+      SELECT col.table_name
+      FROM information_schema.columns col
+      WHERE col.column_name = 'account_id' AND col.table_schema = 'public'
+        AND NOT EXISTS (
+          SELECT 1 FROM pg_policies p
+          WHERE p.schemaname = 'public' AND p.tablename = col.table_name
+            AND p.policyname = 'account_isolation'
+            AND p.qual IS NOT NULL AND p.with_check IS NOT NULL
+        )
+    SQL
+
+    assert_empty without_policy,
+      "account_isolation policy missing (restore enable_row_level_security) for: #{without_policy.join(", ")}"
+  end
+
   test "foreign keys are deferrable so fixtures load without a superuser" do
     immediate_only = ActiveRecord::Base.connection.select_values(<<~SQL)
       SELECT conrelid::regclass || '.' || conname FROM pg_constraint
