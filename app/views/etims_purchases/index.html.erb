@@ -1,0 +1,45 @@
+<% content_for :title, "Invoices from KRA" %>
+
+<%= render "shared/control_panel",
+      title: "Invoices from KRA",
+      filters: [ search_filter(:status, label: "Status", value: @status, clear: "new",
+                   options: [ [ "new", "Waiting (#{@counts["new"].to_i})" ], [ "received", "Received" ], [ "invoiced", "Invoice only" ], [ "dismissed", "Set aside" ], [ "all", "All" ] ]) ],
+      records: @purchases %>
+
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <%= button_to "Check KRA now", etims_purchases_check_path, class: "btn-secondary" %>
+  <p class="hint">
+    <% if @devices.empty? %>
+      Set up a control unit in <%= link_to "Settings › KRA eTIMS", etims_devices_path, class: "link" %> first.
+    <% else %>
+      Invoices your suppliers issue to your KRA PIN arrive here each morning.
+      <% @devices.each do |device| %>
+        <%= device.branch.name %>: <%= device.purchases_checked_at ? "checked #{time_ago_in_words(device.purchases_checked_at)} ago" : "not checked yet" %><%= tag.span(" · #{device.purchases_error}", class: "text-red-700") if device.purchases_error.present? %>.
+      <% end %>
+    <% end %>
+  </p>
+</div>
+
+<div class="card">
+  <% if @purchases.any? %>
+    <table class="table">
+      <thead><tr><th>Dated</th><th>Supplier</th><th>Invoice</th><th>Branch</th><th class="text-right">VAT</th><th class="text-right">Total</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @purchases.each do |purchase| %>
+          <tr>
+            <td><%= l(purchase.sales_date, format: :short) %></td>
+            <td><%= purchase.supplier ? link_to(purchase.supplier.name, purchase.supplier, class: "hover:text-primary-700") : purchase.supplier_name %>
+              <%= tag.span("new supplier", class: "badge ml-1") unless purchase.supplier %></td>
+            <td><%= link_to purchase.invoice_number, purchase, class: "link font-mono" %><%= tag.span("credit note", class: "badge ml-1") if purchase.credit_note? %></td>
+            <td><%= purchase.branch.name %></td>
+            <td class="text-right tabular-nums"><%= money(purchase.tax_cents) %></td>
+            <td class="text-right tabular-nums"><%= money(purchase.total_cents) %></td>
+            <td><%= render "etims_purchases/status", purchase: purchase %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="hint"><%= @status == "new" ? "Nothing waiting. New invoices from your suppliers will show here." : "Nothing here." %></p>
+  <% end %>
+</div>

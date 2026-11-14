@@ -1467,7 +1467,9 @@ CREATE TABLE public.etims_devices (
     active boolean DEFAULT true NOT NULL,
     initialized_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    purchases_checked_at timestamp(6) without time zone,
+    purchases_error character varying
 );
 
 ALTER TABLE ONLY public.etims_devices FORCE ROW LEVEL SECURITY;
@@ -1524,6 +1526,56 @@ CREATE SEQUENCE public.etims_item_registrations_id_seq
 --
 
 ALTER SEQUENCE public.etims_item_registrations_id_seq OWNED BY public.etims_item_registrations.id;
+
+
+--
+-- Name: etims_purchases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.etims_purchases (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    device_id bigint NOT NULL,
+    supplier_id bigint,
+    goods_receipt_id bigint,
+    supplier_invoice_id bigint,
+    handled_by_id bigint,
+    supplier_tin character varying NOT NULL,
+    supplier_name character varying,
+    supplier_bhf_id character varying DEFAULT '00'::character varying NOT NULL,
+    invoice_number character varying NOT NULL,
+    receipt_type character varying DEFAULT 'S'::character varying NOT NULL,
+    sales_date date NOT NULL,
+    total_cents bigint DEFAULT 0 NOT NULL,
+    tax_cents bigint DEFAULT 0 NOT NULL,
+    items jsonb DEFAULT '[]'::jsonb NOT NULL,
+    status character varying DEFAULT 'new'::character varying NOT NULL,
+    note character varying,
+    handled_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.etims_purchases FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: etims_purchases_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.etims_purchases_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: etims_purchases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.etims_purchases_id_seq OWNED BY public.etims_purchases.id;
 
 
 --
@@ -4192,6 +4244,13 @@ ALTER TABLE ONLY public.etims_item_registrations ALTER COLUMN id SET DEFAULT nex
 
 
 --
+-- Name: etims_purchases id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_purchases ALTER COLUMN id SET DEFAULT nextval('public.etims_purchases_id_seq'::regclass);
+
+
+--
 -- Name: etims_submissions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4883,6 +4942,14 @@ ALTER TABLE ONLY public.etims_devices
 
 ALTER TABLE ONLY public.etims_item_registrations
     ADD CONSTRAINT etims_item_registrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: etims_purchases etims_purchases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_purchases
+    ADD CONSTRAINT etims_purchases_pkey PRIMARY KEY (id);
 
 
 --
@@ -6098,6 +6165,48 @@ CREATE UNIQUE INDEX index_etims_item_registrations_on_device_id_and_product_id O
 --
 
 CREATE INDEX index_etims_item_registrations_on_product_id ON public.etims_item_registrations USING btree (product_id);
+
+
+--
+-- Name: index_etims_purchases_on_account_id_and_status_and_sales_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_purchases_on_account_id_and_status_and_sales_date ON public.etims_purchases USING btree (account_id, status, sales_date);
+
+
+--
+-- Name: index_etims_purchases_on_device_and_supplier_invoice; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_etims_purchases_on_device_and_supplier_invoice ON public.etims_purchases USING btree (device_id, supplier_tin, supplier_bhf_id, invoice_number, receipt_type);
+
+
+--
+-- Name: index_etims_purchases_on_goods_receipt_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_purchases_on_goods_receipt_id ON public.etims_purchases USING btree (goods_receipt_id);
+
+
+--
+-- Name: index_etims_purchases_on_handled_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_purchases_on_handled_by_id ON public.etims_purchases USING btree (handled_by_id);
+
+
+--
+-- Name: index_etims_purchases_on_supplier_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_purchases_on_supplier_id ON public.etims_purchases USING btree (supplier_id);
+
+
+--
+-- Name: index_etims_purchases_on_supplier_invoice_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_etims_purchases_on_supplier_invoice_id ON public.etims_purchases USING btree (supplier_invoice_id);
 
 
 --
@@ -7843,6 +7952,14 @@ ALTER TABLE ONLY public.airtel_merchants
 
 
 --
+-- Name: etims_purchases fk_rails_13a675b2d9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_purchases
+    ADD CONSTRAINT fk_rails_13a675b2d9 FOREIGN KEY (device_id) REFERENCES public.etims_devices(id) DEFERRABLE;
+
+
+--
 -- Name: supplier_returns fk_rails_13b907b733; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8115,6 +8232,14 @@ ALTER TABLE ONLY public.cash_movements
 
 
 --
+-- Name: etims_purchases fk_rails_399091c22c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_purchases
+    ADD CONSTRAINT fk_rails_399091c22c FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
 -- Name: product_imports fk_rails_3d203e20af; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8192,6 +8317,22 @@ ALTER TABLE ONLY public.customer_order_lines
 
 ALTER TABLE ONLY public.customer_payments
     ADD CONSTRAINT fk_rails_46bd4fcc4d FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: etims_purchases fk_rails_4760d21e2b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_purchases
+    ADD CONSTRAINT fk_rails_4760d21e2b FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) DEFERRABLE;
+
+
+--
+-- Name: etims_purchases fk_rails_47ba473304; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_purchases
+    ADD CONSTRAINT fk_rails_47ba473304 FOREIGN KEY (goods_receipt_id) REFERENCES public.goods_receipts(id) DEFERRABLE;
 
 
 --
@@ -8536,6 +8677,14 @@ ALTER TABLE ONLY public.account_backups
 
 ALTER TABLE ONLY public.customer_payments
     ADD CONSTRAINT fk_rails_6a2298bcd2 FOREIGN KEY (customer_id) REFERENCES public.customers(id) DEFERRABLE;
+
+
+--
+-- Name: etims_purchases fk_rails_6b0fdfffda; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.etims_purchases
+    ADD CONSTRAINT fk_rails_6b0fdfffda FOREIGN KEY (supplier_invoice_id) REFERENCES public.supplier_invoices(id) DEFERRABLE;
 
 
 --
@@ -9973,6 +10122,13 @@ CREATE POLICY account_isolation ON public.etims_item_registrations USING (((curr
 
 
 --
+-- Name: etims_purchases account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.etims_purchases USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: etims_submissions account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -10523,6 +10679,12 @@ ALTER TABLE public.etims_devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.etims_item_registrations ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: etims_purchases; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.etims_purchases ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: etims_submissions; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10877,6 +11039,7 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261114130000'),
 ('20261114110000'),
 ('20261114100000'),
 ('20261113120000'),

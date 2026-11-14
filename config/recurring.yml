@@ -50,6 +50,11 @@ production:
     class: Etims::ReconcileJob
     schedule: every hour at minute 25
 
+  # Invoices suppliers have issued to each shop's PIN, fetched from KRA eTIMS before the shops open (05:40 in Nairobi).
+  etims_purchases:
+    class: Etims::PurchasesJob
+    schedule: every day at 2:40am
+
   # The day's market exchange rates; 06:30 in Nairobi, after the feed's daily update.
   exchange_rates:
     class: ExchangeRatesJob

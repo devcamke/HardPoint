@@ -1265,6 +1265,18 @@ If the supplier can't send the rest of a partly delivered order, open it and pre
 4. **Anything wrong?** Note torn bags or wrong items for whoever deals with the supplier. To send goods back, make a return to the supplier afterwards.
 5. **Receive into stock.** The goods go into the branch's stock, and each product's cost becomes the average of the old and new stock. Then record the supplier's invoice from the delivery.
 
+#### Invoices straight from KRA
+
+Every invoice a supplier issues to your KRA PIN goes through eTIMS, so KRA already holds it. With a control unit set up (**Settings › KRA eTIMS**), HardPoint fetches those invoices each morning and lists them under **Buy › From KRA**; press **Check KRA now** when a lorry has just arrived.
+
+Open an invoice and each line is shown beside the product HardPoint thinks it is: it goes by the barcode, by what you matched that supplier's line to last time, by the supplier's own code for the product, then by the name. Where it finds nothing, scan or type the product, or tick **Leave out** for lines that aren't stock, such as transport. Correct the quantity and the cost where the supplier counts differently from you: a box of 100 screws is received as 100, at a hundredth of the cost. Then:
+
+- **Receive** puts the goods into stock at that branch and records the invoice against the delivery, so it shows in **What we owe** with its due date. Nothing is typed twice.
+- **Record the invoice only** when the goods are in already (choose the delivery it's for) or it was for a service.
+- **Set aside** an invoice that isn't to be recorded here. It can be brought back.
+
+A supplier you haven't bought from before is added from KRA's details. If you already have them under another name, put their KRA PIN on that supplier first. An invoice you already typed in by hand arrives marked as done, and a supplier's credit note is shown but recorded as a [return to the supplier](#supplier-returns). Receiving here doesn't yet tell KRA you accept the purchase; do that in KRA's portal as you do today.
+
 #### Invoices and payments
 
 When the supplier's invoice comes, press **Record the supplier's invoice** on the delivery, or **Record invoice** on the supplier. An invoice for a delivery starts at the value of the goods, in the supplier's currency, without the transport or duty you paid yourself; if what you record differs from that by more than a little, HardPoint says so, and a delivery takes one invoice. **Record payment** settles their oldest invoices first. **Buy › What we owe** shows every supplier's balance by age: not yet due, 1–30, 31–60, 61–90 and over 90 days.

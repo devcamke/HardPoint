@@ -6,6 +6,7 @@ class Supplier < ApplicationRecord
   has_many :products, through: :supplier_products
   has_many :purchase_orders, dependent: :restrict_with_error
   has_many :goods_receipts, dependent: :restrict_with_error
+  has_many :etims_purchases, class_name: "Etims::Purchase", dependent: :nullify
 
   normalizes :email, with: ->(email) { email.strip.downcase }
   normalizes :phone, with: ->(phone) { phone.gsub(/[^\d+]/, "") }

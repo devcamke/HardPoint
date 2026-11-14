@@ -27,6 +27,15 @@ class Etims::Client
     post("/saveTrnsSalesOsdc", fields)["data"]
   end
 
+  # The invoices suppliers have issued to this PIN since a time (Etims::Purchase). KRA answers "001" when there
+  # are none, which is an answer, not a refusal.
+  def purchases(since:)
+    Array(post("/selectTrnsPurchaseSalesList", { lastReqDt: since.in_time_zone("Nairobi").strftime("%Y%m%d%H%M%S") }).dig("data", "saleList"))
+  rescue Refused => error
+    raise unless error.message.start_with?("001")
+    []
+  end
+
   private
     def post(path, fields, authenticated: true)
       headers = { "tin" => device.tin, "bhfId" => device.bhf_id }

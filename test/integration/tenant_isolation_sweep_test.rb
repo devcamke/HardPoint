@@ -15,9 +15,9 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
     "billings/invoices" => "Billing::Invoice", "customer_orders" => "CustomerOrder", "delivery_notes" => "DeliveryNote",
     "orders" => "CustomerOrder", "products/prices" => "PriceListItem", "products/components" => "KitComponent",
     "stock_counts/lines" => "StockCountLine", "deliveries" => "DeliveryNote", "returns" => "SaleReturn", "sale_returns" => "SaleReturn",
-    "my/devices" => "Session", "shares" => "DocumentShare"
+    "my/devices" => "Session", "shares" => "DocumentShare", "etims_purchases" => "Etims::Purchase"
   }.freeze
-  MODEL_FOR_PARAM = { "mpesa_shortcode_id" => "Mpesa::Shortcode", "etims_device_id" => "Etims::Device", "etims_submission_id" => "Etims::Submission",
+  MODEL_FOR_PARAM = { "mpesa_shortcode_id" => "Mpesa::Shortcode", "etims_device_id" => "Etims::Device", "etims_submission_id" => "Etims::Submission", "etims_purchase_id" => "Etims::Purchase",
     "delivery_id" => "WebhookDelivery", "airtel_merchant_id" => "Airtel::Merchant", "line_id" => "StockCountLine" }.freeze
 
   setup { build_victim_records }
@@ -98,6 +98,8 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
           shift = shifts(:acme_front_open)
           shortcode = acme.mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator")
           acme.etims_devices.create!(branch: branches(:acme_main), environment: "simulator", tin: "P051234567X", serial_number: "SWEEP-1").initialize_with_kra
+
+          Etims::Purchase.fetch(acme.etims_devices.sole)
 
           sale = shift.current_sale
           sale.change_customer(customers(:acme_contractor))

@@ -12,6 +12,7 @@ class Etims::Device < ApplicationRecord
   belongs_to :branch
   has_many :submissions, dependent: :restrict_with_error
   has_many :item_registrations, dependent: :delete_all
+  has_many :purchases, dependent: :delete_all
 
   encrypts :cmc_key
 

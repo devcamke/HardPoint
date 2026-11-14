@@ -10,6 +10,7 @@ class GoodsReceipt < ApplicationRecord
   belongs_to :receiver, class_name: "User", default: -> { Current.user }, optional: true
   has_many :lines, class_name: "GoodsReceiptLine", dependent: :destroy, inverse_of: :goods_receipt
   has_many :supplier_invoices, dependent: :nullify
+  has_many :etims_purchases, class_name: "Etims::Purchase", dependent: :nullify
 
   money_attribute :extra_costs, :total
 

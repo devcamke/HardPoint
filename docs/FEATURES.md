@@ -36,7 +36,7 @@ to use it, the help centre (`/help` on the public site). The plan the phases cam
 - [Phase 30: tool hire, loyalty points and the customer display removed](#phase-30-tool-hire-loyalty-points-and-the-customer-display-removed)
 - [Phase 31: WhatsApp, transport, bulk prices, QuickBooks and Airtel Money](#phase-31-whatsapp-transport-bulk-prices-quickbooks-and-airtel-money)
 - [Since then: the new look, lists and help](#since-then-the-new-look-lists-and-help)
-- [Phases 34 to 49: ahead of the competition](#phases-34-to-49-ahead-of-the-competition)
+- [Phases 34 to 50: ahead of the competition](#phases-34-to-50-ahead-of-the-competition)
 
 ## Phase 1: shops, staff and sign-in
 
@@ -745,7 +745,7 @@ approval PIN, may be left off the screenshot.
   buttons (remove a payment, filters, pager) are finger-sized; the offline till can't record a sale twice on a double
   tap
 
-## Phases 34 to 49: ahead of the competition
+## Phases 34 to 50: ahead of the competition
 
 Each of these is described in full, with the decisions behind it, in [PLAN.md](PLAN.md); how to use them is in the
 help centre.
@@ -779,6 +779,12 @@ help centre.
   is written off as cutting waste. Quotes and orders say how a line is cut, the offline till asks the same way, transfers
   carry offcuts with them, and product spreadsheets have the length a product comes in. And a till with a weighing scale on its serial port has a **Weigh** button for
   anything sold by the kilogram or gram (Settings › Tills; Chrome or Edge).
+- **50. Supplier invoices from KRA:** invoices your suppliers issue to your KRA PIN are fetched from eTIMS each morning
+  (or on **Check KRA now**) and wait under **Buy › From KRA**. Each line is matched to a product by barcode, by what the
+  same supplier's line was last time, by the supplier's code or by name. **Receive** puts the goods into stock and the
+  invoice on what you owe in one step; or record the invoice alone, or set it aside. A supplier you haven't bought
+  from before is added by their PIN. Not yet proven against KRA's sandbox, and it doesn't yet confirm the purchase
+  back to KRA.
 
 Also since then: a refreshed app menu (the shop's logo and name, bigger text, and the areas along the bottom on
 phones), a rectangular receipt stamp, and a shorter landing page in the manner of odoo.com (docs/BRAND.md, The
