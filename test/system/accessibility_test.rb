@@ -9,7 +9,10 @@ class AccessibilityTest < ApplicationSystemTestCase
     page.execute_script(AXE) unless page.evaluate_script("typeof window.axe !== 'undefined'")
     violations = page.evaluate_async_script(<<~'JS')
       const done = arguments[arguments.length - 1]
-      axe.run(document, { runOnly: { type: "tag", values: [ "wcag2a", "wcag2aa", "wcag21a", "wcag21aa" ] } })
+      // Stylesheets are loaded for the checks that read them, but not media: the landing page's film is preload="none",
+      // so axe would wait its full ten seconds for a video that never loads, longer than the browser gives a script.
+      // Only the autoplaying-audio check uses media, and nothing here plays by itself.
+      axe.run(document, { preload: { assets: [ "cssom" ] }, runOnly: { type: "tag", values: [ "wcag2a", "wcag2aa", "wcag21a", "wcag21aa" ] } })
         .then(result => done(result.violations.filter(v => [ "serious", "critical" ].includes(v.impact))
           .map(v => `${v.id} (${v.impact}): ${v.help}\n    ${v.nodes.slice(0, 3).map(n => n.target.join(" ")).join("\n    ")}`)))
         .catch(error => done([ `axe failed: ${error}` ]))
