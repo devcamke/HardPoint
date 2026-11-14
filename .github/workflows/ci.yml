@@ -176,3 +176,12 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
+
+      # A numbered screenshot of every step of each journey (test/system/journeys), to look through after any run.
+      - name: Keep the journeys' step-by-step screenshots
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: journeys
+          path: ${{ github.workspace }}/tmp/journeys
+          if-no-files-found: ignore

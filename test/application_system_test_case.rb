@@ -26,4 +26,31 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   end
 
   teardown { Capybara.app_host = nil }
+
+  # A journey is one task a person does from start to finish (test/system/journeys). Each step of it leaves a numbered
+  # screenshot in tmp/journeys/<name>, so the run can be looked through afterwards like a storyboard.
+  JOURNEYS_DIRECTORY = Rails.root.join("tmp/journeys")
+
+  class_attribute :journey_name
+
+  def self.journey(name)
+    self.journey_name = name
+    setup do
+      @journey_steps = 0
+      FileUtils.rm_rf journey_directory
+    end
+  end
+
+  # The block is the step: what the person does, and what they should then see. The screenshot is taken once the
+  # block's checks have passed, so it shows the screen the checks saw.
+  def step(description)
+    yield
+    @journey_steps += 1
+    page.save_screenshot journey_directory.join(format("%02d-%s.png", @journey_steps, description.parameterize))
+  end
+
+  private
+    def journey_directory
+      JOURNEYS_DIRECTORY.join(journey_name)
+    end
 end
