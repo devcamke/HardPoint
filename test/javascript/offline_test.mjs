@@ -2,7 +2,7 @@
 //   node --test test/javascript/
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { unitPrice, lineTotals, saleTotals, thousandths, promotionSaving, bestPromotion, bundleSavings, applyBundles, localDay } from "../../app/javascript/offline/arithmetic.js"
+import { unitPrice, lineTotals, saleTotals, thousandths, promotionSaving, bestPromotion, bundleSavings, applyBundles, localDay, cutQuantity, cutWords } from "../../app/javascript/offline/arithmetic.js"
 import { receipt, columns, wrap, ascii, commands } from "../../app/javascript/offline/escpos.js"
 import { offlinePayments, offlineReceiptNumber, deviceCode } from "../../app/javascript/offline/payload.js"
 
@@ -111,4 +111,12 @@ test("offline receipt numbers carry the till and the device", () => {
   assert.equal(offlineReceiptNumber({ branch_code: "MAIN", register_id: 3 }, "K7Q2", 1), "MAIN-OFF3-K7Q2-0001")
   assert.match(deviceCode(), /^[2-9A-HJ-NP-Z]{4}$/)
   assert.equal(deviceCode(new Uint8Array([ 0, 31, 32, 255 ])), "2Z2Z")
+})
+
+test("a line cut to length is pieces of a length each, and its quantity the total", () => {
+  assert.equal(cutQuantity(3, 2.5), 7.5)
+  assert.equal(cutQuantity(3, 0.1), 0.3, "no floating-point dust")
+  assert.equal(cutQuantity(7, 1.2), 8.4)
+  assert.equal(cutWords({ pieces: 3, cut_length: 2.5, product: { unit: "m" } }), "3 × 2.5 m")
+  assert.equal(cutWords({ quantity: 2, product: { unit: "kg" } }), null)
 })

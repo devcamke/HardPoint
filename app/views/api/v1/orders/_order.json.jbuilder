@@ -6,6 +6,7 @@ json.lines order.lines do |line|
   json.sku line.product.sku
   json.description line.description
   json.quantity line.quantity.to_s("F")
+  json.cut_length line.cut_length&.to_s("F")
   json.extract! line, :unit_price_cents, :total_cents, :tax_cents
 end
 json.extract! order, :ordered_at, :collected_at, :created_at, :updated_at

@@ -12,7 +12,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 - [Shop settings, branches and text messages](#shop-settings): Your shop's name, colours and logo, its preferences, branches and their receipt codes, tills, features, and texting customers.
 - [Importing products from a spreadsheet](#importing-products): Bring in your whole price list at once, and update prices later the same way.
 - [Staff, roles and PINs](#staff-and-roles): Who can do what, quick switching with a PIN, and approving discounts.
-- [Tills, receipt printers and cash drawers](#tills-and-printers): Printing from the browser, or silently through QZ Tray, and opening the drawer.
+- [Tills, receipt printers, cash drawers and scales](#tills-and-printers): Printing from the browser, or silently through QZ Tray, opening the drawer, and reading a weighing scale.
 
 **At the till**
 
@@ -43,6 +43,7 @@ This file is generated from `app/views/help/articles` by `bin/rails help:export`
 - [Buying from suppliers](#buying-from-suppliers): Purchase orders, receiving deliveries, reorder suggestions, supplier invoices and what you owe.
 - [Stock on your phone](#stock-on-your-phone): Look up products, count stock takes and check deliveries in with your phone's camera.
 - [Batches and expiry dates](#batches-and-expiry): Selling the oldest first, writing off expired stock, counting by batch, and finding who bought a recalled batch.
+- [Cut lengths and offcuts](#cutting-and-offcuts): Steel, pipe, timber and cable sold cut to length: pieces and lengths at the till, which piece to cut from, and keeping track of the offcuts.
 - [Sending goods back to a supplier](#supplier-returns): Damaged or wrong deliveries: taking them out of stock, the debit note, and the supplier's credit note.
 
 **Money and tax**
@@ -91,7 +92,7 @@ Invite everyone who uses HardPoint in **Settings › Staff** and give them a rol
 
 #### 5. A test receipt
 
-Print a test receipt from the checklist to check the printer's paper width and that the text fits. See [Tills, receipt printers and cash drawers](#tills-and-printers).
+Print a test receipt from the checklist to check the printer's paper width and that the text fits. See [Tills, receipt printers, cash drawers and scales](#tills-and-printers).
 
 #### Optional: M-Pesa, Airtel Money and KRA eTIMS
 
@@ -230,7 +231,7 @@ The page also shows your shop's web address. To change it, contact support. Pres
 
 #### Tills
 
-**Settings › Tills** lists each point of sale and its branch. Owners and managers press **Add till**, give it a name (such as Front counter), pick the branch and choose how receipts print. Untick **In use** to retire a till. Printers and cash drawers are explained in [Tills, receipt printers and cash drawers](#tills-and-printers).
+**Settings › Tills** lists each point of sale and its branch. Owners and managers press **Add till**, give it a name (such as Front counter), pick the branch and choose how receipts print. Untick **In use** to retire a till. Printers and cash drawers are explained in [Tills, receipt printers, cash drawers and scales](#tills-and-printers).
 
 #### Features
 
@@ -330,9 +331,9 @@ If someone has lost their phone and their recovery codes, the owner opens them i
 
 <a id="tills-and-printers"></a>
 
-### Tills, receipt printers and cash drawers
+### Tills, receipt printers, cash drawers and scales
 
-_Printing from the browser, or silently through QZ Tray, and opening the drawer._
+_Printing from the browser, or silently through QZ Tray, opening the drawer, and reading a weighing scale._
 
 Each till has its own receipt settings: open it in **Settings › Tills** and choose how **Receipts print**.
 
@@ -347,6 +348,12 @@ Any printer your computer can print to will work. Receipts open in the browser's
 #### Printing silently through QZ Tray
 
 [QZ Tray](https://qz.io) is a small free program that lets HardPoint send receipts straight to a thermal printer, without the print window, and open the cash drawer on cash sales. Install it on the till computer, then set the till to **Straight to the printer with QZ Tray** and type the printer's name exactly as the computer shows it. Choose the paper width: 58 mm printers fit 32 characters a line, 80 mm printers 42 or 48. The first time a till prints, QZ Tray may ask whether to allow your shop's HardPoint address: tick **Remember this decision** and press **Allow**, once per till. Each shop has its own signing certificate, so no other shop's till can print through yours.
+
+#### A weighing scale
+
+With a scale plugged into the till's computer (a serial cable, or a USB cable that shows up as a serial port), the till can read the weight of anything sold by the kilogram or gram: nails, binding wire, loose cement. Edit the till in **Settings › Tills** and choose how its **Weighing scale** talks. Most scales send the weight all the time; some wait to be asked, and the list names the usual ones. Set the **speed** and **data format** to match the scale (they're in its manual; 9600 and 8 data bits is the most common).
+
+At the till, tap a product sold by weight and press **Weigh**, or press **Weigh** beside its quantity on the sale. The first time, the browser asks which port the scale is on; after that it remembers. HardPoint waits for the weight to settle, and won't take a reading from an empty pan. It needs Chrome or Edge on the till's computer. Without a scale, or on the offline till, type the weight as before.
 
 #### Barcode scanners
 
@@ -1336,6 +1343,61 @@ A batch's page lists **who bought it**, at every branch, with the customer's pho
 In a stock take, products tracked by batch are counted **batch by batch**. The stock take lists each batch that was in stock when it started, plus a line for stock not in any batch. Enter what you find for each batch. If a pack has a batch number that isn't listed, use **A batch not listed** (or type the number when scanning) and add its expiry date. Batches you don't count are left as they are.
 
 When a manager approves the stock take, each batch is corrected to what was counted. A batch found on the shelf is added with its expiry date, so it's sold in expiry order like the rest. If some of a batch was sold while the count was going on, it can't go below nothing; the rest of the difference comes off the product's other stock, oldest first.
+
+<a id="cutting-and-offcuts"></a>
+
+### Cut lengths and offcuts
+
+_Steel, pipe, timber and cable sold cut to length: pieces and lengths at the till, which piece to cut from, and keeping track of the offcuts._
+
+Steel bar, pipe, timber, conduit and cable are bought in lengths or rolls and sold by the metre or foot. HardPoint already counts them in metres. With **Cut lengths and offcuts** it also knows how that stock is made up: so many full lengths, and the pieces left over from earlier cuts. The till then tells whoever is cutting which piece to cut from, and stops a sale when there's enough in all but no single piece long enough.
+
+Don't see it? It's one of the optional features: the owner switches on **Cut lengths and offcuts** in **Settings › Features**.
+
+#### Setting a product up
+
+Open the product, press **Edit**, and under **More options** fill in:
+
+- **Comes in lengths of**: how long a full length or roll is, in the unit the product is sold by (6 for a 6 m bar, 100 for a 100 m roll of cable).
+- **Offcuts shorter than this are scrap**: a piece left over that's shorter than this is written off as cutting waste instead of being kept. Leave it blank to keep every offcut.
+
+The product has to be sold by a measured unit (metres, feet) and track stock. Stock you already have is counted as full lengths, with anything over as one part length.
+
+#### At the till
+
+Tap the product and the till asks for **Pieces** and **Length each**: 3 pieces of 2.5 m goes on the sale as 7.5 m, shown as "3 × 2.5 m" on the sale and the receipt. Under the boxes it says what's on the rack here: the full lengths, and the offcuts with their lengths, so you can answer "do you have a 3 metre piece?" without walking to the yard. Change the pieces or the length on the sale's line at any time before payment. Scanning the product's barcode adds one full length.
+
+If no length or offcut is long enough for a piece, the till says so and gives the longest there is, even when the metres in stock would cover it: four 2 m offcuts aren't an 8 m piece.
+
+#### What to cut from
+
+When the sale is paid, the green box at the top of the till lists **To cut**, for example "2.5 m cut from a 3.5 m offcut, leaving a 1 m offcut". HardPoint always uses the shortest piece that's long enough, so short offcuts go first and full lengths are only cut when nothing else will do. The same list stays on the sale's page and in the product's stock history.
+
+#### The offcuts on the rack
+
+The product's page has **Lengths and offcuts**: for each branch, how many full lengths there are and each offcut. Anyone who manages stock can:
+
+- **Add offcut**: list a piece that was on the rack before HardPoint kept track. The stock doesn't change, only how it's counted.
+- **Scrap**: an offcut that was thrown away or is too bent to sell. It comes out of stock as cutting waste.
+- **Not an offcut**: take a piece off the list that was put there by mistake. The stock stays.
+
+Cutting waste appears in the stock history and in the profit and loss report with the other stock write-offs.
+
+#### Quotes and orders
+
+On a quote or order, enter the total as the quantity and the length of each piece under **Cut into pieces of**: 7.5 cut into pieces of 2.5 is three pieces. The quote shows "3 × 2.5 m", and when the order is collected it arrives at the till cut that way. Leave it blank to sell by the metre.
+
+#### When the internet is down
+
+The offline till asks for pieces and a length in the same way, and sends the cut with the sale when it's back online. It can't see the rack, so it doesn't check that a piece is long enough; the sale is recorded as rung up.
+
+#### Returns, transfers and stock takes
+
+A cut piece that comes back (a return, or a sale voided) goes on the rack as an offcut of the length it was cut to. A transfer sends full lengths first; offcuts that no longer fit in what's left behind go with it and are listed at the branch that receives them. Stock takes work in metres as before; if a count leaves less stock than the offcuts add up to, the shortest offcuts are dropped from the list.
+
+#### Spreadsheets and the online store
+
+The product spreadsheet has **stock_length** and **scrap_below** columns, so a whole steel list can be set up by import. The online store sells these products by the metre; set the cut on the order when the customer says how they want it.
 
 <a id="supplier-returns"></a>
 

@@ -18,6 +18,7 @@ class Pos::ProductsController < ApplicationController
       @products = products.alphabetically.limit(12).to_a if @products.empty?
     end
     # One query for every tile's stock here, rather than one per tile (kits work theirs out from their parts).
+    @racks = @branch ? @products.select(&:cut_to_length?).to_h { [ _1.id, _1.lengths_at(@branch) ] } : {}
     @stock = @branch ? StockLevel.where(branch: @branch, product_id: @products.map(&:id)).pluck(:product_id, :quantity).to_h : {}
   end
 

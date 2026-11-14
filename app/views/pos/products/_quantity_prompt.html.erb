@@ -12,16 +12,40 @@
       <p class="text-sm text-gray-500"><span data-quantity-prompt-target="price"></span> each</p>
     </div>
 
-    <div>
+    <%# A product cut to length: how many pieces, and how long each. The rack line says what there is to cut from. %>
+    <div data-quantity-prompt-target="cut" hidden>
+      <div class="flex items-end justify-center gap-3">
+        <div>
+          <label for="quantity_prompt_pieces" class="label text-center">Pieces</label>
+          <%= number_field_tag :pieces, 1, id: "quantity_prompt_pieces", min: 1, step: 1, required: true, disabled: true, inputmode: "numeric", autocomplete: "off",
+                class: "input w-24 py-2.5 text-center text-2xl font-semibold tabular-nums", data: { quantity_prompt_target: "pieces" } %>
+        </div>
+        <span class="pb-3 text-2xl text-gray-500" aria-hidden="true">×</span>
+        <div>
+          <label for="quantity_prompt_cut_length" class="label text-center">Length each (<span data-quantity-prompt-target="cutUnit"></span>)</label>
+          <%= number_field_tag :cut_length, nil, id: "quantity_prompt_cut_length", min: 0.001, step: "any", required: true, disabled: true, inputmode: "decimal", autocomplete: "off",
+                class: "input w-32 py-2.5 text-center text-2xl font-semibold tabular-nums", data: { quantity_prompt_target: "cutLength" } %>
+        </div>
+      </div>
+      <p class="mt-1.5 text-center text-sm text-gray-500" data-quantity-prompt-target="rack"></p>
+    </div>
+
+    <%= tag.div data: { quantity_prompt_target: "plain", **(current_till&.scale? ? scale_data(current_till) : {}) } do %>
       <label for="quantity_prompt_quantity" class="sr-only">Quantity</label>
       <div class="flex items-center justify-center gap-3">
         <button type="button" class="<%= step %>" data-action="quantity-prompt#less" aria-label="One less">−</button>
         <%= number_field_tag :quantity, 1, id: "quantity_prompt_quantity", min: 1, step: 1, required: true, inputmode: "decimal", autocomplete: "off",
-              class: "input w-32 py-2.5 text-center text-2xl font-semibold tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none", data: { quantity_prompt_target: "quantity" } %>
+              class: "input w-32 py-2.5 text-center text-2xl font-semibold tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none", data: { quantity_prompt_target: "quantity", scale_target: "input" } %>
         <button type="button" class="<%= step %>" data-action="quantity-prompt#more" aria-label="One more">+</button>
       </div>
       <p class="mt-1.5 text-center text-sm text-gray-500" data-quantity-prompt-target="unit"></p>
-    </div>
+      <% if current_till&.scale? %>
+        <div class="mt-3 text-center" data-quantity-prompt-target="weigh" hidden>
+          <button type="button" class="btn-secondary px-6 py-2.5" data-scale-target="button" data-action="scale#read">Weigh</button>
+          <p class="mt-1.5 min-h-5 text-sm text-red-700" role="status" data-scale-target="status"></p>
+        </div>
+      <% end %>
+    <% end %>
 
     <div class="flex gap-2">
       <button type="button" class="btn-secondary flex-1 py-2.5" data-action="quantity-prompt#close">Cancel</button>

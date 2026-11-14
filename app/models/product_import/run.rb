@@ -34,12 +34,15 @@ class ProductImport::Run
         .to_h { [ _1["sku"], _1["id"] ] }
       rows.zip(records).each { |row, record| row.attributes[:sku] = record[:sku] }
 
+      # A length only means something for stock counted as one quantity: not a kit, a service, or anything in batches or with serial numbers.
+      @account.products.where(id: ids.values).cut_to_length.where("kit OR NOT track_stock OR tracks_batches OR serialized").update_all(stock_length: nil, scrap_below: 0)
       import_barcodes(rows, ids, now)
       import_stock(rows, ids, now)
     end
 
     COLUMNS_BY_HEADER = { "name" => :name, "price" => :price_cents, "cost" => :cost_cents, "unit" => :unit_id, "tax_rate" => :tax_rate_id,
-                          "reorder_level" => :reorder_level, "active" => :active, "category" => :category_id, "brand" => :brand_id }.freeze
+                          "reorder_level" => :reorder_level, "active" => :active, "category" => :category_id, "brand" => :brand_id,
+                          "stock_length" => :stock_length, "scrap_below" => :scrap_below }.freeze
 
     # Existing products only change in the columns the spreadsheet actually has.
     def updatable_columns

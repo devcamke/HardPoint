@@ -1012,7 +1012,8 @@ CREATE TABLE public.customer_order_lines (
     updated_at timestamp(6) without time zone NOT NULL,
     detail character varying,
     promotion_id bigint,
-    collected_quantity numeric(14,3) DEFAULT 0.0 NOT NULL
+    collected_quantity numeric(14,3) DEFAULT 0.0 NOT NULL,
+    cut_length numeric(12,3)
 );
 
 ALTER TABLE ONLY public.customer_order_lines FORCE ROW LEVEL SECURITY;
@@ -2110,6 +2111,43 @@ ALTER SEQUENCE public.mpesa_transactions_id_seq OWNED BY public.mpesa_transactio
 
 
 --
+-- Name: offcuts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.offcuts (
+    id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    branch_id bigint NOT NULL,
+    product_id bigint NOT NULL,
+    length numeric(12,3) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT offcuts_length_positive CHECK ((length > (0)::numeric))
+);
+
+ALTER TABLE ONLY public.offcuts FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: offcuts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.offcuts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: offcuts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.offcuts_id_seq OWNED BY public.offcuts.id;
+
+
+--
 -- Name: payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2368,7 +2406,9 @@ CREATE TABLE public.products (
     online boolean DEFAULT true NOT NULL,
     tracks_batches boolean DEFAULT false NOT NULL,
     label_due_at timestamp(6) without time zone,
-    label_old_price_cents bigint
+    label_old_price_cents bigint,
+    stock_length numeric(12,3),
+    scrap_below numeric(12,3) DEFAULT 0.0 NOT NULL
 );
 
 ALTER TABLE ONLY public.products FORCE ROW LEVEL SECURITY;
@@ -2538,7 +2578,10 @@ CREATE TABLE public.registers (
     print_mode character varying DEFAULT 'browser'::character varying NOT NULL,
     printer_name character varying,
     receipt_width integer DEFAULT 48 NOT NULL,
-    opens_till boolean DEFAULT false NOT NULL
+    opens_till boolean DEFAULT false NOT NULL,
+    scale_mode character varying DEFAULT 'none'::character varying NOT NULL,
+    scale_baud_rate integer DEFAULT 9600 NOT NULL,
+    scale_framing character varying DEFAULT '8N1'::character varying NOT NULL
 );
 
 ALTER TABLE ONLY public.registers FORCE ROW LEVEL SECURITY;
@@ -2587,7 +2630,8 @@ CREATE TABLE public.sale_lines (
     detail character varying,
     promotion_id bigint,
     promotion_discount_cents bigint DEFAULT 0 NOT NULL,
-    tax_rate_id bigint
+    tax_rate_id bigint,
+    cut_length numeric(12,3)
 );
 
 ALTER TABLE ONLY public.sale_lines FORCE ROW LEVEL SECURITY;
@@ -3223,7 +3267,8 @@ CREATE TABLE public.stock_transfer_lines (
     quantity numeric(14,3) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    received_quantity numeric(14,3)
+    received_quantity numeric(14,3),
+    offcut_lengths numeric(12,3)[] DEFAULT '{}'::numeric[] NOT NULL
 );
 
 ALTER TABLE ONLY public.stock_transfer_lines FORCE ROW LEVEL SECURITY;
@@ -4245,6 +4290,13 @@ ALTER TABLE ONLY public.mpesa_transactions ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: offcuts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.offcuts ALTER COLUMN id SET DEFAULT nextval('public.offcuts_id_seq'::regclass);
+
+
+--
 -- Name: payments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4951,6 +5003,14 @@ ALTER TABLE ONLY public.mpesa_stk_requests
 
 ALTER TABLE ONLY public.mpesa_transactions
     ADD CONSTRAINT mpesa_transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: offcuts offcuts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.offcuts
+    ADD CONSTRAINT offcuts_pkey PRIMARY KEY (id);
 
 
 --
@@ -6426,6 +6486,27 @@ CREATE INDEX index_mpesa_transactions_on_shortcode_id ON public.mpesa_transactio
 
 
 --
+-- Name: index_offcuts_on_account_id_and_product_id_and_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_offcuts_on_account_id_and_product_id_and_branch_id ON public.offcuts USING btree (account_id, product_id, branch_id);
+
+
+--
+-- Name: index_offcuts_on_branch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_offcuts_on_branch_id ON public.offcuts USING btree (branch_id);
+
+
+--
+-- Name: index_offcuts_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_offcuts_on_product_id ON public.offcuts USING btree (product_id);
+
+
+--
 -- Name: index_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7666,6 +7747,14 @@ ALTER TABLE ONLY public.fundi_payouts
 
 
 --
+-- Name: offcuts fk_rails_05d4c9789d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.offcuts
+    ADD CONSTRAINT fk_rails_05d4c9789d FOREIGN KEY (branch_id) REFERENCES public.branches(id) DEFERRABLE;
+
+
+--
 -- Name: customer_orders fk_rails_07be4466a9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8626,6 +8715,14 @@ ALTER TABLE ONLY public.price_lists
 
 
 --
+-- Name: offcuts fk_rails_7dc37f0728; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.offcuts
+    ADD CONSTRAINT fk_rails_7dc37f0728 FOREIGN KEY (product_id) REFERENCES public.products(id) DEFERRABLE;
+
+
+--
 -- Name: sale_returns fk_rails_7ef5cafe23; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9287,6 +9384,14 @@ ALTER TABLE ONLY public.customer_orders
 
 ALTER TABLE ONLY public.delivery_note_lines
     ADD CONSTRAINT fk_rails_d6af4257fa FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
+
+
+--
+-- Name: offcuts fk_rails_d86d0eb8e0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.offcuts
+    ADD CONSTRAINT fk_rails_d86d0eb8e0 FOREIGN KEY (account_id) REFERENCES public.accounts(id) DEFERRABLE;
 
 
 --
@@ -9966,6 +10071,13 @@ CREATE POLICY account_isolation ON public.mpesa_transactions USING (((current_se
 
 
 --
+-- Name: offcuts account_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY account_isolation ON public.offcuts USING (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint))) WITH CHECK (((current_setting('app.bypass_rls'::text, true) = 'on'::text) OR (account_id = (NULLIF(current_setting('app.current_account_id'::text, true), ''::text))::bigint)));
+
+
+--
 -- Name: payments account_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -10495,6 +10607,12 @@ ALTER TABLE public.mpesa_stk_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mpesa_transactions ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: offcuts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.offcuts ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: payments; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10759,6 +10877,8 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261114110000'),
+('20261114100000'),
 ('20261113120000'),
 ('20261113090000'),
 ('20261111127000'),

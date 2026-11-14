@@ -17,7 +17,7 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
         %w[ getting-started stock-and-stock-takes ]),
       new("staff-and-roles", "Staff, roles and PINs", "Who can do what, quick switching with a PIN, and approving discounts.", "Getting started",
         %w[ selling getting-started ]),
-      new("tills-and-printers", "Tills, receipt printers and cash drawers", "Printing from the browser, or silently through QZ Tray, and opening the drawer.", "Getting started",
+      new("tills-and-printers", "Tills, receipt printers, cash drawers and scales", "Printing from the browser, or silently through QZ Tray, opening the drawer, and reading a weighing scale.", "Getting started",
         %w[ selling offline ]),
 
       new("selling", "Selling at the till", "Opening a shift, scanning, discounts, parking a sale, taking payment, returns and closing up.", "At the till",
@@ -63,6 +63,8 @@ class HelpArticle < Data.define(:slug, :title, :summary, :section, :related)
         %w[ stock-and-stock-takes buying-from-suppliers ]),
       new("batches-and-expiry", "Batches and expiry dates", "Selling the oldest first, writing off expired stock, counting by batch, and finding who bought a recalled batch.", "Stock and purchasing",
         %w[ stock-and-stock-takes buying-from-suppliers ]),
+      new("cutting-and-offcuts", "Cut lengths and offcuts", "Steel, pipe, timber and cable sold cut to length: pieces and lengths at the till, which piece to cut from, and keeping track of the offcuts.", "Stock and purchasing",
+        %w[ products selling stock-and-stock-takes ]),
       new("supplier-returns", "Sending goods back to a supplier", "Damaged or wrong deliveries: taking them out of stock, the debit note, and the supplier's credit note.", "Stock and purchasing",
         %w[ buying-from-suppliers ]),
 

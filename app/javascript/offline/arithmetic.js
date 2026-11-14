@@ -124,3 +124,14 @@ export function formatMoney(cents, currency = "") {
 export function formatQuantity(quantity) {
   return Number(quantity).toLocaleString("en-KE", { maximumFractionDigits: 3 })
 }
+
+// A line cut to length is so many pieces of a length each; its quantity is the total, to the thousandth
+// (SaleLine#pieces): 3 pieces of 2.5 m is 7.5 m.
+export function cutQuantity(pieces, cutLength) {
+  return Math.round(pieces) * thousandths(cutLength) / 1000
+}
+
+// "3 × 2.5 m"
+export function cutWords(line) {
+  return line.cut_length ? `${line.pieces} × ${formatQuantity(line.cut_length)} ${line.product.unit}` : null
+}

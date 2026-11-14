@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import * as store from "offline/store"
-import { unitPrice, bestPromotion, applyBundles, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths } from "offline/arithmetic"
+import { unitPrice, bestPromotion, applyBundles, localDay, saleTotals, lineTotals, formatMoney, formatQuantity, thousandths, cutQuantity, cutWords } from "offline/arithmetic"
 import { printReceipt } from "offline/printer"
 import { offlinePayments, offlineReceiptNumber } from "offline/payload"
 
@@ -80,14 +80,38 @@ export default class extends Controller {
     this.codeTarget.focus()
   }
 
+  // A product cut to length goes on as one full length; the line then takes the pieces and the length of each.
   add(product, pack = null) {
-    const line = this.cart.find((candidate) => candidate.product.id === product.id && candidate.pack?.id === pack?.id)
-    if (line) {
+    const cut = !pack && product.stock_length ? product.stock_length : null
+    const line = this.cart.find((candidate) => candidate.product.id === product.id && candidate.pack?.id === pack?.id && (candidate.cut_length || null) === cut)
+    if (line && cut) {
+      line.pieces += 1
+      line.quantity = cutQuantity(line.pieces, cut)
+    } else if (line) {
       line.quantity = Number(line.quantity) + 1
+    } else if (cut) {
+      this.cart.push({ product, pack, quantity: cut, pieces: 1, cut_length: cut })
     } else {
       this.cart.push({ product, pack, quantity: 1 })
     }
     this.show("")
+    this.render()
+  }
+
+  // Pieces × length each, for a line cut to length. No piece can be longer than the product comes.
+  changeCut(event) {
+    const line = this.cart[Number(event.target.dataset.index)]
+    const row = event.target.closest("li")
+    const pieces = Number(row.querySelector("[data-cut=pieces]").value)
+    const length = Number(row.querySelector("[data-cut=length]").value)
+    if (!(pieces >= 1) || !Number.isInteger(pieces) || !(length > 0)) {
+      this.show(`Enter how many pieces of ${line.product.name}, and how long each is`, "alert")
+    } else if (length > line.product.stock_length) {
+      this.show(`${line.product.name} comes in lengths of ${formatQuantity(line.product.stock_length)} ${line.product.unit}, so a piece can't be ${formatQuantity(length)} ${line.product.unit}`, "alert")
+    } else {
+      Object.assign(line, { pieces, cut_length: length, quantity: cutQuantity(pieces, length) })
+      this.show("")
+    }
     this.render()
   }
 
@@ -199,7 +223,7 @@ export default class extends Controller {
       uuid, status: "waiting", happened_at: happenedAt, receipt_number: null, offline_receipt_number: receiptNumber, total_cents: total,
       payload: { uuid, receipt_number: receiptNumber, happened_at: happenedAt, shift_id: till.shift_id, cashier_id: till.cashier_id,
                  customer_id: this.customer?.id ?? null, job_id: this.selectedJob?.id ?? null, total_cents: total, discount_cents: 0, payments,
-                 lines: lines.map((line) => ({ product_id: line.product.id, product_unit_id: line.pack?.id ?? null, quantity: String(line.quantity),
+                 lines: lines.map((line) => ({ product_id: line.product.id, product_unit_id: line.pack?.id ?? null, quantity: String(line.quantity), cut_length: line.cut_length ? String(line.cut_length) : null,
                                                unit_price_cents: line.unit_price_cents, discount_cents: 0,
                                                promotion_id: line.promotion?.id ?? null, promotion_discount_cents: line.promotion_discount_cents })) },
       receipt: this.receiptData(receiptNumber, lines, payments)
@@ -271,14 +295,19 @@ export default class extends Controller {
     this.cartTarget.innerHTML = lines.length ? lines.map((line, index) => `
       <li class="px-4 py-3">
         <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0"><p class="font-medium">${escape(line.product.name)}${line.pack ? ` <span class="text-gray-500">(${escape(line.pack.name)})</span>` : ""}</p>
+          <div class="min-w-0"><p class="font-medium">${escape(line.product.name)}${line.pack ? ` <span class="text-gray-500">(${escape(line.pack.name)})</span>` : ""}${line.cut_length ? ` · ${escape(cutWords(line))}` : ""}</p>
             <p class="text-xs text-gray-500">${formatMoney(line.unit_price_cents, currency)} / ${escape(line.pack?.unit || line.product.unit)}
               ${line.promotion ? `<span class="badge ml-1 bg-red-50 text-red-800">${escape(line.promotion.offer)} −${formatMoney(line.promotion_discount_cents, currency)}</span>` : ""}</p></div>
           <p class="whitespace-nowrap font-semibold tabular-nums">${formatMoney(line.total, currency)}</p>
         </div>
         <div class="mt-1 flex items-center justify-between">
+          ${line.cut_length ? `<span class="flex items-center gap-1">
+            <input type="number" min="1" step="1" value="${line.pieces}" data-index="${index}" data-cut="pieces" data-action="change->offline-till#changeCut" class="input w-16 py-1 text-center" aria-label="Pieces of ${escape(line.product.name)}">
+            <span class="text-gray-500" aria-hidden="true">×</span>
+            <input type="number" min="0.001" step="any" max="${line.product.stock_length}" value="${line.cut_length}" data-index="${index}" data-cut="length" data-action="change->offline-till#changeCut" class="input w-20 py-1 text-center" aria-label="Length of each piece of ${escape(line.product.name)}">
+            <span class="text-xs text-gray-500">${escape(line.product.unit)} · ${formatQuantity(line.quantity)} ${escape(line.product.unit)}</span></span>` : `
           <input type="number" min="0" step="${line.pack || !line.product.fractional ? 1 : "any"}" value="${line.quantity}" data-index="${index}"
-                 data-action="change->offline-till#changeQuantity" class="input w-24 py-1 text-right" aria-label="Quantity of ${escape(line.product.name)}">
+                 data-action="change->offline-till#changeQuantity" class="input w-24 py-1 text-right" aria-label="Quantity of ${escape(line.product.name)}">`}
           <button type="button" data-index="${index}" data-action="offline-till#remove" class="flex size-9 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-700 pointer-coarse:size-11" aria-label="Remove ${escape(line.product.name)}">✕</button>
         </div>
       </li>`).join("") : `<li class="p-8 text-center text-gray-500">Scan or tap products to start a sale.</li>`
@@ -356,7 +385,7 @@ export default class extends Controller {
       header: [ till.account_name, till.branch_name, till.branch_address, till.branch_phone && `Tel ${till.branch_phone}` ].filter(Boolean),
       receipt_number: receiptNumber, time: new Date().toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" }), register: till.register_name,
       cashier: till.cashier_name, customer: this.customer?.name || null, job: this.selectedJob?.label || null, offline: true,
-      lines: lines.map((line) => ({ description: line.product.name + (line.pack ? ` (${line.pack.name})` : ""),
+      lines: lines.map((line) => ({ description: line.product.name + (line.pack ? ` (${line.pack.name})` : "") + (line.cut_length ? ` · ${cutWords(line)}` : ""),
                                     detail: `${formatQuantity(line.quantity)} ${line.pack?.unit || line.product.unit} x ${formatMoney(line.unit_price_cents)}`, total: formatMoney(line.total),
                                     promotion: line.promotion ? [ line.promotion.offer, formatMoney(line.promotion_discount_cents) ] : null })),
       saved: (saved => saved > 0 ? formatMoney(saved) : null)(lines.reduce((sum, line) => sum + line.promotion_discount_cents, 0)),

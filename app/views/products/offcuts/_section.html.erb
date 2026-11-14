@@ -1,0 +1,52 @@
+<%# What's on the rack of a product cut to length, branch by branch: full lengths, and the pieces left from cutting. %>
+<section class="card">
+  <h2 class="mb-1 text-lg font-semibold">Lengths and offcuts</h2>
+  <p class="hint mb-3">Comes in <%= product.length_words(product.stock_length) %> lengths. A sale is cut from the shortest piece that's long enough, then from a full length<%= ", and anything left shorter than #{product.length_words(product.scrap_below)} is written off as cutting waste" if product.scrap_below.positive? %>.</p>
+  <table class="table">
+    <thead><tr><th>Branch</th><th class="text-right">Full lengths</th><th>Pieces</th></tr></thead>
+    <tbody>
+      <% visible_branches.alphabetically.each do |branch| %>
+        <% rack = lengths[branch] or next %>
+        <tr>
+          <td><%= branch.name %></td>
+          <td class="text-right tabular-nums"><%= rack.full %></td>
+          <td>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <%= tag.span("#{product.length_words(rack.part)} part length", class: "badge", title: "Stock that isn't a whole length or a listed offcut") if rack.part.positive? %>
+              <% product.offcuts.where(branch: branch).shortest_first.each do |offcut| %>
+                <span class="badge inline-flex items-center gap-1.5">
+                  <%= product.length_words(offcut.length) %>
+                  <% if current_membership.can_manage_stock? %>
+                    <%= button_to "Scrap", product_offcut_path(product, offcut, scrap: 1), method: :delete, class: "link cursor-pointer text-xs", title: "Thrown away: takes it out of stock as cutting waste",
+                          form: { class: "inline", data: { turbo_confirm: "Scrap the #{product.length_words(offcut.length)} offcut? It comes out of stock as cutting waste." } } %>
+                    <%= button_to "Not an offcut", product_offcut_path(product, offcut), method: :delete, class: "link cursor-pointer text-xs", title: "Listed by mistake: takes it off the list, and the stock stays",
+                          form: { class: "inline" } %>
+                  <% end %>
+                </span>
+              <% end %>
+              <%= tag.span("None", class: "text-gray-500") if rack.part.zero? && rack.offcuts.empty? %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if current_membership.can_manage_stock? %>
+    <%= form_with url: product_offcuts_path(product), class: "mt-3 flex flex-wrap items-end gap-2" do |form| %>
+      <div>
+        <%= label_tag :offcut_length, "A piece already on the rack (#{product.unit.abbreviation})", class: "label" %>
+        <%= number_field_tag :length, nil, id: "offcut_length", step: "any", min: 0.001, required: true, inputmode: "decimal", class: "input w-32 py-1.5" %>
+      </div>
+      <% if visible_branches.many? %>
+        <div>
+          <%= label_tag :offcut_branch_id, "At", class: "label" %>
+          <%= select_tag :branch_id, options_from_collection_for_select(visible_branches.alphabetically, :id, :name, selected_branch&.id), id: "offcut_branch_id", class: "input w-auto py-1.5" %>
+        </div>
+      <% else %>
+        <%= hidden_field_tag :branch_id, visible_branches.first&.id, id: nil %>
+      <% end %>
+      <%= form.submit "Add offcut", class: "btn-secondary" %>
+    <% end %>
+    <p class="hint mt-1">For pieces cut before HardPoint kept track. It doesn't change the stock, only how it's counted.</p>
+  <% end %>
+</section>

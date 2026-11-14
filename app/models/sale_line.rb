@@ -1,5 +1,5 @@
 class SaleLine < ApplicationRecord
-  include AccountOwned, Monetary
+  include AccountOwned, Monetary, CutLine
 
   belongs_to :sale, inverse_of: :lines
   belongs_to :product
@@ -65,7 +65,12 @@ class SaleLine < ApplicationRecord
 
   def description
     name = product_unit ? "#{product.name} (#{product_unit})" : product.name
-    detail.present? ? "#{name} · #{detail}" : name
+    [ name, detail.presence, cut_words ].compact.join(" · ")
+  end
+
+  # The lengths this line takes of one of its stock items: its own cuts, or full lengths for a pack or a kit's part.
+  def pieces_of(item, amount)
+    item.pieces_for(amount, (cut_length if item == product && product_unit_id.nil?)) if item.cut_to_length?
   end
 
   # Recorded when the sale completes, so margins stay true after costs change.
@@ -75,7 +80,8 @@ class SaleLine < ApplicationRecord
     update_columns cost_cents: current_cost_cents
     offline = sale.offline_uuid.present?
     stock_items.each do |item, amount|
-      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier, allow_expired: offline, allow_negative: offline)
+      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier, allow_expired: offline, allow_negative: offline,
+        pieces: pieces_of(item, amount))
     end
   end
 
@@ -102,7 +108,7 @@ class SaleLine < ApplicationRecord
     share = quantity / self.quantity
     stock_items.each do |item, amount|
       item.move_stock(branch: branch, quantity: amount * share, reason: reason, source: source,
-        reverses: { taken_by: [ sale ], returned_by: [ sale, *sale.sale_returns ] })
+        reverses: { taken_by: [ sale ], returned_by: [ sale, *sale.sale_returns ] }, pieces: pieces_of(item, amount * share))
     end
   end
 

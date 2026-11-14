@@ -28,6 +28,7 @@ class Account < ApplicationRecord
   has_many :stock_movements, dependent: :delete_all
   has_many :stock_refusals, dependent: :delete_all
   has_many :stock_batches, dependent: :delete_all
+  has_many :offcuts, dependent: :delete_all
   has_many :stock_adjustments, dependent: :delete_all
   has_many :stock_transfers, dependent: :destroy
   has_many :stock_counts, dependent: :destroy

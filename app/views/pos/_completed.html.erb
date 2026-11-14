@@ -5,6 +5,15 @@
       <p class="text-3xl font-extrabold text-gray-900">Change <%= money(sale.change_cents) %></p>
     <% end %>
   </div>
+  <% if (cuts = sale.cutting_list).any? %>
+    <%# For whoever cuts in the yard: which piece each length comes from, and what goes back on the rack. %>
+    <div class="order-last w-full rounded-md border border-green-300 bg-white p-3 text-sm">
+      <p class="font-semibold">To cut</p>
+      <ul class="mt-1 space-y-0.5">
+        <% cuts.each do |product, cut| %><li><span class="font-medium"><%= product.name %>:</span> <%= cut %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
   <div class="ml-auto flex flex-wrap items-center gap-2">
     <%= link_to "Print receipt", sale_receipt_path(sale, print: 1), target: "_blank", class: "btn-primary", data: { controller: "receipt-printer", action: "receipt-printer#print",
           receipt_printer_till_value: current_till.slice(:print_mode, :printer_name, :receipt_width).to_json, receipt_printer_receipt_url_value: sale_receipt_path(sale, format: :json),

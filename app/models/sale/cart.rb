@@ -5,15 +5,15 @@ module Sale::Cart
 
   # Adds a product (or one of its packs) to the cart. Scanning the same thing again adds to the
   # existing line; serialised products get a line each, for their serial number.
-  def add(product, product_unit: nil, quantity: 1)
+  def add(product, product_unit: nil, quantity: 1, cut_length: nil)
     raise ArgumentError, "This sale can't be changed" unless open?
 
-    existing = lines.find { |line| line.product_id == product.id && line.product_unit_id == product_unit&.id && !product.serialized? && line.discount_cents.zero? && line.customer_order_line_id.nil? }
+    existing = lines.find { |line| line.product_id == product.id && line.product_unit_id == product_unit&.id && !product.serialized? && line.discount_cents.zero? && line.customer_order_line_id.nil? && line.cut_length == cut_length&.to_d }
     line = if existing
       existing.quantity += quantity.to_d
       existing
     else
-      lines.build(account: account, product: product, product_unit: product_unit, quantity: quantity)
+      lines.build(account: account, product: product, product_unit: product_unit, quantity: quantity, cut_length: cut_length)
     end
 
     line.reprice
@@ -56,15 +56,19 @@ module Sale::Cart
   # line) must be on the shelf at its branch. Returns the first Shortfall, or nil. `lines` is the sale
   # as it would be; `only:` looks at just the products that one line takes, so a change to one line isn't held up by
   # another. A sale an offline till already made isn't checked: the goods have gone.
+  # For a product cut to length the answer may be a Product::Cutting::TooLong instead: enough in all, but no piece
+  # long enough.
   def stock_shortfall(lines = self.lines, only: nil)
     return if offline_uuid.present?
 
     needed = Hash.new(0)
     products = {}
+    pieces = Hash.new { |hash, id| hash[id] = [] }
     lines.each do |line|
       line.stock_items.each do |item, amount|
         needed[item.id] += amount
         products[item.id] = item
+        pieces[item.id].concat(line.pieces_of(item, amount)) if item.cut_to_length?
       end
     end
     needed.slice!(*only.stock_items.map { _1.first.id }) if only
@@ -75,10 +79,14 @@ module Sale::Cart
 
       # With the shop holding stock for orders, what's promised to other customers isn't free to sell; the order this
       # sale is collecting takes its own.
-      next unless account.hold_order_stock?
+      if account.hold_order_stock?
+        held = products[id].reserved_at(branch, except: customer_order)
+        return Shortfall.new(products[id], branch, amount, on_hand, held, customer_order) if amount > on_hand - held
+      end
 
-      held = products[id].reserved_at(branch, except: customer_order)
-      return Shortfall.new(products[id], branch, amount, on_hand, held, customer_order) if amount > on_hand - held
+      # Enough in all, but cut to length: each piece has to come out of one length or offcut.
+      too_long = products[id].cutting_at(branch).shortfall(pieces[id]) if products[id].cut_to_length?
+      return too_long if too_long
     end
     nil
   end

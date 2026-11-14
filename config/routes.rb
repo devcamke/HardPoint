@@ -187,6 +187,7 @@ Rails.application.routes.draw do
         resources :components, only: %i[ create destroy ]
         resources :movements, only: :index
         resource :reorder_level, only: :update
+        resources :offcuts, only: %i[ create destroy ]
       end
     end
     resources :product_imports, only: %i[ index new create show ] do

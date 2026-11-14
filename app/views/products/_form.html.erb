@@ -1,5 +1,5 @@
 <%# The everyday fields up front; everything else under "More options", already filled in (docs/SIMPLIFY.md, change 5). %>
-<% more_fields = %i[ sku brand_id tax_rate_id reorder_level description active online track_stock tracks_batches kit serialized image ] %>
+<% more_fields = %i[ sku brand_id tax_rate_id reorder_level description active online track_stock tracks_batches kit serialized image stock_length scrap_below ] %>
 <% opening_stock = product.new_record? && current_membership.can_manage_stock? %>
 <%= form_with model: product, class: "max-w-3xl" do |form| %>
   <div class="card">
@@ -94,6 +94,22 @@
           </div>
         <% end %>
       </div>
+
+      <% if feature?(:cutting) || product.cut_to_length? %>
+        <%# For steel, pipe, timber and cable: sold by the metre, bought in lengths (Product::CutToLength). %>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div class="field">
+            <%= form.label :stock_length, "Comes in lengths of", class: "label" %>
+            <%= form.number_field :stock_length, value: (plain_number(product.stock_length) if product.stock_length), step: "any", min: 0, inputmode: "decimal", class: "input", placeholder: "e.g. 6" %>
+            <p class="hint mt-1">For products sold cut by the metre or foot: how long a full length or roll is. The till then says which piece to cut from and keeps the offcuts. Leave blank otherwise.</p>
+          </div>
+          <div class="field">
+            <%= form.label :scrap_below, "Offcuts shorter than this are scrap", class: "label" %>
+            <%= form.number_field :scrap_below, value: (plain_number(product.scrap_below) if product.scrap_below.to_d.positive?), step: "any", min: 0, inputmode: "decimal", class: "input", placeholder: "e.g. 0.5" %>
+            <p class="hint mt-1">A shorter piece left over from a cut is written off as cutting waste. Leave blank to keep every offcut.</p>
+          </div>
+        </div>
+      <% end %>
 
       <div class="field mt-4">
         <%= form.label :image, "Photo", class: "label" %>

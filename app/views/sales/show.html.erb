@@ -49,6 +49,14 @@
         <% end %>
       </tbody>
     </table>
+    <% if (cuts = @sale.cutting_list).any? %>
+      <div class="mt-3 text-sm">
+        <p class="font-semibold">Cut from</p>
+        <ul class="mt-1 space-y-0.5 text-gray-700">
+          <% cuts.each do |product, cut| %><li><span class="font-medium"><%= product.name %>:</span> <%= cut %></li><% end %>
+        </ul>
+      </div>
+    <% end %>
     <div class="ml-auto mt-3 max-w-xs space-y-1 text-sm">
       <div class="flex justify-between"><span>Subtotal</span><span class="tabular-nums"><%= money(@sale.subtotal_cents) %></span></div>
       <% if @sale.discount_cents.positive? %><div class="flex justify-between"><span>Discount</span><span class="tabular-nums">−<%= money(@sale.discount_cents) %></span></div><% end %>

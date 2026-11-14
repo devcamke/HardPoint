@@ -17,6 +17,7 @@ module Account::Features
     Feature.new("fundis", "Fundi commissions", "Pay masons, plumbers and electricians a commission on the customers they bring", "Selling"),
     Feature.new("jobs", "Contractor jobs", "Tag a contractor's purchases to a project and track it against a budget", "Stock and work"),
     Feature.new("batches", "Batches and expiry dates", "For paint, adhesives and chemicals: first-expiring-first selling and recalls", "Stock and work"),
+    Feature.new("cutting", "Cut lengths and offcuts", "For steel, pipe, timber and cable sold cut to length: the till says which piece to cut from and keeps track of the offcuts", "Stock and work"),
     Feature.new("serial_numbers", "Serial numbers", "Record the serial number of each power tool or generator sold", "Stock and work"),
     Feature.new("developers", "API and webhooks", "Connect a web shop, accounting package or other apps", "Stock and work")
   ].freeze
@@ -53,6 +54,9 @@ module Account::Features
     when "batches"
       count = products.where(tracks_batches: true).count
       "#{count == 1 ? "A product records" : "#{count} products record"} batches. Untick that on #{count == 1 ? "it" : "them"} first." if count.positive?
+    when "cutting"
+      count = products.cut_to_length.count
+      "#{count == 1 ? "A product is" : "#{count} products are"} sold cut from lengths. Clear the length on #{count == 1 ? "it" : "them"} first." if count.positive?
     when "serial_numbers"
       count = products.where(serialized: true).count
       "#{count == 1 ? "A product records" : "#{count} products record"} serial numbers. Untick that on #{count == 1 ? "it" : "them"} first." if count.positive?
@@ -77,6 +81,7 @@ module Account::Features
       when "customer_portal" then portal_links.current.exists?
       when "whatsapp_messages" then whatsapp_messages.exists?
       when "batches" then stock_batches.exists? || products.where(tracks_batches: true).exists?
+      when "cutting" then products.cut_to_length.exists?
       when "serial_numbers" then products.where(serialized: true).exists?
       when "developers" then api_keys.exists? || webhook_endpoints.exists?
       end

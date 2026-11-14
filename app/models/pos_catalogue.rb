@@ -61,10 +61,10 @@ class PosCatalogue
       breaks = @account.price_list_items.where(price_list_id: nil).pluck(:product_id, :min_quantity, :price_cents)
         .group_by(&:first).transform_values { |rows| rows.map { |_, minimum, price| [ minimum.to_f, price ] } }
 
-      scope.order(:name).pluck(:id, :name, :sku, :price_cents, :unit_id, :tax_rate_id, :quick_pick, :track_stock, :kit, :category_id).map do |id, name, sku, price, unit_id, tax_rate_id, quick_pick, track_stock, kit, category_id|
+      scope.order(:name).pluck(:id, :name, :sku, :price_cents, :unit_id, :tax_rate_id, :quick_pick, :track_stock, :kit, :category_id, :stock_length).map do |id, name, sku, price, unit_id, tax_rate_id, quick_pick, track_stock, kit, category_id, stock_length|
         unit = units[unit_id]
         { id: id, name: name, sku: sku, price_cents: price, category_id: category_id, tax_rate: (rates[tax_rate_id] || default_rate).to_f, unit: unit.abbreviation, fractional: unit.fractional?,
-          quick_pick: quick_pick, stock: (stock[id]&.to_f if track_stock && !kit), barcodes: barcodes.fetch(id, []), breaks: breaks.fetch(id, []),
+          quick_pick: quick_pick, stock: (stock[id]&.to_f if track_stock && !kit), stock_length: stock_length&.to_f, barcodes: barcodes.fetch(id, []), breaks: breaks.fetch(id, []),
           packs: packs.fetch(id, []).map { |pack| { id: pack.id, name: pack.to_s, quantity: pack.quantity.to_f, price_cents: pack.effective_price_cents,
                                                     unit: pack.unit.abbreviation, barcodes: pack_barcodes.fetch(pack.id, []) } } }
       end

@@ -1,10 +1,12 @@
 class Product < ApplicationRecord
-  include AccountOwned, Eventable, Monetary, Pricing, Stockable, Searchable, Barcoded, Purchasing, Labelling, PublishesWebhooks
+  include AccountOwned, Eventable, Monetary, Pricing, Stockable, CutToLength, Searchable, Barcoded, Purchasing, Labelling, PublishesWebhooks
 
   # Raised when a sale or transfer would have to take stock from an expired batch.
   ExpiredStock = Class.new(StandardError)
   # Raised when a sale would take more than is on the shelf: stock can't be sold below zero.
   OutOfStock = Class.new(StandardError)
+  # Raised when a sale needs a piece longer than any length or offcut on the rack, though there's enough in all.
+  NoPieceLongEnough = Class.new(OutOfStock)
   publishes_webhooks "product"
   tracks_lifecycle
 

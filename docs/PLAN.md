@@ -58,7 +58,8 @@ customers, staff, or reports.
 | "Offline" | Measured by reaching the server (`/up`), not just the browser's online flag, so a working Wi-Fi with no internet counts as offline |
 | Printing | Per till: the browser (silent with Chrome `--kiosk-printing`) or QZ Tray with ESC/POS (cut, QR, drawer kick for cash). QZ Tray 2.3.0 is vendored (LGPL-2.1, checked against npm's integrity hash) and loaded only on tills that use it. Signed requests if a certificate is set up; otherwise QZ Tray asks once |
 | Customer display | A page on a second monitor fed by the till through BroadcastChannel (same browser), so it needs no server round trip and works offline **Removed in Phase 30.** |
-| Weighing scales | Left out (optional in the plan): Web Serial support and scale protocols vary; kilograms are typed |
+| Weighing scales | Read from the browser over Web Serial (Phase 49; Chrome and Edge), per till: the scale's speed, data format and whether it sends all the time or answers a command. The parser takes the weight, its unit and a stable flag from the text formats most scales send (A&D/CAS `ST,GS,+0001.234kg`, Mettler SICS `S S 1.234 kg`, Toledo 8217, plain); a scale that doesn't say it's stable has to repeat a weight three times. Not yet proven on real scales; without one, kilograms are typed |
+| Cut lengths | A product sold by the metre can say what length it comes in (Phase 49). The stock level stays the total; `offcuts` rows say which of it is left-over pieces, and what isn't an offcut is full lengths plus at most one part length. Each piece of a sale comes from the shortest offcut that's long enough, then a full length; a remainder under the product's `scrap_below` leaves stock as `cutting_waste`. Pieces coming back (void, return) become offcuts of the length they were cut to. Not combined with batches or serial numbers |
 | Daily summary | Yesterday's figures at 04:15 UTC (07:15 in Nairobi), to owners, managers and accountants who haven't turned it off; nothing is sent after a day without sales |
 | Plans | Solo KES 1,500 (1 branch, 1 till, 2 staff), Starter KES 2,500 (1, 2, 5), Business KES 3,500 (2, 4, 10), Unlimited KES 5,000 (no limits), per shop per month. Limits count what's in use (active tills); every feature is on every plan. Products are never limited: a hardware shop carries thousands of lines, and a 2,000 cap would have pushed most Starter shops off the plan at their first import, so tills and branches, which grow with the shop's takings, are what's charged for. Plans live in code (`Plan`), not a table, until prices need changing without a deploy. **Prices are placeholders to confirm** |
 | Add-ons | One more branch or till than the plan allows is bought as an add-on (till KES 300, branch KES 750 a month) rather than by jumping a plan. Counts live on the account (`extra_branches`, `extra_registers`) and go on every subscription invoice; more room applies at once, with a one-off invoice for the rest of the current period (days left over days in the period, at the difference in price); less only if what's in use still fits, at the new price from the next invoice. Enterprise has no limits, so no add-ons |
@@ -995,6 +996,43 @@ in the counter's head is slow and loses sales to the shop that answers first.
   orders"); products with promised stock are always considered. **Branch rebalancing** never moves held stock away.
 - **The product page** shows, per branch, how much is held and links to the orders holding it.
 
+### Phase 49 — Cutting and weighing
+**Goal:** a yard that sells steel, pipe and cable by the metre knows what pieces it has, not just how many metres; and
+nails are weighed, not typed.
+- **Settings › Features › Cut lengths and offcuts.** A product sold by a measured unit says what length it **comes in**
+  (6 m bar, 100 m roll) and below what length an offcut is **scrap** (`Product::CutToLength`). Stock stays a total in
+  metres; an `offcuts` table (row-level security, like every shop table) says which of it is left-over pieces. The rest
+  is full lengths and at most one part length.
+- **`Product::Cutting`**, called inside `move_stock` with the level locked: each piece of a sale comes from the shortest
+  offcut or part length that's long enough, then from a full length; longer pieces are placed first. What's left is an
+  offcut, or `cutting_waste` (a new ledger reason, counted with write-offs in the P&L and the morning email) when it's
+  under the scrap length. One ledger line per kind of cut, saying what it was cut from: "2.5 m cut from a 6 m length,
+  leaving a 3.5 m offcut".
+- **The till** asks a cut product for **pieces × length each** and shows what's on the rack ("9 full lengths · offcuts
+  1.2, 3.5 m"). The line reads "3 × 2.5 m" on the sale and the receipt and can be changed until payment. A piece longer
+  than anything on the rack is refused when added and again at payment ("No piece … long enough to cut 4 m: the longest
+  is 3 m"), though the metres would cover it, and kept as demand turned away. Once paid, the done screen and the sale's
+  page list **what to cut from**. A scan adds one full length.
+- **The product's page** lists full lengths and offcuts per branch; stock managers add a piece that was already there,
+  scrap one (out of stock), or take one off the list. Voids and returns put pieces back as offcuts of their cut length;
+  transfers, counts and write-offs keep the list within what's left. An offline till's sale goes through whatever the
+  list says.
+- **Weighing.** A till can have a scale (Settings › Tills: how it talks, speed, data format). **Weigh**, in the
+  quantity popup and beside a line's quantity, reads it over Web Serial (`app/javascript/scale`: a parser and settling
+  rule tested in Node, and a reader that opens the port for each reading) and fills in kilograms or grams. The
+  Permissions-Policy header allows `serial` for the shop's own pages only.
+- **Quotes, orders and the offline till** take the cut too. A quote's line says what to cut it into ("7.5 cut into
+  pieces of 2.5") and arrives at the till cut that way (`CutLine`, shared by sale and order lines); the API reads and
+  writes `cut_length` on order lines and reads it on sale lines, and a product's `stock_length`. The offline till has
+  the same pieces × length boxes from the snapshot's `stock_length` and sends the cut with the sale; a cut that no
+  longer makes sense when it arrives is sold by the metre rather than refused.
+- **Transfers** carry the offcuts that no longer fit in what's left behind: the transfer's line remembers their
+  lengths and they're listed again where it's received, or back at the sender if it's cancelled.
+- **Product spreadsheets** have `stock_length` and `scrap_below` columns, in the export and (optionally) the import.
+- **Later:** the online store sells by the metre (staff set the cut on the order); a product can't be both cut to
+  length and tracked by batch or serial number; scales proven on real hardware, and ones that speak only a binary
+  protocol.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -1017,7 +1055,7 @@ in the counter's head is slow and loses sales to the shop that answers first.
    to do: each cashier against their own usual, and no-sale drawer openings.
 4. ~~**Stock reserved for confirmed orders**~~ Done (Phase 46)., so a deposit-paid order's goods aren't sold to a walk-in (deferred "until
    shops ask"; pilot shops with yards are likely to).
-5. **Cutting and weighing:** sell by length or weight from a bulk item with offcut tracking, and Web Serial scales.
+5. ~~**Cutting and weighing:**~~ Done (Phase 49). sell by length or weight from a bulk item with offcut tracking, and Web Serial scales.
 6. ~~**Branch rebalancing**~~: planned as Phase 37.
 7. **Supplier invoices from eTIMS:** pull purchase invoices KRA already holds, to receive and pay without retyping.
 8. ~~**Shelf-label queue:**~~ Done (Phase 47): a database trigger queues a product for a new shelf label when it's

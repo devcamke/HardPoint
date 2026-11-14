@@ -90,7 +90,7 @@ class CustomerOrdersController < ApplicationController
 
     def customer_order_params
       permitted = params.expect(customer_order: [ :customer_id, :job_id, :fundi_id, :branch_id, :valid_until, :needed_by, :note,
-        lines_attributes: [ [ :id, :product_code, :quantity, :unit_price, :_destroy ] ] ])
+        lines_attributes: [ [ :id, :product_code, :quantity, :cut_length, :unit_price, :_destroy ] ] ])
       permitted[:customer] = Current.account.customers.find(permitted.delete(:customer_id)) if permitted[:customer_id].present?
       permitted[:job] = permitted[:job_id].present? ? Current.account.jobs.find(permitted[:job_id]) : nil if permitted.key?(:job_id)
       permitted.delete(:job_id)
