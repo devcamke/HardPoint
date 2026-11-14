@@ -4,6 +4,7 @@ class SupplierInvoice < ApplicationRecord
   belongs_to :supplier
   belongs_to :goods_receipt, optional: true
   belongs_to :creator, class_name: "User", default: -> { Current.user }, optional: true
+  has_one :etims_purchase, class_name: "Etims::Purchase", dependent: :nullify
 
   money_attribute :total, :tax
 

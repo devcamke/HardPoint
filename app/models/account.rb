@@ -58,6 +58,7 @@ class Account < ApplicationRecord
   has_many :airtel_merchants, class_name: "Airtel::Merchant", dependent: :destroy
   has_many :etims_devices, class_name: "Etims::Device", dependent: :destroy
   has_many :etims_submissions, class_name: "Etims::Submission", dependent: :destroy
+  has_many :etims_purchases, class_name: "Etims::Purchase", dependent: :delete_all
   has_many :sms_messages, class_name: "Sms::Message", dependent: :delete_all
   has_many :support_requests, dependent: :delete_all
   has_many :document_shares, dependent: :delete_all

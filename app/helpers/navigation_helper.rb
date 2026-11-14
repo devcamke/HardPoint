@@ -55,6 +55,8 @@ module NavigationHelper
         menu += [ [ "Purchase orders", purchase_orders_path ], [ "Receiving", goods_receipts_path ] ] if m.can_purchase?
         menu << [ "Suppliers", suppliers_path ]
         menu << [ "What we owe", payables_path ] if m.can_manage_payables?
+        # Suppliers' invoices as KRA holds them, for shops with a control unit set up.
+        menu << [ "From KRA", etims_purchases_path ] if Current.account.etims_devices.any?(&:initialized?)
         apps << App.new(:purchasing, "Buy", menu.first[1], "#8e6bbf", :purchasing, menu, [ "/supplier_invoices", "/supplier_returns" ])
       end
 

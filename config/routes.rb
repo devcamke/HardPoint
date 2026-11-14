@@ -368,6 +368,15 @@ Rails.application.routes.draw do
       end
     end
     resource :etims_retries, path: "etims/retries", only: :create
+    # Invoices suppliers have issued to the shop, as KRA holds them (Etims::Purchase).
+    resources :etims_purchases, path: "kra_invoices", only: %i[ index show ] do
+      collection { resource :check, only: :create, module: :etims_purchases, as: :etims_purchases_check }
+      scope module: :etims_purchases do
+        resource :receipt, only: :create
+        resource :invoice, only: :create
+        resource :dismissal, only: %i[ create destroy ]
+      end
+    end
     resources :sms_messages, path: "texts", only: :index
 
     # Direct printing through QZ Tray: its certificate, and signatures for its requests.

@@ -1033,6 +1033,28 @@ nails are weighed, not typed.
   length and tracked by batch or serial number; scales proven on real hardware, and ones that speak only a binary
   protocol.
 
+### Phase 50 — Supplier invoices from KRA eTIMS
+**Goal:** a delivery is received and its invoice recorded from what KRA already holds, without retyping either.
+- **Fetching.** A branch's control unit asks KRA for the invoices issued to the shop's PIN since it last asked
+  (`Etims::Client#purchases`, OSCU's `selectTrnsPurchaseSalesList`; 60 days back the first time, a day's overlap after):
+  every morning (`Etims::PurchasesJob`, a job per shop) and on **Check KRA now**. Each is kept once as an
+  `Etims::Purchase` (row-level security): supplier PIN and name, number, date, total, VAT and its lines. "No result",
+  a refusal and KRA being unreachable are noted on the control unit, not raised. An invoice already typed in by hand
+  (same supplier PIN and number) arrives marked as done.
+- **Buy › From KRA** (for shops with a control unit) lists what's waiting. An invoice's page shows each line beside
+  the product it most likely is: by barcode, by what this supplier's line was matched to last time, by the supplier's
+  own code (`supplier_products.supplier_sku`), then by name. Quantity and cost before VAT can be corrected (a box of
+  100 received as 100), batch numbers entered, and lines that aren't stock left out.
+- **Receive** makes the goods received note at the control unit's branch and the supplier invoice against it, in one
+  transaction and only once; the supplier is found by KRA PIN or added from KRA's details. **Record the invoice
+  only** is for goods already in (against a delivery with no invoice yet) or a service. **Set aside** keeps it out of
+  the way, and it can be brought back. Credit notes are shown but never received: they're recorded as returns.
+- The simulator makes up two invoices a day from the shop's own catalogue, so the demo shop shows the whole flow.
+- **To be proven against KRA's sandbox**, like the rest of eTIMS: the request and the field names follow the OSCU
+  specification but haven't met the real service. **Later:** confirming the purchase back to KRA
+  (`insertTrnsPurchase`), which KRA expects before input VAT is claimed; matching an invoice to an open purchase
+  order; suppliers who invoice in another currency (refused for now, with a reason); a count of what's waiting on Home.
+
 ### Roadmap from here
 
 **Before the pilot** (alongside docs/LAUNCH.md): gaps the Phase 32 review found and left open, most important first.
@@ -1057,7 +1079,7 @@ nails are weighed, not typed.
    shops ask"; pilot shops with yards are likely to).
 5. ~~**Cutting and weighing:**~~ Done (Phase 49). sell by length or weight from a bulk item with offcut tracking, and Web Serial scales.
 6. ~~**Branch rebalancing**~~: planned as Phase 37.
-7. **Supplier invoices from eTIMS:** pull purchase invoices KRA already holds, to receive and pay without retyping.
+7. ~~**Supplier invoices from eTIMS:**~~ Done (Phase 50). pull purchase invoices KRA already holds, to receive and pay without retyping.
 8. ~~**Shelf-label queue:**~~ Done (Phase 47): a database trigger queues a product for a new shelf label when it's
    added or its price or name changes (edits, bulk price changes and imports alike), keeping the price the shelf still
    shows. Stock › Labels lists them, oldest first ("Shelf shows KES 850.00"), prints them on the usual A4 sheets or

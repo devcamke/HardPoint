@@ -1,0 +1,106 @@
+<% content_for :title, "Invoice #{@purchase.invoice_number} from KRA" %>
+<% purchase = @purchase %>
+
+<h1 class="mb-6 text-xl font-medium"><%= link_to "Invoices from KRA", etims_purchases_path, class: "link" %> <span class="text-gray-400">/</span> <%= purchase.invoice_number %></h1>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="card space-y-2 text-sm lg:order-2">
+    <p class="flex justify-between"><span>Status</span><%= render "etims_purchases/status", purchase: purchase %></p>
+    <p class="flex justify-between gap-3"><span>Supplier</span>
+      <span class="text-right"><%= purchase.supplier ? link_to(purchase.supplier.name, purchase.supplier, class: "link") : purchase.supplier_name %></span></p>
+    <p class="flex justify-between"><span>KRA PIN</span><span class="font-mono"><%= purchase.supplier_tin %></span></p>
+    <p class="flex justify-between"><span>Dated</span><span><%= l(purchase.sales_date, format: :long) %></span></p>
+    <p class="flex justify-between"><span>For</span><span><%= purchase.branch.name %></span></p>
+    <p class="flex justify-between"><span>VAT</span><span class="tabular-nums"><%= money(purchase.tax_cents) %></span></p>
+    <p class="flex justify-between text-lg font-bold"><span>Total</span><span class="tabular-nums"><%= money(purchase.total_cents) %></span></p>
+    <% unless purchase.supplier %>
+      <p class="rounded-md bg-amber-50 px-3 py-2 text-amber-900">No supplier here has this KRA PIN. <%= purchase.supplier_name || "They" %> will be added as a supplier when you record this invoice. If you already buy from them under another name, <%= link_to "add the PIN to that supplier", suppliers_path, class: "link" %> first.</p>
+    <% end %>
+    <% if purchase.goods_receipt %><p class="flex justify-between"><span>Delivery</span><%= link_to purchase.goods_receipt.reference, purchase.goods_receipt, class: "link font-mono" %></p><% end %>
+    <% if purchase.supplier_invoice %><p class="flex justify-between"><span>Invoice</span><%= link_to purchase.supplier_invoice.number, purchase.supplier_invoice, class: "link font-mono" %></p><% end %>
+    <% if purchase.handled_at %>
+      <p class="hint"><%= purchase.status == "dismissed" ? "Set aside" : "Recorded" %><%= " by #{purchase.handled_by.name}" if purchase.handled_by %> on <%= l(purchase.handled_at.to_date, format: :long) %><%= " · #{purchase.note}" if purchase.note.present? %></p>
+    <% end %>
+    <% if purchase.status == "dismissed" %>
+      <%= button_to "Bring it back", etims_purchase_dismissal_path(purchase), method: :delete, class: "btn-secondary" %>
+    <% end %>
+  </div>
+
+  <section class="card lg:col-span-2">
+    <% if purchase.credit_note? %>
+      <p class="mb-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">This is a credit note from the supplier. Record what went back under <%= link_to "Returns to suppliers", supplier_returns_path, class: "link" %>, then set this aside.</p>
+    <% end %>
+    <% receiving = purchase.new? && !purchase.credit_note? && current_membership.can_purchase? %>
+    <%= form_with url: etims_purchase_receipt_path(purchase), id: "receive_purchase" do |form| %>
+      <table class="table">
+        <thead><tr><th>On the invoice</th><th><%= receiving ? "Product here (barcode or SKU)" : "Product here" %></th><th class="text-right">Qty</th><th class="text-right">Cost each, before VAT</th>
+          <% if receiving %><th class="text-right">Leave out</th><% end %></tr></thead>
+        <tbody>
+          <% purchase.lines.each do |line| %>
+            <% product = receiving ? @suggested[line.seq] : Current.account.products.find_by(id: line.product_id) %>
+            <tr>
+              <td><%= line.name %><span class="block font-mono text-xs text-gray-500"><%= [ line.barcode, line.code ].compact.join(" · ") %></span></td>
+              <td>
+                <% if receiving %>
+                  <%= text_field_tag "lines[#{line.seq}][product_code]", product&.sku, id: nil, placeholder: "Scan or type", class: "input py-1.5 font-mono #{"border-amber-500" unless product}", "aria-label": "Product for #{line.name}" %>
+                  <span class="block text-xs <%= product ? "text-gray-500" : "text-amber-800" %>"><%= product ? product.name : "No match: say which product, or leave it out" %></span>
+                  <% if product&.tracks_batches? %>
+                    <span class="mt-1 flex gap-1">
+                      <%= text_field_tag "lines[#{line.seq}][batch_number]", nil, id: nil, placeholder: "Batch", class: "input w-28 py-1 font-mono text-xs", "aria-label": "Batch number of #{line.name}" %>
+                      <%= date_field_tag "lines[#{line.seq}][expires_on]", nil, id: nil, class: "input w-36 py-1 text-xs", "aria-label": "Expiry date of #{line.name}" %>
+                    </span>
+                  <% end %>
+                <% elsif product %>
+                  <%= link_to product.name, product, class: "hover:text-primary-700" %>
+                <% else %>
+                  <span class="text-gray-500">—</span>
+                <% end %>
+              </td>
+              <td class="text-right tabular-nums">
+                <% if receiving %>
+                  <%= number_field_tag "lines[#{line.seq}][quantity]", plain_number(line.quantity), id: nil, step: "any", min: 0, inputmode: "decimal", class: "input w-24 py-1.5 text-right", "aria-label": "Quantity of #{line.name}" %>
+                <% else %><%= quantity(line.quantity) %><% end %>
+              </td>
+              <td class="text-right tabular-nums">
+                <% if receiving %>
+                  <%= number_field_tag "lines[#{line.seq}][unit_cost]", format("%.2f", line.unit_cost_cents / 100.0), id: nil, step: "0.01", min: 0, inputmode: "decimal", class: "input w-28 py-1.5 text-right", "aria-label": "Cost of each #{line.name}" %>
+                <% else %><%= money(line.unit_cost_cents) %><% end %>
+                <span class="block text-xs text-gray-500"><%= money(line.total_cents) %> with VAT</span>
+              </td>
+              <% if receiving %>
+                <td class="text-right"><%= check_box_tag "lines[#{line.seq}][skip]", "1", false, id: nil, class: "size-4 accent-primary-500", "aria-label": "Leave out #{line.name}" %></td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <% if receiving %>
+        <p class="hint mt-2">Quantities are in each product's own unit: if the supplier invoiced a box of 100, receive 100 and divide the cost. Leave out lines that aren't stock, such as transport; the invoice is still recorded in full.</p>
+        <%= form.submit "Receive into #{purchase.branch.name} and record the invoice", class: "btn-primary mt-3" %>
+      <% end %>
+    <% end %>
+
+    <% if purchase.new? %>
+      <div class="mt-6 flex flex-wrap items-end gap-6 border-t border-gray-200 pt-4">
+        <% if !purchase.credit_note? && current_membership.can_manage_payables? %>
+          <%= form_with url: etims_purchase_invoice_path(purchase), class: "flex flex-wrap items-end gap-2" do |form| %>
+            <% if @open_receipts.any? %>
+              <div>
+                <%= label_tag :goods_receipt_id, "Goods already received on", class: "label" %>
+                <%= select_tag :goods_receipt_id, options_for_select(@open_receipts.map { [ "#{_1.reference} · #{l(_1.created_at.to_date, format: :short)} · #{money(_1.goods_value_cents)}", _1.id ] }), include_blank: "No delivery (a service)", class: "input w-auto py-1.5" %>
+              </div>
+            <% end %>
+            <%= form.submit "Record the invoice only", class: "btn-secondary" %>
+          <% end %>
+        <% end %>
+        <%= form_with url: etims_purchase_dismissal_path(purchase), class: "flex flex-wrap items-end gap-2" do |form| %>
+          <div>
+            <%= label_tag :reason, "Not to be recorded here?", class: "label" %>
+            <%= text_field_tag :reason, nil, placeholder: "Why (optional)", class: "input w-56 py-1.5" %>
+          </div>
+          <%= form.submit "Set aside", class: "btn-secondary" %>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+</div>

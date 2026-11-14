@@ -56,6 +56,27 @@
 
 <%= render "help/walkthrough", tour: HelpTour.find("receiving") %>
 
+<h2>Invoices straight from KRA</h2>
+<p>Every invoice a supplier issues to your KRA PIN goes through eTIMS, so KRA already holds it. With a control unit set up
+  (<strong>Settings › KRA eTIMS</strong>), HardPoint fetches those invoices each morning and lists them under
+  <strong>Buy › From KRA</strong>; press <strong>Check KRA now</strong> when a lorry has just arrived.</p>
+<p>Open an invoice and each line is shown beside the product HardPoint thinks it is: it goes by the barcode, by what you
+  matched that supplier's line to last time, by the supplier's own code for the product, then by the name. Where it finds
+  nothing, scan or type the product, or tick <strong>Leave out</strong> for lines that aren't stock, such as transport.
+  Correct the quantity and the cost where the supplier counts differently from you: a box of 100 screws is received as 100,
+  at a hundredth of the cost. Then:</p>
+<ul>
+  <li><strong>Receive</strong> puts the goods into stock at that branch and records the invoice against the delivery, so it
+    shows in <strong>What we owe</strong> with its due date. Nothing is typed twice.</li>
+  <li><strong>Record the invoice only</strong> when the goods are in already (choose the delivery it's for) or it was for a
+    service.</li>
+  <li><strong>Set aside</strong> an invoice that isn't to be recorded here. It can be brought back.</li>
+</ul>
+<p>A supplier you haven't bought from before is added from KRA's details. If you already have them under another name, put
+  their KRA PIN on that supplier first. An invoice you already typed in by hand arrives marked as done, and a supplier's
+  credit note is shown but recorded as a <%= link_to "return to the supplier", help_article_path("supplier-returns"), class: "link" %>.
+  Receiving here doesn't yet tell KRA you accept the purchase; do that in KRA's portal as you do today.</p>
+
 <h2>Invoices and payments</h2>
 <p>When the supplier's invoice comes, press <strong>Record the supplier's invoice</strong> on the delivery, or <strong>Record invoice</strong>
   on the supplier. An invoice for a delivery starts at the value of the goods, in the supplier's currency, without the transport or duty you paid

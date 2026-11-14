@@ -1,0 +1,5 @@
+<% case purchase.status
+   when "new" then %><%= status_dot "Waiting", :warning %><%
+   when "received" then %><%= status_dot "Received", :success %><%
+   when "invoiced" then %><%= status_dot "Invoice recorded", :success %><%
+   else %><%= status_dot "Set aside", :muted %><% end %>
