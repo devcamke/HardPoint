@@ -16,7 +16,7 @@ module PermissionsPolicy
     magnetometer:  :none,
     microphone:    :none,
     payment:       :none,
-    usb:           :none,
+    usb:           :none
   }.freeze
 
   # Permissions-Policy syntax: `feature=(self)` or `feature=()` (empty allowlist = off).

@@ -66,6 +66,21 @@ module Authentication
       session.delete(:return_to_after_authenticating) || root_url
     end
 
+    # The end of signing in, however the person showed who they are (password, Google): a closing shop only lets its
+    # owners in, and someone with two-factor on is asked for their code before any session starts.
+    def sign_in(user, with:)
+      if Current.account.closing? && !Current.account.memberships.find_by(user: user)&.owner?
+        redirect_to new_session_path, alert: "#{Current.account.name} is closing; only its owners can sign in."
+      elsif user.two_factor_enabled?
+        session[:two_factor_challenge] = { "user_id" => user.id, "account_id" => Current.account.id, "started_at" => Time.current.to_i,
+          "sign_in_method" => with.to_s }
+        redirect_to new_session_two_factor_path
+      else
+        start_new_session_for user, sign_in_method: with
+        redirect_to after_authentication_url
+      end
+    end
+
     def start_new_session_for(user, **attributes)
       Current.account.sessions.create!(user: user, user_agent: request.user_agent, ip_address: request.remote_ip, **attributes).tap do |session|
         Current.session = session

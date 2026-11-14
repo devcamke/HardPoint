@@ -213,6 +213,7 @@ ending 0000 declines). Without Paystack keys, "Pay by card" goes to a simulated 
 | [docs/BRAND.md](docs/BRAND.md) | Anyone changing screens | The look and layout: colours, components and rules |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Whoever runs production | Deploys, backups and restores, incidents, scaling out |
 | [docs/SECURITY.md](docs/SECURITY.md) | Security reviewers | Controls and the penetration test brief |
+| [docs/SOC2_READINESS.md](docs/SOC2_READINESS.md) | The team, auditors | Where HardPoint stands against SOC 2: the controls it has, the gaps, the policies to write and the order to do it in |
 | [docs/LAUNCH.md](docs/LAUNCH.md) | The team | The pilot and go-live checklist |
 | [docs/GO_TO_MARKET.md](docs/GO_TO_MARKET.md) | The team | How to package, price and sell HardPoint, and the redundancy, security and support it needs to be relied on |
 | [perf/README.md](perf/README.md) | Anyone changing the till or the database | Load testing with k6, and the results |
@@ -345,6 +346,11 @@ Everything below is added with `bin/rails credentials:edit` unless it says other
   `https://APP_HOST/webhooks/billing/mpesa/<callback_token>`; set Paystack's webhook URL to
   `https://APP_HOST/webhooks/paystack` (signed with the secret key). `BillingJob` runs daily at 05:00 UTC, and
   `AccountMaintenanceJob` (expired exports, shops due for deletion) at 01:00 UTC.
+- **Sign in with Google** (optional): `google: { client_id:, client_secret: }`, from an OAuth "Web application" client in
+  Google Cloud whose only authorised redirect URI is `https://APP_HOST/auth/google/callback` (Google can't list a
+  wildcard, so every shop comes back through the bare domain and is handed on to its own address). With it set, each
+  shop's sign-in page offers **Sign in with Google** to staff who are already on the shop with that email address;
+  without it the button isn't shown. See `GoogleSignIn`.
 - **QZ Tray** (optional, to skip its "allow" prompt on tills): `qz: { certificate:, private_key: }`.
 - **Exchange rates:** nothing to set up; the morning job uses open.er-api.com's free feed. To use another feed with
   the same JSON shape, add `exchange_rates_url: "https://…/%{base}"`.

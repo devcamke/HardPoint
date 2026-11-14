@@ -20,5 +20,13 @@
         <%= link_to "Forgot password?", new_password_path, class: "text-sm text-gray-500 underline hover:no-underline" %>
       </div>
     <% end %>
+
+    <% if GoogleSignIn.configured? %>
+      <div class="mt-4 border-t border-gray-200 pt-4">
+        <%# A plain link, not Turbo: it leaves for accounts.google.com. %>
+        <%= link_to "Sign in with Google", new_session_google_path, class: "btn-secondary w-full justify-center", data: { turbo: false } %>
+        <p class="hint mt-2">For staff whose HardPoint email address is a Google account.</p>
+      </div>
+    <% end %>
   </div>
 </div>

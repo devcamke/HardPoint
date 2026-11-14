@@ -13,7 +13,7 @@ class Session < ApplicationRecord
   belongs_to :user
   belongs_to :impersonator, class_name: "User", optional: true
 
-  enum :sign_in_method, %w[ password pin impersonation ].index_by(&:itself), prefix: :signed_in_with
+  enum :sign_in_method, %w[ password pin impersonation google ].index_by(&:itself), prefix: :signed_in_with
 
   before_create { self.expires_at ||= IMPERSONATION_DURATION.from_now if signed_in_with_impersonation? }
   before_create { self.last_seen_at ||= Time.current }
@@ -75,6 +75,7 @@ class Session < ApplicationRecord
       case sign_in_method
       when "pin" then track_event "switched_in", creator: user
       when "impersonation" then track_event "impersonation_started", creator: user, administrator: impersonator.name
+      when "google" then track_event "signed_in", creator: user, ip_address: ip_address, with: "Google"
       else track_event "signed_in", creator: user, ip_address: ip_address
       end
     end

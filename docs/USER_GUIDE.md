@@ -1612,6 +1612,8 @@ Every shop has its own web address, like **yourshop.hardpoint.app**. It's in you
 2. Type your **Email address** and **Password** and press **Sign in**.
 3. If you use two-factor sign-in, type the 6-digit code from your authenticator app and press **Verify**.
 
+If the sign-in page has a **Sign in with Google** button and your HardPoint email address is a Google account (Gmail, or your company's Google Workspace), you can press it instead of typing your password: choose your account at Google and you're signed in. It only works for people already on the shop's staff with that address, and if you use two-factor sign-in you're still asked for your code.
+
 You stay signed in on that computer or phone until you sign out, for up to two weeks without using it (three months in all); after that HardPoint asks you to sign in again.
 
 #### Forgotten your password?

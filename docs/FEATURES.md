@@ -772,6 +772,9 @@ help centre.
   are settled by payments like any other debt, and neither is a sale or a purchase: they stay out of takings, VAT and
   eTIMS, and go to QuickBooks against Opening Balance Equity. A balance is only set on an account with nothing on it,
   so a file imported twice can't double a debt.
+- **49. Sign in with Google:** when the platform has Google credentials, each shop's sign-in page offers it to staff
+  already on the shop with that email address, alongside passwords; two-factor still applies, nobody is created by it,
+  and Activity says "signed in with Google".
 
 Also since then: a refreshed app menu (the shop's logo and name, bigger text, and the areas along the bottom on
 phones), a rectangular receipt stamp, and a shorter landing page in the manner of odoo.com (docs/BRAND.md, The

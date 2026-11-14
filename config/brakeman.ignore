@@ -56,6 +56,29 @@
         601
       ],
       "note": "Paystack's checkout page: Billing::Paystack#checkout_url only returns https URLs on paystack.com."
+    },
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "cff6fbdadc26b7e9de80f36612e26a4362a3b990006ff51f788c84a2a18af526",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/sessions/googles_controller.rb",
+      "line": 13,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(GoogleSignIn.start(:account => Current.account, :redirect_uri => google_callback_url(:subdomain => false)).url, :allow_other_host => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Sessions::GooglesController",
+        "method": "new"
+      },
+      "user_input": "GoogleSignIn.start(:account => Current.account, :redirect_uri => google_callback_url(:subdomain => false)).url",
+      "confidence": "Weak",
+      "cwe_id": [
+        601
+      ],
+      "note": "The address is GoogleSignIn::AUTHORIZE_URL (a constant, accounts.google.com) with a query string built by the app; nothing from the request decides where it goes."
     }
   ],
   "brakeman_version": "8.0.6"

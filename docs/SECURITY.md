@@ -19,6 +19,7 @@ test. Report vulnerabilities to security@hardpoint.app.
 | | Session cookies are per subdomain (not shared across shops); sessions are looked up within the shop | `app/controllers/concerns/authentication.rb` |
 | Authentication | `has_secure_password` (bcrypt); TOTP two-factor with recovery codes, required for platform admins and optionally for a shop's owners and managers; 10 wrong codes in a row lock codes for 15 minutes and email the person; turning two-factor off needs a code as well as the password; a password change or reset ends every session, admin sessions included; invitation links last 3 days, reset links 15 minutes, and both stop working once a password is set | `app/models/user/two_factor.rb` |
 | | Rate limits: sign-in 10 per 3 minutes per login from each address (so nobody elsewhere can lock an owner out) and 60 per address (a shop's tills share one address); two-factor codes per person; password reset per address and per email address; changing your password or two-factor per person; setting an approval PIN per person; admin sign-in and codes per address and per administrator; PIN switching per till with PIN lockout after repeated failures; sign-up | controllers' `rate_limit` |
+| | **Sign in with Google** (optional, OpenID Connect): Google only vouches for an email address, so it signs in people already on the shop's staff with that address and creates nobody; the address must be one Google has verified; two-factor is still asked for; a closing shop still only admits owners. Google returns to the bare domain, which hands the address to the shop in a signed message that lasts a minute, names the shop, and is tied to a nonce in the browser session that started the sign-in and is spent on use, so it can't be replayed, used in another shop, or planted in someone else's browser. The ID token's issuer, audience, expiry and nonce are checked. Not offered on the admin subdomain | `app/models/google_sign_in.rb`, `test/controllers/sessions/googles_controller_test.rb` |
 | Authorisation | Roles (owner, manager, cashier, stock clerk, accountant) checked in controllers; only owners give, change or remove the owner role; approvals by PIN for discounts, voids, returns and credit, with at most 10 wrong approval PINs per shop in 15 minutes | `app/controllers/concerns/authorization.rb`, `app/controllers/memberships_controller.rb`, `app/models/approval.rb` |
 | Sessions | Removing a member of staff deletes their sessions; a session without a membership is refused. Passwords need 10 characters on every path (sign-up, invitation, reset, profile) | `app/models/membership.rb`, `app/controllers/concerns/authentication.rb`, `app/models/user.rb` |
 | Offline sync | A sale goes only into a shift of the till sending it, by staff who can sell; hand discounts from the offline till are ignored with a warning; negative prices refused | `app/models/sale/offline.rb` |
@@ -49,7 +50,7 @@ test. Report vulnerabilities to security@hardpoint.app.
 - Every foreign key is indexed (deleting a shop, exports).
 - Security headers and the content security policy; no inline event handlers.
 - Webhook signature and token checks; rate limits on sign-in.
-- Brakeman: 0 warnings (2 reviewed and recorded in `config/brakeman.ignore`).
+- Brakeman: 0 warnings (3 reviewed and recorded in `config/brakeman.ignore`).
 
 ## Penetration test brief
 

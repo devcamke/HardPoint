@@ -7,7 +7,7 @@ module EventsHelper
     case [ event.eventable_type, event.action ]
     in [ "Account", "created" ] then "opened the shop #{subject}"
     in [ "Account", "updated" ] then "changed shop settings: #{describe_changes(event)}"
-    in [ "Session", "signed_in" ] then "signed in#{" from #{event.particulars["ip_address"]}" if event.particulars["ip_address"]}"
+    in [ "Session", "signed_in" ] then "signed in#{" with #{event.particulars["with"]}" if event.particulars["with"]}#{" from #{event.particulars["ip_address"]}" if event.particulars["ip_address"]}"
     in [ "Session", "switched_in" ] then "switched in at the till with their PIN"
     in [ "Session", "impersonation_started" ] then "was signed in as by HardPoint support (#{event.particulars["administrator"]})"
     in [ "Membership", "created" ] then "added #{subject} as #{event.particulars.dig("role")&.humanize&.downcase || "staff"}"

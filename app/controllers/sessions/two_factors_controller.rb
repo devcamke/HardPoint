@@ -15,8 +15,8 @@ class Sessions::TwoFactorsController < ApplicationController
 
   def create
     if @user.verify_two_factor(params[:code])
-      session.delete(:two_factor_challenge)
-      start_new_session_for @user
+      challenge = session.delete(:two_factor_challenge)
+      start_new_session_for @user, sign_in_method: challenge["sign_in_method"].presence_in(%w[ password google ]) || "password"
       redirect_to after_authentication_url
     elsif @user.two_factor_locked?
       redirect_to new_session_two_factor_path, alert: "Too many wrong codes. Wait #{User::TwoFactor::LOCKOUT.in_minutes.to_i} minutes, then try again."

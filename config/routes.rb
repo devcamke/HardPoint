@@ -38,6 +38,8 @@ Rails.application.routes.draw do
   constraints ->(request) { request.subdomain.blank? } do
     resource :signup, only: %i[ new create ]
     resource :shop_lookup, only: %i[ new create ]
+    # Where Google sends people back after "Sign in with Google"; they're handed on to their shop from here.
+    get "auth/google/callback", to: "google_callbacks#show", as: :google_callback
     get "pricing", to: "pages#pricing"
     get "privacy", to: "pages#privacy"
     get "terms", to: "pages#terms"
@@ -102,6 +104,7 @@ Rails.application.routes.draw do
         resource :two_factor, only: %i[ new create ]
         resource :switch, only: %i[ new create ]
         resource :impersonation, only: %i[ new create ]
+        resource :google, only: %i[ new show ] # "Sign in with Google": off to Google, and back with its handoff
       end
     end
     namespace :my do
