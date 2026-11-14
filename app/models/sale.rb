@@ -25,6 +25,7 @@ class Sale < ApplicationRecord
   has_one :etims_submission, -> { where(kind: "sale") }, class_name: "Etims::Submission", as: :document
   has_many :lines, -> { order(:id) }, class_name: "SaleLine", dependent: :destroy, inverse_of: :sale
   has_many :sale_returns, dependent: :restrict_with_error
+  has_many :stock_movements, as: :source
 
   enum :status, %w[ open parked completed voided ].index_by(&:itself), default: :open
 
@@ -50,6 +51,12 @@ class Sale < ApplicationRecord
 
   def price_list
     customer&.price_list
+  end
+
+  # What the yard cuts for this sale, as the stock ledger recorded it: [ [ product, "2.5 m cut from a 6 m length, leaving a 3.5 m offcut" ], ... ]
+  def cutting_list
+    stock_movements.where(reason: "sold", product_id: account.products.cut_to_length.select(:id)).where.not(note: nil)
+      .includes(:product).order(:id).map { [ _1.product, _1.note ] }
   end
 
   def returned_quantity(line)

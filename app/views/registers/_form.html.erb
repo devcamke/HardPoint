@@ -26,6 +26,22 @@
     </div>
   </div>
 
+  <div class="field">
+    <%= form.label :scale_mode, "Weighing scale", class: "label" %>
+    <%= form.select :scale_mode, Register::SCALE_MODES.map { |mode, words| [ words, mode ] }, {}, class: "input" %>
+    <p class="hint mt-1">With a scale on this till's computer (a serial or USB-serial cable), <strong>Weigh</strong> at the till fills in the weight of anything sold by the kilogram or gram. It needs Chrome or Edge; the browser asks which port the first time.</p>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="field">
+      <%= form.label :scale_baud_rate, "Scale speed (baud)", class: "label" %>
+      <%= form.select :scale_baud_rate, Register::SCALE_BAUD_RATES, {}, class: "input" %>
+    </div>
+    <div class="field">
+      <%= form.label :scale_framing, "Scale data format", class: "label" %>
+      <%= form.select :scale_framing, Register::SCALE_FRAMINGS.map { |framing, words| [ words, framing ] }, {}, class: "input" %>
+    </div>
+  </div>
+
   <div class="field flex items-start gap-2">
     <%= form.check_box :opens_till, class: "mt-1 size-4 accent-primary-500" %>
     <div>

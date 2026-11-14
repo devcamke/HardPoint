@@ -1,5 +1,6 @@
 # Browser features HardPoint pages may use. The camera is for photographing signed delivery notes
-# (through a file input); nothing uses the microphone, location, USB or payment request APIs.
+# (through a file input) and a serial port for a till's weighing scale; nothing uses the microphone, location,
+# USB or payment request APIs.
 #
 # One source of truth, emitted under two header names: Rails' config.permissions_policy still writes the
 # deprecated Feature-Policy header (`camera 'self'`), which current browsers ignore, so we also write the
@@ -16,6 +17,7 @@ module PermissionsPolicy
     magnetometer:  :none,
     microphone:    :none,
     payment:       :none,
+    serial:        :self,
     usb:           :none,
   }.freeze
 

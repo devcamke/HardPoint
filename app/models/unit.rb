@@ -13,6 +13,13 @@ class Unit < ApplicationRecord
 
   scope :alphabetically, -> { order(:name) }
 
+  # How many of this unit make a kilogram, for units a scale can fill in at the till; nil for the rest.
+  PER_KILOGRAM = { "kg" => 1, "kilogram" => 1, "kilograms" => 1, "g" => 1000, "gram" => 1000, "grams" => 1000 }.freeze
+
+  def per_kilogram
+    PER_KILOGRAM[abbreviation.to_s.downcase.strip] || PER_KILOGRAM[name.to_s.downcase.strip] if fractional?
+  end
+
   def valid_quantity?(quantity)
     fractional? || quantity.to_d.frac.zero?
   end

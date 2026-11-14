@@ -7,7 +7,7 @@ class Report::ProfitAndLoss < Report
   self.description = "Sales, cost of sales, gross profit, stock losses and till payouts"
   self.group = "Sales and money"
 
-  ADJUSTMENT_REASONS = %w[ found damaged stolen expired internal_use correction count ].freeze
+  ADJUSTMENT_REASONS = %w[ found damaged stolen expired internal_use correction count cutting_waste ].freeze
 
   def sections
     rows = [

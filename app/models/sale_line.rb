@@ -14,12 +14,13 @@ class SaleLine < ApplicationRecord
   validates :quantity, numericality: { greater_than: 0 }
   validates :discount_cents, numericality: { greater_than_or_equal_to: 0 }
   validates_same_account :sale, :product, :product_unit, :tax_rate_record
-  validate :whole_units, :one_per_serial_number, :discount_within_price
+  validate :whole_units, :one_per_serial_number, :discount_within_price, :cut_from_a_length
 
   before_validation(on: :create) do
     self.tax_rate_record = product.effective_tax_rate
     self.tax_rate = tax_rate_record&.rate || 0
   end
+  before_validation { self.cut_length = nil unless product&.cut_to_length? && product_unit_id.nil? && cut_length.to_d.positive? }
   before_save :calculate_totals
 
   def unit
@@ -65,7 +66,23 @@ class SaleLine < ApplicationRecord
 
   def description
     name = product_unit ? "#{product.name} (#{product_unit})" : product.name
-    detail.present? ? "#{name} · #{detail}" : name
+    [ name, detail.presence, cut_words ].compact.join(" · ")
+  end
+
+  # How many pieces a cut line is, when its quantity is a whole number of them.
+  def pieces
+    count, rest = quantity.divmod(cut_length) if cut_length.to_d.positive?
+    count.to_i if rest&.zero?
+  end
+
+  # "3 × 2.5 m"
+  def cut_words
+    "#{pieces} × #{product.length_words(cut_length)}" if pieces
+  end
+
+  # The lengths this line takes of one of its stock items: its own cuts, or full lengths for a pack or a kit's part.
+  def pieces_of(item, amount)
+    item.pieces_for(amount, (cut_length if item == product && product_unit_id.nil?)) if item.cut_to_length?
   end
 
   # Recorded when the sale completes, so margins stay true after costs change.
@@ -75,7 +92,8 @@ class SaleLine < ApplicationRecord
     update_columns cost_cents: current_cost_cents
     offline = sale.offline_uuid.present?
     stock_items.each do |item, amount|
-      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier, allow_expired: offline, allow_negative: offline)
+      item.move_stock(branch: sale.branch, quantity: -amount, reason: "sold", source: sale, creator: sale.cashier, allow_expired: offline, allow_negative: offline,
+        pieces: pieces_of(item, amount))
     end
   end
 
@@ -102,7 +120,7 @@ class SaleLine < ApplicationRecord
     share = quantity / self.quantity
     stock_items.each do |item, amount|
       item.move_stock(branch: branch, quantity: amount * share, reason: reason, source: source,
-        reverses: { taken_by: [ sale ], returned_by: [ sale, *sale.sale_returns ] })
+        reverses: { taken_by: [ sale ], returned_by: [ sale, *sale.sale_returns ] }, pieces: pieces_of(item, amount * share))
     end
   end
 
@@ -138,6 +156,12 @@ class SaleLine < ApplicationRecord
 
     def one_per_serial_number
       errors.add :quantity, "must be 1 for items with a serial number" if product&.serialized? && quantity != 1
+    end
+
+    def cut_from_a_length
+      if cut_length && product&.cut_to_length? && cut_length > product.stock_length
+        errors.add :base, "#{product.name} comes in lengths of #{product.length_words(product.stock_length)}, so a piece can't be #{product.length_words(cut_length)}"
+      end
     end
 
     def discount_within_price

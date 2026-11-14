@@ -3,7 +3,7 @@
 # email leaves it out.
 class OwnerSummary::Daily
   # Stock leaving for something other than a sale or a transfer: the shop's loss, valued at cost.
-  WRITE_OFF_REASONS = %w[ damaged stolen expired internal_use lost_in_transit correction count ].freeze
+  WRITE_OFF_REASONS = %w[ damaged stolen expired internal_use lost_in_transit correction count cutting_waste ].freeze
   LIST_LIMIT = 8
 
   Shift = Data.define(:name, :cashier, :variance_cents)

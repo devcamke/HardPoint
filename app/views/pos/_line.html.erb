@@ -5,7 +5,7 @@
 <li id="<%= dom_id(line) %>" class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 px-4 py-2.5 @lg:px-6 @lg:grid-cols-[minmax(0,1fr)_auto_auto_auto] @lg:py-1.5">
   <div class="min-w-0">
     <p class="line-clamp-2 font-medium leading-snug"><%= line.description %></p>
-    <p class="text-xs text-gray-500"><%= money(line.unit_price_cents) %> / <%= line.unit.abbreviation %>
+    <p class="text-xs text-gray-500"><%= money(line.unit_price_cents) %> / <%= line.unit.abbreviation %><%= " · #{quantity(line.quantity, line.unit)}" if line.pieces %>
       <%= "· −#{money(line.discount_cents)}" if line.discount_cents.positive? %>
       <%= tag.span("#{line.promotion.offer} −#{money(line.promotion_discount_cents)}", class: "ml-1 text-xs font-medium text-red-700") if line.promotion && line.promotion_discount_cents.positive? %></p>
     <% if line.product.serialized? %>
@@ -19,17 +19,34 @@
   <p class="font-semibold tabular-nums @lg:order-3 @lg:min-w-20 @lg:text-right"><%= money(line.total_cents) %></p>
 
   <div class="flex items-center gap-2 @lg:order-2">
+    <% if line.pieces && line.customer_order_line_id.nil? %>
+    <%# Cut to length: so many pieces of a length each (the name says "3 × 2.5 m"; the price line the total). %>
+    <%= form_with model: line, url: pos_line_path(line), method: :patch, class: "flex items-center gap-1", data: { controller: "auto-submit" } do |form| %>
+      <%= number_field_tag "sale_line[pieces]", line.pieces, id: nil, min: 1, step: 1, required: true, class: "input w-14 py-1 text-center tabular-nums", inputmode: "numeric",
+            "aria-label": "Pieces of #{line.product.name}", data: { action: "change->auto-submit#submit" } %>
+      <span class="text-gray-500" aria-hidden="true">×</span>
+      <%= form.number_field :cut_length, value: plain_number(line.cut_length), id: nil, step: "any", min: 0.001, max: plain_number(line.product.stock_length), required: true,
+            class: "input w-20 py-1 text-center tabular-nums", inputmode: "decimal", "aria-label": "Length of each piece of #{line.product.name}", data: { action: "change->auto-submit#submit" } %>
+    <% end %>
+    <% else %>
     <%# − and + for a touch screen; the box still takes a typed quantity (2.5 m, 12 pcs). %>
     <div class="flex items-center gap-1">
       <%= button_to pos_line_path(line), method: :patch, params: { sale_line: { quantity: plain_number(line.quantity - 1) } }, disabled: line.quantity <= 1,
             class: step, title: "One less", "aria-label": "One less #{line.product.name}" do %>−<% end %>
-      <%= form_with model: line, url: pos_line_path(line), method: :patch, data: { controller: "auto-submit" } do |form| %>
+      <%# With a scale on this till, Weigh fills in what's on the pan for anything sold by the kilogram or gram. %>
+      <% weighed = current_till&.scale? && line.product_unit.nil? && line.product.unit.per_kilogram %>
+      <%= form_with model: line, url: pos_line_path(line), method: :patch, class: "flex items-center gap-1", data: { controller: "auto-submit", **(weighed ? scale_data(current_till, line.product.unit) : {}) } do |form| %>
         <%= form.number_field :quantity, value: plain_number(line.quantity), step: (line.product_unit || !line.product.unit.fractional? ? 1 : "any"), min: 0,
-              class: "input w-16 py-1 text-center tabular-nums", inputmode: "decimal", "aria-label": "Quantity of #{line.product.name}", data: { action: "change->auto-submit#submit" } %>
+              class: "input #{weighed ? "w-20" : "w-16"} py-1 text-center tabular-nums", inputmode: "decimal", "aria-label": "Quantity of #{line.product.name}", data: { action: "change->auto-submit#submit", scale_target: ("input" if weighed) } %>
+        <% if weighed %>
+          <button type="button" class="<%= step.sub("size-9", "h-9 px-2").sub("pointer-coarse:size-11", "pointer-coarse:h-11").sub("text-lg", "text-xs") %>" title="Read the scale" aria-label="Weigh <%= line.product.name %>" data-scale-target="button" data-action="scale#read">Weigh</button>
+          <span class="sr-only" role="status" data-scale-target="status"></span>
+        <% end %>
       <% end %>
       <%= button_to pos_line_path(line), method: :patch, params: { sale_line: { quantity: plain_number(line.quantity + 1) } },
             class: step, title: "One more", "aria-label": "One more #{line.product.name}" do %>+<% end %>
     </div>
+    <% end %>
     <% if line.product.product_units.any? %>
       <%= form_with model: line, url: pos_line_path(line), method: :patch, data: { controller: "auto-submit" } do |form| %>
         <%= form.select :product_unit_id, [ [ line.product.unit.abbreviation, "" ] ] + line.product.product_units.map { [ _1.unit.name.downcase, _1.id ] },

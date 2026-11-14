@@ -102,7 +102,11 @@ module Product::Stockable
   # else is left. Each batch touched gets its own ledger line.
   # With allow_negative: false, stock out that would leave the level below zero raises Product::OutOfStock. The check
   # is made with the level locked, so two tills selling the last one at once can't both have it.
-  def move_stock(branch:, quantity:, reason:, source: nil, note: nil, unit_cost_cents: cost_cents, creator: Current.user, batch: nil, reverses: nil, allow_expired: nil, allow_negative: true)
+  #
+  # For products cut to length (Product::CutToLength), a sale is cut piece by piece from the offcuts and full lengths
+  # on the rack (`pieces`, or full lengths and a remainder when the sale doesn't say), with a ledger line per kind
+  # of cut and one for any scrap; pieces coming back go on the rack as offcuts.
+  def move_stock(branch:, quantity:, reason:, source: nil, note: nil, unit_cost_cents: cost_cents, creator: Current.user, batch: nil, reverses: nil, allow_expired: nil, allow_negative: true, pieces: nil)
     raise ArgumentError, "#{name} doesn't track stock" unless track_stock?
     allow_expired = !reason.to_s.in?(IN_DATE_ONLY) if allow_expired.nil?
 
@@ -113,14 +117,33 @@ module Product::Stockable
         raise Product::OutOfStock, Product.shortage_message(self, level.quantity, branch)
       end
 
-      portions = tracks_batches? ? Product::Batching.new(self, branch).portions(quantity.to_d, batch: batch, reverses: reverses, allow_expired: allow_expired) : [ [ nil, quantity.to_d ] ]
-      portions.map do |stock_batch, amount|
+      post = ->(amount, stock_batch: nil, as: reason, saying: note) do
         stock_batch&.update!(quantity: stock_batch.quantity + amount)
         level.update! quantity: level.quantity + amount
 
         stock_movements.create! account: account, branch: branch, quantity: amount, balance: level.quantity, stock_batch: stock_batch,
-          reason: reason, source: source, note: note, unit_cost_cents: unit_cost_cents, creator: creator
-      end.last
+          reason: as, source: source, note: saying, unit_cost_cents: unit_cost_cents, creator: creator
+      end
+
+      if cut_to_length? && quantity.negative? && reason.to_s == "sold"
+        cutting = cutting_at(branch)
+        cuts = cutting.take(pieces || pieces_for(-quantity.to_d), unlisted: allow_negative)
+        movement = cuts.flat_map do |cut|
+          [ post.(-cut.quantity, saying: [ note, cutting.describe(cut) ].compact.join(" · ")),
+            (post.(-cut.scrap * cut.count, as: "cutting_waste", saying: "Left over from cutting, too short to keep") if cut.scrap.positive?) ]
+        end.compact.last
+        # A piece that came from nowhere on record means the record was wrong: it mustn't list more than is left.
+        cutting.trim(level.quantity) if cuts.any? { _1.from == :unlisted }
+        movement
+      else
+        portions = tracks_batches? ? Product::Batching.new(self, branch).portions(quantity.to_d, batch: batch, reverses: reverses, allow_expired: allow_expired) : [ [ nil, quantity.to_d ] ]
+        movement = portions.map { |stock_batch, amount| post.(amount, stock_batch: stock_batch) }.last
+        if cut_to_length?
+          cutting_at(branch).put_back(pieces) if pieces && quantity.positive?
+          cutting_at(branch).trim(level.quantity)
+        end
+        movement
+      end
     end
   end
 

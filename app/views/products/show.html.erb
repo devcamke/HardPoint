@@ -91,6 +91,10 @@
     <% end %>
   </section>
 
+  <% if @product.cut_to_length? %>
+    <%= render "products/offcuts/section", product: @product, lengths: @lengths %>
+  <% end %>
+
   <% if @product.tracks_batches? %>
     <%= render "stock_batches/section", product: @product %>
   <% end %>

@@ -36,7 +36,7 @@ to use it, the help centre (`/help` on the public site). The plan the phases cam
 - [Phase 30: tool hire, loyalty points and the customer display removed](#phase-30-tool-hire-loyalty-points-and-the-customer-display-removed)
 - [Phase 31: WhatsApp, transport, bulk prices, QuickBooks and Airtel Money](#phase-31-whatsapp-transport-bulk-prices-quickbooks-and-airtel-money)
 - [Since then: the new look, lists and help](#since-then-the-new-look-lists-and-help)
-- [Phases 34 to 47: ahead of the competition](#phases-34-to-47-ahead-of-the-competition)
+- [Phases 34 to 49: ahead of the competition](#phases-34-to-49-ahead-of-the-competition)
 
 ## Phase 1: shops, staff and sign-in
 
@@ -745,7 +745,7 @@ approval PIN, may be left off the screenshot.
   buttons (remove a payment, filters, pager) are finger-sized; the offline till can't record a sale twice on a double
   tap
 
-## Phases 34 to 47: ahead of the competition
+## Phases 34 to 49: ahead of the competition
 
 Each of these is described in full, with the decisions behind it, in [PLAN.md](PLAN.md); how to use them is in the
 help centre.
@@ -772,6 +772,12 @@ help centre.
   are settled by payments like any other debt, and neither is a sale or a purchase: they stay out of takings, VAT and
   eTIMS, and go to QuickBooks against Opening Balance Equity. A balance is only set on an account with nothing on it,
   so a file imported twice can't double a debt.
+- **49. Cutting and weighing:** a product sold by the metre can say what length it comes in (Settings › Features › Cut
+  lengths and offcuts). The till then asks for pieces and a length each, shows the full lengths and offcuts on the rack,
+  refuses a piece longer than anything there, and lists what to cut each piece from once the sale is paid. Offcuts are
+  kept per branch on the product's page (add, scrap, take off the list); a remainder under the product's scrap length
+  is written off as cutting waste. And a till with a weighing scale on its serial port has a **Weigh** button for
+  anything sold by the kilogram or gram (Settings › Tills; Chrome or Edge).
 
 Also since then: a refreshed app menu (the shop's logo and name, bigger text, and the areas along the bottom on
 phones), a rectangular receipt stamp, and a shorter landing page in the manner of odoo.com (docs/BRAND.md, The

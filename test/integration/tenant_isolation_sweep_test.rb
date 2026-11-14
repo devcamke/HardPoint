@@ -135,6 +135,8 @@ class TenantIsolationSweepTest < ActionDispatch::IntegrationTest
           acme.promotions.create!(name: "Sweep offer", kind: "percent_off", percent_off: 10, product_ids: [ products(:acme_nails).id ], starts_on: Date.current, ends_on: Date.current + 1)
           products(:acme_pipe).update!(tracks_batches: true)
           products(:acme_pipe).move_stock(branch: branches(:acme_main), quantity: 5, reason: "received", batch: { number: "SWEEP-1", expires_on: 1.month.from_now.to_date })
+          products(:acme_nails).update!(stock_length: 10)
+          Offcut.record(product: products(:acme_nails), branch: branches(:acme_main), length: 2).tap { raise "no offcut" unless _1.persisted? }
           acme.api_keys.create!(name: "Victim key")
           endpoint = acme.webhook_endpoints.create!(url: "https://hooks.example.com/victim", event_types: %w[ sale.completed ])
           endpoint.deliveries.create!(account: acme, event: "ping", event_id: SecureRandom.uuid, payload: {}, status: "failed", attempts: 7)
