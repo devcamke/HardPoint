@@ -7,6 +7,12 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   Capybara.server_host = "127.0.0.1"
   Capybara.always_include_port = true
 
+  # One request at a time. A test's browser and server share a single database connection, and which shop that
+  # connection may see is a setting on the connection (Account::Isolation). Two requests at once (Turbo prefetches a
+  # link the mouse happens to rest on) can clear it under each other: the second then finds no session and is sent
+  # to sign in. Each request has a connection of its own outside tests.
+  Capybara.server = :puma, { Threads: "1:1" }
+
   def visit_shop(account, path = "/")
     Capybara.app_host = "http://#{account.subdomain}.localhost"
     visit path
@@ -56,11 +62,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     def browser_state
       requests = page.evaluate_script("performance.getEntriesByType('resource').slice(-6).map(entry => entry.name)")
       console = page.driver.browser.logs.get(:browser).map(&:message)
-      # TEMPORARY, while finding why a click goes nowhere under Selenium: what the server saw, and what its threads are doing.
-      served = File.readlines(Rails.root.join("log/test.log")).grep(/Started |Completed |Redirected /).last(14).map(&:strip)
-      threads = Thread.list.reject { _1 == Thread.current }.map { |thread| "#{thread.status}: #{Array(thread.backtrace).reject { |line| line.include?("/gems/puma") }.first(14).join(" < ")}" }
-      [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?),
-        "Server: #{served.join(" || ")}", "Threads: #{threads.join(" ## ")}" ].compact.join("\n")
+      [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?) ].compact.join("\n")
     rescue StandardError => error
       "(The browser's state couldn't be read: #{error.message})"
     end
