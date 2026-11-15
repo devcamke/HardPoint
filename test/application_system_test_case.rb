@@ -56,7 +56,11 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     def browser_state
       requests = page.evaluate_script("performance.getEntriesByType('resource').slice(-6).map(entry => entry.name)")
       console = page.driver.browser.logs.get(:browser).map(&:message)
-      [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?) ].compact.join("\n")
+      # TEMPORARY, while finding why a click goes nowhere under Selenium: what the server saw, and what its threads are doing.
+      served = File.readlines(Rails.root.join("log/test.log")).grep(/Started |Completed |Redirected /).last(14).map(&:strip)
+      threads = Thread.list.reject { _1 == Thread.current }.map { |thread| "#{thread.status}: #{Array(thread.backtrace).reject { |line| line.include?("/gems/puma") }.first(14).join(" < ")}" }
+      [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?),
+        "Server: #{served.join(" || ")}", "Threads: #{threads.join(" ## ")}" ].compact.join("\n")
     rescue StandardError => error
       "(The browser's state couldn't be read: #{error.message})"
     end
