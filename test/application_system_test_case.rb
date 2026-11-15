@@ -47,9 +47,20 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     yield
     @journey_steps += 1
     page.save_screenshot journey_directory.join(format("%02d-%s.png", @journey_steps, description.parameterize))
+  rescue Minitest::Assertion, Capybara::CapybaraError => error
+    raise error.class, "At the step “#{description}”: #{error.message}\n#{browser_state}", error.backtrace
   end
 
   private
+    # Where the browser was when a step failed, what it last asked the server for, and anything it complained about.
+    def browser_state
+      requests = page.evaluate_script("performance.getEntriesByType('resource').slice(-6).map(entry => entry.name)")
+      console = page.driver.browser.logs.get(:browser).map(&:message)
+      [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?) ].compact.join("\n")
+    rescue StandardError => error
+      "(The browser's state couldn't be read: #{error.message})"
+    end
+
     def journey_directory
       JOURNEYS_DIRECTORY.join(journey_name)
     end
