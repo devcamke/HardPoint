@@ -25,11 +25,16 @@ class Pos::LinesController < ApplicationController
       return render_cart alert: shortage.message, status: :unprocessable_entity
     end
 
+    quantity_was, base_was, total_was = line.quantity_was, base_quantity_was(line), line.total_cents_was
     SaleLine.transaction do
       line.save!
       @sale.recalculate
       keep_what_is_paid!
       approve_discount!
+      # Fewer of it for less money: some of what was rung up has come off (Sale::TakenOff).
+      if line.base_quantity < base_was && line.total_cents < total_was
+        @sale.record_quantity_reduced(line, from: quantity_was, value_cents: total_was - line.total_cents)
+      end
     end
     render_cart message: stock_warning(line)
   rescue ActiveRecord::RecordInvalid, ApprovalMissing, PaidAlready => error
@@ -43,6 +48,7 @@ class Pos::LinesController < ApplicationController
       @sale.recalculate
       keep_what_is_paid!
       approve_discount!
+      @sale.record_line_removed(line)
     end
     render_cart message: "Removed #{line.product.name}"
   rescue ApprovalMissing, PaidAlready => error
@@ -93,8 +99,12 @@ class Pos::LinesController < ApplicationController
     def takes_more_stock?(line)
       return false unless line.quantity_changed? || line.product_unit_id_changed?
 
-      pack_was = Current.account.product_units.find_by(id: line.product_unit_id_was)&.quantity || 1
-      line.base_quantity > line.quantity_was.to_d * pack_was
+      line.base_quantity > base_quantity_was(line)
+    end
+
+    # What the line took off the shelf before this change.
+    def base_quantity_was(line)
+      line.quantity_was.to_d * (Current.account.product_units.find_by(id: line.product_unit_id_was)&.quantity || 1)
     end
 
     def stock_warning(line)

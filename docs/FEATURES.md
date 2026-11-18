@@ -138,7 +138,9 @@ was under 30).
   - **Profit and loss** (sales less returns, cost of sales, stock losses, till payouts)
   - **Tax (VAT)**: output tax by rate, input tax from supplier invoices, VAT payable
   - **Payments by method**, refunds, deposits and payments on account
-  - **Discounts, voids and returns** per cashier, every void, the biggest discounts and who approved them
+  - **Discounts, voids and returns** per cashier, every void, the biggest discounts and who approved them, and
+    everything **rung up and then taken off before payment** (sales cleared, lines removed, quantities cut), which
+    is also listed on the shift, kept in Activity, and flagged in the owner's morning email when it's unusual for the cashier
   - **Stock valuation** at cost and selling price, **dead stock**, and **shifts** with their over/short
   - Plus the existing stock movement history, who owes us and what we owe
 - **Margins stay true:** each sale line records what it cost when it was sold

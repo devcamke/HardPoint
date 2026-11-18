@@ -79,4 +79,19 @@ class CashierPatternsTest < ActiveSupport::TestCase
     assert_equal [ :drawer_openings ], flags.map { _1.metric.key }
     assert_match "opened the drawer without a sale 4 times", flags.first.description
   end
+
+  test "goods taken off sales before payment, well above the cashier's usual, are flagged" do
+    usual_weeks
+    sale = @shift.current_sale
+    sale.add(products(:acme_nails), quantity: 500)
+    value = sale.reload.total_cents
+    assert_operator value, :>=, 2000_00
+    assert sale.discard
+    Event.where(action: "sale_cleared").update_all(created_at: at(@today))
+    sale_on(@today)
+
+    flag = flags.sole
+    assert_equal [ users(:carl), :taken_off_cents, value ], [ flag.cashier, flag.metric.key, flag.value ]
+    assert_equal "took #{Money.format(value)} of goods off sales before payment (usually none)", flag.description
+  end
 end

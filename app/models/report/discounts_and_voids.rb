@@ -1,14 +1,17 @@
 # Where money was given away or taken back: discounts, voids and returns per cashier, every
-# voided sale, and the biggest discounts with who approved them.
+# voided sale, the biggest discounts with who approved them, and what was rung up and then taken
+# off before payment (Sale::TakenOff).
 class Report::DiscountsAndVoids < Report
   self.title = "Discounts, voids and returns"
-  self.description = "Per cashier, every voided sale, and the biggest discounts with their approvers"
+  self.description = "Per cashier, every voided sale, the biggest discounts with their approvers, and goods taken off before payment"
   self.group = "Sales and money"
 
   def sections
     [ Section.new(title: "By cashier", columns: cashier_columns, rows: cashier_rows, totals: cashier_totals),
       Section.new(title: "Voided sales", columns: void_columns, rows: void_rows),
-      Section.new(title: "Biggest discounts", columns: discount_columns, rows: discount_rows) ]
+      Section.new(title: "Biggest discounts", columns: discount_columns, rows: discount_rows),
+      Section.new(title: "Rung up, then taken off before payment", columns: taken_off_columns, rows: taken_off_rows,
+        note: "Sales cleared, lines removed and quantities cut before any money was recorded. Most are honest; look for one cashier well above the rest.") ]
   end
 
   private
@@ -20,7 +23,7 @@ class Report::DiscountsAndVoids < Report
     def cashier_columns
       [ Column.new("Cashier", :text), Column.new("Sales", :count), Column.new("Discounts given", :money), Column.new("Sales discounted", :count),
         Column.new("Voids", :count), Column.new("Voided value", :money), Column.new("Returns", :count), Column.new("Returned value", :money),
-        Column.new("Drawer opened, no sale", :count) ]
+        Column.new("Taken off before payment", :count), Column.new("Taken off value", :money), Column.new("Drawer opened, no sale", :count) ]
     end
 
     def cashier_figures
@@ -33,20 +36,28 @@ class Report::DiscountsAndVoids < Report
         voids = voided_sales.group(:cashier_id).pluck(:cashier_id, Arel.sql("COUNT(*)"), Arel.sql("SUM(total_cents)")).to_h { [ _1, [ _2, _3.to_i ] ] }
         returned = returns.group(:creator_id).pluck(:creator_id, Arel.sql("COUNT(*)"), Arel.sql("SUM(total_cents)")).to_h { [ _1, [ _2, _3.to_i ] ] }
         drawer = drawer_openings.group(:creator_id).count
+        taken = taken_off.group(:creator_id).pluck(:creator_id, Arel.sql("COUNT(*)"), Arel.sql("SUM((events.particulars->>'value')::bigint)")).to_h { [ _1, [ _2, _3.to_i ] ] }
 
-        account.users.where(id: sales.keys | voids.keys | returned.keys | drawer.keys).sort_by(&:name).map do |user|
+        account.users.where(id: sales.keys | voids.keys | returned.keys | drawer.keys | taken.keys).sort_by(&:name).map do |user|
           count, discount, discounted = sales.fetch(user.id, [ 0, 0, 0 ])
           line_discount, discounted_on_lines = lines.fetch(user.id, [ 0, 0 ])
           [ user.name, count, discount + line_discount, discounted + discounted_on_lines, *voids.fetch(user.id, [ 0, 0 ]), *returned.fetch(user.id, [ 0, 0 ]),
-            drawer.fetch(user.id, 0) ]
+            *taken.fetch(user.id, [ 0, 0 ]), drawer.fetch(user.id, 0) ]
         end
       end
     end
 
     # The cash drawer opened from the till without a sale, by whoever opened it.
     def drawer_openings
-      scope = Event.where(account: account, action: "drawer_opened", created_at: period.range)
-      branch ? scope.where(eventable_type: "Register", eventable_id: account.registers.where(branch: branch).select(:id)) : scope
+      at_tills Event.where(account: account, action: "drawer_opened", created_at: period.range)
+    end
+
+    def taken_off
+      at_tills Event.where(account: account, action: Sale::TakenOff::ACTIONS, created_at: period.range)
+    end
+
+    def at_tills(events)
+      branch ? events.where(eventable_type: "Register", eventable_id: account.registers.where(branch: branch).select(:id)) : events
     end
 
     def discounted_lines
@@ -56,7 +67,7 @@ class Report::DiscountsAndVoids < Report
     def cashier_rows = cashier_figures
 
     def cashier_totals
-      [ "Total", *(1..8).map { |index| cashier_figures.sum { _1[index] } } ]
+      [ "Total", *(1..10).map { |index| cashier_figures.sum { _1[index] } } ]
     end
 
     def void_columns
@@ -67,6 +78,16 @@ class Report::DiscountsAndVoids < Report
     def void_rows
       voided_sales.includes(:branch, :cashier, :voided_by).order(:voided_at).map do |sale|
         [ Link.new(sale.receipt_number, sale), I18n.l(sale.voided_at, format: :short), sale.cashier.name, sale.voided_by&.name, sale.void_reason, sale.total_cents ]
+      end
+    end
+
+    def taken_off_columns
+      [ Column.new("When", :text), Column.new("Cashier", :text), Column.new("Till", :text), Column.new("What", :text), Column.new("Value", :money) ]
+    end
+
+    def taken_off_rows
+      taken_off.includes(:creator).order(:created_at).map do |event|
+        [ I18n.l(event.created_at, format: :short), event.creator&.name, event.particulars["name"], Sale::TakenOff.words(event).upcase_first, event.particulars["value"].to_i ]
       end
     end
 

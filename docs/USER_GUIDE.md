@@ -464,6 +464,8 @@ Cash movements go on the till this device is set to, since that's the drawer the
 
 Each one shows on the shift report with its reason. On tills that print through QZ Tray, **Open drawer** in the top bar opens the drawer without a sale. It asks why first: **Change for a customer**, **Cash drop to the safe**, **Checking the float** or **Other**. Each opening is listed on the shift report with who opened it and why, counted per cashier in the **Discounts, voids and returns** report, and kept in **Settings › Activity**.
 
+Goods rung up and then taken off again before payment are kept too: a sale cleared, a line removed, or a quantity cut. Nothing stops the cashier, since a wrong scan or a customer changing their mind is ordinary, but each one is listed on the shift report with who did it, what came off and its value, counted per cashier in the **Discounts, voids and returns** report, and kept in **Settings › Activity**. The owner's morning email says when a cashier took off far more than they usually do. Sales rung up while the till is offline aren't covered: the till can't report what was taken off until the sale reaches HardPoint.
+
 #### The X report
 
 Press **Shift** on the till at any time to see the **X report**: how the shift is doing so far, without closing it. It shows sales, voids, discounts and tax; takings by method (cash, card, M-Pesa, on account, and Airtel Money or foreign cash when used); deposits and account payments; refunds; and the cash drawer worked out line by line. **Print** prints it.

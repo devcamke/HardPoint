@@ -1,5 +1,5 @@
-# Each cashier against their own usual, for the owner's morning email. A day's voids, discounts, cash refunds and
-# drawer openings without a sale are set beside the same cashier's last eight weeks, counting the days they worked
+# Each cashier against their own usual, for the owner's morning email. A day's voids, discounts, cash refunds,
+# drawer openings without a sale and goods taken off sales before payment (Sale::TakenOff) are set beside the same cashier's last eight weeks, counting the days they worked
 # (rang up a sale). What stands well out is flagged:
 #
 #   at least the floor          (3 voids, KES 1,000 of discounts, ...): small numbers aren't worth a look
@@ -19,7 +19,8 @@ class CashierPatterns
     Metric.new(:voids, 3, false),
     Metric.new(:discount_cents, 1000_00, true),
     Metric.new(:cash_refund_cents, 1000_00, true),
-    Metric.new(:drawer_openings, 3, false)
+    Metric.new(:drawer_openings, 3, false),
+    Metric.new(:taken_off_cents, 2000_00, true)
   ].freeze
 
   Flag = Data.define(:cashier, :metric, :value, :usual) do
@@ -35,6 +36,7 @@ class CashierPatterns
       when :voids then "voided #{value} #{"sale".pluralize(value)} (#{usual_words})"
       when :discount_cents then "gave #{amount.(value)} in discounts (#{usual_words})"
       when :cash_refund_cents then "refunded #{amount.(value)} in cash (#{usual_words})"
+      when :taken_off_cents then "took #{amount.(value)} of goods off sales before payment (#{usual_words})"
       when :drawer_openings then "opened the drawer without a sale #{value} #{"time".pluralize(value)} (#{usual_words})"
       end
     end
@@ -99,6 +101,8 @@ class CashierPatterns
         .group(:creator_id, Arel.sql(local_date("sale_returns.created_at"))).sum(:total_cents), :cash_refund_cents)
       add.(Event.where(account: account, action: "drawer_opened", created_at: range(from, to))
         .group(:creator_id, Arel.sql(local_date("events.created_at"))).count, :drawer_openings)
+      add.(Event.where(account: account, action: Sale::TakenOff::ACTIONS, created_at: range(from, to))
+        .group(:creator_id, Arel.sql(local_date("events.created_at"))).sum(Arel.sql("(events.particulars->>'value')::bigint")), :taken_off_cents)
       figures
     end
 

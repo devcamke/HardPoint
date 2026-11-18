@@ -62,6 +62,7 @@ module Sale::Voidable
 
   # An unfinished cart that's no longer wanted. It never took stock or money, and no money is on its way to it:
   # a prompt the customer may yet answer would arrive to find nothing to pay, and the money would be lost.
+  # What was in it is kept in Activity (Sale::TakenOff), since the sale itself is gone.
   def discard
     return false unless open? || parked?
 
@@ -71,7 +72,12 @@ module Sale::Voidable
     elsif stk_requests.pending.exists? || airtel_requests.pending.exists?
       errors.add :base, "A payment prompt is still waiting for the customer's answer. Cancel it, or wait for it, before clearing this sale"
     end
-    errors.none? && destroy
+    return false if errors.any?
+
+    transaction do
+      record_cleared if lines.any?
+      destroy
+    end
   end
 
   def park
