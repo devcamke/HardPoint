@@ -112,6 +112,12 @@
     <%= mail_list [ "Cashier", "Yesterday" ], s.unusual.map { |flag| [ flag.cashier.name, mail_status(:warning, flag.description(currency: currency).upcase_first) ] } %>
   <% end %>
 
+  <% if s.small_and_often.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Small and often</p>
+    <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">Under every alert on its own, but it keeps coming.</p>
+    <%= mail_list [ "Who", "What" ], s.small_and_often.map { [ _1.name, mail_status(:warning, _1.words.upcase_first) ] } %>
+  <% end %>
+
   <% if s.cashiers.any? %>
     <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Given away, by cashier</p>
     <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">Discounts, voids and returns together.</p>
