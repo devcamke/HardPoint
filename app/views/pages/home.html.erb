@@ -20,7 +20,13 @@
      safe_join([ tag.path(d: "M6 6c2 18 12 30 34 32"), tag.path(d: "M32 30l8 8-10 4") ])
    } } %>
 
-<section class="bg-white" data-controller="dialog">
+<section class="relative isolate overflow-hidden bg-white" data-controller="dialog">
+  <%# So the hero is not a blank sheet: circuit traces in the top corners and wave lines along the foot, faint, behind the words. %>
+  <div class="absolute inset-0 -z-10 text-primary-500" aria-hidden="true">
+    <%= render "pages/circuit", classes: "top-0 left-0 hidden size-72 opacity-15 sm:block lg:size-[28rem]" %>
+    <%= render "pages/circuit", classes: "top-0 right-0 hidden size-72 -scale-x-100 opacity-15 sm:block lg:size-[28rem]" %>
+    <%= render "pages/wavelines", classes: "bottom-0 h-32 text-primary-200 sm:h-44" %>
+  </div>
   <%# The hero as odoo.com draws its own: the headline in marker pen with a highlighter swash behind the words that
       matter, and the price scribbled beside an arrow. The small line above the headline is part of the h1, so search
       engines still read what HardPoint is; the headline is what it does. %>
@@ -76,7 +82,13 @@
 <%# The product as a grid of tiles, one per thing a hardware shop does, each opening its help guide: white tiles with
       a coloured glyph, as Odoo draws its apps. Twelve, the ones a shop decides on; the guides hold the rest. The switch beneath, "Imagine without HardPoint", greys the tiles and
       writes by hand what each one replaces in a hardware shop. CSS alone: the switch is a checkbox the grid listens to. %>
-<section id="features" class="scroll-mt-20 border-b border-gray-200/70 bg-gray-50">
+<section id="features" class="relative isolate scroll-mt-20 overflow-hidden border-b border-gray-200/70 bg-gray-50">
+  <%# The same faint circuits and waves as the hero, behind the tiles: traces from the right under the wave and from the bottom left. %>
+  <div class="absolute inset-0 -z-10 text-primary-500" aria-hidden="true">
+    <%= render "pages/circuit", classes: "top-16 right-0 hidden size-72 -scale-x-100 opacity-15 sm:top-24 sm:block lg:size-[28rem]" %>
+    <%= render "pages/circuit", classes: "bottom-0 left-0 hidden size-72 -scale-y-100 opacity-15 sm:block lg:size-[28rem]" %>
+    <%= render "pages/wavelines", classes: "bottom-0 h-32 text-primary-200 sm:h-44" %>
+  </div>
   <%# The hero hands over to the tiles along a hand-drawn wave rather than a ruled line: white above, grey below. %>
   <svg class="block h-12 w-full sm:h-20 lg:h-24" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true">
     <path fill="#fff" d="M0 0H1440V62C1360 86 1280 96 1180 78C1080 60 1000 20 880 42C760 64 700 88 560 70C420 52 340 40 220 56C140 68 60 72 0 50Z"/>
