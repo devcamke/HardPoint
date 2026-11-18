@@ -1,11 +1,12 @@
-# Stock taken off the books by hand: an adjustment down (damaged, stolen, expired, internal use, a correction) or
-# a batch written off. Saying goods were broken is the easy way to cover goods that walked, so past the shop's
+# Stock taken off the books by hand: an adjustment down (damaged, stolen, expired, internal use, a correction), a
+# batch written off, or an offcut scrapped. Saying goods were broken is the easy way to cover goods that walked, so past the shop's
 # limit (write_off_approval_above, on Shop details) it needs an owner or manager, at their own screen or by
 # approval PIN. The limit is on what one person writes off in a day, at cost, so ten small write-offs can't do
 # what one big one may not. Each one approved is kept in Activity against the product, and the other owners and
 # managers are emailed straight away.
 class StockWriteOff
-  REASONS = %w[ damaged stolen expired internal_use correction ].freeze
+  # Cutting waste counts when it's by hand (an offcut scrapped); what a sale's cuts leave over has the sale as its source.
+  REASONS = %w[ damaged stolen expired internal_use correction cutting_waste ].freeze
 
   attr_reader :product, :branch, :quantity, :reason, :by
 

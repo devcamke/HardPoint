@@ -143,11 +143,11 @@ was under 30).
   - **Approvals** report: who approved what for whom, and everything an owner or manager approved for themselves;
     the owner's morning email lists what each manager approved for themselves. A shop can make managers alone, or
     owners too, need a second person for their own actions; a new shop starts with managers needing one
-  - **Buying needs a second person:** a purchase order over the shop's limit needs an owner's or manager's approval
-    PIN to send, and so do goods one person receives in a day that no order covers (no order, or dearer than
+  - **Buying needs a second person:** once the orders one person sends in a day pass the shop's limit, the next needs an owner's or
+    manager's approval PIN, and so do goods one person receives in a day that no order covers (no order, or dearer than
     ordered); the owner's morning email lists new suppliers and goods received without an order
   - **Write-offs need approval:** once what one person writes off by hand in a day (adjustments down, batches
-    written off) passes the shop's limit at cost, each one needs an owner's or manager's approval PIN, is recorded
+    written off, offcuts scrapped) passes the shop's limit at cost, each one needs an owner's or manager's approval PIN, is recorded
     in Activity with who approved it, and emails the other owners and managers
   - **Discounts, voids and returns** per cashier, every void, the biggest discounts and who approved them, and
     everything **rung up and then taken off before payment** (sales cleared, lines removed, quantities cut), which

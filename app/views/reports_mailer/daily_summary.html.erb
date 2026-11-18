@@ -145,6 +145,8 @@
     <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">What each manager approved without a second person. The Approvals report has each one.</p>
     <%= mail_list [ "Manager", "Approved", "Value" ], s.own_approvals.map { |own|
           [ own.name, own.kinds.map { |kind, count| "#{count} × #{kind.downcase}" }.join(", "), money(own.value_cents, currency: currency) ] }, align: [ :left, :left, :right ] %>
+    <p style="margin:6px 0 0; font-size:13px; color:<%= mail_color(:secondary) %>;">To make managers need a second person for these,
+      <%= link_to "tick it on Shop details", edit_account_url(**host), style: "color:#{mail_color(:bar)};" %>.</p>
   <% end %>
 
   <% if s.new_suppliers.any? || s.unordered_receipts.any? %>

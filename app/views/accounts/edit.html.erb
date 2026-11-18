@@ -38,7 +38,7 @@
     </div>
 
     <div class="field">
-      <%= form.label :purchase_approval_above, "Purchase orders above this need a manager's approval PIN to send (#{@account.currency})", class: "label" %>
+      <%= form.label :purchase_approval_above, "Purchase orders one person sends in a day above this need a manager's approval PIN (#{@account.currency})", class: "label" %>
       <%= form.number_field :purchase_approval_above, value: plain_number(@account.purchase_approval_above), step: "0.01", min: 0, class: "input w-40" %>
       <p class="hint mt-1">So do goods one person receives in a day with no order behind them, or dearer than ordered, above the same amount.</p>
     </div>

@@ -2,8 +2,10 @@
 # (emailed as a PDF), then partially or fully received through goods received notes. One the
 # supplier can't finish is closed short, so the rest stops being waited for.
 #
-# Whoever raises orders shouldn't be able to commit the shop's money alone: sending one worth more than the shop's
-# limit (purchase_approval_above, on Shop details) needs an owner or manager, at their own screen or by approval PIN.
+# Whoever raises orders shouldn't be able to commit the shop's money alone: once the orders one person has sent in
+# a day come to more than the shop's limit (purchase_approval_above, on Shop details), sending another needs an
+# owner or manager, at their own screen or by approval PIN. It's the day's orders, so one big order can't go as
+# several small ones.
 class PurchaseOrder < ApplicationRecord
   include AccountOwned, Eventable, Monetary
 
@@ -53,8 +55,21 @@ class PurchaseOrder < ApplicationRecord
     exchange_rate ? (total_cents * exchange_rate.to_d).round : total_cents
   end
 
-  def needs_approval?
-    base_total_cents > account.purchase_approval_above_cents
+  # What this person has already sent today (the shop's day) that's still on order, in the shop's money.
+  def sent_earlier_today_cents(by = Current.user)
+    midnight = Time.use_zone(account.time_zone) { Time.zone.now.beginning_of_day }
+    sent = Event.where(account_id: account_id, eventable_type: "PurchaseOrder", action: "sent", creator: by, created_at: midnight..).select(:eventable_id)
+    account.purchase_orders.where(id: sent).where.not(id: id).where.not(status: "cancelled").sum(&:base_total_cents)
+  end
+
+  def needs_approval?(by = Current.user)
+    base_total_cents + sent_earlier_today_cents(by) > account.purchase_approval_above_cents
+  end
+
+  def approval_needed_message(by = Current.user)
+    so_far = " (#{Money.format(sent_earlier_today_cents(by))} already today)" if sent_earlier_today_cents(by).positive?
+    "This order is worth #{Money.format(base_total_cents)}#{so_far}. Sending more than #{Money.format(account.purchase_approval_above_cents)} " \
+      "of orders in a day needs a manager's approval PIN"
   end
 
   def mark_sent(approver: nil)

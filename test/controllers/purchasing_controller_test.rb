@@ -198,8 +198,15 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "an order over the shop's limit needs a manager's PIN to send; a small one doesn't" do
-    order = new_order # 68,000.00, over the 20,000.00 limit
+  test "orders past the shop's limit for the day need a manager's PIN to send; small ones don't, until they add up" do
+    small = new_order({ "0" => { product_code: "CEM-50", quantity: "10" } }) # 6,800.00, under the 20,000.00 limit
+    get purchase_order_path(small)
+    assert_select "input[name=approval_pin]", count: 0
+    post purchase_order_sending_path(small)
+    assert Account.without_isolation { small.reload.sent? }
+    assert_nil in_acme { small.events.find_by!(action: "sent").particulars["approver"] }
+
+    order = new_order # 68,000.00
     get purchase_order_path(order)
     assert_select "form[action=?] input[name=approval_pin]", purchase_order_sending_path(order)
 
@@ -211,13 +218,16 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     post purchase_order_sending_path(order), params: { approval_pin: "2468" }
     assert Account.without_isolation { order.reload.sent? }
     assert_equal users(:amina).name, in_acme { order.events.find_by!(action: "sent").particulars["approver"] }
+  end
 
-    small = new_order({ "0" => { product_code: "CEM-50", quantity: "10" } }) # 6,800.00
-    get purchase_order_path(small)
-    assert_select "input[name=approval_pin]", count: 0
-    post purchase_order_sending_path(small)
-    assert Account.without_isolation { small.reload.sent? }
-    assert_nil in_acme { small.events.find_by!(action: "sent").particulars["approver"] }
+  test "one big order can't go as several small ones" do
+    2.times do
+      post purchase_order_sending_path(new_order({ "0" => { product_code: "CEM-50", quantity: "10" } })) # 6,800.00 each
+    end
+    third = new_order({ "0" => { product_code: "CEM-50", quantity: "10" } }) # 20,400.00 with the other two
+    post purchase_order_sending_path(third)
+    assert_match(/worth KES 6,800.00 \(KES 13,600.00 already today\)\. Sending more than KES 20,000.00 of orders in a day needs/, flash[:alert])
+    assert Account.without_isolation { third.reload.draft? }
   end
 
   test "an owner sends a big order without a PIN" do
