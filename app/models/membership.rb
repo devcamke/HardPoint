@@ -129,9 +129,10 @@ class Membership < ApplicationRecord
     owner? || manager?
   end
 
-  # Owners and managers approve their own voids, discounts and credit, unless the shop asks for a second person.
+  # Owners and managers approve their own voids, discounts and credit, unless the shop asks for a second person:
+  # of managers alone (a new shop starts that way: the manager is staff, the owner isn't), or of owners too.
   def approves_own_actions?
-    approver? && !account.require_second_approver?
+    approver? && !account.require_second_approver? && !(manager? && account.managers_need_second_approver?)
   end
 
   def can_sell?

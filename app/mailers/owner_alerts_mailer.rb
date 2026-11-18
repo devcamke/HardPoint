@@ -26,6 +26,15 @@ class OwnerAlertsMailer < ApplicationMailer
     end
   end
 
+  # Carries what was written off in its params (StockWriteOff), since no one record holds it.
+  def large_write_off
+    @product = params[:record]
+    @account = @product.account
+    in_shop_time do
+      mail to: params[:recipients], subject: "#{@account.name}: #{Money.format(params[:value_cents], currency: @account.currency)} of #{@product.name} was written off at #{params[:branch].name}"
+    end
+  end
+
   private
     def in_shop_time(&) = Time.use_zone(@account.time_zone, &)
 end

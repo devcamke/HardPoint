@@ -138,7 +138,20 @@ was under 30).
   - **Profit and loss** (sales less returns, cost of sales, stock losses, till payouts)
   - **Tax (VAT)**: output tax by rate, input tax from supplier invoices, VAT payable
   - **Payments by method**, refunds, deposits and payments on account
-  - **Discounts, voids and returns** per cashier, every void, the biggest discounts and who approved them
+  - **Small and often:** the owner's morning email flags a cashier whose till keeps closing a little short, payouts
+    cut to sit just under the approval limit, and payouts or sales on account well above a cashier's usual
+  - **Approvals** report: who approved what for whom, and everything an owner or manager approved for themselves;
+    the owner's morning email lists what each manager approved for themselves. A shop can make managers alone, or
+    owners too, need a second person for their own actions; a new shop starts with managers needing one
+  - **Buying needs a second person:** once the orders one person sends in a day pass the shop's limit, the next needs an owner's or
+    manager's approval PIN, and so do goods one person receives in a day that no order covers (no order, or dearer than
+    ordered); the owner's morning email lists new suppliers and goods received without an order
+  - **Write-offs need approval:** once what one person writes off by hand in a day (adjustments down, batches
+    written off, offcuts scrapped) passes the shop's limit at cost, each one needs an owner's or manager's approval PIN, is recorded
+    in Activity with who approved it, and emails the other owners and managers
+  - **Discounts, voids and returns** per cashier, every void, the biggest discounts and who approved them, and
+    everything **rung up and then taken off before payment** (sales cleared, lines removed, quantities cut), which
+    is also listed on the shift, kept in Activity, and flagged in the owner's morning email when it's unusual for the cashier
   - **Stock valuation** at cost and selling price, **dead stock**, and **shifts** with their over/short
   - Plus the existing stock movement history, who owes us and what we owe
 - **Margins stay true:** each sale line records what it cost when it was sold

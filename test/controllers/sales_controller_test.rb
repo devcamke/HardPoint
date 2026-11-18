@@ -101,6 +101,35 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ users(:sara).name, nil ], event.particulars.values_at("approver", "self_approved")
   end
 
+  test "a shop can make managers alone need a second person; the owner still approves their own" do
+    Account.without_isolation do
+      accounts(:acme).update!(managers_need_second_approver: true)
+      memberships(:sara_acme).update!(role: "manager")
+      memberships(:amina_acme).set_approval_pin("2468")
+    end
+
+    sign_in_as users(:sara)
+    get new_sale_void_path(@sale)
+    assert_select "input[name=approval_pin]"
+    post sale_void_path(@sale), params: { reason: "Rang up twice" }
+    assert_response :unprocessable_entity
+    assert_not Account.without_isolation { @sale.reload.voided? }
+
+    sign_in_as users(:amina)
+    get new_sale_void_path(@sale)
+    assert_select "input[name=approval_pin]", count: 0
+    post sale_void_path(@sale), params: { reason: "Rang up twice" }
+    assert Account.without_isolation { @sale.reload.voided? }
+  end
+
+  test "a new shop starts with managers needing a second person" do
+    signup = Signup.new(shop_name: "Fresh Hardware", subdomain: "fresh-hw", owner_name: "Fatma Fresh", email_address: "fatma@fresh.test",
+      password: "a-long-password", terms_accepted: true)
+    assert Account.without_isolation { signup.save }
+    assert signup.account.managers_need_second_approver?
+    assert_not signup.account.require_second_approver?
+  end
+
   test "voiding a sale paid by phone asks for the reversal's code, and Activity records how the money went back" do
     paid_by_phone = Current.set(account: accounts(:acme), session: Account.without_isolation { accounts(:acme).sessions.create!(user: users(:carl)) }) do
       shifts(:acme_front_open).current_sale.tap { |sale| sale.add(products(:acme_pipe)); sale.pay(tender: "mobile_money", reference: "SJK4H7T2QP") }

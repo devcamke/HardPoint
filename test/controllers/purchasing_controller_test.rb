@@ -1,7 +1,12 @@
 require "test_helper"
 
 class PurchasingControllerTest < ActionDispatch::IntegrationTest
-  setup { sign_in_as users(:sara) } # stock clerk
+  setup do
+    Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
+    sign_in_as users(:sara) # stock clerk
+  end
+
+  def in_acme(&) = Account.without_isolation { Current.set(account: accounts(:acme)) { yield } }
 
   def new_order(lines = { "0" => { product_code: "CEM-50", quantity: "100" }, "1" => { product_code: "", quantity: "" } })
     post purchase_orders_path, params: { purchase_order: { supplier_id: suppliers(:acme_cement_distributor).id, branch_id: branches(:acme_main).id,
@@ -23,7 +28,7 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
     assert_equal "application/pdf", response.media_type
     assert response.body.start_with?("%PDF")
 
-    perform_enqueued_jobs { post purchase_order_sending_path(order), params: { email: "1" } }
+    perform_enqueued_jobs { post purchase_order_sending_path(order), params: { email: "1", approval_pin: "2468" } }
     mail = ActionMailer::Base.deliveries.last
     assert_equal [ "orders@ncd.test" ], mail.to
     assert_equal "MAIN-PO00001.pdf", mail.attachments.sole.filename
@@ -65,7 +70,7 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
 
   test "a partly delivered order is closed short from its page" do
     order = new_order
-    post purchase_order_sending_path(order)
+    post purchase_order_sending_path(order), params: { approval_pin: "2468" }
     line = Account.without_isolation { order.lines.sole }
     post goods_receipts_path, params: { goods_receipt: { purchase_order_id: order.id, lines_attributes: { "0" => { purchase_order_line_id: line.id, quantity: "60" } } } }
 
@@ -105,7 +110,7 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
 
   test "sent orders can't be edited" do
     order = new_order
-    post purchase_order_sending_path(order)
+    post purchase_order_sending_path(order), params: { approval_pin: "2468" }
     line = Account.without_isolation { order.lines.sole }
 
     patch purchase_order_path(order), params: { purchase_order: { lines_attributes: { "0" => { id: line.id, quantity: "1" } } } }
@@ -190,6 +195,101 @@ class PurchasingControllerTest < ActionDispatch::IntegrationTest
       post goods_receipts_path, params: { goods_receipt: { purchase_order_id: order.id,
         lines_attributes: { "0" => { purchase_order_line_id: Account.without_isolation { order.lines.first.id }, quantity: "5" } } } }
       assert_response :not_found
+    end
+  end
+
+  test "orders past the shop's limit for the day need a manager's PIN to send; small ones don't, until they add up" do
+    small = new_order({ "0" => { product_code: "CEM-50", quantity: "10" } }) # 6,800.00, under the 20,000.00 limit
+    get purchase_order_path(small)
+    assert_select "input[name=approval_pin]", count: 0
+    post purchase_order_sending_path(small)
+    assert Account.without_isolation { small.reload.sent? }
+    assert_nil in_acme { small.events.find_by!(action: "sent").particulars["approver"] }
+
+    order = new_order # 68,000.00
+    get purchase_order_path(order)
+    assert_select "form[action=?] input[name=approval_pin]", purchase_order_sending_path(order)
+
+    post purchase_order_sending_path(order)
+    assert_match "needs a manager's approval PIN", flash[:alert]
+    post purchase_order_sending_path(order), params: { approval_pin: "0000" }
+    assert Account.without_isolation { order.reload.draft? }
+
+    post purchase_order_sending_path(order), params: { approval_pin: "2468" }
+    assert Account.without_isolation { order.reload.sent? }
+    assert_equal users(:amina).name, in_acme { order.events.find_by!(action: "sent").particulars["approver"] }
+  end
+
+  test "one big order can't go as several small ones" do
+    2.times do
+      post purchase_order_sending_path(new_order({ "0" => { product_code: "CEM-50", quantity: "10" } })) # 6,800.00 each
+    end
+    third = new_order({ "0" => { product_code: "CEM-50", quantity: "10" } }) # 20,400.00 with the other two
+    post purchase_order_sending_path(third)
+    assert_match(/worth KES 6,800.00 \(KES 13,600.00 already today\)\. Sending more than KES 20,000.00 of orders in a day needs/, flash[:alert])
+    assert Account.without_isolation { third.reload.draft? }
+  end
+
+  test "an owner sends a big order without a PIN" do
+    sign_in_as users(:amina)
+    order = new_order
+    get purchase_order_path(order)
+    assert_select "input[name=approval_pin]", count: 0
+    post purchase_order_sending_path(order)
+    assert Account.without_isolation { order.reload.sent? }
+  end
+
+  def receive_unordered(quantity, **extra)
+    post goods_receipts_path, params: { goods_receipt: { supplier_id: suppliers(:acme_plumbing_supplies).id, branch_id: branches(:acme_yard).id,
+      lines_attributes: { "0" => { product_code: "PVC-2", quantity: quantity, unit_cost: "900" } } }, **extra }
+  end
+
+  test "goods with no order behind them need a PIN once the day's total passes the limit" do
+    get new_goods_receipt_path
+    assert_select "input[name=approval_pin]"
+
+    assert_difference -> { Account.without_isolation { GoodsReceipt.count } }, 1 do
+      receive_unordered "12" # 10,800.00
+    end
+    assert_no_difference -> { Account.without_isolation { GoodsReceipt.count } } do
+      receive_unordered "12" # 21,600.00 with the first
+    end
+    assert_response :unprocessable_entity
+    assert_select "li", /KES 10,800.00 of this isn't covered by an order \(KES 10,800.00 already today\).+needs a manager's approval PIN/
+
+    assert_difference -> { Account.without_isolation { GoodsReceipt.count } }, 1 do
+      receive_unordered "12", approval_pin: "2468"
+    end
+    event = in_acme { GoodsReceipt.last.events.find_by!(action: "received") }
+    assert_equal [ users(:amina).name, 10_800_00 ], event.particulars.values_at("approver", "unordered")
+  end
+
+  test "receiving what was ordered needs no PIN, but a dearer cost than ordered counts" do
+    order = new_order
+    post purchase_order_sending_path(order), params: { approval_pin: "2468" }
+    line = Account.without_isolation { order.lines.sole } # 100 bags at 680.00
+
+    post goods_receipts_path, params: { goods_receipt: { purchase_order_id: order.id, lines_attributes: { "0" => { purchase_order_line_id: line.id, quantity: "40", unit_cost: "680" } } } }
+    assert_equal 40, Account.without_isolation { line.reload.received_quantity }
+
+    # 60 bags at 1,080.00: 400.00 a bag over the order, 24,000.00 in all.
+    post goods_receipts_path, params: { goods_receipt: { purchase_order_id: order.id, lines_attributes: { "0" => { purchase_order_line_id: line.id, quantity: "60", unit_cost: "1080" } } } }
+    assert_response :unprocessable_entity
+    assert_select "li", /KES 24,000.00 of this isn't covered by an order/
+    assert_equal 40, Account.without_isolation { line.reload.received_quantity }
+  end
+
+  test "the morning email lists new suppliers and goods received without an order" do
+    receive_unordered "5"
+    post suppliers_path, params: { supplier: { name: "Quickfix Traders" } }
+    in_acme do
+      GoodsReceipt.last.update_columns(created_at: 1.day.ago)
+      Event.where(eventable_type: "Supplier", action: "created").update_all(created_at: 1.day.ago)
+      mail = ReportsMailer.with(account: accounts(:acme), date: Date.yesterday).daily_summary
+      assert_match "Buying to check", mail.html_part.body.to_s
+      assert_match "New supplier: Quickfix Traders", mail.html_part.body.to_s
+      assert_match(/GRN00001 from .+ \(Sara .+\): KES 4,500.00 not covered by an order/, mail.text_part.body.to_s)
+      assert_match(/1 new supplier: Quickfix Traders \(Sara/, mail.text_part.body.to_s)
     end
   end
 end

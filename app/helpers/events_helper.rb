@@ -18,6 +18,10 @@ module EventsHelper
     in [ "Shift", "opened" ] then "opened a shift on #{subject} with #{money(event.particulars["opening_float"])} float"
     in [ "Shift", "payout_approved" ] then "paid out #{money(event.particulars["amount"])} from the drawer on #{subject}, approved by #{approver_words(event)}: #{event.particulars["reason"]}"
     in [ "Shift", "closed" ] then "closed the shift on #{subject}: counted #{money(event.particulars["counted"])}, #{variance_words(event.particulars["variance"])}"
+    in [ "Register", "sale_cleared" | "line_removed" | "quantity_reduced" ] then "#{Sale::TakenOff.words(event)} (#{money(event.particulars["value"])}) on #{subject}, before payment" \
+      "#{" (#{event.particulars["customer"]})" if event.particulars["customer"]}"
+    in [ "Product", "write_off_approved" ] then "wrote off #{event.particulars["quantity"]} of #{subject} at #{event.particulars["branch"]} as #{event.particulars["reason"].to_s.humanize.downcase} " \
+      "(#{money(event.particulars["value"])} at cost), approved by #{approver_words(event)}"
     in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{approver_words(event)}: #{event.particulars["reason"]}" \
       "#{"; #{Sale::Voidable.refund_words(event.particulars["refund_method"], event.particulars["refund_reference"])}" if event.particulars["refund_method"]}"
     in [ "Sale", "completed_without_payment" ] then "completed sale #{subject} with nothing to pay, approved by #{approver_words(event)}"
@@ -40,10 +44,12 @@ module EventsHelper
       "which couldn't be recorded: #{event.particulars["error"]}. The money is in the drawer; ring it up by hand"
     in [ "Membership", "approval_pin_set" ] then "set their approval PIN"
     in [ "Membership", "two_factor_reset" ] then "reset #{subject}'s two-factor sign-in#{by_platform(event)}"
-    in [ "PurchaseOrder", "sent" ] then "sent purchase order #{subject} to #{event.particulars["supplier"]} (#{money(event.particulars["total"])})"
+    in [ "PurchaseOrder", "sent" ] then "sent purchase order #{subject} to #{event.particulars["supplier"]} (#{money(event.particulars["total"])})" \
+      "#{", approved by #{approver_words(event)}" if event.particulars["approver"]}"
     in [ "PurchaseOrder", "cancelled" ] then "cancelled purchase order #{subject}"
     in [ "PurchaseOrder", "closed" ] then "closed purchase order #{subject} short#{": #{event.particulars["short"]} never came" if event.particulars["short"].present?}"
-    in [ "GoodsReceipt", "received" ] then "received #{subject} from #{event.particulars["supplier"]}#{" for #{event.particulars["purchase_order"]}" if event.particulars["purchase_order"]} (#{money(event.particulars["total"])})"
+    in [ "GoodsReceipt", "received" ] then "received #{subject} from #{event.particulars["supplier"]}#{" for #{event.particulars["purchase_order"]}" if event.particulars["purchase_order"]} (#{money(event.particulars["total"])})" \
+      "#{", approved by #{approver_words(event)}: #{money(event.particulars["unordered"])} of it not covered by an order" if event.particulars["approver"]}"
     in [ "SupplierInvoice", "recorded" ] then "recorded invoice #{subject} (#{money(event.particulars["total"])})"
     in [ "Supplier", "paid" ] then "paid #{subject} #{money(event.particulars["amount"])} by #{event.particulars["payment_method"].to_s.humanize.downcase}"
     in [ "ProductImport", "completed" ] then "imported #{event.particulars["created"]} new and #{event.particulars["updated"]} updated products"

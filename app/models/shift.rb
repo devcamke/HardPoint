@@ -35,6 +35,11 @@ class Shift < ApplicationRecord
       .includes(:creator).order(:created_at)
   end
 
+  # Goods rung up at its till and taken off again before payment while this shift was open (Sale::TakenOff).
+  def taken_off
+    Sale::TakenOff.at(register, opened_at, closed_at || Time.current)
+  end
+
   def name
     "#{register.name} · #{opened_at.to_date.to_fs(:long)}"
   end

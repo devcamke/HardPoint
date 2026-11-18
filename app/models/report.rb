@@ -23,7 +23,7 @@ class Report
   # Periods up to this long list every day, even quiet ones.
   FILL_DAYS = 62
 
-  KEYS = %w[ sales profit_and_loss tax payments mobile_money discounts_and_voids fundi_commissions stock_valuation dead_stock shifts ].freeze
+  KEYS = %w[ sales profit_and_loss tax payments mobile_money discounts_and_voids fundi_commissions stock_valuation dead_stock shifts approvals ].freeze
 
   class_attribute :title, :description, :group, :uses_period, default: true
   # A report about an optional part of HardPoint is listed only while the shop has it switched on.

@@ -464,6 +464,8 @@ Cash movements go on the till this device is set to, since that's the drawer the
 
 Each one shows on the shift report with its reason. On tills that print through QZ Tray, **Open drawer** in the top bar opens the drawer without a sale. It asks why first: **Change for a customer**, **Cash drop to the safe**, **Checking the float** or **Other**. Each opening is listed on the shift report with who opened it and why, counted per cashier in the **Discounts, voids and returns** report, and kept in **Settings › Activity**.
 
+Goods rung up and then taken off again before payment are kept too: a sale cleared, a line removed, or a quantity cut. Nothing stops the cashier, since a wrong scan or a customer changing their mind is ordinary, but each one is listed on the shift report with who did it, what came off and its value, counted per cashier in the **Discounts, voids and returns** report, and kept in **Settings › Activity**. The owner's morning email says when a cashier took off far more than they usually do. The same email flags payouts and sales on account well above a cashier's usual, a cashier whose till keeps closing a little short (four or more of their shifts in four weeks, and at least half of them), and anyone who makes two or more payouts in a day each just under the amount that needs approval. Sales rung up while the till is offline aren't covered: the till can't report what was taken off until the sale reaches HardPoint.
+
 #### The X report
 
 Press **Shift** on the till at any time to see the **X report**: how the shift is doing so far, without closing it. It shows sales, voids, discounts and tax; takings by method (cash, card, M-Pesa, on account, and Airtel Money or foreign cash when used); deposits and account payments; refunds; and the cash drawer worked out line by line. **Print** prints it.
@@ -1150,6 +1152,8 @@ HardPoint keeps stock per branch. Every sale, delivery, transfer and correction 
 
 Open the product and press **Adjust stock**. Choose the branch, how many to add or take off, and the reason: opening stock, found, damaged, stolen, expired, internal use or a correction. Adjustments are in the activity log with who made them.
 
+Taking stock off by hand has a daily limit. Once what one person has written off in a day, at cost, passes the shop's limit (KES 5,000 to start with; owners change it under **Settings › Shop details**), each further write-off that day needs an owner's or manager's approval PIN. That covers adjustments down, batches written off and offcuts scrapped (past the limit, an owner or manager scraps the offcut). **Settings › Activity** records who approved it, and the other owners and managers are emailed straight away.
+
 The till only sells what is on the shelf: once a product is down to zero at the branch, it can't be sold until the delivery is recorded or the stock adjusted, and the till says how many are left when a cashier tries to sell more. A kit needs all its parts.
 
 A level can still go below zero when the offline till sold something that another till had already sold, since the goods have gone. **Stock › Stock levels** counts these for the branch; press **Below zero** to list them (the same **Below zero** filter is on the products list), then record the delivery or adjust the stock.
@@ -1220,6 +1224,8 @@ Moving from another system? The owner can bring every supplier in at once from a
 
 1. In **Buy › Purchase orders**, press **New**, choose the supplier and branch, and add the products. To order by the box or bag, type one of the product's pack sizes under **Pack**; the quantity and cost are then per pack, and stock still counts the pieces.
 2. Press **Email to …** to send it with a PDF attached, or **Mark sent (phoned in)** if you ordered by phone.
+
+Buying has a limit one person can't pass alone (KES 20,000 to start with; owners change it under **Settings › Shop details**). Once the orders one person has sent in a day come to more, sending another needs an owner's or manager's approval PIN, typed beside the send button. So does receiving goods that no order covers, once they come to more than the limit for one person in a day: a delivery recorded with no order, or at a dearer cost than was ordered. Goods received from a supplier's invoice at KRA aren't counted, since the invoice is the supplier's own record. **Settings › Activity** records who approved each one, and the owner's morning email lists suppliers added the day before and goods received with no order behind them.
 
 **Stock › Reorder** works out what to order per branch from reorder levels, the last 30 days' sales, lead times, what's already on order and minimum order sizes, grouped by supplier. **Draft an order for …** turns a supplier's suggestions into a draft order to check and send, and when several suppliers have suggestions, **Draft … purchase orders** does them all at once. **Order them** on Home takes you there.
 
@@ -1552,6 +1558,7 @@ Open **Reports**, choose a report, then a period (today, this week, last month, 
 - **Tax (VAT)**: output tax by rate, input tax from supplier invoices, and VAT payable, for your return.
 - **Payments by method** (Airtel Money appears once it's connected or used), **M-Pesa reconciliation**, and **Shifts and cash counts** with each shift's over or short.
 - **Discounts, voids and returns**: per cashier, with who approved the big ones.
+- **Approvals**: every void, discount, payout, write-off and purchase that needed an owner or manager, by who asked and who approved, and each one somebody approved for themselves. Look for a manager approving a lot of their own, and for the same two people always approving for each other. The owner's morning email also says what each manager approved for themselves the day before. Whether managers, or owners too, need a second person for their own actions is set under **Settings › Shop details**; a new shop starts with managers needing one.
 - **Stock valuation** at cost and selling price, and **Dead stock**: what hasn't sold for a while and the money tied up in it.
 - Plus **Who owes us**, **What we owe** and the stock history.
 

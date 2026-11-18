@@ -80,6 +80,22 @@ class CuttingAndWeighingTest < ActionDispatch::IntegrationTest
     assert_equal [ 26.5, 0 ], acme { [ @bar.stock_at(main).to_f, @bar.offcuts.count ] }, "taken off the list, the stock stays"
   end
 
+  test "scrapping an offcut counts towards the day's write-off limit" do
+    acme { accounts(:acme).update!(write_off_approval_above_cents: 0) }
+    sign_in_as users(:sara) # a stock clerk
+    post product_offcuts_path(@bar), params: { branch_id: branches(:acme_main).id, length: "3.5" }
+    offcut = acme { @bar.offcuts.sole }
+
+    delete product_offcut_path(@bar, offcut, scrap: 1)
+    assert_match "Ask an owner or manager to scrap it", flash[:alert]
+    assert_equal 1, acme { @bar.offcuts.count }
+
+    sign_in_as users(:amina)
+    delete product_offcut_path(@bar, offcut, scrap: 1)
+    assert_equal 0, acme { @bar.offcuts.count }
+    assert acme { @bar.events.exists?(action: "write_off_approved") }
+  end
+
   test "cashiers can't change offcuts, and another shop's product isn't found" do
     sign_in_as users(:carl)
     post product_offcuts_path(@bar), params: { branch_id: branches(:acme_main).id, length: "2" }

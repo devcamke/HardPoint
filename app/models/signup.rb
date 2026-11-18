@@ -29,7 +29,8 @@ class Signup
     return false unless valid?
 
     Account.transaction do
-      @account = Account.create!(name: shop_name, subdomain: subdomain, plan: plan, terms_accepted_at: Time.current)
+      @account = Account.create!(name: shop_name, subdomain: subdomain, plan: plan, terms_accepted_at: Time.current,
+        managers_need_second_approver: true)
 
       Current.set(account: @account, user: owner) do
         @account.track_event "created"

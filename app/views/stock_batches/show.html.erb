@@ -24,6 +24,12 @@
         <div class="field"><%= form.label :quantity, class: "label" %><%= form.number_field :quantity, value: plain_number(@batch.quantity), min: 0, max: plain_number(@batch.quantity), step: "any", class: "input" %></div>
         <div class="field"><%= form.label :reason, class: "label" %><%= form.select :reason, [ [ "Expired", "expired" ], [ "Damaged", "damaged" ] ], { selected: (@batch.expired? ? "expired" : "damaged") }, class: "input" %></div>
         <div class="field"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. returned to supplier" %></div>
+        <% unless current_membership.approves_own_actions? %>
+          <div class="field sm:col-span-3">
+            <%= label_tag :approval_pin, "Manager approval PIN (for writing off more than #{money(Current.account.write_off_approval_above_cents)} at cost in a day)", class: "label" %>
+            <%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", class: "input w-40" %>
+          </div>
+        <% end %>
         <div class="sm:col-span-3"><%= form.submit "Write off", class: "btn-danger" %></div>
       <% end %>
     </section>

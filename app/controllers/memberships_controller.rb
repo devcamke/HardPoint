@@ -29,7 +29,7 @@ class MembershipsController < ApplicationController
     if saved
       # Someone who already uses HardPoint keeps their password; they're only told where to sign in.
       MembershipsMailer.with(membership: @membership).public_send(new_user ? :invitation : :added).deliver_later
-      redirect_to memberships_path, notice: "#{@membership.user.name} has been added and emailed a sign-in link."
+      redirect_to memberships_path, notice: "#{@membership.user.name} has been added and emailed a sign-in link.#{own_approval_reminder}"
     else
       render :new, status: :unprocessable_entity
     end
@@ -40,7 +40,7 @@ class MembershipsController < ApplicationController
 
   def update
     if @membership.update(bound_to_own_branch(params.expect(membership: [ :role, :branch_id ])))
-      redirect_to memberships_path, notice: "Role updated."
+      redirect_to memberships_path, notice: "Role updated.#{own_approval_reminder}"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -55,6 +55,18 @@ class MembershipsController < ApplicationController
   end
 
   private
+    # Whether a manager approves their own voids, payouts and write-offs is the shop's choice: the moment to say
+    # which it is, is when one is made.
+    def own_approval_reminder
+      return unless @membership.manager? && @membership.saved_change_to_role?
+
+      if @membership.approves_own_actions?
+        " Managers approve their own voids, discounts, payouts and write-offs. To make them need a second person, turn it on under Settings › Shop details."
+      elsif Current.account.memberships.where(role: Approval::APPROVER_ROLES).where.not(approval_pin_digest: nil).where.not(id: @membership.id).none?
+        " Their own voids, discounts, payouts and write-offs need a second person's approval PIN, and nobody has one yet: set yours under My profile."
+      end
+    end
+
     def set_membership
       @membership = manageable_memberships.find(params[:id])
     end

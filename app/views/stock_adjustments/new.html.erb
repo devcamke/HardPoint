@@ -32,6 +32,12 @@
       <%= form.text_field :note, class: "input", placeholder: "e.g. bags split in the rain" %>
     </div>
 
+    <% unless current_membership.approves_own_actions? %>
+      <div class="field">
+        <%= label_tag :approval_pin, "Manager approval PIN (for writing off more than #{money(Current.account.write_off_approval_above_cents)} at cost in a day)", class: "label" %>
+        <%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", class: "input w-40" %>
+      </div>
+    <% end %>
     <%= form.submit "Save adjustment", class: "btn-primary" %>
   <% end %>
 </div>

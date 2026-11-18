@@ -5,6 +5,12 @@ class OwnerSummary::Daily
   # Stock leaving for something other than a sale or a transfer: the shop's loss, valued at cost.
   WRITE_OFF_REASONS = %w[ damaged stolen expired internal_use lost_in_transit correction count cutting_waste ].freeze
   LIST_LIMIT = 8
+  # Small and often (below): a cashier's shifts over these weeks, a shortfall worth counting, and how close to the
+  # approval limit a payout has to be to look aimed at it.
+  SHORTAGE_WEEKS = 4
+  SHORT_WORTH_COUNTING_CENTS = 100_00
+  MIN_SHORT_SHIFTS = 4
+  NEAR_LIMIT = 0.8
 
   Shift = Data.define(:name, :cashier, :variance_cents)
   Cashier = Data.define(:name, :sales, :discount_cents, :voids, :voided_cents, :returns, :returned_cents) do
@@ -17,6 +23,10 @@ class OwnerSummary::Daily
   OutOfStock = Data.define(:branch, :count, :products)
   Refusal = Data.define(:product, :times, :quantity)
   WriteOff = Data.define(:reason, :value_cents, :lines)
+  SmallAndOften = Data.define(:name, :words)
+  OwnApprovals = Data.define(:name, :count, :value_cents, :kinds)
+  NewSupplier = Data.define(:name, :added_by)
+  UnorderedReceipt = Data.define(:receipt, :value_cents)
 
   attr_reader :account, :date
 
@@ -116,6 +126,37 @@ class OwnerSummary::Daily
     end
   end
 
+  # Money that stays under every alert but keeps coming. A cashier whose till closed short on the day, and has been
+  # short on at least half their shifts these four weeks (four or more of them): no one shortfall trips the alert,
+  # the run of them is the news. And anyone who made two or more payouts on the day each just under the amount that
+  # needs approval: one big payout cut to fit.
+  def small_and_often
+    @small_and_often ||= habitual_shortages + payouts_under_the_limit
+  end
+
+  # What each manager approved for themselves on the day (Report::Approvals), the most first. Owners aren't listed:
+  # it's their shop. With the second approver on there's nothing to list.
+  def own_approvals
+    @own_approvals ||= begin
+      managers = account.memberships.manager.pluck(:user_id)
+      Report::Approvals.approved(account, period.range).select { _1.self_approved? && _1.event.creator_id.in?(managers) }.group_by(&:asked_by)
+        .map { |name, all| OwnApprovals.new(name, all.size, all.sum { _1.value_cents.to_i }, all.map(&:kind).tally) }.sort_by { [ -_1.value_cents, -_1.count ] }
+    end
+  end
+
+  # Suppliers added on the day, and who added each: a supplier nobody else knows is how a made-up one gets paid.
+  def new_suppliers
+    @new_suppliers ||= account.account_events.where(action: "created", eventable_type: "Supplier", created_at: period.range).includes(:creator).order(:created_at)
+      .map { NewSupplier.new(_1.particulars["name"], _1.creator&.name) }
+  end
+
+  # Goods received on the day that no order covers (GoodsReceipt#unordered_value_cents), the most first.
+  def unordered_receipts
+    @unordered_receipts ||= account.goods_receipts.where(created_at: period.range).where.missing(:etims_purchases)
+      .includes(:supplier, :receiver, :branch, lines: :purchase_order_line).map { UnorderedReceipt.new(_1, _1.unordered_value_cents) }
+      .select { _1.value_cents.positive? }.sort_by { -_1.value_cents }
+  end
+
   # Stock one branch could send another that's short, before anyone orders more.
   def moves
     @moves ||= account.branches.many? ? BranchRebalancing.new(account).moves : []
@@ -137,9 +178,37 @@ class OwnerSummary::Daily
 
   def money_worth_a_look?
     shifts.any? { _1.variance_cents.nonzero? } || cashiers.any? || unusual.any? || below_cost.any? || offline_flags.any? || shifts_left_open.any? ||
-      unmatched_mobile_money[:count].positive?
+      unmatched_mobile_money[:count].positive? || new_suppliers.any? || unordered_receipts.any? || own_approvals.any? || small_and_often.any?
   end
 
   private
     def period = Report::Period.new(from: date, to: date)
+
+    def habitual_shortages
+      short_today = account.shifts.closed.where(closed_at: period.range).where("counted_cash_cents - expected_cash_cents < ?", -SHORT_WORTH_COUNTING_CENTS).distinct.pluck(:opened_by_id)
+      return [] if short_today.empty?
+
+      recent = account.shifts.closed.where(opened_by_id: short_today, closed_at: (period.range.begin - SHORTAGE_WEEKS.weeks)..period.range.end)
+        .pluck(:opened_by_id, Arel.sql("counted_cash_cents - expected_cash_cents")).group_by(&:first)
+      names = account.users.where(id: short_today).to_h { [ _1.id, _1.name ] }
+      recent.filter_map do |user_id, shifts|
+        short = shifts.map(&:last).select { _1 < -SHORT_WORTH_COUNTING_CENTS }
+        next unless short.size >= MIN_SHORT_SHIFTS && short.size * 2 >= shifts.size
+
+        SmallAndOften.new(names[user_id], "closed short on #{short.size} of their last #{shifts.size} shifts, #{Money.format(-short.sum, currency: currency)} in all")
+      end
+    end
+
+    def payouts_under_the_limit
+      limit = account.payout_approval_above_cents
+      return [] unless limit.positive?
+
+      account.cash_movements.where(kind: "payout", created_at: period.range, amount_cents: (limit * NEAR_LIMIT).ceil..limit).includes(:creator)
+        .group_by(&:creator).filter_map do |creator, payouts|
+          next if payouts.size < 2 || creator.nil?
+
+          SmallAndOften.new(creator.name, "made #{payouts.size} payouts just under the #{Money.format(limit, currency: currency)} that needs approval, " \
+            "#{Money.format(payouts.sum(&:amount_cents), currency: currency)} in all")
+        end
+    end
 end
