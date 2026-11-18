@@ -10,10 +10,10 @@ gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 3.2"
 
 # Uploads on S3-compatible object storage once there's more than one web server [docs/RUNBOOK.md]
-gem "aws-sdk-s3", "~> 1.238", require: false
+gem "aws-sdk-s3", "~> 1.242", require: false
 # Email through AWS SES's API, and the SNS topic that brings bounces and complaints back (app/models/ses.rb).
-gem "aws-sdk-sesv2", "~> 1.119"
-gem "aws-sdk-sns", "~> 1.128"
+gem "aws-sdk-sesv2", "~> 1.122"
+gem "aws-sdk-sns", "~> 1.131"
 # Barcode images for shelf labels.
 gem "barby", "~> 0.7"
 # Product spreadsheets. CSV is Ruby's own library but ships as a separate gem since Ruby 3.4.
