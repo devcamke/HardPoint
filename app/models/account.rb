@@ -104,6 +104,9 @@ class Account < ApplicationRecord
   # A payout from a till's drawer above this needs an owner's or manager's approval PIN.
   money_attribute :payout_approval_above
   validates :payout_approval_above_cents, numericality: { greater_than_or_equal_to: 0 }
+  # Stock one person writes off by hand in a day, at cost, above this needs the same (StockWriteOff).
+  money_attribute :write_off_approval_above
+  validates :write_off_approval_above_cents, numericality: { greater_than_or_equal_to: 0 }
   # Instant emails to owners: a shift closing short, a completed sale voided, or a stock count losing more than these.
   money_attribute :alert_shift_short_above, :alert_void_above, :alert_count_loss_above
   # Fundi commission on what the customers they bring buy, unless a category or the fundi has a rate of its own.

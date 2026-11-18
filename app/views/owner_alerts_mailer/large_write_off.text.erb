@@ -1,0 +1,7 @@
+<% c = @account.currency %><%= params[:quantity] %> of <%= @product.name %> (<%= money(params[:value_cents], currency: c) %> at cost) was written off at <%= params[:branch].name %> as <%= params[:reason].humanize.downcase %>.
+
+Written off by: <%= params[:written_off_by] %>
+Approved by: <%= params[:approver] %>
+<%= params[:written_off_by] %>'s write-offs today: <%= money(params[:today_cents], currency: c) %>
+
+<%= product_url(@product, subdomain: @account.subdomain) %>

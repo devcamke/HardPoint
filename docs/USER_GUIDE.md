@@ -1152,6 +1152,8 @@ HardPoint keeps stock per branch. Every sale, delivery, transfer and correction 
 
 Open the product and press **Adjust stock**. Choose the branch, how many to add or take off, and the reason: opening stock, found, damaged, stolen, expired, internal use or a correction. Adjustments are in the activity log with who made them.
 
+Taking stock off by hand has a daily limit. Once what one person has written off in a day, at cost, passes the shop's limit (KES 5,000 to start with; owners change it under **Settings › Shop details**), each further write-off that day needs an owner's or manager's approval PIN. That covers adjustments down and batches written off. **Settings › Activity** records who approved it, and the other owners and managers are emailed straight away.
+
 The till only sells what is on the shelf: once a product is down to zero at the branch, it can't be sold until the delivery is recorded or the stock adjusted, and the till says how many are left when a cashier tries to sell more. A kit needs all its parts.
 
 A level can still go below zero when the offline till sold something that another till had already sold, since the goods have gone. **Stock › Stock levels** counts these for the branch; press **Below zero** to list them (the same **Below zero** filter is on the products list), then record the delivery or adjust the stock.

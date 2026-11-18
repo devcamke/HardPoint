@@ -20,6 +20,8 @@ module EventsHelper
     in [ "Shift", "closed" ] then "closed the shift on #{subject}: counted #{money(event.particulars["counted"])}, #{variance_words(event.particulars["variance"])}"
     in [ "Register", "sale_cleared" | "line_removed" | "quantity_reduced" ] then "#{Sale::TakenOff.words(event)} (#{money(event.particulars["value"])}) on #{subject}, before payment" \
       "#{" (#{event.particulars["customer"]})" if event.particulars["customer"]}"
+    in [ "Product", "write_off_approved" ] then "wrote off #{event.particulars["quantity"]} of #{subject} at #{event.particulars["branch"]} as #{event.particulars["reason"].to_s.humanize.downcase} " \
+      "(#{money(event.particulars["value"])} at cost), approved by #{approver_words(event)}"
     in [ "Sale", "voided" ] then "voided sale #{subject} (#{money(event.particulars["total"])}), approved by #{approver_words(event)}: #{event.particulars["reason"]}" \
       "#{"; #{Sale::Voidable.refund_words(event.particulars["refund_method"], event.particulars["refund_reference"])}" if event.particulars["refund_method"]}"
     in [ "Sale", "completed_without_payment" ] then "completed sale #{subject} with nothing to pay, approved by #{approver_words(event)}"

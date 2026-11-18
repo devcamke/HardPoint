@@ -1,0 +1,17 @@
+<% currency = @account.currency %>
+<% host = { subdomain: @account.subdomain } %>
+<% content_for :preheader, "#{params[:quantity]} of #{@product.name} at #{params[:branch].name}, written off as #{params[:reason].humanize.downcase} by #{params[:written_off_by]}" %>
+<%= render "owner_alerts_mailer/hero", eyebrow: "Stock written off", headline: "#{@product.name} was written off at #{params[:branch].name} as #{params[:reason].humanize.downcase}.",
+      figure: money(params[:value_cents], currency: currency), note: "at cost, for #{params[:quantity]}" %>
+
+<%= render "owner_alerts_mailer/details", rows: [
+      [ "Product", link_to(@product.name, product_url(@product, **host), style: "color:#{mail_color(:bar)};") ],
+      [ "Quantity", params[:quantity] ],
+      [ "Reason", params[:reason].humanize ],
+      [ "Written off by", params[:written_off_by] ],
+      [ "Approved by", params[:approver] ],
+      [ "#{params[:written_off_by]}'s write-offs today", money(params[:today_cents], currency: currency) ]
+    ] %>
+
+<%= render "owner_alerts_mailer/footer", button: "Open the product", url: product_url(@product, **host),
+      threshold: "#{money(@account.write_off_approval_above_cents, currency: currency)} a day write-off limit" %>

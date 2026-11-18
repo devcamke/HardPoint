@@ -138,6 +138,9 @@ was under 30).
   - **Profit and loss** (sales less returns, cost of sales, stock losses, till payouts)
   - **Tax (VAT)**: output tax by rate, input tax from supplier invoices, VAT payable
   - **Payments by method**, refunds, deposits and payments on account
+  - **Write-offs need approval:** once what one person writes off by hand in a day (adjustments down, batches
+    written off) passes the shop's limit at cost, each one needs an owner's or manager's approval PIN, is recorded
+    in Activity with who approved it, and emails the other owners and managers
   - **Discounts, voids and returns** per cashier, every void, the biggest discounts and who approved them, and
     everything **rung up and then taken off before payment** (sales cleared, lines removed, quantities cut), which
     is also listed on the shift, kept in Activity, and flagged in the owner's morning email when it's unusual for the cashier
