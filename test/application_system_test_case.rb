@@ -7,6 +7,12 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   Capybara.server_host = "127.0.0.1"
   Capybara.always_include_port = true
 
+  # One request at a time. A test's browser and server share a single database connection, and which shop that
+  # connection may see is a setting on the connection (Account::Isolation). Two requests at once (Turbo prefetches a
+  # link the mouse happens to rest on) can clear it under each other: the second then finds no session and is sent
+  # to sign in. Each request has a connection of its own outside tests.
+  Capybara.server = :puma, { Threads: "1:1" }
+
   def visit_shop(account, path = "/")
     Capybara.app_host = "http://#{account.subdomain}.localhost"
     visit path
@@ -26,4 +32,42 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   end
 
   teardown { Capybara.app_host = nil }
+
+  # A journey is one task a person does from start to finish (test/system/journeys). Each step of it leaves a numbered
+  # screenshot in tmp/journeys/<name>, so the run can be looked through afterwards like a storyboard.
+  JOURNEYS_DIRECTORY = Rails.root.join("tmp/journeys")
+
+  class_attribute :journey_name
+
+  def self.journey(name)
+    self.journey_name = name
+    setup do
+      @journey_steps = 0
+      FileUtils.rm_rf journey_directory
+    end
+  end
+
+  # The block is the step: what the person does, and what they should then see. The screenshot is taken once the
+  # block's checks have passed, so it shows the screen the checks saw.
+  def step(description)
+    yield
+    @journey_steps += 1
+    page.save_screenshot journey_directory.join(format("%02d-%s.png", @journey_steps, description.parameterize))
+  rescue Minitest::Assertion, Capybara::CapybaraError => error
+    raise error.class, "At the step “#{description}”: #{error.message}\n#{browser_state}", error.backtrace
+  end
+
+  private
+    # Where the browser was when a step failed, what it last asked the server for, and anything it complained about.
+    def browser_state
+      requests = page.evaluate_script("performance.getEntriesByType('resource').slice(-6).map(entry => entry.name)")
+      console = page.driver.browser.logs.get(:browser).map(&:message)
+      [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?) ].compact.join("\n")
+    rescue StandardError => error
+      "(The browser's state couldn't be read: #{error.message})"
+    end
+
+    def journey_directory
+      JOURNEYS_DIRECTORY.join(journey_name)
+    end
 end

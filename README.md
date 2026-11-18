@@ -256,6 +256,7 @@ Run the checks before pushing; `bin/ci` runs them all, as GitHub Actions does:
 
 ```sh
 bin/rails test                        # includes the tenant isolation tests
+bin/rails test:system                 # a browser: accessibility, and the journeys in test/system/journeys
 node --test test/javascript/*.mjs     # the offline till's arithmetic and receipt printing
 bin/rubocop
 bin/brakeman
