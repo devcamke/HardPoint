@@ -134,6 +134,13 @@
     <%= mail_list [ "Receipt", "What the till noticed" ], s.offline_flags.first(5).map { [ _1.receipt_number, _1.warnings.first(2).join("; ") ] } %>
   <% end %>
 
+  <% if s.own_approvals.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Approved for themselves</p>
+    <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">What each manager approved without a second person. The Approvals report has each one.</p>
+    <%= mail_list [ "Manager", "Approved", "Value" ], s.own_approvals.map { |own|
+          [ own.name, own.kinds.map { |kind, count| "#{count} × #{kind.downcase}" }.join(", "), money(own.value_cents, currency: currency) ] }, align: [ :left, :left, :right ] %>
+  <% end %>
+
   <% if s.new_suppliers.any? || s.unordered_receipts.any? %>
     <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Buying to check</p>
     <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">Suppliers added, and goods received with no order behind them or dearer than ordered.</p>

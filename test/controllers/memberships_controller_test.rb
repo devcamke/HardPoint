@@ -141,3 +141,19 @@ class MembershipsControllerTest < ActionDispatch::IntegrationTest
     assert_equal branches(:acme_main), Account.without_isolation { User.find_by!(email_address: "njeri@acme.test").memberships.sole.branch }
   end
 end
+
+class ManagerOwnApprovalReminderTest < ActionDispatch::IntegrationTest
+  setup { sign_in_as users(:amina) }
+
+  test "making someone a manager says they approve their own actions, unless a second approver is required" do
+    patch membership_path(memberships(:sara_acme)), params: { membership: { role: "manager" } }
+    assert_match "Managers approve their own voids", flash[:notice]
+
+    patch membership_path(memberships(:sara_acme)), params: { membership: { role: "cashier" } }
+    assert_equal "Role updated.", flash[:notice]
+
+    Account.without_isolation { accounts(:acme).update!(require_second_approver: true) }
+    patch membership_path(memberships(:sara_acme)), params: { membership: { role: "manager" } }
+    assert_equal "Role updated.", flash[:notice]
+  end
+end

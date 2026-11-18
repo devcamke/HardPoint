@@ -17,6 +17,7 @@ class OwnerSummary::Daily
   OutOfStock = Data.define(:branch, :count, :products)
   Refusal = Data.define(:product, :times, :quantity)
   WriteOff = Data.define(:reason, :value_cents, :lines)
+  OwnApprovals = Data.define(:name, :count, :value_cents, :kinds)
   NewSupplier = Data.define(:name, :added_by)
   UnorderedReceipt = Data.define(:receipt, :value_cents)
 
@@ -118,6 +119,16 @@ class OwnerSummary::Daily
     end
   end
 
+  # What each manager approved for themselves on the day (Report::Approvals), the most first. Owners aren't listed:
+  # it's their shop. With the second approver on there's nothing to list.
+  def own_approvals
+    @own_approvals ||= begin
+      managers = account.memberships.manager.pluck(:user_id)
+      Report::Approvals.approved(account, period.range).select { _1.self_approved? && _1.event.creator_id.in?(managers) }.group_by(&:asked_by)
+        .map { |name, all| OwnApprovals.new(name, all.size, all.sum { _1.value_cents.to_i }, all.map(&:kind).tally) }.sort_by { [ -_1.value_cents, -_1.count ] }
+    end
+  end
+
   # Suppliers added on the day, and who added each: a supplier nobody else knows is how a made-up one gets paid.
   def new_suppliers
     @new_suppliers ||= account.account_events.where(action: "created", eventable_type: "Supplier", created_at: period.range).includes(:creator).order(:created_at)
@@ -152,7 +163,7 @@ class OwnerSummary::Daily
 
   def money_worth_a_look?
     shifts.any? { _1.variance_cents.nonzero? } || cashiers.any? || unusual.any? || below_cost.any? || offline_flags.any? || shifts_left_open.any? ||
-      unmatched_mobile_money[:count].positive? || new_suppliers.any? || unordered_receipts.any?
+      unmatched_mobile_money[:count].positive? || new_suppliers.any? || unordered_receipts.any? || own_approvals.any?
   end
 
   private

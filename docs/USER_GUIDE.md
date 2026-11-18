@@ -1558,6 +1558,7 @@ Open **Reports**, choose a report, then a period (today, this week, last month, 
 - **Tax (VAT)**: output tax by rate, input tax from supplier invoices, and VAT payable, for your return.
 - **Payments by method** (Airtel Money appears once it's connected or used), **M-Pesa reconciliation**, and **Shifts and cash counts** with each shift's over or short.
 - **Discounts, voids and returns**: per cashier, with who approved the big ones.
+- **Approvals**: every void, discount, payout, write-off and purchase that needed an owner or manager, by who asked and who approved, and each one somebody approved for themselves. Look for a manager approving a lot of their own, and for the same two people always approving for each other. The owner's morning email also says what each manager approved for themselves the day before. To stop self-approval, tick the second approver under **Settings › Shop details**.
 - **Stock valuation** at cost and selling price, and **Dead stock**: what hasn't sold for a while and the money tied up in it.
 - Plus **Who owes us**, **What we owe** and the stock history.
 
