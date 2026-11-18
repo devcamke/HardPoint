@@ -34,6 +34,7 @@ module EventsHelper
     in [ "Account", "suppliers_imported" ] then "imported suppliers from a spreadsheet: #{event.particulars["created"]} new, #{event.particulars["updated"]} updated#{", #{event.particulars["balances"]} with an opening balance" if event.particulars["balances"].to_i.positive?}"
     in [ "Customer", "written_off" ] then "wrote off #{money(event.particulars["amount"])} of #{subject}'s account, approved by #{approver_words(event)}: #{event.particulars["reason"]}"
     in [ "CustomerOrder", "deposit_kept" ] then "kept the #{money(event.particulars["amount"])} deposit on #{subject} (#{event.particulars["receipt_number"]}), approved by #{approver_words(event)}#{": #{event.particulars["reason"]}" if event.particulars["reason"].present?}"
+    in [ "Product", "offcut_scrapped" ] then "scrapped a #{event.particulars["length"]} offcut of #{subject} at #{event.particulars["branch"]}"
     in [ _, "offline_sale_refused" ] then "rang up offline sale #{event.particulars["receipt_number"] || "without a number"} for #{money(event.particulars["total"])}" \
       "#{" on #{subject}" if event.eventable_type == "Register"}#{" at #{Time.zone.parse(event.particulars["happened_at"]).to_fs(:short)}" if event.particulars["happened_at"]}, " \
       "which couldn't be recorded: #{event.particulars["error"]}. The money is in the drawer; ring it up by hand"

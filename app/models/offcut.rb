@@ -28,11 +28,12 @@ class Offcut < ApplicationRecord
     offcut
   end
 
-  # Thrown away: it leaves the list and the stock, as cutting waste.
+  # Thrown away: it leaves the list and the stock, as cutting waste. It's a write-off, so Activity says who did it.
   def scrap(creator: Current.user)
     transaction do
       destroy!
       product.move_stock(branch: branch, quantity: -length, reason: "cutting_waste", note: "#{product.length_words(length)} offcut scrapped", creator: creator)
+      product.track_event "offcut_scrapped", creator: creator, length: product.length_words(length), branch: branch.name
     end
   end
 end

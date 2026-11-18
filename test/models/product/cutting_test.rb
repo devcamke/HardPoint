@@ -153,6 +153,9 @@ class Product::CuttingTest < ActiveSupport::TestCase
     assert_equal 27.8, @bar.stock_at(@main)
     assert_equal [ "2.2 m offcut scrapped" ], notes("cutting_waste")
     assert_empty offcuts
+
+    event = @bar.events.where(action: "offcut_scrapped").sole
+    assert_equal "scrapped a 2.2 m offcut of #{@bar.name} at #{@main.name}", ApplicationController.helpers.event_summary(event)
   end
 
   test "only measured, stock-tracked products are cut to length; clearing the length forgets the offcuts" do
