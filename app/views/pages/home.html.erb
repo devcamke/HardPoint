@@ -73,36 +73,6 @@
   </dialog>
 </section>
 
-<%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
-<section class="border-t border-gray-200 bg-white">
-  <%# The label on its own line, then the eight: one row spaced evenly on a wide screen; two or four neat columns,
-      icons lined up, on smaller ones, so nothing is left alone on a row. %>
-  <div class="mx-auto max-w-6xl px-4 py-8">
-    <p class="text-center text-xs font-semibold tracking-wide text-gray-500 uppercase">Works with what your shop already uses</p>
-    <ul class="mx-auto mt-5 grid w-fit grid-cols-2 gap-x-10 gap-y-4 text-sm font-medium text-gray-700 sm:grid-cols-4 lg:flex lg:w-full lg:justify-between">
-      <% [ [ :mpesa, "M-Pesa" ], [ :airtel, "Airtel Money" ], [ :card, "Cards" ], [ :etims, "KRA eTIMS" ], [ :barcode, "Barcode scanners" ],
-           [ :printer, "Receipt printers" ], [ :whatsapp, "WhatsApp" ], [ :quickbooks, "QuickBooks" ] ].each do |icon, label| %>
-        <li class="flex items-center gap-2 whitespace-nowrap"><span class="shrink-0 text-primary-600"><%= render "pages/icon", name: icon, classes: "size-5" %></span><%= label %></li>
-      <% end %>
-    </ul>
-  </div>
-</section>
-
-<%# What a shop owner expects to be stuck with, and won't be: each struck through, with what happens instead. %>
-<section class="border-t border-gray-200 bg-white" aria-labelledby="nots-title">
-  <div class="mx-auto max-w-6xl px-4 py-10">
-    <h2 id="nots-title" class="text-center text-xs font-semibold tracking-wide text-gray-500 uppercase">What you won’t get</h2>
-    <ul class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-      <% [ [ "An installer", "It runs in the browser on the computer, tablet or phone you already have." ],
-           [ "A contract", "Pay monthly. Close the shop whenever you like and take your data with you." ],
-           [ "Fees per sale", "One price for the shop, however busy December gets." ],
-           [ "A training course", "Each screen shows your staff around the first time they open it." ] ].each do |nope, instead| %>
-        <li><s class="block text-lg font-bold text-gray-500 decoration-rose-500 decoration-2"><%= nope %></s><span class="mt-1 block text-sm text-gray-600"><%= instead %></span></li>
-      <% end %>
-    </ul>
-  </div>
-</section>
-
 <%# The product as a grid of tiles, one per thing a hardware shop does, each opening its help guide: white tiles with
       a coloured glyph, as Odoo draws its apps. Twelve, the ones a shop decides on; the guides hold the rest. The switch beneath, "Imagine without HardPoint", greys the tiles and
       writes by hand what each one replaces in a hardware shop. CSS alone: the switch is a checkbox the grid listens to. %>
@@ -166,8 +136,38 @@
   </div>
 </section>
 
-<%# The real till, with what to notice on it listed beneath. %>
+<%# Where others put a wall of customer logos: what the shop already has, which HardPoint works with as it is. %>
 <section class="bg-white">
+  <%# The label on its own line, then the eight: one row spaced evenly on a wide screen; two or four neat columns,
+      icons lined up, on smaller ones, so nothing is left alone on a row. %>
+  <div class="mx-auto max-w-6xl px-4 py-8">
+    <p class="text-center text-xs font-semibold tracking-wide text-gray-500 uppercase">Works with what your shop already uses</p>
+    <ul class="mx-auto mt-5 grid w-fit grid-cols-2 gap-x-10 gap-y-4 text-sm font-medium text-gray-700 sm:grid-cols-4 lg:flex lg:w-full lg:justify-between">
+      <% [ [ :mpesa, "M-Pesa" ], [ :airtel, "Airtel Money" ], [ :card, "Cards" ], [ :etims, "KRA eTIMS" ], [ :barcode, "Barcode scanners" ],
+           [ :printer, "Receipt printers" ], [ :whatsapp, "WhatsApp" ], [ :quickbooks, "QuickBooks" ] ].each do |icon, label| %>
+        <li class="flex items-center gap-2 whitespace-nowrap"><span class="shrink-0 text-primary-600"><%= render "pages/icon", name: icon, classes: "size-5" %></span><%= label %></li>
+      <% end %>
+    </ul>
+  </div>
+</section>
+
+<%# What a shop owner expects to be stuck with, and won't be: each struck through, with what happens instead. %>
+<section class="border-t border-gray-200 bg-white" aria-labelledby="nots-title">
+  <div class="mx-auto max-w-6xl px-4 py-10">
+    <h2 id="nots-title" class="text-center text-xs font-semibold tracking-wide text-gray-500 uppercase">What you won’t get</h2>
+    <ul class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+      <% [ [ "An installer", "It runs in the browser on the computer, tablet or phone you already have." ],
+           [ "A contract", "Pay monthly. Close the shop whenever you like and take your data with you." ],
+           [ "Fees per sale", "One price for the shop, however busy December gets." ],
+           [ "A training course", "Each screen shows your staff around the first time they open it." ] ].each do |nope, instead| %>
+        <li><s class="block text-lg font-bold text-gray-500 decoration-rose-500 decoration-2"><%= nope %></s><span class="mt-1 block text-sm text-gray-600"><%= instead %></span></li>
+      <% end %>
+    </ul>
+  </div>
+</section>
+
+<%# The real till, with what to notice on it listed beneath. %>
+<section class="border-t border-gray-200 bg-white">
   <div class="mx-auto max-w-6xl px-4 py-16 sm:py-20">
     <div class="mx-auto max-w-3xl text-center">
       <p class="text-sm font-semibold tracking-wide text-primary-600 uppercase">At the counter</p>
