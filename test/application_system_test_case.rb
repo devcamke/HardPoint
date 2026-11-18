@@ -13,6 +13,13 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # to sign in. Each request has a connection of its own outside tests.
   Capybara.server = :puma, { Threads: "1:1" }
 
+  # With one request at a time, a click can wait its turn behind a page Turbo is prefetching, and the first time a
+  # page is asked for it is slow to build. Two seconds, Capybara's usual patience, isn't enough for both.
+  Capybara.default_max_wait_time = 10
+
+  # Jobs are kept, not run on a background thread behind the browser's back; a test runs the ones it means to.
+  include ActiveJob::TestHelper
+
   def visit_shop(account, path = "/")
     Capybara.app_host = "http://#{account.subdomain}.localhost"
     visit path
@@ -64,7 +71,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   private
     # Where the browser was when a step failed, what it last asked the server for, and anything it complained about.
     def browser_state
-      requests = page.evaluate_script("performance.getEntriesByType('resource').slice(-6).map(entry => entry.name)")
+      requests = page.evaluate_script("performance.getEntriesByType('resource').slice(-6).map(entry => `${entry.name} (${Math.round(entry.duration)} ms)`)")
       console = page.driver.browser.logs.get(:browser).map(&:message)
       [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?) ].compact.join("\n")
     rescue StandardError => error
