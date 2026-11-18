@@ -63,10 +63,18 @@
     </fieldset>
 
     <div class="field flex items-start gap-2">
+      <%= form.check_box :managers_need_second_approver, class: "mt-1 size-4 accent-primary-500" %>
+      <div>
+        <%= form.label :managers_need_second_approver, "Managers need a second person to approve their own voids, discounts, credit, payouts, write-offs and purchases", class: "text-sm font-medium text-gray-800" %>
+        <p class="hint">An owner or another manager types their approval PIN, so set yours under My profile. Owners still approve their own.</p>
+      </div>
+    </div>
+
+    <div class="field flex items-start gap-2">
       <%= form.check_box :require_second_approver, class: "mt-1 size-4 accent-primary-500" %>
       <div>
-        <%= form.label :require_second_approver, "Owners and managers need a second person to approve their own voids, discounts, credit, payouts, write-offs and purchases", class: "text-sm font-medium text-gray-800" %>
-        <p class="hint">Another owner or manager types their approval PIN. Off, they approve their own; Activity notes it, the
+        <%= form.label :require_second_approver, "Owners need a second person too", class: "text-sm font-medium text-gray-800" %>
+        <p class="hint">Nobody approves their own: another owner or manager types their approval PIN. Whoever approves their own, Activity notes it, the
           <%= link_to "Approvals report", report_path("approvals"), class: "link" %> lists each one, and the morning email says what each manager approved for themselves.</p>
       </div>
     </div>

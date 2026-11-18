@@ -152,7 +152,12 @@ class ManagerOwnApprovalReminderTest < ActionDispatch::IntegrationTest
     patch membership_path(memberships(:sara_acme)), params: { membership: { role: "cashier" } }
     assert_equal "Role updated.", flash[:notice]
 
-    Account.without_isolation { accounts(:acme).update!(require_second_approver: true) }
+    Account.without_isolation { accounts(:acme).update!(managers_need_second_approver: true) }
+    patch membership_path(memberships(:sara_acme)), params: { membership: { role: "manager" } }
+    assert_match "nobody has one yet: set yours under My profile", flash[:notice]
+
+    patch membership_path(memberships(:sara_acme)), params: { membership: { role: "cashier" } }
+    Account.without_isolation { memberships(:amina_acme).set_approval_pin("2468") }
     patch membership_path(memberships(:sara_acme)), params: { membership: { role: "manager" } }
     assert_equal "Role updated.", flash[:notice]
   end

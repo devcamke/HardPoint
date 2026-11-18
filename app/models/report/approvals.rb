@@ -38,7 +38,7 @@ class Report::Approvals < Report
 
   def sections
     [ Section.new(title: "Who approved for whom", columns: pair_columns, rows: pair_rows,
-        note: "Themselves means an owner or manager approved their own action. To stop that, turn on the second approver under Settings › Shop details."),
+        note: "Themselves means an owner or manager approved their own action. Who needs a second person is set under Settings › Shop details."),
       Section.new(title: "Approved for themselves", columns: own_columns, rows: own_rows) ]
   end
 

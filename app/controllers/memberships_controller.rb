@@ -55,12 +55,16 @@ class MembershipsController < ApplicationController
   end
 
   private
-    # A new manager can approve their own voids, payouts and write-offs unless the shop asks for a second person:
-    # the moment to say so is when one is made.
+    # Whether a manager approves their own voids, payouts and write-offs is the shop's choice: the moment to say
+    # which it is, is when one is made.
     def own_approval_reminder
-      return unless @membership.manager? && @membership.saved_change_to_role? && !Current.account.require_second_approver?
+      return unless @membership.manager? && @membership.saved_change_to_role?
 
-      " Managers approve their own voids, discounts, payouts and write-offs. To make them need a second person, turn it on under Settings › Shop details."
+      if @membership.approves_own_actions?
+        " Managers approve their own voids, discounts, payouts and write-offs. To make them need a second person, turn it on under Settings › Shop details."
+      elsif Current.account.memberships.where(role: Approval::APPROVER_ROLES).where.not(approval_pin_digest: nil).where.not(id: @membership.id).none?
+        " Their own voids, discounts, payouts and write-offs need a second person's approval PIN, and nobody has one yet: set yours under My profile."
+      end
     end
 
     def set_membership

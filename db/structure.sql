@@ -266,7 +266,8 @@ CREATE TABLE public.accounts (
     fundi_commission_percent numeric(5,2) DEFAULT 0.0 NOT NULL,
     preferences jsonb DEFAULT '{}'::jsonb NOT NULL,
     write_off_approval_above_cents bigint DEFAULT 500000 NOT NULL,
-    purchase_approval_above_cents bigint DEFAULT 2000000 NOT NULL
+    purchase_approval_above_cents bigint DEFAULT 2000000 NOT NULL,
+    managers_need_second_approver boolean DEFAULT false NOT NULL
 );
 
 
@@ -11041,6 +11042,7 @@ ALTER TABLE public.whatsapp_messages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261118110000'),
 ('20261118100000'),
 ('20261118090000'),
 ('20261114130000'),
