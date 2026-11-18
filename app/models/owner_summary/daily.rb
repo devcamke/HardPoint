@@ -17,6 +17,8 @@ class OwnerSummary::Daily
   OutOfStock = Data.define(:branch, :count, :products)
   Refusal = Data.define(:product, :times, :quantity)
   WriteOff = Data.define(:reason, :value_cents, :lines)
+  NewSupplier = Data.define(:name, :added_by)
+  UnorderedReceipt = Data.define(:receipt, :value_cents)
 
   attr_reader :account, :date
 
@@ -116,6 +118,19 @@ class OwnerSummary::Daily
     end
   end
 
+  # Suppliers added on the day, and who added each: a supplier nobody else knows is how a made-up one gets paid.
+  def new_suppliers
+    @new_suppliers ||= account.account_events.where(action: "created", eventable_type: "Supplier", created_at: period.range).includes(:creator).order(:created_at)
+      .map { NewSupplier.new(_1.particulars["name"], _1.creator&.name) }
+  end
+
+  # Goods received on the day that no order covers (GoodsReceipt#unordered_value_cents), the most first.
+  def unordered_receipts
+    @unordered_receipts ||= account.goods_receipts.where(created_at: period.range).where.missing(:etims_purchases)
+      .includes(:supplier, :receiver, :branch, lines: :purchase_order_line).map { UnorderedReceipt.new(_1, _1.unordered_value_cents) }
+      .select { _1.value_cents.positive? }.sort_by { -_1.value_cents }
+  end
+
   # Stock one branch could send another that's short, before anyone orders more.
   def moves
     @moves ||= account.branches.many? ? BranchRebalancing.new(account).moves : []
@@ -137,7 +152,7 @@ class OwnerSummary::Daily
 
   def money_worth_a_look?
     shifts.any? { _1.variance_cents.nonzero? } || cashiers.any? || unusual.any? || below_cost.any? || offline_flags.any? || shifts_left_open.any? ||
-      unmatched_mobile_money[:count].positive?
+      unmatched_mobile_money[:count].positive? || new_suppliers.any? || unordered_receipts.any?
   end
 
   private

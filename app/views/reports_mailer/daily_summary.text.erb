@@ -24,6 +24,8 @@ MONEY AND STAFF
 <% end %><% s.cashiers.each do |cashier| %>- <%= cashier.name %> gave away <%= money(cashier.given_away_cents, currency: currency) %> in discounts, voids and returns
 <% end %><% if s.below_cost.any? %>- <%= pluralize(s.below_cost.size, "line") %> sold below cost, <%= money(s.below_cost.sum(&:loss_cents), currency: currency) %> under
 <% end %><% if s.offline_flags.any? %>- <%= pluralize(s.offline_flags.size, "offline sale") %> to check
+<% end %><% s.unordered_receipts.first(OwnerSummary::Daily::LIST_LIMIT).each do |unordered| %>- <%= unordered.receipt.reference %> from <%= unordered.receipt.supplier.name %> (<%= unordered.receipt.receiver&.name %>): <%= money(unordered.value_cents, currency: currency) %> not covered by an order
+<% end %><% if s.new_suppliers.any? %>- <%= pluralize(s.new_suppliers.size, "new supplier") %>: <%= s.new_suppliers.first(OwnerSummary::Daily::LIST_LIMIT).map { "#{_1.name} (#{_1.added_by || "HardPoint"})" }.to_sentence %>
 <% end %><% s.shifts_left_open.each do |shift| %>- <%= shift.register.name %> open since <%= shift.opened_at.strftime("%A %-d %B") %>
 <% end %><% if s.unmatched_mobile_money[:count].positive? %>- <%= pluralize(s.unmatched_mobile_money[:count], "M-Pesa payment") %> not on a sale
 <% end %><% end %>

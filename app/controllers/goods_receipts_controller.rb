@@ -33,8 +33,13 @@ class GoodsReceiptsController < ApplicationController
 
   def create
     @goods_receipt = Current.account.goods_receipts.new(goods_receipt_params)
+    needs_approval = @goods_receipt.valid? && @goods_receipt.needs_approval?
+    @goods_receipt.approver = approver_for_action if needs_approval
 
-    if @goods_receipt.save
+    if needs_approval && @goods_receipt.approver.nil?
+      @goods_receipt.errors.add :base, @goods_receipt.approval_needed_message
+      render :new, status: :unprocessable_entity
+    elsif @goods_receipt.save
       redirect_to @goods_receipt, notice: "Received into #{@goods_receipt.branch.name}. Stock and costs are updated."
     else
       BLANK_LINES.times { @goods_receipt.lines.build } unless @goods_receipt.purchase_order

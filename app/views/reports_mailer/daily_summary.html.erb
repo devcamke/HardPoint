@@ -134,6 +134,19 @@
     <%= mail_list [ "Receipt", "What the till noticed" ], s.offline_flags.first(5).map { [ _1.receipt_number, _1.warnings.first(2).join("; ") ] } %>
   <% end %>
 
+  <% if s.new_suppliers.any? || s.unordered_receipts.any? %>
+    <p style="margin:18px 0 4px; font-size:14px; font-weight:600;">Buying to check</p>
+    <p style="margin:0 0 6px; font-size:13px; color:<%= mail_color(:muted) %>;">Suppliers added, and goods received with no order behind them or dearer than ordered.</p>
+    <% limit = OwnerSummary::Daily::LIST_LIMIT %>
+    <%= mail_list [ "What", "Who", "Value" ],
+          s.unordered_receipts.first(limit).map { [ link_to("#{_1.receipt.reference} from #{_1.receipt.supplier.name}", goods_receipt_url(_1.receipt, **host), style: "color:#{mail_color(:bar)};"),
+            _1.receipt.receiver&.name, money(_1.value_cents, currency: currency) ] } +
+          s.new_suppliers.first(limit).map { [ "New supplier: #{_1.name}", _1.added_by, "" ] }, align: [ :left, :left, :right ] %>
+    <% if (more = [ s.new_suppliers.size - limit, 0 ].max).positive? %>
+      <p style="margin:6px 0 0; font-size:13px; color:<%= mail_color(:secondary) %>;">And <%= pluralize(more, "more new supplier") %>.</p>
+    <% end %>
+  <% end %>
+
   <% if s.shifts_left_open.any? || s.unmatched_mobile_money[:count].positive? %>
     <div style="height:14px;"></div>
     <% s.shifts_left_open.each do |shift| %>

@@ -14,11 +14,18 @@
     <%= whatsapp_button order, phone: order.supplier.phone unless order.cancelled? %>
     <% if order.draft? %>
       <%= link_to "Edit", edit_purchase_order_path(order), class: "btn-secondary" %>
-      <% if order.supplier.email.present? %>
-        <%= button_to "Mark sent (phoned in)", purchase_order_sending_path(order), class: "btn-secondary" %>
-        <%= button_to "Email to #{order.supplier.email}", purchase_order_sending_path(order), params: { email: "1" }, class: "btn-primary" %>
-      <% else %>
-        <%= button_to "Mark as sent", purchase_order_sending_path(order), class: "btn-primary" %>
+      <%# Over the shop's limit, someone who can't approve it sends it with a manager's PIN. %>
+      <%= form_with url: purchase_order_sending_path(order), class: "flex flex-wrap items-center gap-2" do |form| %>
+        <% if order.needs_approval? && !current_membership.approves_own_actions? %>
+          <%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", class: "input w-44", placeholder: "Manager PIN",
+                "aria-label": "Manager approval PIN (for an order over #{money(Current.account.purchase_approval_above_cents)})" %>
+        <% end %>
+        <% if order.supplier.email.present? %>
+          <%= form.button "Mark sent (phoned in)", class: "btn-secondary" %>
+          <%= form.button "Email to #{order.supplier.email}", name: "email", value: "1", class: "btn-primary" %>
+        <% else %>
+          <%= form.button "Mark as sent", class: "btn-primary" %>
+        <% end %>
       <% end %>
     <% end %>
     <% if order.receivable? %>

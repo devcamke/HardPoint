@@ -1225,6 +1225,8 @@ Moving from another system? The owner can bring every supplier in at once from a
 1. In **Buy › Purchase orders**, press **New**, choose the supplier and branch, and add the products. To order by the box or bag, type one of the product's pack sizes under **Pack**; the quantity and cost are then per pack, and stock still counts the pieces.
 2. Press **Email to …** to send it with a PDF attached, or **Mark sent (phoned in)** if you ordered by phone.
 
+Buying has a limit one person can't pass alone (KES 20,000 to start with; owners change it under **Settings › Shop details**). Sending an order worth more needs an owner's or manager's approval PIN, typed beside the send button. So does receiving goods that no order covers, once they come to more than the limit for one person in a day: a delivery recorded with no order, or at a dearer cost than was ordered. Goods received from a supplier's invoice at KRA aren't counted, since the invoice is the supplier's own record. **Settings › Activity** records who approved each one, and the owner's morning email lists suppliers added the day before and goods received with no order behind them.
+
 **Stock › Reorder** works out what to order per branch from reorder levels, the last 30 days' sales, lead times, what's already on order and minimum order sizes, grouped by supplier. **Draft an order for …** turns a supplier's suggestions into a draft order to check and send, and when several suppliers have suggestions, **Draft … purchase orders** does them all at once. **Order them** on Home takes you there.
 
 #### How the suggestions learn

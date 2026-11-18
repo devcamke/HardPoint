@@ -138,6 +138,9 @@ was under 30).
   - **Profit and loss** (sales less returns, cost of sales, stock losses, till payouts)
   - **Tax (VAT)**: output tax by rate, input tax from supplier invoices, VAT payable
   - **Payments by method**, refunds, deposits and payments on account
+  - **Buying needs a second person:** a purchase order over the shop's limit needs an owner's or manager's approval
+    PIN to send, and so do goods one person receives in a day that no order covers (no order, or dearer than
+    ordered); the owner's morning email lists new suppliers and goods received without an order
   - **Write-offs need approval:** once what one person writes off by hand in a day (adjustments down, batches
     written off) passes the shop's limit at cost, each one needs an owner's or manager's approval PIN, is recorded
     in Activity with who approved it, and emails the other owners and managers

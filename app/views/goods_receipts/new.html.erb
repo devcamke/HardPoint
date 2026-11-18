@@ -65,5 +65,12 @@
     <div class="field" data-tour="receive-note"><%= form.label :note, class: "label" %><%= form.text_field :note, class: "input", placeholder: "e.g. 2 bags torn, set aside" %></div>
   </div>
 
+  <% unless current_membership.approves_own_actions? %>
+    <div class="field">
+      <%= label_tag :approval_pin, "Manager approval PIN (for more than #{money(Current.account.purchase_approval_above_cents)} in a day with no order behind it, or dearer than ordered)", class: "label" %>
+      <%= password_field_tag :approval_pin, nil, inputmode: "numeric", autocomplete: "off", class: "input w-40" %>
+    </div>
+  <% end %>
+
   <%= form.submit "Receive into stock", class: "btn-primary", data: { tour: "receive-submit" } %>
 <% end %>

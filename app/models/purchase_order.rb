@@ -1,6 +1,9 @@
 # An order to a supplier for delivery to a branch: a draft while it's being put together, sent
 # (emailed as a PDF), then partially or fully received through goods received notes. One the
 # supplier can't finish is closed short, so the rest stops being waited for.
+#
+# Whoever raises orders shouldn't be able to commit the shop's money alone: sending one worth more than the shop's
+# limit (purchase_approval_above, on Shop details) needs an owner or manager, at their own screen or by approval PIN.
 class PurchaseOrder < ApplicationRecord
   include AccountOwned, Eventable, Monetary
 
@@ -45,8 +48,17 @@ class PurchaseOrder < ApplicationRecord
     lines.select { _1.outstanding_quantity.positive? }
   end
 
-  def mark_sent
-    draft? && update(status: :sent, sent_at: Time.current).tap { |sent| track_event "sent", supplier: supplier.name, total: total_cents if sent }
+  # The order's worth in the shop's own money.
+  def base_total_cents
+    exchange_rate ? (total_cents * exchange_rate.to_d).round : total_cents
+  end
+
+  def needs_approval?
+    base_total_cents > account.purchase_approval_above_cents
+  end
+
+  def mark_sent(approver: nil)
+    draft? && update(status: :sent, sent_at: Time.current).tap { |sent| track_event "sent", supplier: supplier.name, total: total_cents, approver: approver if sent }
   end
 
   def cancel
