@@ -55,13 +55,13 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     setup do
       @journey_steps = 0
       FileUtils.rm_rf journey_directory
+      trace_browser_events # TEMPORARY, while finding why the first journey of a run loses a click
     end
   end
 
   # The block is the step: what the person does, and what they should then see. The screenshot is taken once the
   # block's checks have passed, so it shows the screen the checks saw.
   def step(description)
-    trace_browser_events # TEMPORARY, while finding why the first journey of a run loses a click
     yield
     @journey_steps += 1
     page.save_screenshot journey_directory.join(format("%02d-%s.png", @journey_steps, description.parameterize))
@@ -80,26 +80,36 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
       "(The browser's state couldn't be read: #{error.message})"
     end
 
-    # TEMPORARY: keeps a list in the page of what the mouse did and what Turbo made of it.
+    # TEMPORARY: keeps a list in every page of what the mouse did, what Turbo made of it, and what moved.
     def trace_browser_events
-      page.execute_script(<<~JS)
-        if (!window.journeyEvents) {
-          window.journeyEvents = []
-          const name = (element) => element && element.tagName ? `${element.tagName.toLowerCase()}${element.id ? "#" + element.id : ""}[${(element.getAttribute("href") || element.textContent || "").trim().slice(0, 30)}]` : String(element)
+      page.driver.browser.execute_cdp("Page.addScriptToEvaluateOnNewDocument", source: <<~JS)
+        window.journeyEvents = []
+        {
+          const name = (element) => element && element.tagName ? `${element.tagName.toLowerCase()}${element.id ? "#" + element.id : ""}[${(element.getAttribute("href") || element.textContent || "").trim().replace(/\s+/g, " ").slice(0, 30)}]` : String(element)
           const note = (text) => window.journeyEvents.push(`${Math.round(performance.now())} ${text}`)
           for (const type of [ "mousedown", "mouseup", "click" ]) {
-            window.addEventListener(type, (event) => note(`${type} on ${name(event.target)} at ${event.clientX},${event.clientY} trusted=${event.isTrusted}`), true)
+            window.addEventListener(type, (event) => note(`${type} on ${name(event.target)} at ${event.clientX},${event.clientY}`), true)
           }
           window.addEventListener("click", (event) => note(`click bubbled, prevented=${event.defaultPrevented}`))
-          document.addEventListener("mouseover", (event) => { const link = event.target.closest && event.target.closest("a"); if (link) note(`over ${name(link)}`) }, true)
-          for (const type of [ "turbo:click", "turbo:before-visit", "turbo:visit", "turbo:before-fetch-request", "turbo:before-fetch-response", "turbo:fetch-request-error", "turbo:before-render", "turbo:render", "turbo:load", "turbo:before-prefetch", "turbo:submit-start", "turbo:submit-end" ]) {
-            document.addEventListener(type, (event) => note(`${type} ${event.detail?.url || event.detail?.fetchResponse?.response?.url || ""} ${event.defaultPrevented ? "PREVENTED" : ""}`))
+          window.addEventListener("submit", (event) => note(`submit ${event.target.getAttribute("action")}`), true)
+          window.addEventListener("resize", () => note(`resize ${innerWidth}x${innerHeight}`))
+          window.addEventListener("focus", () => note("window focus"))
+          window.addEventListener("blur", () => note("window blur"))
+          document.addEventListener("visibilitychange", () => note(`visibility ${document.visibilityState}`))
+          for (const type of [ "turbo:click", "turbo:before-visit", "turbo:visit", "turbo:before-fetch-request", "turbo:before-fetch-response", "turbo:fetch-request-error", "turbo:render", "turbo:load", "turbo:submit-start", "turbo:submit-end" ]) {
+            document.addEventListener(type, (event) => note(`${type} ${event.detail?.url || event.detail?.fetchResponse?.response?.url || ""}${event.defaultPrevented ? " PREVENTED" : ""}`))
           }
-          window.addEventListener("pagehide", () => note("pagehide"))
+          try {
+            new PerformanceObserver((list) => { for (const entry of list.getEntries()) note(`layout shift ${entry.value.toFixed(4)} at ${Math.round(entry.startTime)}`) }).observe({ type: "layout-shift", buffered: true })
+          } catch (error) { note(`no layout shift observer: ${error}`) }
+          document.addEventListener("DOMContentLoaded", () => {
+            note("DOMContentLoaded")
+            document.fonts.addEventListener("loadingdone", (event) => note(`fonts loaded: ${[ ...event.fontfaces ].map((face) => face.family + " " + face.weight).join(", ")}`))
+          })
         }
       JS
-    rescue StandardError
-      nil
+    rescue StandardError => error
+      warn "Couldn't trace the browser: #{error.message}"
     end
 
     def journey_directory
