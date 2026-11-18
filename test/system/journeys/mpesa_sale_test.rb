@@ -1,5 +1,4 @@
 require "application_system_test_case"
-require "net/http"
 
 # A sale paid from the customer's phone: the cashier sends an M-Pesa prompt, the customer enters their PIN, and the
 # till finishes the sale by itself. The shop's Paybill is on the simulator, and Safaricom's side is played by posting
@@ -7,13 +6,7 @@ require "net/http"
 class MpesaSaleJourneyTest < ApplicationSystemTestCase
   journey "mpesa-sale"
 
-  setup do
-    @callback_token = Account.without_isolation do
-      Current.set(account: accounts(:acme)) do
-        accounts(:acme).mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator").callback_token
-      end
-    end
-  end
+  setup { @callback_token = connect_simulated_paybill }
 
   test "a cashier sends an M-Pesa prompt and the sale completes when the customer pays" do
     step "Carl signs in and opens the Front counter till, where his shift is already open" do
@@ -48,7 +41,7 @@ class MpesaSaleJourneyTest < ApplicationSystemTestCase
     end
 
     step "The customer enters their PIN, and the till completes the sale without being touched" do
-      safaricom_confirms_payment receipt: "SJK4H7T2QP"
+      safaricom_confirms_payment @callback_token, receipt: "SJK4H7T2QP"
       # The till asks every few seconds whether they've paid.
       assert_text "Sale MAIN-000001 complete · KES 1,000.00", wait: 15
       assert_text "M-Pesa SJK4H7T2QP received from 0722 000 111."
@@ -70,17 +63,4 @@ class MpesaSaleJourneyTest < ApplicationSystemTestCase
       assert_text "Expected in drawer KES 5,000.00", normalize_ws: true
     end
   end
-
-  private
-    # What Safaricom does once the customer has entered their PIN: posts the result to the shop's callback address.
-    # The prompt's details come from the simulator's queued stand-in for that call, and the post goes through the
-    # server like any other request, so nothing here reaches into the database while the browser is using it.
-    def safaricom_confirms_payment(receipt:)
-      _shortcode, checkout_request_id, phone, amount = enqueued_jobs.reverse.find { _1[:job] == Mpesa::SimulatedCallbackJob }.fetch(:args)
-      payload = Mpesa::SimulatedCallbackJob.payload(checkout_request_id, phone, amount)
-      payload.dig("Body", "stkCallback", "CallbackMetadata", "Item").find { _1["Name"] == "MpesaReceiptNumber" }["Value"] = receipt
-
-      response = Net::HTTP.post(URI("http://127.0.0.1:#{page.server.port}/webhooks/mpesa/#{@callback_token}/stk"), payload.to_json, "Content-Type" => "application/json")
-      assert_equal "200", response.code, "Safaricom's callback was refused"
-    end
 end

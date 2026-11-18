@@ -1,4 +1,5 @@
 require "test_helper"
+require "net/http"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # Chrome's password manager is off. After a sign-in it offers to save the password, or warns that "password" has
@@ -59,6 +60,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     setup do
       @journey_steps = 0
       FileUtils.rm_rf journey_directory
+      forget_the_shop_in_the_browser
     end
   end
 
@@ -72,7 +74,34 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     raise error.class, "At the step “#{description}”: #{error.message}\n#{browser_state}", error.backtrace
   end
 
+  # Connects the shop to M-Pesa's simulator, as an owner would in Settings. Gives the secret part of the address
+  # Safaricom calls back on.
+  def connect_simulated_paybill(account = accounts(:acme))
+    Account.without_isolation do
+      Current.set(account: account) { account.mpesa_shortcodes.create!(name: "Paybill", shortcode: "174379", environment: "simulator").callback_token }
+    end
+  end
+
+  # What Safaricom does once a customer has entered their PIN: posts the result to the shop's callback address. The
+  # prompt's details come from the simulator's queued stand-in for that call, and the post goes through the server
+  # like any other request, so nothing here reaches into the database while the browser is using it.
+  def safaricom_confirms_payment(callback_token, receipt:)
+    _shortcode, checkout_request_id, phone, amount = enqueued_jobs.reverse.find { _1[:job] == Mpesa::SimulatedCallbackJob }.fetch(:args)
+    payload = Mpesa::SimulatedCallbackJob.payload(checkout_request_id, phone, amount)
+    payload.dig("Body", "stkCallback", "CallbackMetadata", "Item").find { _1["Name"] == "MpesaReceiptNumber" }["Value"] = receipt
+
+    response = Net::HTTP.post(URI("http://127.0.0.1:#{page.server.port}/webhooks/mpesa/#{callback_token}/stk"), payload.to_json, "Content-Type" => "application/json")
+    assert_equal "200", response.code, "Safaricom's callback was refused"
+  end
+
   private
+    # Every journey starts in a browser that has never opened the shop. One browser serves the whole run, and a till
+    # keeps things in it: its service worker, a copy of the catalogue (trusted for five minutes, and naming the till
+    # it was taken on) and the sales it rang up offline.
+    def forget_the_shop_in_the_browser(account = accounts(:acme))
+      page.driver.browser.execute_cdp "Storage.clearDataForOrigin", origin: "http://#{account.subdomain}.localhost:#{page.server.port}", storageTypes: "all"
+    end
+
     # Where the browser was when a step failed, what it last asked the server for, and anything it complained about.
     def browser_state
       requests = page.evaluate_script("performance.getEntriesByType('resource').slice(-6).map(entry => `${entry.name} (${Math.round(entry.duration)} ms)`)")
