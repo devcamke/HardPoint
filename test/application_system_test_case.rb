@@ -61,6 +61,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # The block is the step: what the person does, and what they should then see. The screenshot is taken once the
   # block's checks have passed, so it shows the screen the checks saw.
   def step(description)
+    trace_browser_events # TEMPORARY, while finding why the first journey of a run loses a click
     yield
     @journey_steps += 1
     page.save_screenshot journey_directory.join(format("%02d-%s.png", @journey_steps, description.parameterize))
@@ -73,9 +74,32 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     def browser_state
       requests = page.evaluate_script("performance.getEntriesByType('resource').slice(-6).map(entry => `${entry.name} (${Math.round(entry.duration)} ms)`)")
       console = page.driver.browser.logs.get(:browser).map(&:message)
-      [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?) ].compact.join("\n")
+      events = page.evaluate_script("(window.journeyEvents || ['no trace']).slice(-60).join(' | ')")
+      [ "Browser at #{page.current_url}", "Last requests: #{requests.join(", ")}", ("Console: #{console.join(" | ")}" if console.any?), "Events: #{events}" ].compact.join("\n")
     rescue StandardError => error
       "(The browser's state couldn't be read: #{error.message})"
+    end
+
+    # TEMPORARY: keeps a list in the page of what the mouse did and what Turbo made of it.
+    def trace_browser_events
+      page.execute_script(<<~JS)
+        if (!window.journeyEvents) {
+          window.journeyEvents = []
+          const name = (element) => element && element.tagName ? `${element.tagName.toLowerCase()}${element.id ? "#" + element.id : ""}[${(element.getAttribute("href") || element.textContent || "").trim().slice(0, 30)}]` : String(element)
+          const note = (text) => window.journeyEvents.push(`${Math.round(performance.now())} ${text}`)
+          for (const type of [ "mousedown", "mouseup", "click" ]) {
+            window.addEventListener(type, (event) => note(`${type} on ${name(event.target)} at ${event.clientX},${event.clientY} trusted=${event.isTrusted}`), true)
+          }
+          window.addEventListener("click", (event) => note(`click bubbled, prevented=${event.defaultPrevented}`))
+          document.addEventListener("mouseover", (event) => { const link = event.target.closest && event.target.closest("a"); if (link) note(`over ${name(link)}`) }, true)
+          for (const type of [ "turbo:click", "turbo:before-visit", "turbo:visit", "turbo:before-fetch-request", "turbo:before-fetch-response", "turbo:fetch-request-error", "turbo:before-render", "turbo:render", "turbo:load", "turbo:before-prefetch", "turbo:submit-start", "turbo:submit-end" ]) {
+            document.addEventListener(type, (event) => note(`${type} ${event.detail?.url || event.detail?.fetchResponse?.response?.url || ""} ${event.defaultPrevented ? "PREVENTED" : ""}`))
+          }
+          window.addEventListener("pagehide", () => note("pagehide"))
+        }
+      JS
+    rescue StandardError
+      nil
     end
 
     def journey_directory
