@@ -35,6 +35,10 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 
   # A journey is one task a person does from start to finish (test/system/journeys). Each step of it leaves a numbered
   # screenshot in tmp/journeys/<name>, so the run can be looked through afterwards like a storyboard.
+  #
+  # Once the browser is open, a journey leaves the database to it: records are set up before the first visit, and
+  # anything from outside (a payment callback, say) arrives as a request. The test's own queries would share the
+  # server's connection, and trip over it the way two requests at once do (see above).
   JOURNEYS_DIRECTORY = Rails.root.join("tmp/journeys")
 
   class_attribute :journey_name
